@@ -194,8 +194,8 @@ completion menu).
 | ex      | #+begin_example ... #+end_example                   |
 | quote   | #+begin_quote ... #+end_quote                       |
 | h1 / h2 / h3 | heading at level 1 / 2 / 3                      |
-| img     | [[file:path][caption]] link                         |
-| link    | [[target][description]] link                        |
+| img     | ~[[file:path][caption]]~ link                       |
+| link    | ~[[target][description]]~ link                      |
 | date    | today's date (YYYY-MM-DD)                           |
 | mm      | inline math ~$ $~                                   |
 | dm      | display math ~\[ \]~                                |
