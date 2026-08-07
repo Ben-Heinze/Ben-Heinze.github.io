@@ -20,6 +20,7 @@ The denominator \(P(E)\) is often expanded using the law of total probability:
 P(E) = P(E \mid H) \cdot P(H) + P(E \mid \neg H) \cdot P(\neg H)
 \]
 
+
 ** Python Example
 
 Classic medical test scenario: a disease affects 1% of the population. A test is 99% sensitive (true positive rate) and 95% specific (true negative rate). If a person tests positive, what is the probability they actually have the disease?

@@ -1,0 +1,210 @@
+#+TITLE: Note-taking Snippets & Keybindings Cheatsheet
+#+AUTHOR: Ben Heinze
+#+OPTIONS: toc:2 num:nil ^:nil
+
+* How it works
+
+- *Math snippets are auto-expanding* (LuaSnip autosnippets): they fire the
+  instant you finish typing the trigger. No <Tab> or menu needed.
+- *They only fire inside a math zone* -- between ~$ ... $~, ~$$ ... $$~,
+  ~\( ... \)~, ~\[ ... \]~, or a math environment (~\begin{align}~, ~cases~,
+  ~bmatrix~ ...). In ordinary prose the same words are left untouched, so
+  writing "the sum is large" will not turn into "\sum".
+- *Enter math fast* with ~mk~ (inline ~$ $~) or ~dk~ (display ~\[ \]~). The org
+  snippets ~mm~ / ~dm~ do the same via the completion menu.
+- *Auto-pairs*: typing ~(~ ~[~ ~{~ or ~$~ inserts the closing partner; type the
+  closing char to skip over it instead of adding a new one.
+- Everything works in ~.org~ files (and ~.tex~) anywhere on disk.
+
+* Entering & moving around
+
+| Key            | Action                                                             |
+|----------------+--------------------------------------------------------------------|
+| ~mk~           | insert inline math ~$ $~ (cursor lands between)                     |
+| ~dk~           | insert display math ~\[ \]~ (cursor lands inside)                   |
+| <Tab>          | expand snippet / jump to next placeholder / jump out of braces / accept menu |
+| <S-Tab>        | jump to the previous placeholder                                   |
+| <CR> (Enter)   | confirm the highlighted completion item (otherwise a normal newline) |
+| <C-n> / <C-p>  | select next/prev menu item, or jump forward/back in a snippet      |
+| <C-y>          | always confirm the current completion                              |
+| <M-e>          | auto-pairs "fast wrap": wrap the next word in the last-typed pair  |
+
+* Math -- fractions, scripts, roots
+
+| Trigger | Expands to      |
+|---------+-----------------|
+| //      | \frac{}{}       |
+| ^^      | ^{}             |
+| __      | _{}             |
+| sq      | \sqrt{}         |
+| nrt     | \sqrt[]{}       |
+
+* Math -- operators & calculus
+
+| Trigger | Expands to             |
+|---------+------------------------|
+| sum     | \sum_{}^{}             |
+| prod    | \prod_{}^{}            |
+| int     | \int_{}^{} \, d        |
+| lim     | \lim_{ \to }           |
+| dd      | \frac{d}{d}            |
+| part    | \frac{\partial }{\partial } |
+| bar     | \bar{}                 |
+| hat     | \hat{}                 |
+| vec     | \vec{}                 |
+| tt      | \text{}                |
+
+* Math -- relations & symbols
+
+| Trigger | Expands to |
+|---------+------------|
+| ->      | \to        |
+| !=      | \neq       |
+| >=      | \geq       |
+| <=      | \leq       |
+| ~=      | \approx    |
+| +-      | \pm        |
+| =>      | \implies   |
+| inf     | \infty     |
+| cdot    | \cdot      |
+| xx      | \times     |
+| nn      | \cap       |
+| uu      | \cup       |
+| in      | \in        |
+| notin   | \notin     |
+| AA      | \forall    |
+| EE      | \exists    |
+
+* Math -- environments
+
+| Trigger | Expands to                          |
+|---------+-------------------------------------|
+| beg     | \begin{}...\end{} (name is mirrored) |
+| ali     | \begin{align*}...\end{align*}       |
+| cases   | \begin{cases}...\end{cases}         |
+| bmat    | \begin{bmatrix}...\end{bmatrix}     |
+| pmat    | \begin{pmatrix}...\end{pmatrix}     |
+
+* Statistics -- expectations & estimators
+
+| Trigger | Expands to                     |
+|---------+--------------------------------|
+| Ev      | \mathbb{E}\left[  \right]       |
+| Var     | \mathrm{Var}\left(  \right)     |
+| Cov     | \mathrm{Cov}\left( ,  \right)   |
+| Cor     | \mathrm{Corr}\left( ,  \right)  |
+| xbar    | \bar{x}                        |
+| bhat    | \hat{\beta}                    |
+| thhat   | \hat{\theta}                   |
+| phat    | \hat{p}                        |
+
+* Statistics -- distributions
+
+| Trigger | Expands to                    |
+|---------+-------------------------------|
+| norm    | \mathcal{N}\left( ,  \right)   |
+| nrm     | \left\lVert  \right\rVert      |
+| Pois    | \mathrm{Poisson}()            |
+| Bin     | \mathrm{Binomial}( , )        |
+| Unif    | \mathrm{Uniform}( , )         |
+| Bern    | \mathrm{Bernoulli}()          |
+| Gam     | \mathrm{Gamma}( , )           |
+| Expo    | \mathrm{Exponential}()        |
+| Beta    | \mathrm{Beta}( , )            |
+| Geom    | \mathrm{Geometric}()          |
+
+* Statistics -- probability, relations, convergence
+
+| Trigger | Expands to                       |
+|---------+----------------------------------|
+| Pr      | P\left(  \right)                  |
+| cond    | P\left(  \mid  \right)            |
+| given   | \mid                             |
+| sim     | \sim                             |
+| iid     | \overset{\text{iid}}{\sim}       |
+| perp    | \perp                            |
+| iperp   | \perp\!\!\!\perp (independence)  |
+| nsum    | \sum_{i=1}^{n}                   |
+| nprod   | \prod_{i=1}^{n}                  |
+| argmax  | \underset{}{\arg\max}\;          |
+| argmin  | \underset{}{\arg\min}\;          |
+| convp   | \xrightarrow{p} (in probability) |
+| convd   | \xrightarrow{d} (in distribution)|
+| binom   | \binom{}{}                       |
+
+* Sets (blackboard bold)
+
+| Trigger | Expands to  |
+|---------+-------------|
+| RR      | \mathbb{R}  |
+| ZZ      | \mathbb{Z}  |
+| NN      | \mathbb{N}  |
+| QQ      | \mathbb{Q}  |
+| CC      | \mathbb{C}  |
+
+* Auto-subscript
+
+Type a single letter immediately followed by a digit inside math and it becomes
+a subscript automatically:
+
+| You type | You get |
+|----------+---------|
+| x1       | x_{1}   |
+| b0       | b_{0}   |
+| a9       | a_{9}   |
+
+* Greek letters (=;= prefix)
+
+Lowercase:
+
+| Trigger | Letter   | Trigger | Letter  |
+|---------+----------+---------+---------|
+| ;a      | \alpha   | ;n      | \nu     |
+| ;b      | \beta    | ;x      | \xi     |
+| ;g      | \gamma   | ;p      | \pi     |
+| ;d      | \delta   | ;r      | \rho    |
+| ;e      | \epsilon | ;s      | \sigma  |
+| ;z      | \zeta    | ;ta     | \tau    |
+| ;h      | \eta     | ;ph     | \phi    |
+| ;th     | \theta   | ;ch     | \chi    |
+| ;k      | \kappa   | ;ps     | \psi    |
+| ;l      | \lambda  | ;o      | \omega  |
+| ;m      | \mu      |         |         |
+
+Uppercase:
+
+| Trigger | Letter  | Trigger | Letter  |
+|---------+---------+---------+---------|
+| ;G      | \Gamma  | ;P      | \Pi     |
+| ;D      | \Delta  | ;S      | \Sigma  |
+| ;Th     | \Theta  | ;Ph     | \Phi    |
+| ;L      | \Lambda | ;Ps     | \Psi    |
+| ;X      | \Xi     | ;O      | \Omega  |
+
+* Org structure snippets
+
+These are regular snippets -- type the trigger then <Tab> (or pick from the
+completion menu).
+
+| Trigger | Inserts                                             |
+|---------+-----------------------------------------------------|
+| title   | #+TITLE / #+AUTHOR / #+DATE header                  |
+| src     | #+begin_src <lang> ... #+end_src (choose language)  |
+| nsrc    | named #+begin_src block with :results output        |
+| ex      | #+begin_example ... #+end_example                   |
+| quote   | #+begin_quote ... #+end_quote                       |
+| h1 / h2 / h3 | heading at level 1 / 2 / 3                      |
+| img     | [[file:path][caption]] link                         |
+| link    | [[target][description]] link                        |
+| date    | today's date (YYYY-MM-DD)                           |
+| mm      | inline math ~$ $~                                   |
+| dm      | display math ~\[ \]~                                |
+
+* Fuzzy LaTeX-command finder
+
+For any command not covered by a snippet, type a backslash and start the name
+inside an org/tex/markdown buffer -- a fuzzy menu (cmp-latex-symbols) appears:
+
+: \alp     -> menu: \alpha  \aleph  ...   (press <CR> to insert)
+
+It inserts the ~\command~ form, so it renders correctly in LaTeX/Org.

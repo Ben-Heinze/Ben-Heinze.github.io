@@ -106,5 +106,9 @@
         "href": "/statistics/poisson_glm.html"
       }
     ]
+  },
+  {
+    "label": "Org Cheatsheet",
+    "href": "/org-cheatsheet/index.html"
   }
 ]
