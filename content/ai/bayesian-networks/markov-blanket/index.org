@@ -1,0 +1,23 @@
+#+TITLE: Markov Blanket
+#+OPTIONS: toc:2 num:nil
+
+* Writing this page
+
+Each =* Heading= you add below becomes an entry in the table of contents at the
+top of the page — no need to maintain it by hand.
+
+Split long notes into their own files in =content/ai/bayesian-networks/markov-blanket/= and pull them in with:
+
+#+begin_example
+,#+INCLUDE: "some-topic.org" :minlevel 2
+#+end_example
+
+* Running code
+
+Put runnable code in a source block. In Emacs, press =C-c C-c= inside the block
+to execute it and store its output, then rebuild to publish the result.
+
+#+begin_src python :results output :exports both
+for n in range(1, 6):
+    print(f"{n} squared is {n * n}")
+#+end_src

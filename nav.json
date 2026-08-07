@@ -1,0 +1,110 @@
+[
+  {
+    "label": "Home",
+    "href": "/index.html"
+  },
+  {
+    "label": "AI",
+    "href": "/ai/index.html",
+    "children": [
+      {
+        "label": "Bayesian Networks",
+        "href": "/ai/bayesian-networks/index.html",
+        "children": [
+          {
+            "label": "Markov Blanket",
+            "href": "/ai/bayesian-networks/markov-blanket/index.html"
+          }
+        ]
+      },
+      {
+        "label": "CNNs",
+        "href": "/ai/cnns/index.html"
+      },
+      {
+        "label": "Machine Learning",
+        "href": "/ai/machine-learning/index.html"
+      }
+    ]
+  },
+  {
+    "label": "Algorithms",
+    "href": "/algorithms/index.html",
+    "children": [
+      {
+        "label": "Spanning Trees",
+        "href": "/algorithms/spanning-trees/index.html"
+      },
+      {
+        "label": "Divide & Conquer",
+        "href": "/algorithms/divide-and-conquer/index.html"
+      },
+      {
+        "label": "Dynamic Programming",
+        "href": "/algorithms/dynamic-programming/index.html"
+      },
+      {
+        "label": "Greedy Scheduling",
+        "href": "/algorithms/greedy-scheduling/index.html"
+      },
+      {
+        "label": "Linear Programming",
+        "href": "/algorithms/linear-programming/index.html"
+      },
+      {
+        "label": "Simplex Algorithm",
+        "href": "/algorithms/simplex-algorithm/index.html"
+      },
+      {
+        "label": "Integer LP",
+        "href": "/algorithms/integer-linear-programming/index.html"
+      },
+      {
+        "label": "Flow Networks",
+        "href": "/algorithms/flow-networks/index.html"
+      },
+      {
+        "label": "Randomized Algorithms",
+        "href": "/algorithms/randomized-algorithms/index.html"
+      },
+      {
+        "label": "Approximation Algorithms",
+        "href": "/algorithms/approximation-algorithms/index.html"
+      }
+    ]
+  },
+  {
+    "label": "Concerts",
+    "href": "/concerts/index.html"
+  },
+  {
+    "label": "Examples",
+    "href": "/examples/index.html"
+  },
+  {
+    "label": "Linear Algebra",
+    "href": "/linear-algebra/index.html"
+  },
+  {
+    "label": "Statistics",
+    "href": "/statistics/index.html",
+    "children": [
+      {
+        "label": "GLMs",
+        "href": "/statistics/glm/index.html"
+      },
+      {
+        "label": "Binary Logistic Regression",
+        "href": "/statistics/binary_logistic.html"
+      },
+      {
+        "label": "Binomial GLM",
+        "href": "/statistics/binomial_glm.html"
+      },
+      {
+        "label": "Poisson GLM",
+        "href": "/statistics/poisson_glm.html"
+      }
+    ]
+  }
+]
