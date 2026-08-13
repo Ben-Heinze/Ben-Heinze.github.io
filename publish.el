@@ -18,7 +18,7 @@
 (setq org-export-babel-evaluate nil)
 
 (defvar wiki-html-head
-  "<link rel=\"stylesheet\" href=\"/style.css?v=6\" />
+  "<link rel=\"stylesheet\" href=\"/style.css?v=7\" />
 <script>
 MathJax = { tex: { inlineMath: [['\\\\(','\\\\)']], displayMath: [['\\\\[','\\\\]']] } };
 </script>

@@ -445,3 +445,16 @@ hr {
   border-top: 1px solid #ddd;
   margin: 2rem 0;
 }
+
+/* ── Note highlights ── */
+/* Inserted from Neovim via the `hl` org macro: {{{hl(<colour>,text)}}} exports
+   to <span class="hl-<colour>">text</span>. Pure rainbow colours, kept in sync
+   with the NoteHi* palette in nvmep2/nvim/plugin/note-highlight.lua. */
+
+.hl-red    { color: #FF0000; font-weight: bold; }
+.hl-orange { color: #FF7F00; font-weight: bold; }
+.hl-yellow { color: #B8860B; font-weight: bold; } /* darkened for contrast on light bg */
+.hl-green  { color: #00FF00; font-weight: bold; }
+.hl-cyan   { color: #00FFFF; font-weight: bold; }
+.hl-blue   { color: #0000FF; font-weight: bold; }
+.hl-purple { color: #8B00FF; font-weight: bold; }

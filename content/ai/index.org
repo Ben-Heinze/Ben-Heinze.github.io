@@ -1,5 +1,9 @@
 #+TITLE: Artificial Intelligence
 #+OPTIONS: toc:2 num:nil
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-11
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
 
 * Overview
 
@@ -8,3 +12,6 @@ Add snippets to =content/ai/= and pull them in here with:
 #+begin_example
 #+INCLUDE: "snippet-name.org" :minlevel 2
 #+end_example
+
+
+{{{hl(blue,This is a)}}} {{{hl(orange,new way to highlight text in n)}}}vi{{{hl(green,m for yappopot)}}}amus
