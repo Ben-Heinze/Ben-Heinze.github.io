@@ -1,4 +1,4 @@
-# Scaffold a new page + nav entry and rebuild, like the "+ New page" button.
+# Scaffold a new page + nav entry and rebuild.
 # Parent is a content/ path (omit for top level).
 # Usage: just new-page "Gradient Descent" ai/machine-learning
 new-page title parent="":

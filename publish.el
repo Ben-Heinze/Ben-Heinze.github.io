@@ -126,8 +126,8 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 
 ;; ── Navigation ──────────────────────────────────────────────────────────
 ;; The nav bar is generated from nav.json (a single source of truth shared
-;; with serve.py, which appends to it when a new page is created via the
-;; "+ New page" dialog). Tabs are root-relative so they resolve from any
+;; with serve.py, which appends to it when a new page is created via
+;; `just new-page`). Tabs are root-relative so they resolve from any
 ;; subdirectory.
 
 (defun wiki-html-escape (s)
@@ -161,49 +161,6 @@ item has children, the nested subtree that the toggle collapses."
    (mapconcat #'wiki-nav-item items "\n")
    "\n</ul>"))
 
-(defun wiki-nav-dir (href)
-  "Directory segment for HREF, e.g. \"/ai/cnns/index.html\" -> \"ai/cnns\"."
-  (directory-file-name (file-name-directory (string-remove-prefix "/" href))))
-
-(defun wiki-picker-opt (item extra-class)
-  "Render one selectable row for the Location picker from nav ITEM."
-  (format "<div class=\"np-opt%s\" role=\"option\" data-value=\"%s\" data-dir=\"%s\">%s</div>"
-          extra-class (alist-get 'href item) (wiki-nav-dir (alist-get 'href item))
-          (wiki-html-escape (alist-get 'label item))))
-
-(defun wiki-picker-branch (items)
-  "Render ITEMS as indented picker rows under a guide rail, recursing."
-  (mapconcat
-   (lambda (item)
-     (let ((children (alist-get 'children item)))
-       (concat (wiki-picker-opt item "")
-               (if children
-                   (concat "\n<div class=\"np-branch\">\n"
-                           (wiki-picker-branch children)
-                           "\n</div>")
-                 ""))))
-   items "\n"))
-
-(defun wiki-picker-list (nav)
-  "Render the whole Location picker: Top level plus one group per section.
-Each top-level section is a visually distinct group; descendants indent under it."
-  (concat
-   "<div class=\"np-opt np-opt-top\" role=\"option\" data-value=\"\" data-dir=\"\">Top level</div>\n"
-   (mapconcat
-    (lambda (item)
-      (let ((children (alist-get 'children item)))
-        (concat "<div class=\"np-group\">\n"
-                (wiki-picker-opt item " np-opt-top")
-                (if children
-                    (concat "\n<div class=\"np-branch\">\n"
-                            (wiki-picker-branch children)
-                            "\n</div>")
-                  "")
-                "\n</div>")))
-    ;; Home is the site root, never a parent for new pages.
-    (seq-remove (lambda (it) (string= (alist-get 'href it) "/index.html")) nav)
-    "\n")))
-
 (defun wiki-nav-less (a b)
   "Ordering predicate for two nav items: alphabetical by label (case-insensitive).
 The Home entry (href \"/index.html\") always sorts first."
@@ -230,38 +187,9 @@ The Home entry (href \"/index.html\") always sorts first."
          (nav (wiki-nav-sort (json-read-file "nav.json"))))
     (concat
      "<a class=\"site-title\" href=\"/index.html\">yappopotamus</a>\n"
-     "<button id=\"np-open\" class=\"np-open\">+ New page</button>\n"
      "<nav>\n"
      (wiki-nav-tree nav)
      "\n</nav>\n"
-     ;; New-page dialog. Kept outside <nav> so the active-link script and the
-     ;; nav layout ignore it; position:fixed lifts it out of the sidebar.
-     "<div id=\"np-overlay\" class=\"np-overlay\" hidden>\n"
-     "  <div class=\"np-dialog\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"np-heading\">\n"
-     "    <h2 id=\"np-heading\" class=\"np-heading\">New page</h2>\n"
-     "    <label class=\"np-label\" for=\"np-title\">Title</label>\n"
-     "    <input id=\"np-title\" class=\"np-field\" type=\"text\" autocomplete=\"off\" placeholder=\"e.g. Machine Learning\">\n"
-     "    <span class=\"np-label\" id=\"np-parent-label\">Location</span>\n"
-     "    <div class=\"np-picker\" id=\"np-picker\">\n"
-     "      <button type=\"button\" id=\"np-picker-btn\" class=\"np-field np-picker-btn\" aria-haspopup=\"listbox\" aria-expanded=\"false\" aria-labelledby=\"np-parent-label np-picker-selected\">\n"
-     "        <span id=\"np-picker-selected\">Top level</span>\n"
-     "        <span class=\"np-picker-caret\" aria-hidden=\"true\">&#9662;</span>\n"
-     "      </button>\n"
-     "      <div id=\"np-picker-list\" class=\"np-picker-list\" role=\"listbox\" tabindex=\"-1\" hidden>\n"
-     (wiki-picker-list nav)
-     "\n      </div>\n"
-     "    </div>\n"
-     "    <div class=\"np-preview\">\n"
-     "      <span class=\"np-preview-eyebrow\">Creates</span>\n"
-     "      <code id=\"np-preview\">/…/index.html</code>\n"
-     "    </div>\n"
-     "    <p id=\"np-error\" class=\"np-error\" hidden></p>\n"
-     "    <div class=\"np-actions\">\n"
-     "      <button id=\"np-cancel\" class=\"np-btn np-btn-ghost\" type=\"button\">Cancel</button>\n"
-     "      <button id=\"np-create\" class=\"np-btn np-btn-primary\" type=\"button\">Create page</button>\n"
-     "    </div>\n"
-     "  </div>\n"
-     "</div>\n"
      ;; Sidebar behavior lives in static/new-page.js (copied to public/ by the
      ;; wiki-static component). `defer` waits for the preamble DOM to parse.
      "<script src=\"/new-page.js?v=3\" defer></script>")))

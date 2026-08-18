@@ -1,12 +1,7 @@
-"""Local dev server for the wiki.
-
-Serves the built site from public/ (with no-cache headers) and exposes a small
-authoring endpoint, POST /api/new-tab, used by the "+ New page" dialog in the
-nav. Creating a page scaffolds a generic index.org, appends the entry to
-nav.json, and rebuilds the site so the new page appears everywhere.
-
-This is a local authoring convenience only; a deployed static host has no
-backend, so the dialog simply won't work there (the fetch fails harmlessly).
+"""Local dev server for the wiki, plus the new-page/delete-page/move-page CLI
+(see the `just` recipes). Creating a page scaffolds a generic index.org,
+appends the entry to nav.json, and rebuilds the site so the new page appears
+everywhere.
 """
 
 import datetime
@@ -270,32 +265,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
-    def _send_json(self, status, payload):
-        body = json.dumps(payload).encode()
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Content-Length', str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
-    def do_POST(self):
-        if self.path != '/api/new-tab':
-            self.send_error(404)
-            return
-        try:
-            length = int(self.headers.get('Content-Length', 0))
-            data = json.loads(self.rfile.read(length) or b'{}')
-            self._send_json(200, create_tab(data.get('label'), data.get('parentHref')))
-        except Exception as e:  # surface the message back to the browser
-            self._send_json(400, {'ok': False, 'error': str(e)})
-
 
 def main():
     import sys
 
     if len(sys.argv) > 1 and sys.argv[1] == 'new-page':
-        # Terminal equivalent of the "+ New page" dialog: same create_tab code
-        # path, so it scaffolds, updates nav.json, and rebuilds identically.
+        # Scaffolds the page, updates nav.json, and rebuilds the site.
         label = sys.argv[2] if len(sys.argv) > 2 else ''
         parent = sys.argv[3] if len(sys.argv) > 3 else ''
         try:

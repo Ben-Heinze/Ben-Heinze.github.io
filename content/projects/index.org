@@ -37,7 +37,9 @@
 
 ** Bayesian Networks
 
-
+   See [[file:../probability/bayesian-networks/index.org][Bayesian Networks]] in
+   Probability for the full definition and a worked example — the vehicle
+   model below applies that same structure.
 
 ** Predicting Failures
 
