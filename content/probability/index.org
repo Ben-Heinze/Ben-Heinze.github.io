@@ -78,6 +78,7 @@ ax.set_axis_off()
 fig.tight_layout()
 fig.savefig("probability_img/conditional-probability-graph.png", dpi=150)
 #+end_src
+
 #+ATTR_HTML: :width 500
 [[file:probability_img/conditional-probability-graph.png]]
 

@@ -210,6 +210,31 @@ completion menu).
 | date    | today's date (YYYY-MM-DD)                           |
 | mm      | inline math ~$ $~                                   |
 | dm      | display math ~\[ \]~                                |
+| cite    | ~[cite:@key]~ citation                              |
+| refs    | ~* References~ heading + ~#+print_bibliography:~    |
+
+* Citations
+
+Citations use Org's built-in ~org-cite~ syntax, so the same source works
+whether the page is exported to this site or to a PDF.
+
+- *~cite~* expands to ~[cite:@key]~ -- fill in ~key~ with a citation key from
+  main.bib (e.g. ~[cite:@Quinlan1986ID3]~). For multiple sources in one spot,
+  separate keys with a semicolon: ~[cite:@key1;@key2]~.
+- *~refs~* expands to a ~* References~ heading followed by
+  ~#+print_bibliography:~, which gets replaced with the rendered reference
+  list on export. Add this once, at the end of any page that cites something.
+- Neither snippet requires a per-page ~#+bibliography:~ line -- both the site
+  build (~publish.el~) and PDF export (~nvim/scripts/org-pdf-export.el~) point
+  at the repo's shared =main.bib= automatically, so a key just has to exist
+  there once to be citable from any page.
+
+*PDF export* (~<Space>oe~) renders citations with the ~natbib~ processor
+(plain ~bibtex~, run automatically as an extra ~latexmk~ pass -- no ~biber~
+needed). If you cite a key that isn't in main.bib yet, ~latexmk~ still
+produces a PDF, but the in-text mark silently renders as ~[?]~ instead of
+erroring -- worth a glance at the reference list after exporting to catch
+typo'd or missing keys.
 
 * Fuzzy LaTeX-command finder
 

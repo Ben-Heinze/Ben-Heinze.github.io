@@ -5,6 +5,55 @@
 (require 'ox-html)
 (require 'json)
 (require 'seq)
+(require 'oc)
+(require 'oc-basic)
+
+;; ── Citations ───────────────────────────────────────────────────────────
+;; A single shared main.bib at the repo root backs every page — pages just
+;; cite with [cite:@key] and don't need their own #+bibliography: keyword.
+;; Numeric style keeps citations terse since prose already names authors.
+;;
+;; The stock "basic" processor doesn't hyperlink a citation to its
+;; bibliography entry, so wiki-cite wraps it: identical numbering/formatting,
+;; but each number becomes an <a href="#citeref-KEY"> and each bibliography
+;; entry gets a matching id, so clicking a citation jumps to its reference.
+(setq org-cite-global-bibliography (list (expand-file-name "main.bib" default-directory)))
+
+(defun wiki-cite-export-citation (citation style _backend info)
+  "Like `org-cite-basic-export-citation', but link each number to its entry."
+  (let* ((keys (org-cite-get-references citation t))
+         (number->key (mapcar (lambda (k) (cons (org-cite-basic--key-number k info) k))
+                               keys))
+         (text (org-cite-basic-export-citation citation style nil info)))
+    (replace-regexp-in-string
+     "[0-9]+"
+     (lambda (n)
+       (let ((key (cdr (assoc (string-to-number n) number->key))))
+         (if key (format "<a href=\"#citeref-%s\">%s</a>" key n) n)))
+     text)))
+
+(defun wiki-cite-export-bibliography (keys _files style _props _backend info)
+  "Like `org-cite-basic-export-bibliography', but anchor each entry by its
+key so `wiki-cite-export-citation' links can jump straight to it."
+  (mapconcat
+   (lambda (entry)
+     (org-export-data
+      (org-cite-make-paragraph
+       (org-export-raw-string
+        (format "<span id=\"citeref-%s\"></span>" (cdr (assq 'id entry))))
+       (org-cite-basic--print-entry entry style info))
+      info))
+   (delq nil (mapcar (lambda (k) (org-cite-basic--get-entry k info))
+                      (org-cite-basic--sort-keys keys info)))
+   "\n"))
+
+(org-cite-register-processor 'wiki-cite
+  :export-citation #'wiki-cite-export-citation
+  :export-bibliography #'wiki-cite-export-bibliography)
+
+(setq org-cite-export-processors
+      '((html wiki-cite "numeric" "numeric")
+        (t basic "numeric" "numeric")))
 
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -17,12 +66,63 @@
 ;; Use stored #+RESULTS: during export — run blocks interactively in Emacs first
 (setq org-export-babel-evaluate nil)
 
-(defvar wiki-html-head
-  "<link rel=\"stylesheet\" href=\"/style.css?v=8\" />
-<script>
-MathJax = { tex: { inlineMath: [['\\\\(','\\\\)']], displayMath: [['\\\\[','\\\\]']] } };
+;; Math rendering is handled by Org's own built-in MathJax support
+;; (`:with-latex' defaults to `t', which org-html triggers automatically
+;; whenever a page contains a LaTeX fragment/environment). Previously this
+;; head also hand-rolled its own MathJax <script> config, which loaded a
+;; second, separate MathJax bootstrap alongside Org's own — two copies of
+;; MathJax racing to initialize on every math-containing page, which is
+;; what was causing math to render inconsistently. Org's default template
+;; already emits sane inlineMath/displayMath delimiters matching the
+;; \( \) / \[ \] Org normalizes fragments to, so nothing needs configuring.
+;;
+;; One gap in Org's default template: it has no slot for custom TeX macros.
+;; Pages use \textsc{...} (e.g. \textsc{Pass}, \textsc{Good}) as state labels
+;; in math — valid LaTeX, but not a macro MathJax's tex input ships with, so
+;; it rendered as a broken "undefined control sequence" in the browser
+;; instead of the label. Override the template to add a macros block mapping
+;; \textsc to MathJax's own \text, so it degrades to plain upright text
+;; instead of failing.
+(setq org-html-mathjax-template
+      "<script>
+  window.MathJax = {
+    tex: {
+      ams: {
+        multlineWidth: '%MULTLINEWIDTH'
+      },
+      tags: '%TAGS',
+      tagSide: '%TAGSIDE',
+      tagIndent: '%TAGINDENT',
+      macros: {
+        textsc: ['\\\\text{#1}', 1]
+      }
+    },
+    chtml: {
+      scale: %SCALE,
+      displayAlign: '%ALIGN',
+      displayIndent: '%INDENT'
+    },
+    svg: {
+      scale: %SCALE,
+      displayAlign: '%ALIGN',
+      displayIndent: '%INDENT'
+    },
+    output: {
+      font: '%FONT',
+      displayOverflow: '%OVERFLOW'
+    }
+  };
 </script>
-<script src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js\"></script>")
+
+<script
+  id=\"MathJax-script\"
+  async
+  src=\"%PATH\">
+</script>
+")
+
+(defvar wiki-html-head
+  "<link rel=\"stylesheet\" href=\"/style.css?v=8\" />")
 
 ;; ── Navigation ──────────────────────────────────────────────────────────
 ;; The nav bar is generated from nav.json (a single source of truth shared

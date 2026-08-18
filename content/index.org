@@ -23,4 +23,4 @@ The =:minlevel 2= makes the snippet's top-level heading nest one level
 deeper, so it appears as a subsection of the including page.
 
 A snippet can be included in multiple pages — edit it once, and every
-page that includes it updates on the next build.
+page that includes it updates on the next buiourld.

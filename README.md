@@ -17,8 +17,9 @@ Personal wiki built with [Org mode](https://orgmode.org/), published to a static
 9. [Emacs Interactive Commands](#emacs-interactive-commands)
 10. [How to Add a New Snippet](#how-to-add-a-new-snippet)
 11. [How to Add a New Tab / Section](#how-to-add-a-new-tab--section)
-12. [Building the Site](#building-the-site)
-13. [Initial Project Setup Notes](#initial-project-setup-notes)
+12. [Citations & Bibliography](#citations--bibliography)
+13. [Building the Site](#building-the-site)
+14. [Initial Project Setup Notes](#initial-project-setup-notes)
 
 ---
 
@@ -467,6 +468,69 @@ emacs --batch -l publish.el -f org-publish-all
 ```
 
 The Physics tab appears in the nav bar on every page.
+
+---
+
+## Citations & Bibliography
+
+Citations use Org's built-in `org-cite` system, backed by a single shared
+`main.bib` at the repo root. There is no per-page `#+bibliography:` keyword to
+maintain — `publish.el` points every page at `main.bib` globally, and renders
+citations/bibliographies in numeric style (`(1)`, `(2, 3)`, ...).
+
+**Adding a reference to a page**
+
+```org
+This idea comes from Koller and Friedman [cite:@kollerBook].
+
+Multiple sources at once: [cite:@perreaultPhD;@perreaultPBL]
+```
+
+The `@key` must match a BibTeX entry key in `main.bib`.
+
+**Printing the bibliography**
+
+End any page that cites something with:
+
+```org
+* References
+
+#+print_bibliography:
+```
+
+At export time, `#+print_bibliography:` is replaced with a numbered list of
+every reference cited on that page, resolved from `main.bib`.
+
+**Adding a new source**
+
+Add a BibTeX entry to `main.bib` (any standard entry type — `@book`,
+`@article`, `@inproceedings`, `@phdthesis`, etc.) with a unique key, then cite
+it with `[cite:@key]` from any page.
+
+**Editing interactively in Emacs**
+
+`.dir-locals.el` at the repo root points `org-cite-global-bibliography` at
+`main.bib` for interactive buffers too, so `C-c C-x C-@` inserts a citation
+via completion, and following a `[cite:@key]` link (`C-c C-o`) jumps to its
+entry in `main.bib`. The first time you open a file in this repo after this
+was added, Emacs will ask once whether to trust that `.dir-locals.el` — answer
+yes (it only sets a variable, no arbitrary code runs beyond that).
+
+**Editing interactively in Neovim**
+
+Two LuaSnip snippets (Tab/`<C-n>`-expanded, not auto-firing) cover the same
+syntax: `cite` inserts `[cite:@key]`, and `refs` inserts the `* References` /
+`#+print_bibliography:` footer. See the [Org Cheatsheet](/org-cheatsheet/index.html)
+page's "Citations" section for the full trigger table.
+
+Neovim can also export a page straight to PDF (`<Space>oe`), independent of
+this site's HTML build. `nvim/scripts/org-pdf-export.el` wires up the
+`natbib` citation processor for that export path (plain `bibtex`, run
+automatically as an extra `latexmk` pass — no `biber` install needed) and
+points it at the same repo-root `main.bib`, so no per-page setup is required
+there either. One gotcha: citing a key that isn't in `main.bib` yet doesn't
+error — `latexmk` still produces a PDF, but the in-text mark silently renders
+as `[?]`, so it's worth glancing at the reference list after exporting.
 
 ---
 

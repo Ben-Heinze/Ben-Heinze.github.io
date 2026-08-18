@@ -1,0 +1,156 @@
+#+TITLE: Bayesian Networks
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-18
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+A Bayesian network is a probabilistic graphical model used to represent a joint
+probability distribution using a directed acyclic graph that models
+probabilistic  relationships between variables. Relevant in fields such as
+medical diagnosis, risk assessment, and diagnosis testing, their utility lies in
+estimating uncertainty. Russell and Norvig [cite:@russel20] describe the criteria
+for a Bayesian network:
+
+1. Every node in the directed graph represents a random variable, and this
+   variable can be discrete or continuous. (Note: For our purposes, all nodes
+   will be discrete.)
+2. The arrows in the graphical network connect two nodes in one direction. The
+   node attached to the tail of the arrow is the "parent", and the node
+   attached to the head of the arrow is the "child" of the parent, which
+   creates a dependence from the parent to the child.
+3. Each node \(\mathbf{X}_i\) in the Bayesian network has an associated
+   probability table that provides the rates \(P(\mathbf{X}_i)\) for
+   different values the node to take on. If the node has one or more
+   parents, the node has a conditional probability table (CPT) and value of
+   the node is based on the values of the parent nodes
+   \(\mathbf{P}(\mathbf{X}_i|Parents(\mathbf{X}_i))\). If the node does not
+   have parents, the table is unconditional or marginal.
+
+More formally, a Bayesian network has a set of variables $\mathbf{X} = \lbrace
+\mathbf{X}_1, \mathbf{X}_2, \ldots, \mathbf{X}_n \rbrace$, and each variable has an associated marginal or
+conditional probability distribution. The probability distribution describes which
+values the variable can take on, and the probability of each value occurring.
+If the variable has parents, the probability of a value is conditioned on the values of its
+parents nodes. Assuming we know the associated probability table for each
+variable, we can use the chain rule to calculate the joint probability of a
+specific event in the directed acyclic graph, where \(\mathbf{P}\left(\mathbf{X}\right)=\mathbf{P}\left(\mathbf{X}_1, \ldots, \mathbf{X}_n\right)\). From this, the chain rule
+tells us
+
+\[  P\left(\mathbf{X}_1,\ldots,\mathbf{X}_n\right)=\prod_{i=1}^n P \left(\mathbf{X}_i | \mathbf{X}_{i-1}, \ldots, \mathbf{X}_1 \right). \]
+
+The parameterization and inference complexity of using a joint probability
+distribution increases exponentially based on the number conditioning variables.
+While this complication cannot entirely be negated, the calculation can be
+minimized by using conditional independence to decrease the number of terms in
+the equation.
+
+\[
+    P \left(\mathbf{X}_1,\ldots,\mathbf{X}_n \right) =\prod_{\mathbf{X}_i\in\mathbf{X}} P(\mathbf{X}_i|\text{Parents}(\mathbf{X}_i)).
+\]
+This property is used to define the topology and parameterization of the
+corresponding Bayesian network.
+
+Next we consider how to calculate the posterior probability given a set of
+evidence (e.g., a set of test results). The marginal probability, also known as
+an unconditional probability, is the probability of an event happening without
+considering any evidence [cite:@russel20] and without being in the context of
+another variable (or set of variables). Node A in the three-node network below
+represents a root node in the network with an associated marginal distribution
+since there is nothing to condition the node on. As shown for example purposes
+in the probability table, $P \left(A=\textsc{Good} \right) = 0.7$. The posterior
+probability, is derived based on evidence [cite:@russel20]. Nodes B and C
+illustrate this idea by both being conditioned on node A:
+$P\left(B=\textsc{Pass} \mid A=\textsc{Good} \right) = 0.1$,
+$P\left(C=\textsc{pass} \mid A=\textsc{good} \right) = 0.8$. They serve as
+evidence variables to be observed. More explicitly, given the D-matrix induces a
+bipartite network, Diagnosis nodes $\mathbf{D}$ are parent nodes with marginal
+distributions, and test nodes $\mathbf{T}$ are evidence nodes with conditional
+distributions.
+
+Node $A$ is the parent of both node $B$ and node $C$, so the value of $B$ and
+$C$ are each conditioned on the value of their parent, $A$: an edge runs from
+$A$ to $B$, and another from $A$ to $C$. The probability table for each node
+is as follows.
+
+| $A$  | Probability |
+|------+-------------|
+| Good |         0.7 |
+| Bad  |         0.3 |
+
+|                     | $B = \textsc{Pass}$ | $B = \textsc{Fail}$ |
+|---------------------+----------------------+----------------------|
+| $A = \textsc{Good}$ |                  0.9 |                  0.1 |
+| $A = \textsc{Bad}$  |                  0.4 |                  0.6 |
+
+|                     | $C = \textsc{Pass}$ | $C = \textsc{Fail}$ |
+|---------------------+----------------------+----------------------|
+| $A = \textsc{Good}$ |                  0.8 |                  0.2 |
+| $A = \textsc{Bad}$  |                  0.3 |                  0.7 |
+
+The posterior distributions are determined through a combination of applying
+Bayes' Rule and doing marginalization. This leads to a general approach referred
+to as "sum-product variable elimination" to compute the posteriors. Note that
+this method is expensive, and a variety of efficient approximation method have
+been developed.
+
+Bayes' Rule tells us how much our beliefs should change now that we have new
+evidence and is commonly found as a foundational component in many modern
+probabilistic inference systems. Bayes' Rule corresponds to the following:
+\begin{align*}
+    P\left( D_i \mid T_j\right ) &= \frac{P \left( T_j \mid D_i \right) P \left( D_i\right)}{P\left( T_j\right)}\\
+    &= \frac{P \left( T_j \mid D_i \right) P \left( D_i\right)}{\sum_{d\in D_j} P \left( T_j \mid d \right) P \left( d\right)}
+\end{align*}
+
+As an example of how to use Bayes' Rule, suppose the three-node network above is
+our diagnostic Bayesian network, where node $A$ is a fault and nodes $B$ and $C$
+are tests in the system. Now suppose we have performed the test corresponding to
+$B$ and wish to know what that tells us about $A$. Then we apply Bayes' Rule for
+the case when the test for $B$ passes as follows:
+
+\[
+    P\left( A = \textsc{Bad} \mid B = \textsc{Pass}\right) = \frac{P \left( B= \textsc{Pass} \mid A = \textsc{Bad}\right) P \left( A= \textsc{Bad} \right)}{P\left( B= \textsc{Pass}\right)}
+\]
+
+Given the information provided in the probability tables above, we can derive
+the three components on the right side of the equation: the likelihood
+($P(B=\textsc{Pass} \mid A=\textsc{Bad})$), the prior ($P(A=\textsc{Bad})$), and
+the marginal probability ($P(B=\textsc{Pass})$). The likelihood and the prior
+probabilities are already supplied by B's and A's probability tables: $P(B=\textsc{Pass}
+\mid A=\textsc{Bad}) = 0.4$ and $P(A=\textsc{Bad}) = 0.3$. The Law of Total
+Probability is used to compute test B's passing marginal probability by summing
+over all possible values of fault A:
+
+\begin{align*}
+P \left( B = \textsc{Pass} \right) &= \sum_{a \in A}  P \left(B = \textsc{Pass} \mid A= a\right) P \left( A=a \right) \\
+  &= P \left( B = \textsc{Pass} \mid A = \textsc{Good} \right) P\left(A = \textsc{Good} \right) +  P \left( B = \textsc{Pass} \mid A = \textsc{Bad} \right) P\left(A = \textsc{Bad} \right)\\
+  &= 0.9  \cdot 0.7 + 0.4  \cdot 0.3 \\
+  &= 0.63 + 0.12 \\
+  &= 0.75
+\end{align*}
+
+The marginal probability $P(B = \textsc{Pass}) = 0.75$, and conversely, the
+probability of B failing is $1-0.75 = 0.25$. From here, we insert all of these
+values into Bayes' Rule to yield the posterior probability.
+
+\begin{align*}
+    P\left( A = \textsc{Bad} \mid B = \textsc{Pass}\right) = \frac{0.4 \left(0.3\right)}{0.75} = 0.16
+\end{align*}
+
+Using Bayes' rule, the computed the posterior probability for fault $A =
+\textsc{Bad}$ after accounting for test $B$ passing is 16\%, which is
+intuitively lower than the prior probability of 30\%. Note that Bayes' rule can
+be expanded to handle any number of evidences when calculating the posterior
+probability.
+
+* References
+
+#+print_bibliography:

@@ -1,0 +1,80 @@
+#+TITLE: Entropy and Mutual Information
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-18
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+When considering a diagnostic system that comprises multiple tests and multiple
+diagnostic conclusions, scenarios arise where some tests are more critical than
+other tests, or some tests take longer to perform compared to faster tests.
+Regardless of how one chooses to measure test importance, most real world
+applications of diagnostic systems depend on tests having associated costs.
+Methods for ranking tests include Quinlan's ID3 method, which uses a training
+set called a \textit{window} to iteratively create a decision tree from large
+datasets with little computational power [cite:@Quinlan1986ID3]. This report will
+focus on entropy, which is also used by Quinlan in calculating his information
+gain metric. 
+
+Using information theory in the context of a diagnostic system, the goal is to
+calculate how much information a single test will provide. If a test provides a
+lot of information, then that test should be observed before tests that provide
+less information, since the goal is to come to a diagnostic conclusion as
+quickly as possible. We label the log inverse of the probability of an event as
+\textit{self-information} [cite:@Zheng2022], which is defined as
+%
+\[
+     \textit{I(x) = } -\log P(x)=\log \left( \frac{1}{P(x)} \right).
+     \label{eq:self-info}
+\]
+%
+Self-information, also referred to as surprise, measures the uncertainty of an
+event. If an event is guaranteed, then there is no surprise in the outcome,
+leading to a surprise of zero. In a similar manner, if a highly-unlikely event
+occurred such as flipping a coin and it lands on its edge, the surprise would be
+very high. Entropy adapts this idea of surprise by measuring the expected
+uncertainty (or surprise) of an event by weighting the surprise of each possible
+outcome by its probability. The equations we use for entropy, conditional
+entropy, and mutual information gain are obtained from Koller and
+Friedman [cite:@kollerBook]. Entropy is calculated as
+%
+\[ 
+  H_P(X) = \sum_{x \in X} P(x) \log \left(\frac{1}{P(x)} \right) =\sum_{x \in X} -P(x) \log(P(x)),
+\]
+%
+where we define $0 \log \left(\frac{1}{0} \right) = 0$. To determine the entropy
+of event $X$, we weight the surprise by the probability of the given event, and
+then sum over every possible outcome. A lower entropy indicates a smaller
+average surprise of a random event, while a higher entropy represent a larger
+average surprise of a random event. This can be expanded to include the
+conditional probabilities:
+\begin{align*}
+H_P(X|Y) &= H_P(X,Y) - H_P(Y) \\
+&= -\sum_{x\in X} P(x) \sum_{y \in Y} P(y|x) \log(P(y|x)).
+\end{align*}
+
+Finally, we can derive mutual information gain based on the difference of an
+event happening and the conditional entropy of an event. We then derive the
+mutual information gain by comparing the entropy of a system before and after
+observing an event, which reduces the uncertainty of the system. The conditional
+$Y$ reduces the uncertainty about the entropy of $X$ which provides a more
+accurate inference on the amount of gained information [cite:@kollerBook].
+%
+\[ I_P(X;Y) = H_P(X) - H_P(X|Y) \]
+%
+In a Bayesian network, given the probabilities of tests occurring, we can
+calculate the information gain for each test to generate a ranking of tests.
+Information gain can also be adapted to be weighted on external factors such as
+test runtime, financial cost of a test, and other scenarios, one method of which
+has been described in Chapter 7 of System Test and Diagnosis [cite:@STD].
+
+* References
+
+#+print_bibliography:

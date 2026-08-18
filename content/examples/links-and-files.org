@@ -55,7 +55,11 @@ of an inline image:
 * Linking to a Specific Heading on Another Page
 
 You can deep-link to a named heading by adding a =CUSTOM_ID= property
-to the target heading, then referencing it with =#id= in the link:
+to the target heading, then referencing it with =#id= in the link.
+A =CUSTOM_ID= only works when it's attached to a heading — Org export
+doesn't turn a whole-page (no-heading) properties drawer into an anchor,
+so this only applies to specific sections, not a page as a whole (linking
+to a page as a whole just needs a plain =file:= link, no id required).
 
 Target file:
 #+begin_example
@@ -69,3 +73,20 @@ Link from anywhere:
 #+begin_example
 [[file:../algorithms/index.org::#fibonacci][Fibonacci section]]
 #+end_example
+
+** Snippets for This
+
+The editor has four snippets that generate the patterns above (and their
+same-file/whole-page variants) so you don't have to type them by hand:
+
+| Trigger | Expands to                                | Use                                          |
+|---------+--------------------------------------------+-----------------------------------------------|
+| ~cid~   | ~:PROPERTIES: :CUSTOM_ID: <id> :END:~       | Stable anchor on a heading (target of ~sref~) |
+| ~oref~  | ~[[file:<path>][<text>]]~                   | Link to another page as a whole               |
+| ~sref~  | ~[[file:<path>::#<id>][<text>]]~            | Link to a =CUSTOM_ID= section on another page |
+| ~aref~  | ~[[#<id>][<text>]]~                         | Link to a =CUSTOM_ID= anchor in this file     |
+
+Type the trigger and expand it (e.g. with =<C-n>=) to fill in the
+placeholders. ~cid~ only makes sense placed under a heading you've
+already written — new pages don't get one scaffolded automatically,
+since a page has no heading to attach it to until you add one.

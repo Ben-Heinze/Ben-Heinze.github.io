@@ -97,7 +97,17 @@
   },
   {
     "label": "Probability",
-    "href": "/probability/index.html"
+    "href": "/probability/index.html",
+    "children": [
+      {
+        "label": "Bayesian Networks",
+        "href": "/probability/bayesian-networks/index.html"
+      },
+      {
+        "label": "Entropy and Mutual Information",
+        "href": "/probability/entropy-and-mutual-information/index.html"
+      }
+    ]
   },
   {
     "label": "Math",
@@ -108,5 +118,9 @@
         "href": "/math/partial-derivatives/index.html"
       }
     ]
+  },
+  {
+    "label": "Projects",
+    "href": "/projects/index.html"
   }
 ]
