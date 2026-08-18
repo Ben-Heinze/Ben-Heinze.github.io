@@ -80,6 +80,10 @@
       {
         "label": "Likelihood",
         "href": "/statistics/likelihood/index.html"
+      },
+      {
+        "label": "Linear Regression",
+        "href": "/statistics/linear-regression/index.html"
       }
     ]
   },
@@ -94,5 +98,15 @@
   {
     "label": "Probability",
     "href": "/probability/index.html"
+  },
+  {
+    "label": "Math",
+    "href": "/math/index.html",
+    "children": [
+      {
+        "label": "Partial Derivatives",
+        "href": "/math/partial-derivatives/index.html"
+      }
+    ]
   }
 ]

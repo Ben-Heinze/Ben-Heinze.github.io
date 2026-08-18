@@ -1,0 +1,30 @@
+#+TITLE: Partial Derivatives
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-17
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Partial Derivatives
+
+  A *partial derivative* measures how a multivariable function
+  changes as /one/ variable moves, holding the others fixed. For
+  $f(x, y)$, the partial derivative with respect to $x$ is
+
+  \[
+  \frac{\partial f}{\partial x} = \lim_{h \to 0} \frac{f(x+h, y) - f(x, y)}{h}
+  \]
+
+  In practice, just differentiate as usual and treat every other
+  variable as a constant. For example, with $f(x, y) = x^2 y + y^3$,
+
+  \[
+  \frac{\partial f}{\partial x} = 2xy, \qquad \frac{\partial f}{\partial y} = x^2 + 3y^2
+  \]
