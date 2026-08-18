@@ -1,0 +1,127 @@
+#+TITLE: Probability
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-17
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Probability
+
+  /Probability provides a way of summarizing the uncertainty that comes from our laziness and ignorance/
+
+  A *probability* is a number between $0$ and $1$ that measures how
+  likely an event is to occur, given the available evidence. For an
+  event $A$,
+
+  \[
+  0 \le P(A) \le 1
+  \]
+
+  with $P(A) = 1$ meaning $A$ is certain, and $P(A) = 0$ meaning $A$
+  is impossible. Probabilities over all possible outcomes of a random
+  variable must sum (or integrate) to $1$.
+
+  /utility theory/ says that every state (or state sequence) has a degree of usefulness,or utility,to an agent and that the agent will prefer states with higher utility.
+
+* Prior Probability
+  *Prior Probability* (unconditional probability), refer to degrees of belief in propositions /in the absence of any other information/.
+
+  The prior probability of a random variable $X$ taking value $x$ is
+  written $P(X = x)$, or just $P(x)$. For example, $P(\text{Cavity} =
+  \text{true})$ is our belief that a patient has a cavity /before/
+  we observe any symptoms or test results.
+
+* Conditional Probability
+
+  *Conditional Probability* is the probability of one event $A$
+  /given/ that another event $B$ is known to have occurred. It is
+  written $P(A \mid B)$ and defined as
+
+  \[
+  P(A \mid B) = \frac{P(A, B)}{P(B)}, \quad P(B) > 0
+  \]
+
+  i.e. the fraction of $B$'s probability mass that also satisfies
+  $A$. For example, $P(\text{Toothache} \mid \text{Cavity})$ is the
+  probability a patient has a toothache, /given/ that they have a
+  cavity.
+
+  The diagram below shows this as a graph: an edge from $B$ to $A$,
+  weighted by the conditional probability that relates them. Press
+  =C-c C-c= on the block to (re)generate the image.
+
+#+NAME: conditional-probability-graph
+#+begin_src python :results silent
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import networkx as nx
+
+G = nx.DiGraph()
+G.add_edge("B", "A")
+pos = {"B": (0, 0), "A": (3, 0)}
+
+fig, ax = plt.subplots(figsize=(5, 2.2))
+nx.draw_networkx_nodes(G, pos, node_size=2800, node_color="white", edgecolors="black", ax=ax)
+nx.draw_networkx_labels(G, pos, ax=ax, font_size=14)
+nx.draw_networkx_edges(G, pos, node_size=2800, arrowstyle="-|>", arrowsize=20, ax=ax)
+nx.draw_networkx_edge_labels(G, pos, edge_labels={("B", "A"): "P(A | B)"}, ax=ax, font_size=12)
+
+ax.set_axis_off()
+fig.tight_layout()
+fig.savefig("probability_img/conditional-probability-graph.png", dpi=150)
+#+end_src
+#+ATTR_HTML: :width 500
+[[file:probability_img/conditional-probability-graph.png]]
+
+* Marginal Probability
+
+  *Marginal Probability* is the probability of a single variable,
+  obtained by summing (or integrating) a joint distribution over all
+  values of the other variables — this is called /marginalizing out/
+  the other variables. For discrete variables $X$ and $Y$,
+
+  \[
+  P(X = x) = \sum_{y} P(X = x, Y = y)
+  \]
+
+  For example, if we know the joint distribution $P(\text{Cavity},
+  \text{Toothache})$, we can recover $P(\text{Cavity})$ by summing
+  over both values of $\text{Toothache}$.
+
+* Likelihood
+
+  *Likelihood* is the same conditional-probability expression as
+  above, $P(B \mid A)$, but read in the other direction: instead of
+  treating $A$ as fixed and asking how likely the evidence $B$ is,
+  we fix the observed evidence $B$ and ask how plausible different
+  values of $A$ are.
+
+  See [[file:../statistics/likelihood/index.org][Likelihood]] in
+  Statistics for the full definition, Maximum Likelihood Estimation,
+  and the distinction between likelihood and probability.
+
+* Posterior Probability
+
+  *Posterior Probability* is a [[*Conditional Probability][conditional probability]] — the updated
+  degree of belief in a proposition /after/ taking some evidence
+  into account. The posterior probability of $A$ given evidence $B$
+  is written $P(A \mid B)$.
+
+  Using Bayes' rule, the posterior can be computed from the prior
+  $P(A)$ and the likelihood $P(B \mid A)$:
+
+  \[
+  P(A \mid B) = \frac{P(B \mid A)\,P(A)}{P(B)}
+  \]
+
+  For example, $P(\text{Cavity} \mid \text{Toothache})$ is our
+  updated belief that a patient has a cavity, /after/ learning that
+  they have a toothache.

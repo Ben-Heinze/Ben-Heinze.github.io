@@ -1,5 +1,17 @@
 #+TITLE: Examples
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-07-03
+#+STARTUP: noindent
 #+OPTIONS: toc:2 num:nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
 A copy-paste reference for common things you will want to add to this wiki.
 Each section is a self-contained snippet file — you can also link directly

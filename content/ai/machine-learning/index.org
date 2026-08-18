@@ -1,10 +1,22 @@
 #+TITLE: Machine Learning
-#+OPTIONS: toc:2 num:nil
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-13
+#+STARTUP: noindent
 
-* Overview
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
 
-Add snippets to =content/ai/machine-learning/= and pull them in here with:
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
 
-#+begin_example
-,#+INCLUDE: "snippet-name.org" :minlevel 2
-#+end_example
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Sheppard said the class's four topics would include:
+- Mystery ML
+- Decision Trees
+- Neural Network w/ GA and PSO optimizers
+- Neural Network w/ at least two hidden layers, one is just a straight line, the other estimating w/ standard gradient descent, then estimating with an auto-encoder? Something involving linear regression?
+
+
+

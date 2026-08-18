@@ -8,22 +8,14 @@
     "href": "/ai/index.html",
     "children": [
       {
-        "label": "Bayesian Networks",
-        "href": "/ai/bayesian-networks/index.html",
+        "label": "Machine Learning",
+        "href": "/ai/machine-learning/index.html",
         "children": [
           {
-            "label": "Markov Blanket",
-            "href": "/ai/bayesian-networks/markov-blanket/index.html"
+            "label": "Decision Trees",
+            "href": "/ai/machine-learning/decision-trees/index.html"
           }
         ]
-      },
-      {
-        "label": "CNNs",
-        "href": "/ai/cnns/index.html"
-      },
-      {
-        "label": "Machine Learning",
-        "href": "/ai/machine-learning/index.html"
       }
     ]
   },
@@ -82,33 +74,25 @@
     "href": "/examples/index.html"
   },
   {
-    "label": "Linear Algebra",
-    "href": "/linear-algebra/index.html"
-  },
-  {
     "label": "Statistics",
     "href": "/statistics/index.html",
     "children": [
       {
-        "label": "GLMs",
-        "href": "/statistics/glm/index.html"
-      },
-      {
-        "label": "Binary Logistic Regression",
-        "href": "/statistics/binary_logistic.html"
-      },
-      {
-        "label": "Binomial GLM",
-        "href": "/statistics/binomial_glm.html"
-      },
-      {
-        "label": "Poisson GLM",
-        "href": "/statistics/poisson_glm.html"
+        "label": "Likelihood",
+        "href": "/statistics/likelihood/index.html"
       }
     ]
   },
   {
     "label": "Org Cheatsheet",
     "href": "/org-cheatsheet/index.html"
+  },
+  {
+    "label": "Spotify",
+    "href": "/spotify/index.html"
+  },
+  {
+    "label": "Probability",
+    "href": "/probability/index.html"
   }
 ]

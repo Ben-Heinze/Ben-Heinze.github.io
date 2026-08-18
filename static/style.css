@@ -11,7 +11,7 @@ body {
   color: #1a1a1a;
   background: #fafafa;
   margin: 0;
-  padding-left: 180px;
+  padding-left: 220px;
 }
 
 /* ── Sidebar ── */
@@ -20,7 +20,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 180px;
+  width: 220px;
   height: 100vh;
   background: #f2f2f2;
   border-right: 1px solid #ddd;
@@ -52,22 +52,65 @@ nav ul.nav-tree {
   padding: 0;
 }
 
+nav .nav-tree li { margin: 0; }
+
 /* Every nesting level indents and gains a guide rail */
 nav .nav-tree .nav-tree {
   margin-left: 0.55rem;
-  padding-left: 0.35rem;
+  padding-left: 0.2rem;
   border-left: 1px solid #ddd;
 }
 
+/* Collapsed sections hide their nested subtree */
+nav .nav-tree li.collapsed > .nav-tree { display: none; }
+
+/* A row pairs a collapse toggle (or spacer, for leaves) with the link */
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.05rem;
+}
+
+.nav-toggle,
+.nav-toggle-spacer {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1.05rem;
+}
+
+.nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #999;
+  border-radius: 3px;
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+
+.nav-toggle::before { content: "\25be"; font-size: 0.7rem; line-height: 1; }
+.nav-toggle:hover { color: #333; background: #e4e4e4; }
+
+/* Collapsed rows point their caret to the right */
+nav .nav-tree li.collapsed > .nav-row > .nav-toggle { transform: rotate(-90deg); }
+
 nav .nav-tree a {
+  flex: 1 1 auto;
   display: block;
-  padding: 0.4rem 0.6rem;
-  margin-bottom: 1px;
+  min-width: 0;
+  padding: 0.2rem 0.4rem;
   color: #333;
   text-decoration: none;
   font-family: sans-serif;
   font-size: 0.875rem;
+  line-height: 1.3;
   border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 nav .nav-tree a:hover { background: #e4e4e4; color: #000; }
@@ -76,8 +119,7 @@ nav .nav-tree a.active { background: #dde6f7; color: #0645ad; font-weight: bold;
 /* Nested links read as secondary to their parent */
 nav .nav-tree .nav-tree a {
   color: #555;
-  font-size: 0.8rem;
-  padding: 0.28rem 0.5rem;
+  font-size: 0.82rem;
 }
 
 nav .nav-tree .nav-tree a:hover { color: #000; }
@@ -85,10 +127,33 @@ nav .nav-tree .nav-tree a.active { color: #0645ad; }
 
 /* Home (first top-level item) separated from the sections below */
 nav > .nav-tree > li:first-child {
-  margin-bottom: 0.6rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
   border-bottom: 1px solid #ccc;
 }
+
+/* Full-label tooltip, shown next to a nav link truncated by ellipsis.
+   Positioned in JS (static/new-page.js) since only JS can tell whether a
+   given link's text actually overflows. */
+.nav-tooltip {
+  position: fixed;
+  z-index: 20;
+  max-width: 260px;
+  padding: 0.3rem 0.55rem;
+  background: #fff;
+  color: #1a1a1a;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  white-space: normal;
+  word-break: break-word;
+  pointer-events: none;
+}
+
+.nav-tooltip[hidden] { display: none; }
 
 /* ── "+ New page" authoring dialog (local serve.py only) ── */
 

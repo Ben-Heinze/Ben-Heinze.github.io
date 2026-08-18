@@ -1,0 +1,9 @@
+* Todos
+** DONE I would like to update the home page. The homepage contains a table that holds the "table of contents", but it does not automatically update at the moment, it is hardcoded with "Algorithms", "AI", "Linear Algebra", and "Statistics". This software is going to expand and new sections and nested-sections will be added and removed frequently. 
+** DONE I would like the left column currently has text overflowing on the right edge. I would like you to expand the right a little bit. This will help but not fully fix the problem. For anything that exceeds the new text width, allow a textbox on hover that will show the entire name of the section that is being hovered over.
+** TODO Update the code blocks
+
+* Sections to add
+** TODO 
+** TODO Stats/GLMS -> Binary, Binomial, Poisson,
+** TODO AI/Bayesian Networks -> 

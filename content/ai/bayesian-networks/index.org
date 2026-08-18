@@ -1,6 +1,0 @@
-#+TITLE: Bayesian Networks
-#+OPTIONS: toc:2 num:nil
-
-* Bayes' Rule
-
-#+INCLUDE: "bayes_rule.org" :minlevel 2

@@ -1,10 +1,4 @@
 #+TITLE: Statistics
 #+OPTIONS: toc:2 num:nil
 
-* Regression
-
-#+INCLUDE: "linear-regression.org" :minlevel 2
-
-* Generalized Linear Models
-
-See [[file:glm/index.org][GLMs]].
+Notes on distributions, estimation, and inference.

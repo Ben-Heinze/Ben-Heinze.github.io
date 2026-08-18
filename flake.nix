@@ -22,6 +22,7 @@
           numpy
           matplotlib
           scipy
+          networkx
         ]);
         R = pkgs.rWrapper.override {
           packages = with pkgs.rPackages; [

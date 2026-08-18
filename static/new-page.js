@@ -10,6 +10,73 @@
     if (match) a.classList.add('active');
   });
 
+  // ── Collapsible nav sections ──
+  // Each section's open/closed state is keyed by the parent link's href and
+  // persisted in localStorage so it survives navigation between pages.
+  var COLLAPSE_KEY = 'navCollapsed';
+  var collapsedState = {};
+  try { collapsedState = JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || {}; }
+  catch (e) { collapsedState = {}; }
+
+  function liKey(li) {
+    var link = li.querySelector(':scope > .nav-row > a');
+    return link ? link.getAttribute('href') : null;
+  }
+  function setCollapsed(li, isCollapsed) {
+    li.classList.toggle('collapsed', isCollapsed);
+    var toggle = li.querySelector(':scope > .nav-row > .nav-toggle');
+    if (toggle) toggle.setAttribute('aria-expanded', String(!isCollapsed));
+  }
+
+  document.querySelectorAll('nav .nav-toggle').forEach(function (toggle) {
+    var li = toggle.closest('li');
+    var key = liKey(li);
+    if (key && collapsedState[key]) setCollapsed(li, true);
+    toggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      var nowCollapsed = !li.classList.contains('collapsed');
+      setCollapsed(li, nowCollapsed);
+      if (key) {
+        collapsedState[key] = nowCollapsed;
+        try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState)); }
+        catch (e2) {}
+      }
+    });
+  });
+
+  // Always keep the current page reachable: expand every ancestor section.
+  document.querySelectorAll('nav a.active').forEach(function (a) {
+    var node = a.closest('li');
+    while (node) {
+      setCollapsed(node, false);
+      var parent = node.parentElement;
+      node = parent ? parent.closest('li') : null;
+    }
+  });
+
+  // ── Nav label tooltips ──
+  // Nav links are truncated with an ellipsis when a label is wider than the
+  // sidebar. On hover, show the full label in a floating box, but only when
+  // it's actually truncated (scrollWidth > clientWidth).
+  var navTooltip = document.createElement('div');
+  navTooltip.className = 'nav-tooltip';
+  navTooltip.setAttribute('hidden', '');
+  document.body.appendChild(navTooltip);
+
+  document.querySelectorAll('nav .nav-tree a').forEach(function (a) {
+    a.addEventListener('mouseenter', function () {
+      if (a.scrollWidth <= a.clientWidth) return;
+      var rect = a.getBoundingClientRect();
+      navTooltip.textContent = a.textContent;
+      navTooltip.removeAttribute('hidden');
+      navTooltip.style.left = rect.right + 6 + 'px';
+      navTooltip.style.top = rect.top + 'px';
+    });
+    a.addEventListener('mouseleave', function () {
+      navTooltip.setAttribute('hidden', '');
+    });
+  });
+
   var overlay = document.getElementById('np-overlay');
   var titleEl = document.getElementById('np-title');
   var previewEl = document.getElementById('np-preview');

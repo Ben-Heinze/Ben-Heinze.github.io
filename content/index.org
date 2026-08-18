@@ -7,12 +7,7 @@ This is my personal wiki — a collection of notes and examples from school and 
 
 Use the tabs above to browse by subject. Each tab is a folder of small, self-contained snippets that are stitched together into a single page.
 
-| Section       | Contents                              |
-|---------------+---------------------------------------|
-| [[/algorithms/index.html][Algorithms]]    | Recursion, sorting, search            |
-| [[/ai/index.html][AI]]            | Machine learning, neural networks     |
-| [[/linear-algebra/index.html][Linear Algebra]] | Vectors, matrices, decompositions    |
-| [[/statistics/index.html][Statistics]]    | Regression, distributions, inference  |
+#+HTML: <div id="wiki-toc">Loading table of contents&#8230;</div>
 
 * How snippets work
 

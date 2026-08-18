@@ -1,6 +1,0 @@
-#+TITLE: Variable Elimination
-#+OPTIONS: toc:nil num:nil
-
-* Variable Elimination
-
-add here

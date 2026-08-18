@@ -1,6 +1,17 @@
 #+TITLE: Note-taking Snippets & Keybindings Cheatsheet
 #+AUTHOR: Ben Heinze
+#+DATE: 2026-08-06
+#+STARTUP: noindent
 #+OPTIONS: toc:2 num:nil ^:nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
 * How it works
 
@@ -208,3 +219,158 @@ inside an org/tex/markdown buffer -- a fuzzy menu (cmp-latex-symbols) appears:
 : \alp     -> menu: \alpha  \aleph  ...   (press <CR> to insert)
 
 It inserts the ~\command~ form, so it renders correctly in LaTeX/Org.
+
+
+* How it works
+
+Put a =#+begin_src <lang> ... #+end_src= block anywhere in an org file, put the
+cursor inside it, and press ~C-c C-c~. The code runs and its output is written
+back into the document as a ~#+RESULTS:~ block right below. Run it again and the
+old results are *replaced*, not duplicated.
+
+- *Emacs-style keybind*: ~C-c C-c~ on a src block runs it. Off a src block it
+  does nothing (just a small notice).
+- *No save required*: the block is run from the buffer, not from disk. It works
+  even in an unsaved scratch buffer.
+- *Runs asynchronously*: you get a ~: running…~ placeholder immediately, then the
+  real output when the process finishes (compiled languages take a beat).
+- *Output format*: each output line is written as a fixed-width ~: ~ line under
+  ~#+RESULTS:~ -- the same convention Emacs org-babel uses.
+- *You can also run it* with the ~:OrgBabelExecute~ command.
+
+** Supported languages
+
+| Block header       | Runs with                       | Needs            |
+|--------------------+---------------------------------+------------------|
+| ~#+begin_src python~ | ~python3 <file>~                  | ~python3~          |
+| ~#+begin_src cpp~    | ~g++ -std=c++20~ (or ~clang++~) then run | ~g++~ / ~clang++~  |
+| ~#+begin_src R~      | ~Rscript <file>~                  | ~Rscript~          |
+| ~#+begin_src java~   | ~java Main.java~ (single-file mode) | ~java~ (JDK 11+)   |
+
+*Runtimes are resolved through the project's flake direnv, not Neovim's PATH.*
+If the file lives in a project with an ~.envrc~ (like this repo's ~use flake~), the
+block runs via ~direnv exec~ using that flake's environment -- so a compiler or
+interpreter the flake provides is used *without* being added to Neovim's own
+PATH. Add a language to your project's ~flake.nix~ devShell (e.g. ~R~, ~jdk~) and it
+becomes runnable there. Files with no ~.envrc~ in scope fall back to plain PATH.
+
+If a runtime isn't in that environment you get a clear note instead of an error,
+e.g. ~: Rscript not found in flake direnv (~/projects/yappopotamus)~ -- add it to
+that project's devShell and re-run.
+
+Aliases are accepted for the language token: ~c++~ -> cpp, ~py~/~python3~ ->
+python, ~R~ -> r.
+
+** Editing inside blocks (LSP + highlighting)
+
+Code inside a block is *syntax highlighted* as its own language, and gets *full
+LSP* -- completion, hover (~K~), go-to-definition (~gd~), diagnostics -- backed by
+the same servers your normal files use (clangd, pylsp, R, jdtls). This turns on
+automatically when you open an org file.
+
+If you *add a block in a language that wasn't in the file when you opened it*,
+run ~:OtterActivate~ (or ~<Space>ol~) once to pick it up.
+
+* Examples -- put the cursor inside a block and press C-c C-c
+
+** Python
+
+#+begin_src python
+print("hello", 2 + 2)
+for i in range(7):
+    print("line", i)
+#+end_src
+#+RESULTS:
+: hello 4
+: line 0
+: line 1
+: line 2
+: line 3
+: line 4
+: line 5
+: line 6
+
+
+** C++
+
+#+begin_src cpp
+#include <iostream>
+#include <vector>
+
+int main() {
+  std::vector<int> v = {6, 7};
+  std::cout << "cpp works: " << v[0] * v[1] << "\n";
+  return 0;
+}
+#+end_src
+#+RESULTS:
+: cpp works: 42
+
+** R
+
+#+begin_src R
+x <- 1+4
+cat("sum:", sum(x), "\n")
+cat("mean:", mean(x), "\n")
+#+end_src
+#+RESULTS:
+: sum: 5 
+: mean: 5 
+
+** Java
+
+The first top-level class needs a ~main~ method. The file name is handled for you
+(single-file source mode), so the class can be named anything.
+
+#+begin_src java
+public class Main {
+  public static void main(String[] args) {
+    System.out.println("java: " + (3 * 3));
+  }
+}
+#+end_src
+#+RESULTS:
+: java not found in flake direnv (~/projects/yappopotamus)
+
+** What the results look like
+
+After running the Python block above you'll see something like:
+
+#+begin_example
+#+begin_src python
+print("hello", 2 + 2)
+for i in range(3):
+    print("line", i)
+#+end_src
+#+RESULTS:
+: hello 4
+: line 0
+: line 1
+: line 2
+
+
+* Header arguments
+
+A minimal set of Emacs-style header args is understood on the ~#+begin_src~ line:
+
+| Header             | Effect                                                 |
+|--------------------+--------------------------------------------------------|
+| ~:results output~    | show what the program prints (the default behaviour)   |
+| ~:results silent~    | run the block but do *not* write a ~#+RESULTS:~ block     |
+
+Example -- run for side effects only, no results written:
+
+#+begin_src python :results silent
+with open("/tmp/note.txt", "w") as f:
+    f.write("side effect only\n")
+#+end_src
+
+* Keybindings
+
+| Key / command      | Action                                              |
+|--------------------+-----------------------------------------------------|
+| ~C-c C-c~            | run the src block under the cursor                  |
+| ~:OrgBabelExecute~   | same, as a command                                  |
+| ~K~                  | hover docs for the symbol under the cursor (in-block) |
+| ~gd~                 | go to definition (in-block)                         |
+| ~<Space>ol~ / ~:OtterActivate~ | (re)enable in-block LSP after adding a new language |
