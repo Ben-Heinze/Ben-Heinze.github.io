@@ -16,6 +16,13 @@ delete-page path:
 move-page path parent="":
     python3 serve.py move-page "{{path}}" "{{parent}}"
 
+# Rename a page: give it a new title, re-deriving its URL slug and dir from the
+# title, updating its #+TITLE: and nav label, and keeping the same parent. Any
+# pages nested under it move with it. Pass the current content/ path.
+# Usage: just rename-page statistics/likelihood "Maximum Likelihood"
+rename-page path title:
+    python3 serve.py rename-page "{{path}}" "{{title}}"
+
 run:
     #!/usr/bin/env bash
     if [ -f .server.pid ] && kill -0 "$(cat .server.pid)" 2>/dev/null; then

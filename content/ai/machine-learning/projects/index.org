@@ -1,8 +1,7 @@
-#+TITLE: Machine Learning
+#+TITLE: Projects
 #+AUTHOR: Ben Heinze
-#+DATE: 2026-08-13
+#+DATE: 2026-08-26
 #+STARTUP: noindent
-#+OPTIONS: toc:nil
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
 
@@ -13,12 +12,6 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-* What to study:
-- Winnow Algorithm
-
 #+begin_export html
-<object data="syllabus.pdf" type="application/pdf" width="100%" height="800px">
-  <p>Your browser can't display the embedded PDF.
-     <a href="syllabus.pdf">Download the syllabus</a> instead.</p>
-</object>
+<embed src="ML-Project1.pdf" width="100%" height="800px" type="application/pdf">
 #+end_export

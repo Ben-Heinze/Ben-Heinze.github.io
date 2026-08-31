@@ -1,0 +1,139 @@
+#+TITLE: Operating Systems
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-25
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Course schedule
+
+The schedule content is subject to change.
+Monday, Wednesday, Friday: 08:00am - 08:50am in Barnard Hall 108.
+
+For the course schedule go to the class [[https://github.com/adiesha/CSCI460Fall2026][Github page]] 
+
+- 3 credits
+- Prerequisites: CSCI 232 and (CSCI 366 or EELE 371)
+- Recommended: CSCI 351
+
+Operating systems design including necessary hardware support. Processes, threads, concurrent programming, and scheduling. Memory, file, and I/O management.
+Course information
+
+This course meets on Mondays, Wednesdays, and Fridays from 08:00 a.m.–0850 a.m. in Barnard 108. Course meetings consist of a combination of lectures, in-class activities, and quizzes (tests) and project. We will use Canvas and Discord as the primary method of communication, and course content will be posted on Canvas.
+Course resources
+
+** Textbook
+-  Operating Systems (9th edition), by William Stallings, Pearson
+-  Please read the assigned sections of the book each week.
+
+Instructor: Adiesha Liyanage
+
+- Office Location: GH 260E
+- Email: a.liyanaralalage@montana.edu
+- Phone: 406 994 4782
+
+Course Assistants
+
+- Name: TBD
+- Office hours: TBD
+- email: 
+
+Instructor Office hours 
+
+   Office hours: M 12:05-2pm; T 10-11am
+    Location: GH 260E
+
+Description
+
+    3 credits
+    Prerequisites: CSCI 232 and (CSCI 366 or EELE 371)
+    Recommended: CSCI 351
+
+* Grading
+** Programming Assignments (24%)
+
+-  Assignment 1
+-  Assignment 2
+-  Assignment 3
+
+** Tests (30%)
+
+- Exact dates will be announced at least one week ahead of each test.
+- Test 1 
+- Test 2 
+- Test 3 
+
+** Homework (20%)
+
+- HW 1 (Will be Available on Canvas)
+- HW 2 (Will be Available on Canvas)
+- HW 3 (Will be Available on Canvas)
+- HW 4 (Will be Available on Canvas)
+- HW 5 (Will be Available on Canvas)
+
+** Pop-up tests (5%)
+
+- Pop-up Test 1
+- Pop-up Test 2
+- Pop-up Test 3
+- Pop-up Test 4
+- Pop-up Test 5
+- Pop-up Test 6
+
+** Attendance (5%)
+
+We will use iClicker to record attendance.
+
+** Project (16%)
+
+    You are required to do a project at the end of the semester.
+    - Students will be divided into groups of 1-4 people (About 10 groups).
+    - You are required to either:
+      - (1) choose (or be given) a specific OS/Topic for detailed survey and analysis (research project),
+      - (2) implement a small part of the linux system, should not be trivial, should be interesting. (You can talk with me about any ideas you have)
+    - You need to figure out which option you are going to go with for the project before the deadline (Oct 29)
+    - Each group will write a 5-10 page report on the project you are doing.
+    - For option (1) you are required to do a presentation in th class (8-10 mins)
+    - For option (2) you are required to do a demo in the class (8-10 mins)
+    - I may change the time allocated for the each group depending on the size of the group.
+    - You need to attend to other groups presentations/demos.
+    - You need to ask questions about other groups projects.
+    - Evaluations will be based on the quality of the project, presentation, attendance, participation etc. Each member of a group will receive the same grade.
+    - Two groups cannot share the same topic.
+
+Example Ideas:
+
+    Implementation details of a specific OS (ex: Kali Linux, Arch Linux, etc.) Note: If you choose a topic like this, you need to go in depth about how this operating system is different from others, and what are the implementation details of it--- how does this OS manages memory, processes, devices, files, etc.
+    - Implementation of a specific algorithm that is used in OS. Ex: RSA, Diffie-Hellman algorithm, etc. (If you are choosing a topic like this, work on the implementation in a linux system)
+    - Specific topic in OS management like OS Sandboxing, Linux GFS implementation, Hypervisors and virtual machines, DDOS prevention in linux systems, deadlock prevention in linux system, etc.
+    - Implementation of a device driver for a embedded system.
+    - Arch Linux, Kali Linux, Barrelfish OS, DOS, MacOS, Kolibri OS, Bodhi Linux
+    - FAT32, NTFS, FAT File systems. (You can pick up 1 of these file systems)
+    - OS performance of RAID
+    - Remote Procedure Calls.
+    - The fairness in Processor Scheduling.
+    - Study of TLB performance.
+
+All communication will be done via Canvas and Discord announcements. 
+
+* Topics
+** Memory management
+** Processor management
+** Device management
+** File management
+
+
+* Components of a computer system
+** Processor
+** Main Memory (ram)
+** I/O Modules
+** System Bus
+
+

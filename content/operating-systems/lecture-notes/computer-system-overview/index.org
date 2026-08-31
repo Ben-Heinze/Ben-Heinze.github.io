@@ -1,0 +1,34 @@
+#+TITLE: Computer System Overview
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-26/31
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+#+begin_export html
+<embed src="lecture1.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+
+#+begin_export html
+<embed src="overview.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+
+opcode is the unique binary combo that corresponds to an instruction
+
+RAM resembles a stack (not the data structure). One row in the stack is called a /frame/. The length of the frame is called a /word/.
+
+
+The CPU checks for any interrupts. It changes the instruction cycle slightly, but it is useful. Sometimes, you need to disable interrupts
+
+  /multiprogramming/ is running is used in the CPU by choosing another process to run while the previous program is waiting. 
+
+

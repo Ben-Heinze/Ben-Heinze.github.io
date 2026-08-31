@@ -1,0 +1,394 @@
+#+TITLE: Introductionary Terms
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-21
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Mean vs Average
+  The Statistical Sleuth uses /mean/ ($\mu$) when referring to an average calculated over an entire population, and /average/ ($\bar{\maths{Y}}$) when referring to the average in a sample, which is both a statistic and an estimate of the population mean.
+
+
+* Parameter  
+
+  A /parameter/ is an unknown numerical value describing a feature of a probability model and they are indicated by Greek letters like $\theta$. 
+
+  A /statistic/ is any quantity that can be calculated from the observed data, and are represented by Roman letters.
+
+  An /estimate/ ($\hat{\theta}$) is a statistic used as a guess for the value of a parameter
+
+
+* Standard Deviation  
+  The /Standard Deviation/ of a set of numbers $Y_{1}, \ldots, Y_{n}$ is defined as 
+  \[
+    \sqrt{\frac{\left( \sum_{i=1}^{n} (Y_i - \bar{Y})^{2} \right)}{(n-1)}}
+  \]
+
+  $\theta$ is the symbol for a population standard deviation, and $\its s$ is the sample standard deviation symbol.
+
+* Standard Error
+  The /standard error/ of any statistic is an estimate of the standard deviation in its sampling distribution. 
+
+* Degrees of Freedom
+  Associated with every standard error is a measure of the amount of information used to estimate variability, which is called /degrees of freedom/. The degrees of freedom (d.f.) are measured in units of "equivalent numbers of independent observations".
+
+
+* Null and Alternative Hypotheses
+
+  Hypothesis is a statistical method used to determine whether a treatment truly affects the outcome of an experiment or not. The null hypothesis is assuming that the treatment has no effect on the outcome of the study, while the alternative hypothesis claims there /is/ a change in results. 
+
+  \[
+  H_0: \delta = 0
+  \]
+
+  \[
+  H_a: \delta \left( \leq,  \neq, \geq \right) 0
+  \]
+
+
+* p-value
+
+  If the observed test statistic is improbably large under the null hypothesis, it suggests the null hypothesis is wrong - the treatment (not the randomization) caused the big difference. However, there's a chance that the randomization actually did cause the difference, and the chance of the randomization causing the improbably large test statistic is called (/observed/) /p-value/. 
+  The /p-value/ from the randomization test is a probability statement that is tied directly to the chance mechanism used to assign subjects to treatkkkĸk
+
+
+* Z-Ratio
+
+
+#+TITLE: Title
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-11
+#+STARTUP: noindent
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+Hello, my name Ben Heinze and I worked with Jordan improving the CHARM Jordan.
+Previously a java application, we rebuilt charm with a typescript frontend and
+a c++ backend for faster computational speeds with modern UI/UX. In this
+session, we are going to demonstrate the foundational tools for the
+application, then we will go into the vehicle model example to showcase. First,
+let's showcase the initial application
+
+* LAUNCH CHARM application
+
+CHARM is composed of four overarching tabs: Model, Chart, Editor, and Risk
+  which sub tabs for each section. 
+** Model
+  First, the Model tab contains the model editor tab, which provides a
+   graphical
+  interface to allow users to hand-build graphs.{{{hl(purple, Simply click and drag your
+  chosen node onto the graph (PERFORM))}}}, then {{{hl(purple,create edges by clicking and
+  dragging the parent node )}}}and hovering it over your chosen child node. There
+  are Test nodes, Diagnostic nodes, logical gates, and utility nodes, which
+  will be further demonstrated in a moment. 
+
+  The Model Settings tab is where model-specific information lies. You can
+   select your inference engine EXPLAIN MORE
+** Editor
+  The editor tab allows you to change values of individual nodes such as
+  renaming the node, setting the criticality of a node, setting state names,
+  and more. This tab is meant to be a general tab, and the parameter tab
+  becomes unique to the node type and users can set these values accordingly. 
+** Chart
+  Once the model is built, the Chart and Risk tab become useful. The Chart tab
+  contains the "Diagnostics" tab, which control the state of the tests,
+  probability of failure for the diagnostic nodes, mean time to failure, and
+  usage. 
+** Risk 
+  Once inference is calculated, the Risk matrix will become populated with
+  diagnostic nodes and hazard nodes, and the users can define the likelihood
+  thresholds. Likelihood is calculated with 1-P(fault) for diagnostic nodes,
+  and P(hazard) for hazard nodes.
+
+* Vehicle Model
+  Let's demonstrate these tabs with the vehicle model, which
+  illustrates each
+  type of node. You can access pre-made networks by going to Help--> Examples.
+
+  As you can see, the model was successfully imported. The bottom layer of the
+  hierarchy represents test nodes, the next layer up contains diagnostic and
+  utility nodes, then hazard nodes are above that. 
+
+  The diagnostics tab contains two tables: The Test table and the Diagnostics
+  table. The test table allows users to set the states of each test as well as
+  calculate information gain to help determine which test provide the most
+  information. Once inference is applied, the Diagnostics table will update the
+  probability of failure for each node, show the mean time to failure (MTTF),
+  and accumulated usage.
+
+  [Showcase setting two tests to failures to curate to a specific fault failing]
+** Failure/Hazard Graph
+  Here is the failure graph for the Air System test. T=0 indicates a fresh
+  part, so the probability of it failing is very low at first. As usage
+  accumulates, the probability of the part failing increases. By clicking the
+  "Show all fault plots" button, you can preview every diagnostic node with the
+  border corresponding to it's current risk of failure. Extreme-risk faults are surrounded in red, high risks in orange, medium risks in yellow, and low risk in green. The hazard graph works
+  the same way, but for hazard nodes instead of fault nodes.
+** Utility Graph 
+  The Utility nodes in the graph are there to visualize how much cost accumulates over time once a failure occurs. ASK ABOUT THIS 
+
+
+* ATML Demo Board
+
+  To demonstrate the real-world example, we recreated a subset of the ATML UUT (unit under
+  test) Demo board's network in CHARM to illustrate a real-world use case. 
+
+
+  {{{hl(purple, Scenario 2: One resulting fault: C11.OP fails)}}}
+{{{hl(green,  Passed: Power5v\, Power12v\, VbDCVoltage\, VeDCVoltage)}}} 
+{{{hl(red,  Failed: GainControl, OutputControl\, VoutACVoltage\, VcDCVoltage)}}}
+
+  In this example, we will showcase an example of the ATML UUT Demo board where
+  a subset of tests are set to pass and fail, and a single diagnostic node is at fault.
+
+
+  {{{hl(purple,Scenario 1: Ambiguous resulting faults: 
+  - Q1.B.OP, Q1.E.OP, Q1.BE.SR )}}}
+{{{hl(green,  Passed: power5v and power12v)}}}
+{{{hl(red,  failed: V b-e DCVoltage)}}}
+
+  This example will illustrate what happens when multiple diagnostic nodes are
+  suggested to be at fault. We can import this data with a usage of 3 and see that three diagnostic nodes have a particularly-high failure rates. By replacing the system, we can reset the usage and probability of failure back to its factory values, which will also unobserve any test node associated with that diagnostic node {{{hl(purple,(RESET Q1.B.OP))}}}. 
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+* Demo gameplan (15 min)
+- App overview: purpose (risk-based PHM, BN + CTBN models)
+- Four-pane layout: Model, Editor, Chart, Risk
+- Hand-build a tiny network:
+  - Drag nodes from palette: fault, test, gate, utility
+  - Draw edges; show illegal-edge rejection
+  - Auto hierarchy layout
+- Edit parameters: prior, CPT, intensity matrix (CIM)
+- Clear graph
+
+** Vehicle Model Demonstration (~9 min)
+*** DONE Cue: load Vehicle example (Help > Examples > CTBN: Vehicle)
+    Fresh factory Vehicle model: 14 faults, 7 hazard gates, 22 tests,
+    16 utility nodes. No observations, usage 0.
+- Quick structure tour: faults, hazard gates, tests, utility nodes
+- Node Editor + Parameters: priors, CPTs, CIMs, gate expressions, utility functions
+- Diagnostics tab:
+  - Observe tests pass/fail; apply inference
+  - Posteriors, MTTF, usage
+  - Calc info gain; sort to pick best next test
+- Graph node colors sync with test states and risk
+- Failure / Hazard / Utility graphs: per-state curves, mission-time marker
+- Risk Matrix: calculate risk; faults vs hazards toggle; bar chart
+- Full loop (pre-created files to save time):
+  - Show Save to file / Save to database (don't wait on it)
+*** DONE Cue: load =demo/vehicle-gen1.xml= (File > Open, usage > 0)
+    Pre-saved Vehicle after one service generation: tests observed,
+    inference run, ready to project forward. Loading with usage > 0
+    accumulates usage, reprojects priors, clears test observations.
+- Show usage accumulation, reprojected priors, cleared tests
+- MTTF shift after usage
+*** DONE Cue: load Vehicle snapshot from database (UUT > SN > timestamp)
+    Same generation saved to the snapshot DB under a demo UUT ID /
+    serial number. Shows the cascading DB pickers give identical results
+    to the file path.
+- Replace System: usage resets, factory prior restored
+
+** ATML Demo Board Demonstration (~3 min)
+*** DONE Cue: load ATML Demo Board example (Database w/ usage > CTBN: ATML Demo Board)
+    Real circuit-board model: 17 faults, 11 tests, fan-in up to 15
+    parents (32,768-row CPT). Switch CTBN inference to Manual mode
+    beforehand — exact inference is slow on this net.
+- Scale story: 17 faults, 11 tests, 15-parent node, 32,768-row CPT
+- Observe a few tests; apply inference; info gain
+- Risk matrix on a real-world model
+- Wrap-up: same workflow scales from toy to real hardware
+
+
+* Refined Demo Script (15 min)
+
+** Introduction (~1 min)
+Hello, my name is Ben Heinze, and together with Jordan I've been working on
+modernizing CHARM. CHARM was previously a Java application; we rebuilt it with a
+TypeScript frontend and a C++ backend, which gives us much faster computation
+and a modern, responsive interface. CHARM is a risk-based prognostics and
+health-management tool: it uses Bayesian Network and Continuous-Time Bayesian
+Network, or CTBN, models to reason about faults, tests, and hazards across the
+life of a system. Over the next fifteen minutes I'll walk through the core
+tools, then bring them together with two examples: a vehicle model, and a
+recreation of a real circuit-board test network. Let's start by launching the
+application. {{{hl(purple,(LAUNCH CHARM))}}}
+
+** The four tabs and building a network (~2.5 min)
+CHARM is organized into four tabs, each with its own sub-tabs: Model, Editor,
+Chart, and Risk.
+
+The Model tab is where the network lives. The Model Editor is a graphical
+canvas for hand-building a graph. To add a node, {{{hl(purple,drag a Test node,
+a Fault node, a gate, and a Utility node from the palette onto the canvas)}}}.
+To connect them, {{{hl(purple,click and drag from a parent node onto a child
+node to create an edge)}}}. CHARM enforces the model's rules, so if I
+{{{hl(purple,attempt an illegal edge, it's rejected)}}} and the network stays
+valid. Then I can {{{hl(purple,click Apply Hierarchy Layout)}}} to arrange
+everything into clean layers automatically. The palette provides fault nodes,
+test nodes, three logical gates, conjunctive, disjunctive, and negation, and
+utility nodes.
+
+The Model Settings sub-tab holds model-wide options, most importantly the
+inference engine, for example exact Variable Elimination, or a sampling engine
+for large networks where exact inference would be too slow.
+
+The Editor tab edits an individual node. {{{hl(purple,Selecting a node)}}} lets
+you rename it, set its criticality, and name its states. Its Parameters sub-tab
+adapts to the node type: priors and conditional probability tables for fault
+nodes, intensity matrices for CTBN nodes, expressions for gates, and cost
+functions for utility nodes.
+
+The Chart tab is where we drive the model, and the Risk tab rolls everything up
+into a risk matrix. Rather than keep building by hand, let me
+{{{hl(purple,clear this graph)}}} and load a complete example.
+
+** Vehicle Model (~9 min)
+To see the tools working together, I'll load a pre-built example:
+{{{hl(purple,Help -> Examples -> CTBN: Vehicle)}}}. This is a fresh,
+factory-condition vehicle model: 14 faults, 7 hazard gates, 22 tests, and 16
+utility nodes, with no observations and zero usage.
+
+The model imported successfully, and the graph auto-arranged into layers.
+Notice the hierarchy: the bottom layer holds the test nodes, the diagnostic and
+utility nodes sit above them, and the hazard nodes sit at the top. Reading it
+bottom to top is exactly how a technician thinks: the tests are the
+measurements we can actually take, the faults are the underlying components
+that might be degrading, and the hazards are the system-level consequences we
+care about avoiding. If I {{{hl(purple,select a fault node and open the
+Parameters tab)}}}, you can see its real prior, its conditional probability
+table, and the intensity matrix that governs how it degrades over time, exactly
+the values we described in the abstract. That intensity matrix is what makes
+this a continuous-time model: rather than a single fixed failure probability,
+each fault has a rate of transition that lets CHARM project its health forward
+to any point in its service life.
+
+Now to the Chart tab's Diagnostics view. It has two tables. The Test Node
+States table lets us set the state of each test, and the Fault Nodes table
+reports each fault's failure probability as a colored Value bar, its mean time
+to failure, and its total accumulated usage. Let me {{{hl(purple,set the Air
+System test and one more test to Fail)}}} to mimic a specific fault occurring,
+and then {{{hl(purple,click Apply Inference)}}}. The Fault Nodes table now
+updates: the Value bar shifts toward failure for the faults consistent with
+those observations, and the MTTF and Total Usage columns fill in.
+
+This is the core inference step, and it's the reason the C++ backend matters:
+CHARM takes the evidence we just entered, propagates it through the entire
+Bayesian network, and returns a calibrated posterior for every fault in
+milliseconds, work that used to be noticeably slow in the old Java application.
+
+Before deciding what to test next, I can {{{hl(purple,click Calc Info Gain)}}}.
+This scores every test by how much information it would give us about the faults
+we still can't distinguish, and {{{hl(purple,sorting that column)}}} puts the
+most informative test at the top. That's a real workflow win: instead of
+running through a fixed checklist, a technician always knows the single best
+next measurement to take, which shortens troubleshooting time in the field.
+
+Notice the graph nodes recolored themselves to match the test states and each
+fault's risk. To dig into one, I'll open the Failure graph for the Air System
+fault. At time zero the part is fresh, so its probability of failing is very
+low; as usage accumulates, that probability climbs, and the vertical marker
+shows where we are along that curve. If I {{{hl(purple,click "Show all fault
+plots")}}}, CHARM previews every fault at once, each bordered by its current
+risk: extreme in red, high in orange, medium in yellow, and low in green. The
+{{{hl(purple,Hazard graph)}}} works the same way for hazard nodes, and the
+{{{hl(purple,Utility graph)}}} shows how cost accumulates once a failure
+occurs, which is what ties reliability back to dollars.
+
+Now the Risk tab, which is where all of this comes together for a
+decision-maker. When I {{{hl(purple,calculate risk)}}}, the matrix populates
+with every diagnostic and hazard node, each placed by its likelihood on one
+axis and its severity on the other. Likelihood is one minus the probability of
+failure for diagnostic nodes, and the probability of the hazard for hazard
+nodes; severity comes from the criticality we set back in the Node Editor. Cells
+are color-coded from green for low risk up to red for extreme risk, and the
+legend spells out the exact scoring bands. I can
+{{{hl(purple,edit the likelihood thresholds)}}} to match a program's own risk
+tolerance, {{{hl(purple,toggle between faults and hazards)}}} to switch between
+component-level and system-level views, and {{{hl(purple,open the Bar Chart tab)}}}
+to read the same data ranked. This single view is the payoff: instead of a wall
+of probabilities, an operator sees at a glance what's most likely to fail and
+how bad it would be if it did, and can prioritize maintenance accordingly.
+
+That's a full loop on a fresh model. In practice you save these results, so
+I'll briefly show {{{hl(purple,Save to file and Save to database)}}}, without
+waiting on it. And here's why usage matters: I'll
+{{{hl(purple,open a pre-saved model, vehicle-gen1.xml, that already has usage
+greater than zero)}}}. Loading with accumulated usage reprojects the priors
+forward and clears the earlier test observations, and you can see the MTTF
+values shift accordingly, this is the same vehicle, one service interval later.
+The identical snapshot also lives in our database, so
+{{{hl(purple,loading it from the database by UUT, serial number, and
+timestamp)}}} gives the exact same result as the file path. Finally, when a
+part is physically swapped, {{{hl(purple,Replace System)}}} resets that fault's
+usage to zero and restores its factory prior.
+
+** ATML Demo Board (~3 min)
+For a real-world example, we recreated a subset of the ATML UUT, unit under
+test, demo board's network in CHARM. I'll
+{{{hl(purple,load it from the database with usage: CTBN: ATML Demo Board)}}}. This is a
+genuine circuit-board model: 17 faults, 11 tests, with fan-in up to 15 parents,
+which is a 32,768-row conditional probability table on a single node. Because
+exact inference is slow at that scale, we've {{{hl(purple,set the inference
+engine to a sampling mode in Model Settings beforehand)}}}.
+
+Consider a concrete scenario. {{{hl(purple,Scenario: one resulting fault,
+C11.OP fails.)}}}
+{{{hl(green,Passed: Power5v\, Power12v\, VbDCVoltage\, VeDCVoltage)}}}
+{{{hl(red,Failed: GainControl\, OutputControl\, VoutACVoltage\, VcDCVoltage)}}}
+When I {{{hl(purple,set those tests and apply inference)}}}, CHARM isolates the
+single fault at C11.OP, and {{{hl(purple,Calc Info Gain)}}} still ranks the
+best next test to confirm it.
+
+Sometimes the evidence is ambiguous. {{{hl(purple,Scenario: ambiguous faults,
+Q1.B.OP, Q1.E.OP, and Q1.BE.SR.)}}}
+{{{hl(green,Passed: Power5v\, Power12v)}}}
+{{{hl(red,Failed: Vb-e DCVoltage)}}}
+Importing this with a usage of 3, three diagnostic nodes light up with
+particularly high failure rates rather than one. {{{hl(purple,Replacing the
+system for Q1.B.OP)}}} resets its usage and probability back to factory values
+and unobserves the tests tied to it. And the {{{hl(purple,Risk matrix on this
+real model)}}} reads exactly like the vehicle's did.
+
+The takeaway: the same workflow, build or load, observe, infer, and read the
+risk matrix, scales unchanged from a toy network to real hardware. Thank you;
+I'm happy to take questions.

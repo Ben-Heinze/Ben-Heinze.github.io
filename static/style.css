@@ -1,3 +1,70 @@
+/* ── Theme variables ──
+   Colors are indirected through custom properties so the whole palette can be
+   swapped by flipping data-theme on <html>. :root holds the light theme; the
+   [data-theme="dark"] block below overrides it with a warm, not-quite-black
+   dark theme. The toggle button + the flash-preventing inline head script that
+   set data-theme live in publish.el / new-page.js. */
+:root {
+  --bg: #fafafa;
+  --text: #1a1a1a;
+  --heading: #000;
+  --sidebar-bg: #f2f2f2;
+  --border: #ddd;
+  --border-strong: #ccc;
+  --border-heading: #aaa;
+  --accent: #0645ad;
+  --visited: #6611cc;
+  --nav-link: #333;
+  --nav-sub-link: #555;
+  --nav-hover-bg: #e4e4e4;
+  --nav-hover-text: #000;
+  --nav-active-bg: #dde6f7;
+  --nav-toggle: #999;
+  --toc-bg: #f8f8f8;
+  --code-bg: #f4f4f4;
+  --code-inline-bg: #f0f0f0;
+  --example-bg: #eef8ee;
+  --example-border: #2a7a2a;
+  --th-bg: #f0f0f0;
+  --tr-even-bg: #fafafa;
+  --muted: #555;
+  --panel-bg: #fff;
+  --shadow: rgba(0, 0, 0, 0.18);
+  --hl-yellow: #B8860B;
+}
+
+/* Neutral dark theme: plain dark grays, never pure black, so it reads easy on
+   the eyes at night. Link/accent blues are lightened for contrast against the
+   dark ground. */
+:root[data-theme="dark"] {
+  --bg: #1e1e1e;
+  --text: #e2e2e2;
+  --heading: #f2f2f2;
+  --sidebar-bg: #252525;
+  --border: #3a3a3a;
+  --border-strong: #4a4a4a;
+  --border-heading: #555555;
+  --accent: #8fb5e6;
+  --visited: #b3a3d9;
+  --nav-link: #c4c4c4;
+  --nav-sub-link: #9a9a9a;
+  --nav-hover-bg: #303030;
+  --nav-hover-text: #fff;
+  --nav-active-bg: #33415c;
+  --nav-toggle: #808080;
+  --toc-bg: #252525;
+  --code-bg: #242424;
+  --code-inline-bg: #2b2b2b;
+  --example-bg: #1c2a1c;
+  --example-border: #4f8a4f;
+  --th-bg: #2a2a2a;
+  --tr-even-bg: #202020;
+  --muted: #9a9a9a;
+  --panel-bg: #2a2a2a;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --hl-yellow: #d4c04a;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,8 +75,8 @@ body {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 17px;
   line-height: 1.7;
-  color: #1a1a1a;
-  background: #fafafa;
+  color: var(--text);
+  background: var(--bg);
   margin: 0;
   padding-left: 220px;
 }
@@ -22,8 +89,8 @@ body {
   left: 0;
   width: 220px;
   height: 100vh;
-  background: #f2f2f2;
-  border-right: 1px solid #ddd;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
   padding: 1.5rem 0.9rem;
   overflow-y: auto;
   z-index: 10;
@@ -34,16 +101,42 @@ body {
   font-family: sans-serif;
   font-size: 1.15rem;
   font-weight: bold;
-  color: #0645ad;
+  color: var(--accent);
   text-decoration: none;
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
-  border-bottom: 2px solid #0645ad;
+  border-bottom: 2px solid var(--accent);
 }
 
 .site-title:visited {
-  color: #0645ad;
+  color: var(--accent);
 }
+
+/* ── Theme toggle ── */
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.4rem 0.6rem;
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  color: var(--nav-link);
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--nav-hover-bg);
+  color: var(--nav-hover-text);
+}
+
+.theme-toggle .theme-toggle-icon { font-size: 0.95rem; line-height: 1; }
 
 /* Recursive nav tree — nests to any depth */
 nav ul.nav-tree {
@@ -58,7 +151,7 @@ nav .nav-tree li { margin: 0; }
 nav .nav-tree .nav-tree {
   margin-left: 0.55rem;
   padding-left: 0.2rem;
-  border-left: 1px solid #ddd;
+  border-left: 1px solid var(--border);
 }
 
 /* Collapsed sections hide their nested subtree */
@@ -86,13 +179,13 @@ nav .nav-tree li.collapsed > .nav-tree { display: none; }
   border: none;
   background: none;
   cursor: pointer;
-  color: #999;
+  color: var(--nav-toggle);
   border-radius: 3px;
   transition: transform 0.12s ease, color 0.12s ease;
 }
 
 .nav-toggle::before { content: "\25be"; font-size: 0.7rem; line-height: 1; }
-.nav-toggle:hover { color: #333; background: #e4e4e4; }
+.nav-toggle:hover { color: var(--nav-link); background: var(--nav-hover-bg); }
 
 /* Collapsed rows point their caret to the right */
 nav .nav-tree li.collapsed > .nav-row > .nav-toggle { transform: rotate(-90deg); }
@@ -102,7 +195,7 @@ nav .nav-tree a {
   display: block;
   min-width: 0;
   padding: 0.2rem 0.4rem;
-  color: #333;
+  color: var(--nav-link);
   text-decoration: none;
   font-family: sans-serif;
   font-size: 0.875rem;
@@ -113,23 +206,23 @@ nav .nav-tree a {
   text-overflow: ellipsis;
 }
 
-nav .nav-tree a:hover { background: #e4e4e4; color: #000; }
-nav .nav-tree a.active { background: #dde6f7; color: #0645ad; font-weight: bold; }
+nav .nav-tree a:hover { background: var(--nav-hover-bg); color: var(--nav-hover-text); }
+nav .nav-tree a.active { background: var(--nav-active-bg); color: var(--accent); font-weight: bold; }
 
 /* Nested links read as secondary to their parent */
 nav .nav-tree .nav-tree a {
-  color: #555;
+  color: var(--nav-sub-link);
   font-size: 0.82rem;
 }
 
-nav .nav-tree .nav-tree a:hover { color: #000; }
-nav .nav-tree .nav-tree a.active { color: #0645ad; }
+nav .nav-tree .nav-tree a:hover { color: var(--nav-hover-text); }
+nav .nav-tree .nav-tree a.active { color: var(--accent); }
 
 /* Home (first top-level item) separated from the sections below */
 nav > .nav-tree > li:first-child {
   margin-bottom: 0.5rem;
   padding-bottom: 0.4rem;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--border-strong);
 }
 
 /* Full-label tooltip, shown next to a nav link truncated by ellipsis.
@@ -140,11 +233,11 @@ nav > .nav-tree > li:first-child {
   z-index: 20;
   max-width: 260px;
   padding: 0.3rem 0.55rem;
-  background: #fff;
-  color: #1a1a1a;
-  border: 1px solid #ccc;
+  background: var(--panel-bg);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 18px var(--shadow);
   font-family: sans-serif;
   font-size: 0.82rem;
   line-height: 1.3;
@@ -167,21 +260,21 @@ nav > .nav-tree > li:first-child {
 
 h1, h2, h3, h4 {
   font-weight: normal;
-  color: #000;
+  color: var(--heading);
   margin-top: 1.75rem;
   margin-bottom: 0.5rem;
 }
 
-h1 { font-size: 2rem;   border-bottom: 1px solid #aaa; padding-bottom: 0.3rem; }
-h2 { font-size: 1.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.2rem; }
+h1 { font-size: 2rem;   border-bottom: 1px solid var(--border-heading); padding-bottom: 0.3rem; }
+h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.2rem; }
 h3 { font-size: 1.2rem; }
 h4 { font-size: 1rem; font-style: italic; }
 
 /* ── Table of Contents ── */
 
 #table-of-contents {
-  background: #f8f8f8;
-  border: 1px solid #ddd;
+  background: var(--toc-bg);
+  border: 1px solid var(--border);
   display: inline-block;
   padding: 1rem 1.5rem;
   margin: 0.5rem 0 2rem;
@@ -198,9 +291,9 @@ h4 { font-size: 1rem; font-style: italic; }
 
 /* ── Links ── */
 
-a { color: #0645ad; text-decoration: none; }
+a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
-a:visited { color: #6611cc; }
+a:visited { color: var(--visited); }
 
 /* ── Paragraphs & lists ── */
 
@@ -212,9 +305,9 @@ li { margin-bottom: 0.25rem; }
 /* ── Code ── */
 
 pre {
-  background: #f4f4f4;
-  border: 1px solid #ddd;
-  border-left: 3px solid #0645ad;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
   padding: 1rem;
   overflow-x: auto;
   font-size: 0.88rem;
@@ -226,7 +319,7 @@ pre {
 code {
   font-family: 'Fira Mono', 'Consolas', 'Courier New', monospace;
   font-size: 0.88em;
-  background: #f0f0f0;
+  background: var(--code-inline-bg);
   padding: 0.1em 0.3em;
   border-radius: 2px;
 }
@@ -235,8 +328,8 @@ pre code { background: none; padding: 0; }
 
 /* Babel result / example blocks */
 pre.example {
-  background: #eef8ee;
-  border-left-color: #2a7a2a;
+  background: var(--example-bg);
+  border-left-color: var(--example-border);
 }
 
 /* ── Images ── */
@@ -248,7 +341,21 @@ img {
   margin: 1rem 0;
 }
 
-.figure p { font-size: 0.88rem; color: #555; margin-top: 0.25rem; }
+.figure p { font-size: 0.88rem; color: var(--muted); margin-top: 0.25rem; }
+
+/* ── Embedded PDFs ── */
+/* PDFs are shown through the browser's native viewer via <embed>/<object>,
+   whose page content CSS can't restyle directly. But a `filter` on the host
+   element applies to the whole rendered surface, so in dark mode we invert
+   lightness (white page -> dark, black text -> light) and hue-rotate 180deg
+   to bring colors back roughly to their original hue. invert(0.9) lands the
+   page on a dark gray rather than pure black, matching the rest of the theme.
+   This is an approximation — color figures inside a PDF will look muted — but
+   it makes text-heavy PDFs (notes, syllabi) readable at night. */
+:root[data-theme="dark"] embed[type="application/pdf"],
+:root[data-theme="dark"] object[type="application/pdf"] {
+  filter: invert(0.9) hue-rotate(180deg);
+}
 
 /* ── Tables ── */
 
@@ -260,27 +367,27 @@ table {
 }
 
 th, td {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
 
-th { background: #f0f0f0; font-weight: bold; }
-tr:nth-child(even) td { background: #fafafa; }
+th { background: var(--th-bg); font-weight: bold; }
+tr:nth-child(even) td { background: var(--tr-even-bg); }
 
 /* ── Block quotes ── */
 
 blockquote {
-  border-left: 3px solid #ccc;
+  border-left: 3px solid var(--border-strong);
   margin: 1rem 0;
   padding: 0.5rem 1rem;
-  color: #555;
+  color: var(--muted);
   font-style: italic;
 }
 
 hr {
   border: none;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--border);
   margin: 2rem 0;
 }
 
@@ -291,7 +398,7 @@ hr {
 
 .hl-red    { color: #FF0000; font-weight: bold; }
 .hl-orange { color: #FF7F00; font-weight: bold; }
-.hl-yellow { color: #B8860B; font-weight: bold; } /* darkened for contrast on light bg */
+.hl-yellow { color: var(--hl-yellow); font-weight: bold; } /* darkened for light bg, brightened for dark (see --hl-yellow) */
 .hl-green  { color: #00FF00; font-weight: bold; }
 .hl-cyan   { color: #00FFFF; font-weight: bold; }
 .hl-blue   { color: #0000FF; font-weight: bold; }

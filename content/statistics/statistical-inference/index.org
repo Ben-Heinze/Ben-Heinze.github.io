@@ -1,0 +1,40 @@
+#+TITLE: Statistical Inference
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-20
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+There are two distinct forms of inference: causal inference and inference to populations
+
+* Causal Inference
+
+  In a {{{hl(purple,randomized experiment)}}}, you assign the experimental units to groups randomly. By randomizing which groups the participants are a part of, you even out any outside factors that may affect the study (aka confounding variables). 
+
+  You cannot draw causal conclusions from an observational study with the statistical analysis alone because it is impossible to rule out the possibility that confounding variables are responsible for group differences in the measured outcome. 
+
+* Inference to populations
+
+ In a {{{hl(purple,random sampling)}}} study, you use pure chance to sample from the specific population you are trying to research. This gives you a more accurate representation of the subpopulations which provides less-biased results. Other methods of sampling may unintentionally create bias towards a specific subpopulation. If you don't sample properly, the results of your study may be useless. 
+
+* Scope of Inference
+  Random assignment determines whether you can assign causality, while random sampling determines whether you can generalize the results of your study to a larger population or not.
+
+  {{{hl(red,add table for causality and generalization)}}} 
+
+  {{{hl(red,add how to write here)}}}
+
+* Statistical Inference
+  An /inference/ is a conclusion that patterns in the data are present in some broader context.
+
+  A /statistical inference/ is an inference justified by a probability model linking the data to the broader context.
+
+
+

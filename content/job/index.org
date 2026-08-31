@@ -1,0 +1,38 @@
+#+TITLE: Jobs
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-28
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+| Acronym | Full Name | Description |
+|----+----|----+------|------+------|
+|AIESTATE| Artificial Intelligence Exchange and Service Tie to All Test Environments| IEEE 1232.|
+| ATE     | Automatic Test Equipment  |             |
+| ATLAS  | Abbreviated test Language for All Systems| |
+| ATML | Automatic Test Markup Language |  Code 1671. Test description standard. Used for model building. UUT desciption document will be used too. |
+| ATS|Automatic Test System|             |
+| BIT   | Built-In Test |             |
+| BITE    | Built-In Test Equipment  |             |
+| BIST     |Built-In Self Test  |             |
+| FRACAS    | Failure Reporting, Analysys, and Corrective Action System|              |
+| MTTF     | Mean Time To Failure   |             |
+| MTBF     | Mean Time Between Failure |             |
+| MAI|  maintenance Action Information  |             |
+| OEM    |  Original Equipment Manufacturer  |             |
+| OMS    |  Onboard Maintenance System |             |
+| PHM   | Prognostics and Health Management|  IEEE code 2848. Standard for Prognostics and Health Management in Automatic Test Systems|
+| RUL    | Remaining Useful Life   |             |
+| Smart-TPS| Smart-Test Program Set|             |
+| SIMICA|Software Interface for Maintenance Information Collection and Analysis | Code 1636. The two main aspects are 16361.1: Test results standards saved to an XML FIle. 1636.2: Maintenance Action Information (MAI) Standard  |
+| SRA/SRU |Shop Replacable Assembly/ Shop Replacable Unit   |             |
+| TPS    | Test Program Set| TPS Test program, interfance device, and an interface to support it|
+| WRA/LRU   |  Weapons Replacable Assembly/Line Replacable Assymbly  |  |

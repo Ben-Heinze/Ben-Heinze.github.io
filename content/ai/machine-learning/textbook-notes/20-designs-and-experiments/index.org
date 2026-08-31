@@ -1,0 +1,87 @@
+#+TITLE: 20 Designs and Experiments
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-25
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Introduction
+
+  Two major questions:
+  1. *How can we asses the expected error of a learning algorithm on a problem?*
+  2. *Given two learning algorithms, how can we say one has less error than the other one, for a given application?*
+
+ 
+  Training errors cannot be used to compare two algorithms because over the training set, the more complex model having more parameters will almost always give fewer errors than the simple ones. We need a validation set that is different than the training set.
+  Even with a validation set, one run isn't enough because: first, training and validation sets may be small and can contain noise and outliers, which may mislead us, and second, learning methods may depend on other random factors affecting generalization.
+  Thus, we need to have several runs to average over such sources of randomness. If we train and validate only once, we cannot test for the effect of such factors. (TDLR: dont just use one validation set).
+
+  We use a /learning algorithm/ on a dataset and generate a /learner/. 
+  We will use the same algorithm to generate multiple learners, test them on multiple validation sets, and record a sample of validation errors.
+  We base our evaluation of the learning algorithm on the /distribution/ of these validation errors.
+  Then, use the distribution to asses the /expected error/ of the learning algorithm, or compare it with the error rate distribution of some other learning algorithm.
+
+  Important points when analyzing Learning algorithms:
+  1. Any result we have is only true for the particular application. /No Free Lunch Theorem/: There is no such thing as the "best" learning algorithm. For any learning algorithm, there is a dataset where it is very accurate and another data where it is very poor. When we say that a learning algorithm is good, we only quantify how will its inductive bias matches the properties of the data.
+  
+  2. Dividing a dataset into training and validation sets is only for testing. Once the hyperparameters are selected, we can use all the labeled data we had previously used for training or validation.
+  
+  3. It is crucial to create a /test set/ to test your model. It is different from a training set or a validation set:
+    - /Training set/: subset of the dataset used to train the model and create initial parameter values
+    - /Validation set/: a subset of the dataset used to fine-tune and tweak the model parameters
+    - /Test set/: A subset of the dataset that is not used for parameter tuning at all; it is solely for testing the model.
+
+    Typically, $\frac{1}{3}$ of the dataset is for testing data, and $\frac{2}{3}$ is for cross-validation to generate multiple training/validation set pairs. 
+  
+  4. We often compare learning algorithms by error rates, but remember in real life, error is only one of the criteria that affect out decision. Other error include risks when errors are generalized using a loss function, training time and space complexity, testing time and space complexity, interpretability, and programmability.
+
+* Factors, Response, and Strategy of Experimentation
+
+  There are controllable factors and uncontrollable factors, their meaning is intuitive. 
+
+** Strategies of Experimentation
+- /Best Guess/: start at some setting of the factors we believe is in a good configuration, test the response, and tweak one factor (or very few) at a time and see how it effects the results. Test each combo.
+- /One factor at a time/: modify a factor at a time where we decide on a baseline value for all factors. This assumes there is no interaction between factors, which may not be the case.
+- /factorial design/: factors are varied together, instead of one at a time. 
+
+* Response Surface Design
+  When factors take numeric values, we fit the response as a function (surface) of the factors and search that surface for the setting that optimizes the response. We iteratively estimate the local gradient and step toward the optimum, rather than testing every combination.
+
+* Randomization, Replication, Blocking
+  Three principles for trustworthy experiments:
+  - /Randomization/: run experiments in random order so uncontrolled factors do not systematically bias the results.
+  - /Replication/: repeat each run multiple times (e.g. over different resampled datasets) to average out randomness and estimate variability.
+  - /Blocking/: reduce or remove the effect of a nuisance factor by grouping runs so that factor is held constant within each block (e.g. using the same folds for all algorithms being compared).
+
+* Cross-Validation and Resampling Methods
+  Resampling lets us generate several training/validation set pairs from a single dataset so we can obtain a distribution of errors. We want the pairs as large and as independent as possible, but these goals conflict, so the methods below trade them off differently.
+
+** K-Fold cross-validation
+   Split the data into $K$ equal partitions (aka folds). Each fold is used once as the validation set while the other $K-1$ folds train the model, giving $K$ error measurements. Common choices are $K = 10$ or $K = 30$; the extreme $K = N$ is /leave-one-out/. The training sets overlap heavily, so the measurements are not independent.
+
+** 5 x 2 Cross-Validation
+   - Take your dataset and split it in half: Half A and Half B.
+- Train the model on Half A, test it on Half B. Record the score.
+- Now flip it: train on Half B, test on Half A. Record that score too.
+
+You get 2 scores from one split, hence the "2-fold" cross validation
+Repeat the whole process 5 times, each time with a fresh, random 50/50 split.
+
+** Bootstrapping
+   Generate training sets by sampling $N$ instances from the dataset /with replacement/. On average about 63.2% of the instances appear in a given bootstrap sample, and the roughly 36.8% left out serve as the validation set. Useful when the dataset is small.
+
+* Measuring Classifier Performance
+  Error rate alone can be misleading, especially with unbalanced classes. From the confusion matrix (true/false positives and negatives) we derive richer measures such as accuracy, precision, recall (sensitivity), specificity, and the F-measure, and we visualize trade-offs across thresholds with ROC curves and the area under the curve (AUC).
+
+* Interval Estimation
+  Rather than reporting a single point estimate of the error, we use the distribution of measurements to give a /confidence interval/ — a range that contains the true value with a stated probability (e.g. 95%). This quantifies our uncertainty and sets up the hypothesis tests that follow.
+
+* Stats
+The rest of the book gets into statistical testing, hypothesis testing, etc. Just use statistics as usual.

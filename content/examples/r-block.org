@@ -7,7 +7,7 @@ Basic summary statistics — a common starting point for any dataset.
 
 #+NAME: r-example
 #+begin_src R :results output
-x <- c(4, 7, 13, 2, 1, 9, 6, 3, 11, 5)
+x <- c(4, 8, 13, 2, 1, 9, 6, 3, 11, 5)
 
 cat("Data:   ", x, "\n")
 cat("Mean:   ", mean(x), "\n")
@@ -16,6 +16,13 @@ cat("SD:     ", round(sd(x), 3), "\n")
 cat("Min:    ", min(x), "\n")
 cat("Max:    ", max(x), "\n")
 #+end_src
+#+RESULTS:
+: Data:    4 8 13 2 1 9 6 3 11 5 
+: Mean:    6.2 
+: Median:  5.5 
+: SD:      3.967 
+: Min:     1 
+: Max:     13 
 
 ** Producing a plot
 

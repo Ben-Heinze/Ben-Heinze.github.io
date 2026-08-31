@@ -1,0 +1,47 @@
+#+TITLE: K-Nearest Neighbor
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-26
+#+STARTUP: noindent
+#+OPTIONS: toc:nil
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+The simplest example of instance-based learning is a *table lookup*: take all training examples, put them in a table, and when they ask for $h(x)$, see if $x$ is in the table. If so, return the corresponding $y$. k-nearest neighbor alters this idea by returning the /closest/ value to $x$ if $x$ itself is not in the table. We are going to use k-nearest neighbor for classification and regression.
+
+
+* Distance
+
+*Minkowski distance* ($L^{p}$ norm) is typically used to measure the distance between a query point $x_q$ to an example point $x_j$:
+\[
+  L^{p}(x_{j}, x_q) = (\sum_{i}^{} |x_{i,j}-x_{q,i}|^{p})^{\frac{1}{p}}
+\]
+- $p=1$: Manhattan distance: used when dimensions don't have similar properties (age, weight, gender)
+- $p=2$: Euclidean distance: used when dimensions have similar properties (width, height, depths)
+- Boolean values have Hamming distance
+
+
+* Condensed NN:
+Time and space complexity increase as the dataset increases. To account for this, a /condensing/ method is used to shrink the dataset without degrading performance. Select the smallest subset $\mathcal{Z}$ of $\mathcal{X}$ such that when $\mathcal{Z}$ is used in place of $\mathcal{X}$, error doesn't increase.
+
+#+BEGIN_LATEX 
+\noindent
+\mathcal{Z} \gets \emptyset \\
+Repeat \\
+For all x \in \mathcal{X} (in random order) \\  
+\indent find x' \in \mathcal{Z} such that ||x-x'|| = $\min_{x^j \in \mathcal{Z}||x-x^j||}$ \\
+\indent If class(x) \neq class(x') add x to \mathcal{Z} \\
+until \mathcal{Z} does not change \\
+#+END_LATEX
+
+Condensed nearest neighbor is a greedy algorithm that aims to minimize training error and complexity, measured by the size of the stored subset.
+
+
+* Edited NN:
+Removes data when the label of the selected datapoint doesn't agree with it's neighbors. 

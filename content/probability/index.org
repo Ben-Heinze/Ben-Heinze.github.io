@@ -123,6 +123,8 @@ fig.savefig("probability_img/conditional-probability-graph.png", dpi=150)
   P(A \mid B) = \frac{P(B \mid A)\,P(A)}{P(B)}
   \]
 
+  hello 
+  $\frac{1}{2}$
   For example, $P(\text{Cavity} \mid \text{Toothache})$ is our
   updated belief that a patient has a cavity, /after/ learning that
   they have a toothache.

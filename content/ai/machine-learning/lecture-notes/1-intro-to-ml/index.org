@@ -1,0 +1,307 @@
+#+TITLE: 1 Intro to ML
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-29
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* What is machine learning?
+- Computer program that improves performance over time
+- mapping of data into a model
+- learning behavior from data
+- discovering solutions to hard problems
+- Definition (Mitchell): a computer program is said to learn from
+    experience $E$ with respect to some class of tasks $T$ and
+    performance measure $P$ if its performance on tasks $T$ as
+    a measured by $P$ improves with $E$
+- Book definition: programming computers to optimize a performance criterion using example data or past experience.
+
+
+
+* Types of ML 
+** Supervised learning
+   There is a critic, learner, and actor. The critic tells the
+   learner the correct action to take, which then will tell the
+   actor how to act. (different than the actor-critic model in
+   RL).
+  - Online learning: Data updates over time
+  - Offline learning: you were given the data, and you can train on that later without the data updating
+  - Active learning: the agent asks for specific data 
+** Unsupervised learning
+  - clustering
+  - Dimensionality Reduction
+  - Association analysis
+  - Manifold learning: Trying to find the underlying geometry and to map the data to that underlying space
+*Classification and clustering are not the same. Clustering is identifying similarities within the data. The classification is a secondary process.*
+** Reinforcement Learning
+  - Sequential decision problems
+  - Requires a reinforcement signal rather than ground truth
+
+ It basically trial-and-errors its way through problem solving. It's not a supervised or Unsupervised learning in a way.
+
+** Semi-supervised learning
+- An approach that mixes labeled and unlabeled data
+- one common approach is called "self-training"
+
+
+Then he talked about classification vs regression. TLDR: classification is discrete, regression is continuous
+
+
+* The Winnow-2 Algorithm
+
+** Training (supervised)
+1. Receive a data instance (numeric)
+2. Make a prediction (classification)
+3. Is prediction correct? If not:
+  - 0 $\to$ 1: promotion
+  - 1 $\to$ 0: demotion
+
+** Classification
+Model: \(f(x) = \sum_{i=1}^{d} w_i x_i \)
+
+For threshold $\theta$:
+
+\(
+  h(x) = \begin{cases}
+    1 & f(x) > \theta \\
+    0 & else
+  \end{cases}
+\)
+
+Promotion: If classify as 0 when correct class is 1, promote:
+
+\(
+w_i = \begin{cases} 
+\alpha w_i & \text{if } x_{i} =1 \\ 
+w_i & \text{if } x_{i} =0 \\ 
+\end{cases}  
+\)
+
+
+Demotion: If classify as 1 when correct class is 0, demote:
+
+\(
+w_i = \begin{cases} 
+w_i/\alpha & \text{if } x_{i} =1 \\ 
+w_i & \text{if } x_{i} =0 \\ 
+\end{cases}  
+\)
+
+
+/where $\alpha$ is a tunable hyperparameter./
+
+** Example
+
+\(
+ f(x) = (x_{1} \vee x_{2}) \wedge v_{3}
+\)
+
+#+begin_src python
+import pandas as pd
+import numpy as np
+
+# Build the dataset from the table
+data = {
+    'x1': [0, 0, 0, 0, 1, 1, 1, 1],
+    'x2': [0, 0, 1, 1, 0, 0, 1, 1],
+    'x3': [0, 1, 0, 1, 0, 1, 0, 1],
+    'f(x)': [0, 0, 0, 1, 0, 1, 0, 1]
+}
+df = pd.DataFrame(data)
+
+X = df[['x1', 'x2', 'x3']].values
+y = df['f(x)'].values
+
+
+def winnow(X, y, alpha=2, epochs=10, verbose=True):
+    n_features = X.shape[1]
+    weights = np.ones(n_features)      # start all weights at 1
+    theta = n_features                 # threshold, commonly = n
+
+    for epoch in range(epochs):
+        mistakes = 0
+        for xi, target in zip(X, y):
+            # Weighted sum
+            score = np.dot(weights, xi)
+            prediction = 1 if score > theta else 0
+
+            if prediction != target:
+                mistakes += 1
+                if target == 1 and prediction == 0:
+                    # Promotion step: double weights of active features
+                    weights[xi == 1] *= alpha
+                elif target == 0 and prediction == 1:
+                    # Demotion step: halve weights of active features
+                    weights[xi == 1] /= alpha
+
+        if verbose:
+            print(f"Epoch {epoch+1}: weights={weights}, mistakes={mistakes}")
+
+        if mistakes == 0:
+            if verbose:
+                print(f"Converged after {epoch+1} epochs.")
+            break
+
+    return weights, theta
+
+
+def predict(x, weights, theta):
+    return 1 if np.dot(weights, x) > theta else 0
+
+# Train
+weights, theta = winnow(X, y, alpha=2, epochs=10)
+
+# Test on the same data
+print("\nFinal weights:", weights, "Threshold:", theta)
+print("\nPredictions:")
+for xi, target in zip(X, y):
+    pred = predict(xi, weights, theta)
+    print(f"x={xi}, true f(x)={target}, predicted={pred}, {'OK' if pred==target else 'MISS'}")
+#+end_src
+#+RESULTS:
+: Epoch 1: weights=[1. 1. 4.], mistakes=3
+: Epoch 2: weights=[1. 2. 4.], mistakes=2
+: Epoch 3: weights=[1. 1. 4.], mistakes=3
+: Epoch 4: weights=[1. 2. 4.], mistakes=2
+: Epoch 5: weights=[1. 1. 4.], mistakes=3
+: Epoch 6: weights=[1. 2. 4.], mistakes=2
+: Epoch 7: weights=[1. 1. 4.], mistakes=3
+: Epoch 8: weights=[1. 2. 4.], mistakes=2
+: Epoch 9: weights=[1. 1. 4.], mistakes=3
+: Epoch 10: weights=[1. 2. 4.], mistakes=2
+: 
+: Final weights: [1. 2. 4.] Threshold: 3
+: 
+: Predictions:
+: x=[0 0 0], true f(x)=0, predicted=0, OK
+: x=[0 0 1], true f(x)=0, predicted=1, MISS
+: x=[0 1 0], true f(x)=0, predicted=0, OK
+: x=[0 1 1], true f(x)=1, predicted=1, OK
+: x=[1 0 0], true f(x)=0, predicted=0, OK
+: x=[1 0 1], true f(x)=1, predicted=1, OK
+: x=[1 1 0], true f(x)=0, predicted=0, OK
+: x=[1 1 1], true f(x)=1, predicted=1, OK
+
+
+
+
+* Why does Machine Learning Work?
+Definition: consider any concept learning algorithm $L$ for a set of instances $X$. The inductive bias of $L$ is any minimal set of assertions $B$ such that for any target concept $c$ and corresponding training examples $D_c$, 
+$\forall x_{i} \in X, (B \wedge D_c \wedge x_i \vdash L(x_{i} D_c)$ 
+
+Theorem: A learner that makes no a priori assumptions regarding the identity of the target concept has no rational basis for classifying any unseen instances.
+*Interpretation: an unbiased learner cannot learn!*
+
+* Types of Inductive Bias 
+- *representation bias*: how the type of model defines the hypothesis (i.e., search) space for the learner
+- *Preference Bias* (aka selection bias) : How the learner searches the hypothesis space and decides which hypotheses are better than others (reduce error)
+  - Emphasized that ML is a /search/ process. How do you traverse the search space and make decisions based on that space.
+  - emphasizes search in ML involves /optimization/
+  - Examples: maximizing performance/minimizing loss
+
+Winnow-2 has a linear representation bias. This can only solve problems that have a linear divide between the classes.It can learn AND, but not XOR with the given set of features we discussed.
+
+* No Free Lunch Theorem
+ 
+There is no algorithm that is good for every solution. You can find an optimal solution for a particular solution, but models will always perform better on some datasets than others.
+
+
+Inductive Learning hypothesis: Any *hypothesis* found to approximation the target function well over a sufficiently *large set of training examples* will also approximate the target function well over the over unobserved examples
+- End goal is to learn a model capable of generalizing on examples not used in the training process
+
+
+* Evaluating Hypotheses
+
+** True Error
+
+- *True error* of hypothesis $h$ with respect to target function $f$ and distribution $\mathcal{D}$ is the probability that $H$ will misclassify an instance drawn at random according to $\mathcal{D}$. 
+
+
+\[
+  \text{error}_{\mathcal{D}}(h) = P_{x \in \mathcal{D}} [f(x) \neq h(x)]
+\]
+
+
+True error is the expected loss over the entire underlying distribution of possible data (the value you actually care about (how well the model generalizes) but can never observe directly, only estimate).
+
+
+** Sample Error
+
+- *Sample error* of $h$ with respect to $f$ and data sample $\mathcal{s}$ is the proportion of examples $h$ misclassifies. 
+
+\[
+  \text{error}_{\mathcal{S}}(h) = \frac{1}{n}\sum_{x \in \mathcal{S}} \delta(f(x),h(x)), \text{where } \delta(f(x),(h(x)) = \begin{cases}
+    1 & f(x) = h(x) \\
+    0 & f(x) \neq h(x)
+  \end{cases}
+\]
+
+Sample error (also called empirical or training error) is the average loss measured on the specific dataset you have (the value you can actually compute). 
+
+
+* Risk and Loss Functions
+** Risk function
+
+Risk function: total cost of a model's predictions, used to fit parameters during training.
+
+\[
+ \text{Risk Function: }\ell(\theta) = \sum_{i} L(g_{\theta}(x^{(i)}),r^{(i)}) + \lambda \rho(\theta)
+\]
+
+| Character | Description |
+| $\theta$ |  the model's parameters (weights) being learned |
+| $x^{(i)}$ | The $i^{th}$ input example (features) | 
+| $r^{(i)}$ | The $i^{th}$ true/target label (response) |
+| $g_{\theta}(x^{(i)})$ | The model's prediction for input $x^{i}$, given parameters $\theta$ |
+| $L(\cdot)$ | Loss function, measuring how far the prediction is from the true label (e.g., squared error) |
+| $\sum_{i}$ | Sum over all training examples, so total prediction error across the dataset |
+| $\rho(\theta)$ | Regularization term, penalizing complex/large parameters to avoid overfitting | 
+| $\lambda$ (lambda) | Hyperparameter controlling how much weight to give regularization vs. fitting the data |
+
+** Loss functions:
+
+The Loss function ($\mathcal{L}$) measures how wrong a single prediction is compared to the true value. 
+Training a model means adjusting $\theta$ to make predictions that minimize the loss, averaged/summed across all examples.
+
+Loss functions include:
+- 0/1 loss $L_{01}$
+- Square Loss $L^{2}$
+- Hinge Loss $L_{hinge}$
+- Absolute Error
+- Log Loss (cross entropy) $L_{\log}$
+
+* Bias-Variance Trade-off
+
+When you look at the squared loss and the expected value over the dataset, it can be rewritten as a bias+variance equation. 
+
+When training a model, prediction error can be broken down into two competing sources:
+- *Bias*: Error from overly simplistic assumptions in the model. High bias means the model /underfits/, missing real patterns in the data (e.g., fitting a straight line to curved data).
+- *Variance*: Error from excessive sensitivity to small fluctuations in the training data. High variance means the model /overfits/, capturing noise rather than the true underlying pattern.
+
+The tradeoff: As model complexity increases, bias tends to decrease (the model fits the training data better) but variance increases (the model becomes more sensitive to the specific training set). The goal is to find a sweet spot that minimizes total error:
+
+\[
+ \text{Total Error} = \text{Bias}^{2} + \text{Variance} + \text{Irreducible Error} 
+\]
+
+Connection to the risk function: This is exactly what the regularization term
+$\lambda \rho(\theta)$ controls — increasing $\lambda$ constrains the model
+(raising bias, lowering variance), while decreasing $\lambda$ lets the model
+fit more freely (lowering bias, raising variance). As you choose a
+representation that drives the bias down, the variance will increase and visa
+versa.
+
+* Takeaways:
+- match algorithm to problem based on the situation. No free lunch
+- Understand your problem and your data
+- pick model representation that balances bias/variance 
+- consider performance function 
+- pick an algorithm for the situation.
+

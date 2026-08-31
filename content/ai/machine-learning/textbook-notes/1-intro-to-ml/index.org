@@ -1,0 +1,82 @@
+#+TITLE: 1 Intro to ML
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-25
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+  These notes were constructed from chapters 1 and 20
+
+* What is Machine Learning
+
+
+  The idea in machine learning is to learn how to perform tasks humans can do: recognize a photo, drive a car, play chess, etc.
+
+  You start with a general model with many parameters, then tweak those parameters to accomplish the given task. 
+  The /learning/ aspect of ML corresponds to adjusting the values of these parameters to optimize the general model for the specific task.
+  The particular settings of the parameters come from /training data/ which is used to direct the model on how to adjust the parameters to best optimize the goal.
+
+  The book talks about data mining, its purpose, then it discusses pattern recognition.
+
+  */Machine learning/ is programming computers to optimize a performance criterion using example data or past experience.* We have a model defined up to some parameters, and learning is the execution of a computer program to optimize the paramaeters of the model using the training data or past experience. Models can be predictive, descriptive, or both:
+  
+  /Predictive Model:/ Makes predictions in the future
+
+  /descriptive Model:/ Gains knowledge from data.
+
+
+* Examples of ML Applications
+
+** Association Rules
+
+   In the case of retail, one application of MK is /basket analysis/, which is finding associations between merchandise bought by customers.
+   In finding an /Association rule/,we are interested in learning a conditional probability of the form $P(X \mid Y)$ where $Y$ is the merchandise we would like to condition on $X$, which is the items or the set of items that we know the customer has already purchased.
+   For example, there's a good chance a customer who buys beer at the local gas station also buys nicotine: $P\left( zyns=true \mid beer=true \right) = 0.7$. 
+
+   This can be used to format store layouts (putting similarly-bought products near each other), or for creating recommendation systems (essentially ads).
+
+** Classification
+
+   /Classification/ is another application of ML. Examples of classification include image recognition ("that's a dog, that's a cat, that's a car") and a loan company determining if a person is a "high risk" or "low-risk" customer. The original idea of credit scores was to help classify people's financial reliability, which impacted how much money the bank was willing to loan them.
+
+   $\text{IF income } > \theta_{1} \text{AND SAVINGS} > \theta_{2} \text{THEN low-risk ELSE high-risk}$
+
+  /discriminant/: a function that separates the examples of different classes. In the loan example above, the discriminant would be $\theta_1 and \theta_{2}$.
+
+   /Prediction/: Once we have a rule that fits the past data, if the future is similar to the past, we can make correct predictions for novel instances. 
+   Given a new application with a certain income and savings, we can easily decide whether it is low-risk or high-risk. 
+
+   /Pattern-recognition/ is another type of classification, which has applications in image classification, like identifying the similarities between a hand-written "a". The chapter talks about a sequence of characters,  face recognition, medical diagnosis, and speech recognition. 
+
+** Regression
+
+   Regression and classification are /supervised learning/ problems where there
+   is an input /X/, and an output /Y/, and the task is to learn the mapping
+   from the input to the output. This approach in the ML is what we assume a
+   model defined up to a set of
+   parameters: $y = \left( x \mid \theta \right)$, where $g \left( \cdot
+   \right)$ is the model and $\theta$ are its parameters. $Y$ is a number in
+   the regression and is a class code. The function $g(\cdot)$ is the
+   regression function or, in classification, the discriminant function
+   separating the instances of different classes. The machine learning program
+   optimizes the parameters, $\theta$, such that the approximation error is
+   minimized, that is, such that our estimates are as close as possible to the
+   correct values given in the training set. 
+
+** Unsupervised Learning
+
+   /supervised learning/: tries to learn a mapping from input to output where the correct values are provided by the supervisor. 
+   /unsupervised learning/: You only have input data and attempt to detect a structure/pattern without guidance. 
+
+   An example of unsupervised learning is /density estimation/. This can be used in clustering. Clustering is a common type of classification. There's customer segmentation, document clustering, and others.
+
+** Reinforcement learning
+
+   /Reinforcement learning/ has a set of actions, and a goal to achieve. The /policy/ is the sequence of correct actions to reach the goal. The Reinforcement aspect of RL is essentially working to learn the policy. RL is good for game playing.

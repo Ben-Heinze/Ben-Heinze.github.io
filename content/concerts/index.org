@@ -2,7 +2,7 @@
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-07-04
 #+STARTUP: noindent
-#+OPTIONS: toc:2 num:nil
+#+OPTIONS: toc:nil
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
 
@@ -30,3 +30,9 @@ A log of concerts I've attended.
 | 6/27/2025  | Return of the Robot Tour                     | Dwellings, Belmont, The Home Team, Dance Gavin Dance               | Hard Rock Live, Wheatland, CA              | [[file:dgd2025.org][Dance Gavin Dance]]               |
 | 7/29/2025  |                                              | Futurebirds, Caamp                                                 | Big Sky Brewing Co. Amphitheater, Missoula, MT | [[file:caamp2025.org][Caamp]]                       |
 | 3/28/2026  | Spin The Wheel Tour                          | Diamante, Until I Wake, Mothica, I See Stars                       | Pub Station, Billings, MT                  | [[file:mothicaConcert.org][Mothica @ Pub Station]]         |
+|7/25-26/2026| Vans Warped Tour 2026 (Long Beach)| Day 1: Winona Fighter, a little LØLØ, VANA, Some Jinjer, Good Sleepy, Some Suicide Silence, Sleeping with Sirens, South Arcade, The Ghost Inside, Dance Gavin Dance. Day 2: Haywire, Bayside, Dying Wish, Origami Angel, Boundaries, Some Breathe Carolina, Scary Kids Scaring Kids, We Came As Romans, Silverstein, Papa Roach | Shoreline Waterfront (Marina Green Park), Long Beach, CA | [[file:warpedtour.org][Vans Warped Tour Write-Up]] |
+|8/18/2026| | Wishy, Beach Bunny | The Elm, Bozeman MT | [[file:beachbunny.org][Beach Bunny]] | 
+
+
+
+

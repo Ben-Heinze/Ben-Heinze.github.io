@@ -8,13 +8,109 @@ import datetime
 import http.server
 import json
 import os
+import queue
 import re
 import shutil
 import subprocess
+import threading
+import time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PUBLIC = os.path.join(ROOT, 'public')
 NAV = os.path.join(ROOT, 'nav.json')
+
+# ── Live reload ─────────────────────────────────────────────────────────
+# The dev server watches content/ + static/ + nav.json and rebuilds on save,
+# then pushes a reload event over SSE to every open page. The client script is
+# injected into HTML at serve time (not baked into public/) so the built output
+# stays clean and deployable elsewhere without a dev-only <script> leaking in.
+RELOAD_SCRIPT = b"""<script>
+(function () {
+  var es = new EventSource('/__reload');
+  es.onmessage = function () { location.reload(); };
+})();
+</script>
+"""
+
+# One Queue per connected SSE client; notify_reload() pushes to all of them.
+_reload_clients = set()
+_reload_lock = threading.Lock()
+
+# content/*.org and assets rebuild incrementally (org-publish's own timestamp
+# cache skips unchanged files); a nav.json change forces a full rebuild because
+# the sidebar + homepage TOC are baked into every page.
+WATCH_DIRS = [os.path.join(ROOT, 'content'), os.path.join(ROOT, 'static')]
+WATCH_FILES = [NAV]
+
+
+def build(force=False):
+    """Publish the site. force=True rebuilds every page (needed when nav.json
+    changed); otherwise org-publish only re-exports files whose content changed.
+    """
+    subprocess.run(
+        ['emacs', '--batch', '-l', 'publish.el', '--eval',
+         '(org-publish-all %s)' % ('t' if force else 'nil')],
+        cwd=ROOT, check=True,
+    )
+    # Mirror the `just run` recipe: keep the served stylesheet in lockstep.
+    style_src = os.path.join(ROOT, 'static', 'style.css')
+    if os.path.isfile(style_src):
+        shutil.copy(style_src, os.path.join(PUBLIC, 'style.css'))
+
+
+def notify_reload():
+    """Wake every connected SSE client so its page reloads."""
+    with _reload_lock:
+        clients = list(_reload_clients)
+    for q in clients:
+        q.put('reload')
+
+
+def _snapshot():
+    """Map every watched path to its mtime, for change detection."""
+    state = {}
+    for d in WATCH_DIRS:
+        for root, _dirs, files in os.walk(d):
+            for fn in files:
+                p = os.path.join(root, fn)
+                try:
+                    state[p] = os.stat(p).st_mtime_ns
+                except OSError:
+                    pass
+    for p in WATCH_FILES:
+        try:
+            state[p] = os.stat(p).st_mtime_ns
+        except OSError:
+            pass
+    return state
+
+
+def watch_loop():
+    """Poll the watched trees; on change, settle briefly (so half-written saves
+    don't trigger a build mid-write), rebuild, and signal a reload."""
+    prev = _snapshot()
+    while True:
+        time.sleep(0.3)
+        cur = _snapshot()
+        if cur == prev:
+            continue
+        # Let a burst of writes settle before building.
+        while True:
+            time.sleep(0.3)
+            newer = _snapshot()
+            if newer == cur:
+                break
+            cur = newer
+        changed = {p for p in set(cur) | set(prev)
+                   if cur.get(p) != prev.get(p)}
+        prev = cur
+        force = NAV in changed
+        try:
+            build(force=force)
+        except subprocess.CalledProcessError as e:
+            print('build failed: ' + str(e))
+            continue
+        notify_reload()
 
 # Scaffold text for a brand-new page. {{TITLE}} and {{DATE}} are substituted via
 # str.replace (not .format) so the literal LaTeX braces below pass through
@@ -254,6 +350,95 @@ def move_tab(from_href, to_parent_href):
     return {'ok': True, 'from': from_href, 'to': entry['href']}
 
 
+def rename_tab(from_href, new_label):
+    """Rename a page: change its title, nav label, URL slug, and content dir.
+
+    Keeps the page under the same parent (use move_tab to change parent). The
+    slug/dir is re-derived from new_label, so the page's URL changes and any
+    pages nested under it move with it. Mirrors move_tab's nav.json + content/
+    + public/ manipulation, plus rewriting the #+TITLE: in the index.org and a
+    full rebuild.
+    """
+    from_href = (from_href or '').strip()
+    if not from_href:
+        raise ValueError('a page path is required')
+
+    new_label = (new_label or '').strip()
+    if not new_label:
+        raise ValueError('a new name is required')
+    new_slug = slugify(new_label)
+    if not new_slug:
+        raise ValueError('name has no usable characters')
+
+    old_dir = from_href.strip('/').rsplit('/', 1)[0]  # ".../index.html" -> dir
+    if not old_dir:
+        raise ValueError('refusing to rename the site root')
+
+    parent_dir = old_dir.rsplit('/', 1)[0] if '/' in old_dir else ''
+    new_dir = os.path.join(parent_dir, new_slug)
+
+    with open(NAV) as f:
+        nav = json.load(f)
+
+    entry = find_entry(nav, from_href)
+    if entry is None:
+        raise ValueError('page not found in nav: ' + from_href)
+
+    abs_old = os.path.join(ROOT, 'content', old_dir)
+    if not os.path.isdir(abs_old):
+        raise ValueError('content not found: content/' + old_dir)
+
+    # The slug may be unchanged (e.g. renaming "Likelihood" to "Likelihood!"),
+    # in which case only the label + title change and no dir move happens.
+    if new_dir != old_dir:
+        abs_new = os.path.join(ROOT, 'content', new_dir)
+        if os.path.exists(abs_new):
+            raise ValueError('already exists: content/' + new_dir)
+        shutil.move(abs_old, abs_new)
+
+        # org-publish-all does not prune stale files, so the old built output
+        # must go explicitly or the page would linger at its old URL too.
+        stale_public = os.path.join(PUBLIC, old_dir)
+        if os.path.isdir(stale_public):
+            shutil.rmtree(stale_public)
+
+        def rewrite_hrefs(node):
+            old_prefix, new_prefix = '/' + old_dir + '/', '/' + new_dir + '/'
+            node['href'] = new_prefix + node['href'][len(old_prefix):]
+            for child in node.get('children', []):
+                rewrite_hrefs(child)
+
+        rewrite_hrefs(entry)
+
+    entry['label'] = new_label
+
+    with open(NAV, 'w') as f:
+        json.dump(nav, f, indent=2)
+        f.write('\n')
+
+    # Update the page's own title so it matches the nav label. The #+TITLE:
+    # keyword drives the rendered heading and the <title> element.
+    index_org = os.path.join(ROOT, 'content', new_dir, 'index.org')
+    if os.path.isfile(index_org):
+        with open(index_org) as f:
+            body = f.read()
+        body, n = re.subn(
+            r'(?im)^#\+TITLE:.*$', lambda m: '#+TITLE: ' + new_label,
+            body, count=1,
+        )
+        if n:
+            with open(index_org, 'w') as f:
+                f.write(body)
+
+    # Full rebuild: the changed slug/label ripples into the nav baked into
+    # every page and into descendant pages' internal links.
+    subprocess.run(
+        ['emacs', '--batch', '-l', 'publish.el', '--eval', '(org-publish-all t)'],
+        cwd=ROOT, check=True,
+    )
+    return {'ok': True, 'from': from_href, 'to': entry['href'], 'label': new_label}
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=PUBLIC, **kwargs)
@@ -261,6 +446,59 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store')
         super().end_headers()
+
+    def do_GET(self):
+        if self.path == '/__reload':
+            return self._serve_reload_stream()
+        fs_path = self.translate_path(self.path)
+        if os.path.isdir(fs_path):
+            if not self.path.rstrip('?').endswith('/'):
+                self.send_response(301)
+                self.send_header('Location', self.path + '/')
+                self.end_headers()
+                return
+            fs_path = os.path.join(fs_path, 'index.html')
+        if fs_path.endswith('.html') and os.path.isfile(fs_path):
+            return self._serve_html(fs_path)
+        return super().do_GET()
+
+    def _serve_html(self, fs_path):
+        """Serve an HTML file with the live-reload client injected before </body>."""
+        with open(fs_path, 'rb') as f:
+            body = f.read()
+        if b'</body>' in body:
+            body = body.replace(b'</body>', RELOAD_SCRIPT + b'</body>', 1)
+        else:
+            body += RELOAD_SCRIPT
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _serve_reload_stream(self):
+        """Hold an SSE connection open, emitting a reload event on each build."""
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/event-stream')
+        self.end_headers()
+        q = queue.Queue()
+        with _reload_lock:
+            _reload_clients.add(q)
+        try:
+            self.wfile.write(b': connected\n\n')
+            self.wfile.flush()
+            while True:
+                try:
+                    q.get(timeout=15)
+                    self.wfile.write(b'data: reload\n\n')
+                except queue.Empty:
+                    self.wfile.write(b': ping\n\n')  # keepalive + detect disconnect
+                self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        finally:
+            with _reload_lock:
+                _reload_clients.discard(q)
 
     def log_message(self, *a):
         pass
@@ -307,9 +545,26 @@ def main():
         print('moved ' + result['from'] + ' -> ' + result['to'])
         return
 
+    if len(sys.argv) > 1 and sys.argv[1] == 'rename-page':
+        # Rename a page: takes its content/ path (e.g. "statistics/likelihood")
+        # and a new title. Re-derives the slug/dir + href from the title and
+        # updates the page's own #+TITLE:, keeping it under the same parent.
+        path = sys.argv[2] if len(sys.argv) > 2 else ''
+        new_label = sys.argv[3] if len(sys.argv) > 3 else ''
+        try:
+            result = rename_tab(path_to_href(path), new_label)
+        except Exception as e:
+            print('error: ' + str(e), file=sys.stderr)
+            sys.exit(1)
+        print('renamed ' + result['from'] + ' -> ' + result['to'])
+        return
+
     os.chdir(ROOT)
-    print('Serving http://localhost:8080  (Ctrl-C to stop)')
-    http.server.HTTPServer(('localhost', 8080), Handler).serve_forever()
+    threading.Thread(target=watch_loop, daemon=True).start()
+    print('Serving http://localhost:8080  (Ctrl-C to stop)  [watching for changes]')
+    # ThreadingHTTPServer so a held-open SSE reload stream doesn't block the
+    # server from handling normal page requests.
+    http.server.ThreadingHTTPServer(('localhost', 8080), Handler).serve_forever()
 
 
 if __name__ == '__main__':

@@ -151,6 +151,8 @@ intuitively lower than the prior probability of 30\%. Note that Bayes' rule can
 be expanded to handle any number of evidences when calculating the posterior
 probability.
 
+
+
 * References
 
 #+print_bibliography:

@@ -12,8 +12,56 @@
         "href": "/ai/machine-learning/index.html",
         "children": [
           {
-            "label": "Decision Trees",
-            "href": "/ai/machine-learning/decision-trees/index.html"
+            "label": "Projects",
+            "href": "/ai/machine-learning/projects/index.html"
+          },
+          {
+            "label": "K-Nearest Neighbor",
+            "href": "/ai/machine-learning/k-nearest-neighbor/index.html"
+          },
+          {
+            "label": "Classification and Linear Regresssion",
+            "href": "/ai/machine-learning/classification-and-linear-regresssion/index.html"
+          },
+          {
+            "label": "Lecture Notes",
+            "href": "/ai/machine-learning/lecture-notes/index.html",
+            "children": [
+              {
+                "label": "1 Intro to ML",
+                "href": "/ai/machine-learning/lecture-notes/1-intro-to-ml/index.html"
+              },
+              {
+                "label": "2 NN kmeans kmedoids",
+                "href": "/ai/machine-learning/lecture-notes/2-nn-kmeans-kmedoids/index.html"
+              },
+              {
+                "label": "3 Density Estimation and Kernsls",
+                "href": "/ai/machine-learning/lecture-notes/3-density-estimation-and-kernsls/index.html"
+              }
+            ]
+          },
+          {
+            "label": "Textbook Notes",
+            "href": "/ai/machine-learning/textbook-notes/index.html",
+            "children": [
+              {
+                "label": "1 Intro to ML",
+                "href": "/ai/machine-learning/textbook-notes/1-intro-to-ml/index.html"
+              },
+              {
+                "label": "20 Designs and Experiments",
+                "href": "/ai/machine-learning/textbook-notes/20-designs-and-experiments/index.html"
+              },
+              {
+                "label": "7 Clustering",
+                "href": "/ai/machine-learning/textbook-notes/7-clustering/index.html"
+              },
+              {
+                "label": "8 Nonparametric Methods",
+                "href": "/ai/machine-learning/textbook-notes/8-nonparametric-methods/index.html"
+              }
+            ]
           }
         ]
       }
@@ -84,6 +132,14 @@
       {
         "label": "Linear Regression",
         "href": "/statistics/linear-regression/index.html"
+      },
+      {
+        "label": "Statistical Inference",
+        "href": "/statistics/statistical-inference/index.html"
+      },
+      {
+        "label": "Introductionary Terms",
+        "href": "/statistics/introductionary-terms/index.html"
       }
     ]
   },
@@ -122,5 +178,29 @@
   {
     "label": "Projects",
     "href": "/projects/index.html"
+  },
+  {
+    "label": "Operating Systems",
+    "href": "/operating-systems/index.html",
+    "children": [
+      {
+        "label": "Lecture Notes",
+        "href": "/operating-systems/lecture-notes/index.html",
+        "children": [
+          {
+            "label": "Computer System Overview",
+            "href": "/operating-systems/lecture-notes/computer-system-overview/index.html"
+          },
+          {
+            "label": "Memory Management",
+            "href": "/operating-systems/lecture-notes/memory-management/index.html"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Job",
+    "href": "/job/index.html"
   }
 ]

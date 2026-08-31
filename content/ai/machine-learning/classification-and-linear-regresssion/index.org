@@ -1,0 +1,39 @@
+#+TITLE: Classification and Linear Regresssion
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-26
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Univariate Linear Regression
+
+The Univariate linear function (a straight line) with the input $x$ and $y$ has the form $y=w_{1}x + w_{0}$, where $w_{0}$ and $w_{1}$ are real-valued coefficients. The $w$ represents /weights/. We define $\mathbb{w}$ to b the vector $<w_{0}, w_{1}>$ and define the linear function with those weights as $h_{w}(x) = w_{1}x+w_{0}$
+
+The *Linear Regression* is the task of finding $h_w$ that best fits the data points. It is common to use squared-error loss function $L_{2}:$
+
+\[
+  loss(h_w) = \sum_{j=1}^{N} L_{2}(y_j, h_w(x_j))  = \sum_{j=1}^{N} (y_i - h_w (x_j))^{2} = \sum_{j=1}^{N} (y_i - w_{1} x_{j} +w_{0}))^2
+\]
+
+We want to find $\mathbb{w}^* = argmin_w Loss(h_w)$. The sum $\sum_{j=1}^{N} (y_j-(w_{1}x_{j}))^2=0$ is minimized when its partial derivatives with respect to $w_{0}$ and $w_{1}$ are zero:
+
+\[
+\frac{\partial}{\partial w_0}\sum_{j=1}^{N} (y_{j}-(w_{1}x_{j}+w_{0}))^{2} = 0 \text{ and } \frac{\partial}{\partial w_1}\sum_{j=1}^{N} (y_{j}-(w_{1}x_{j}+w_{0}))^{2} = 0
+\]
+
+These equations have the unique solution:
+
+\[
+  w_{1}=\frac{N(\sum x_{j}y_j) - (\sum x_j)(\sum y_j)}{N(\sum x^{2}_{j}) - (\sum x_{j})^2} ; w_{0} = \frac{\sum y_j-w_{1}(\sum x_j)}{N}
+\]
+
+Lots of forms of learning involve adjusting weights to minimize a loss ($\mathcal{L}$), so it helps having a mental picture of whats going on in the /*weight space*: the space defined by all possible settings of the weights./
+
+

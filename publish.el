@@ -121,8 +121,13 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 </script>
 ")
 
+;; The inline theme script runs before the body paints so the stored (or
+;; system-preferred) light/dark theme is applied with no flash of the wrong
+;; palette. It only sets the data-theme attribute the CSS keys off of; the
+;; toggle button's click handler lives in new-page.js.
 (defvar wiki-html-head
-  "<link rel=\"stylesheet\" href=\"/style.css?v=8\" />")
+  "<link rel=\"stylesheet\" href=\"/style.css?v=10\" />
+<script>(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>")
 
 ;; ── Navigation ──────────────────────────────────────────────────────────
 ;; The nav bar is generated from nav.json (a single source of truth shared
@@ -190,9 +195,15 @@ The Home entry (href \"/index.html\") always sorts first."
      "<nav>\n"
      (wiki-nav-tree nav)
      "\n</nav>\n"
+     ;; Light/dark theme toggle. Its label + icon are filled in by new-page.js
+     ;; to match the active theme; it's inert markup until then.
+     "<button type=\"button\" class=\"theme-toggle\" aria-label=\"Toggle light/dark theme\">"
+     "<span class=\"theme-toggle-icon\" aria-hidden=\"true\"></span>"
+     "<span class=\"theme-toggle-label\"></span>"
+     "</button>\n"
      ;; Sidebar behavior lives in static/new-page.js (copied to public/ by the
      ;; wiki-static component). `defer` waits for the preamble DOM to parse.
-     "<script src=\"/new-page.js?v=3\" defer></script>")))
+     "<script src=\"/new-page.js?v=4\" defer></script>")))
 
 (defvar wiki-preamble (wiki-build-preamble))
 

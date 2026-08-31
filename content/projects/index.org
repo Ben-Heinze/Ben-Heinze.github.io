@@ -21,8 +21,10 @@
    miles on it, nice! This is the most valuable asset you own
    (obviously you dont own a house), and you need to keep it in
    the best condition possible to make sure
-   it runs for as long as possible. This means observing and swapping out the
-   spark plugs regularly, checking the oil twice as often as you did with your
+   it runs for as long as possible. This means observing and swapping
+   out the
+   spark plugs regularly, checking the oil twice as often as you did
+   with your
    last beater car, remembering to rotate your tires, etc. There's
    a million different things you need to check on your car, some
    tests need to be checked more often while some components can
@@ -37,9 +39,50 @@
 
 ** Bayesian Networks
 
-   See [[file:../probability/bayesian-networks/index.org][Bayesian Networks]] in
-   Probability for the full definition and a worked example — the vehicle
+   See [[file:../probability/bayesian-networks/index.org][Bayesian
+   Networks]] in
+   Probability for the full definition and a worked example — the
+   vehicle
    model below applies that same structure.
+
+
+** Creating a Bayesian Network
+
+   Since the purpose of this project if diagnostics (and prognostics
+   which is a later topic), we are going to need to represent all of
+   the components of the car that will break as a node. For example,
+   the chassis of a car can be a node. The fuel tank can be a node, the
+   tires can all be a node, etc. Anything that can break will need to
+   be represented, and will call them /fault (or diagnostics) nodes/,
+   since we are trying to detect a /fault/ in the component. Next, we
+   need a way to represent the state of these fault nodes. We will use
+   a /test node/ to observe the state of a fault node is a way to test
+   the condition of the part. For example, you can "observe" if your
+   car's chassis is in good condition by walking around the car to
+   check for dents and rust. If it looks intact, we can say that test
+   passed. If you walked around the car and found your bumper has an
+   imprint of a lamppost, that's a failed test and you should test the
+   condition of your other components like your engine to see if it can
+   still work. These test node results can provide information about
+   the state of your car, or even provide inference on the probability
+   of other parts failing. For example, If I find my car's front bumper
+   wrapped around a pole, then I have am pretty certain the engine
+   isn't going to work. Before I saw the car, I would assume the
+   probability of the engine working was close to 100% since the car
+   was brand new last I checked and perfectly intact. 
+
+   In summary, we have two types of nodes to represent the state of our car: fault nodes and test nodes. The fault nodes represent the component (tire treads, engine coolant level, etc.) while the test nodes acts as a check so we know the condition of our components. All tests are unobserved unless they are run. In this scenario, the test nodes can be either "unobserved", "pass" or "fail". 
+
+   To create a network with these two nodes, we need we add the fault nodes, then directed edge from the fault node to the test(s).
+   
+   The list
+
+
+   The fault node has parameters: a probability table for each part. Since are car is brand new, we can say that every part is likely to work: $P\left( EngineTest = pass \right) = 0.995\%$. This test will have a /prior probability/ value, which is the probability of the engine's test passing before checking the condition of the rest of the car. 
+   Each test node will have a /conditional probability/, where the state of the test is dependent on the fault nodes related to the test. 
+
+
+
 
 ** Predicting Failures
 

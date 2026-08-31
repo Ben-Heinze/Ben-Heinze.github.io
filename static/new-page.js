@@ -54,6 +54,32 @@
     }
   });
 
+  // ── Light/dark theme toggle ──
+  // The theme itself is applied before paint by an inline script in <head>
+  // (see wiki-html-head in publish.el), which sets data-theme on <html> from
+  // localStorage or the OS preference. Here we just wire up the button: label
+  // it for the current theme and flip + persist the choice on click.
+  var THEME_KEY = 'theme';
+  var toggle = document.querySelector('.theme-toggle');
+  if (toggle) {
+    var iconEl = toggle.querySelector('.theme-toggle-icon');
+    var labelEl = toggle.querySelector('.theme-toggle-label');
+    var render = function () {
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      // Icon shows what a click switches TO; label names the current theme.
+      if (iconEl) iconEl.textContent = dark ? '☀' : '☽'; // ☀ / ☽
+      if (labelEl) labelEl.textContent = dark ? 'Dark mode' : 'Light mode';
+    };
+    render();
+    toggle.addEventListener('click', function () {
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var next = dark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+      render();
+    });
+  }
+
   // ── Nav label tooltips ──
   // Nav links are truncated with an ellipsis when a label is wider than the
   // sidebar. On hover, show the full label in a floating box, but only when
