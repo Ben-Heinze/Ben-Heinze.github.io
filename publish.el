@@ -126,7 +126,7 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 ;; palette. It only sets the data-theme attribute the CSS keys off of; the
 ;; toggle button's click handler lives in new-page.js.
 (defvar wiki-html-head
-  "<link rel=\"stylesheet\" href=\"/style.css?v=10\" />
+  "<link rel=\"stylesheet\" href=\"/style.css?v=11\" />
 <script>(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>")
 
 ;; ── Navigation ──────────────────────────────────────────────────────────
@@ -203,7 +203,7 @@ The Home entry (href \"/index.html\") always sorts first."
      "</button>\n"
      ;; Sidebar behavior lives in static/new-page.js (copied to public/ by the
      ;; wiki-static component). `defer` waits for the preamble DOM to parse.
-     "<script src=\"/new-page.js?v=4\" defer></script>")))
+     "<script src=\"/new-page.js?v=5\" defer></script>")))
 
 (defvar wiki-preamble (wiki-build-preamble))
 

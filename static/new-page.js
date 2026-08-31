@@ -102,4 +102,46 @@
       navTooltip.setAttribute('hidden', '');
     });
   });
+
+  // ── Mobile off-canvas nav ──
+  // On phones the sidebar is hidden off-screen (see the max-width:768px media
+  // query in style.css) and opened via a hamburger button. The button and the
+  // dimming backdrop are created here, and appended to <body> rather than into
+  // #preamble on purpose: the drawer is moved with a CSS transform, and a
+  // transformed element becomes the containing block for its position:fixed
+  // descendants — so a button nested inside #preamble would slide away with it.
+  var body = document.body;
+
+  var navBtn = document.createElement('button');
+  navBtn.type = 'button';
+  navBtn.className = 'nav-open-btn';
+  navBtn.setAttribute('aria-label', 'Open navigation');
+  navBtn.setAttribute('aria-expanded', 'false');
+  navBtn.innerHTML = '<span class="nav-open-btn-icon" aria-hidden="true">☰</span>';
+  body.appendChild(navBtn);
+
+  var navBackdrop = document.createElement('div');
+  navBackdrop.className = 'nav-backdrop';
+  body.appendChild(navBackdrop);
+
+  var navIcon = navBtn.querySelector('.nav-open-btn-icon');
+  function setNavOpen(open) {
+    body.classList.toggle('nav-open', open);
+    navBtn.setAttribute('aria-expanded', String(open));
+    navBtn.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    if (navIcon) navIcon.textContent = open ? '✕' : '☰'; // ✕ when open, ☰ when closed
+  }
+
+  navBtn.addEventListener('click', function () {
+    setNavOpen(!body.classList.contains('nav-open'));
+  });
+  navBackdrop.addEventListener('click', function () { setNavOpen(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') setNavOpen(false);
+  });
+  // Tapping a destination link closes the drawer so it isn't left open over an
+  // in-page anchor jump. (Cross-page links reload anyway, resetting the state.)
+  document.querySelectorAll('nav .nav-tree a').forEach(function (a) {
+    a.addEventListener('click', function () { setNavOpen(false); });
+  });
 }());

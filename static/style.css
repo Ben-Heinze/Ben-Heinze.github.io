@@ -403,3 +403,76 @@ hr {
 .hl-cyan   { color: #00FFFF; font-weight: bold; }
 .hl-blue   { color: #0000FF; font-weight: bold; }
 .hl-purple { color: #8B00FF; font-weight: bold; }
+
+/* ── Mobile / small screens ──
+   The desktop layout is a fixed 220px sidebar with the body padded to clear it.
+   That doesn't fit a phone, so below 768px the sidebar becomes an off-canvas
+   drawer: hidden off the left edge, slid in by a hamburger button, and dimmed
+   behind a tap-to-close backdrop. The button + backdrop are created in
+   new-page.js and appended to <body> (NOT inside #preamble) — a transformed
+   sidebar would otherwise trap their position:fixed to itself. They stay
+   display:none until this media query turns them on, so desktop is unaffected. */
+
+.nav-open-btn,
+.nav-backdrop { display: none; }
+
+@media (max-width: 768px) {
+  /* Content spans the full width; the sidebar no longer reserves a gutter. */
+  body { padding-left: 0; }
+  html, body { overflow-x: hidden; } /* a wide child must scroll itself, not the page */
+
+  /* Off-canvas drawer, slid in when <body> gains .nav-open. */
+  #preamble {
+    width: 82vw;
+    max-width: 300px;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 0 0 24px var(--shadow);
+    padding-top: 3.75rem; /* clear the fixed hamburger that overlays the corner */
+  }
+  body.nav-open #preamble { transform: translateX(0); }
+
+  /* Hamburger / close button, pinned to the top-left above everything. */
+  .nav-open-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0.6rem;
+    left: 0.6rem;
+    z-index: 30;
+    width: 2.6rem;
+    height: 2.6rem;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--nav-link);
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow);
+    cursor: pointer;
+  }
+  .nav-open-btn:hover { background: var(--nav-hover-bg); color: var(--nav-hover-text); }
+
+  /* Dimming backdrop: sits above content (auto) but below the drawer (z 10). */
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 9;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+  body.nav-open .nav-backdrop { opacity: 1; pointer-events: auto; }
+
+  /* Reclaim the generous desktop padding; leave room up top for the button. */
+  #content { padding: 3.25rem 1.1rem 2rem; }
+
+  /* Wide blocks scroll within themselves instead of stretching the viewport. */
+  #content table { display: block; width: 100%; overflow-x: auto; }
+  mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+  #table-of-contents { display: block; padding: 0.75rem 1rem; }
+}
