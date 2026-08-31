@@ -38,6 +38,10 @@
               {
                 "label": "3 Density Estimation and Kernsls",
                 "href": "/ai/machine-learning/lecture-notes/3-density-estimation-and-kernsls/index.html"
+              },
+              {
+                "label": "Nonparametric Learning",
+                "href": "/ai/machine-learning/lecture-notes/nonparametric-learning/index.html"
               }
             ]
           },

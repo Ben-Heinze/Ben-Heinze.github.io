@@ -1,0 +1,98 @@
+#+TITLE: Nonparametric Learning
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-31
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Classification
+ 
+ Suppose we are presented with a query point $x_{q}$, and want to know the class to which it belongs
+
+A probabilistic approach:
+\(
+  c = \underset{c \in C}{\arg\max} P(c \mid x_q)
+\)
+
+
+where we use Bayes rule:
+
+\(
+  P(c \mid x_{q}) = \frac{P\left( x_q \mid c \right)P(c)}{P\left( x_q \right)} = \frac{P\left( x_q \mid c \right)P(c)}{\sum_{c' \in C}^{} P(x_q \mid c') P(c')}
+\)
+
+* Parzen Window Classification
+
+- Given X = data
+- find the class to which query point $x_{q}$ belongs
+- the nearest neighbor rule states:  *come back to later*
+
+
+
+
+\[
+  H(u) =\begin{cases}
+    1 & |u_{j}| < \frac{1}{2}, j=1,\ldots, d \\
+    0 & \text{otherwise}
+  \end{cases}
+\]
+
+*write equation later*
+
+* K-nearest neighbor Estimation
+- Doesn't need to fix the size of the bin
+- The parameter $k$ specifies how many of the neighbors are used in the estimate
+- $D(x,x^{t})$: distance function between $x$ and $x^{t}$
+  - Distance to the k-the neighbor. It determines the size of the bin 
+
+* Voronoi Diagram
+
+A way to section off the data space as regions that represent classes. Then, you ask which region the point is in to determine its class
+
+* Distance Metrics
+
+- Metric Spaces
+  1. Non-negative: $D(x,y) \geq 0$
+  2. Reflexive: $D(x,y) =0 \iff x=y$
+  3. Symmetric: $D(x,y) = D(y,x)$
+  4. Triangle Inequality: $D(x,y) + D(y,z) \geq D(x,z)$
+
+*Minkowski distance* ($L^{p}$ norm) is typically used to measure the distance between a query point $x_q$ to an example point $x_j$:
+\[
+  D_{p}(x, y) = (\sum_{i=1}^{d} |x_{i}-y_{i}|^{p})^{\frac{1}{p}}
+\]
+- $p=1$: Manhattan distance: used when dimensions don't have similar properties (age, weight, gender)
+- $p=2$: Euclidean distance: used when dimensions have similar properties (width, height, depths)
+- Boolean values have Hamming distance
+- Max-coordinate Distance: $D_{\infty}(x,y) = \max_{i}|x_{i} - y_i|$
+
+* Calculating Distance for Categorical Data 
+
+1. *one-hot encoding may not work as well for ordinal data, since some categories have implied order: (months of a year). In the report, write your assumptions*
+2. Value Difference Metric (only works for classification). It takes a probabilistic approach. *Explain Here*. 
+
+* Mixing data types
+
+You can mix numerical and categorical distances with specific methods. You already know this
+
+
+* Creating an Experiment
+
+When writing a hypothesis, narrow the scope of your hypothesis, and be specific about which metrics you are testing. It must be numerically testable. 
+
+ Testable Measures include:
+- Accuracy
+- Precision, recall, F1
+- Cross entropy
+- Area under the ROC curve (AUC)
+- MSE 
+- MAE
+
+he goes on about conducting a proper experiment. 
