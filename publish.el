@@ -208,19 +208,72 @@ The Home entry (href \"/index.html\") always sorts first."
 (defvar wiki-preamble (wiki-build-preamble))
 
 ;; ── Homepage table of contents ─────────────────────────────────────────
-;; The homepage lists every top-level section (and its subsections) in a
+;; The homepage lists every top-level section (and what's inside it) in a
 ;; table. Rather than hand-maintaining that table in content/index.org, it's
 ;; generated from nav.json and spliced into the published index.html in
 ;; place of a placeholder div, via :completion-function below. This keeps
 ;; the homepage in sync automatically as sections are added or removed.
+;;
+;; The "Contents" cell is filled from the first of these that yields anything,
+;; so every row says something and none are left blank:
+;;   1. an explicit "summary" string on the nav entry (human-written), else
+;;   2. the labels of the section's sub-pages (its nav children), else
+;;   3. the section page's own top-level headings, read from its index.org.
+
+(defconst wiki-toc-heading-limit 6
+  "Max number of a section's own headings to list in the homepage table
+before truncating with an ellipsis.")
+
+(defun wiki-org-file-for-href (href)
+  "Map a nav HREF like \"/spotify/index.html\" to its content/ .org source path."
+  (let* ((rel (replace-regexp-in-string "/index\\.html\\'" "" (or href "")))
+         (rel (replace-regexp-in-string "\\`/" "" rel)))
+    (expand-file-name (concat "content/" rel "/index.org"))))
+
+(defun wiki-clean-heading (h)
+  "Tidy a raw Org heading H for display in the homepage table: drop trailing
+:tags:, unwrap =verbatim=/~code~ markers, and normalize -- to an en dash."
+  (setq h (string-trim h))
+  (setq h (replace-regexp-in-string ":[[:alnum:]_@#%:]+:[ \t]*\\'" "" h))
+  (setq h (replace-regexp-in-string "[=~]\\([^=~]+\\)[=~]" "\\1" h))
+  (setq h (replace-regexp-in-string "--" "–" h))
+  (string-trim h))
+
+(defun wiki-section-headings (href)
+  "Return up to `wiki-toc-heading-limit' top-level headings from the index.org
+behind HREF, as a comma-separated string, or nil if the file has none.
+Boilerplate headings (References/Footnotes) are skipped; an ellipsis is added
+when more headings exist than are shown."
+  (let ((file (wiki-org-file-for-href href))
+        (heads '()))
+    (when (file-readable-p file)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (goto-char (point-min))
+        ;; Level-1 headings only: "* " but not "** ".
+        (while (re-search-forward "^\\*[ \t]+\\(.*\\)$" nil t)
+          (let ((h (wiki-clean-heading (match-string 1))))
+            (unless (or (string-empty-p h)
+                        (member (downcase h) '("references" "footnotes")))
+              (push h heads))))))
+    (setq heads (nreverse heads))
+    (when heads
+      (let ((shown (if (> (length heads) wiki-toc-heading-limit)
+                       (append (seq-take heads wiki-toc-heading-limit) '("…"))
+                     heads)))
+        (mapconcat #'wiki-html-escape shown ", ")))))
 
 (defun wiki-toc-row (item)
-  "Render one <tr> for homepage nav ITEM: its link plus its children's labels."
+  "Render one <tr> for homepage nav ITEM: its link plus a summary of its
+contents. See the comment above for how the contents cell is chosen."
   (let* ((children (alist-get 'children item))
-         (contents (if children
-                       (mapconcat (lambda (c) (wiki-html-escape (alist-get 'label c)))
-                                  children ", ")
-                     "&#8212;")))
+         (summary (alist-get 'summary item))
+         (contents
+          (cond
+           (summary (wiki-html-escape summary))
+           (children (mapconcat (lambda (c) (wiki-html-escape (alist-get 'label c)))
+                                children ", "))
+           (t (or (wiki-section-headings (alist-get 'href item)) "&#8212;")))))
     (format "<tr><td><a href=\"%s\">%s</a></td><td>%s</td></tr>"
             (alist-get 'href item)
             (wiki-html-escape (alist-get 'label item))

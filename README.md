@@ -16,7 +16,7 @@ Personal wiki built with [Org mode](https://orgmode.org/), published to a static
 8. [#+INCLUDE: Single Source of Truth](#include-single-source-of-truth)
 9. [Emacs Interactive Commands](#emacs-interactive-commands)
 10. [How to Add a New Snippet](#how-to-add-a-new-snippet)
-11. [How to Add a New Tab / Section](#how-to-add-a-new-tab--section)
+11. [Adding & Managing Pages](#adding--managing-pages)
 12. [Citations & Bibliography](#citations--bibliography)
 13. [Building the Site](#building-the-site)
 14. [Initial Project Setup Notes](#initial-project-setup-notes)
@@ -38,8 +38,10 @@ You write plain-text Org mode files in `content/`. Each subject has its own fold
 Running `emacs --batch -l publish.el -f org-publish-all` does the following for every `.org` file:
 1. Resolves all `#+INCLUDE` directives, assembling the full document.
 2. Executes every Org Babel code block (Python, R, shell, etc.), captures the output, and inserts it into the document as a `#+RESULTS:` block.
-3. Converts the assembled document to HTML, injecting the nav bar and stylesheet.
+3. Converts the assembled document to HTML, injecting the sidebar navigation (generated from `nav.json`) and stylesheet.
 4. Writes the result to `public/` mirroring the `content/` directory structure.
+
+The sidebar and the homepage's section index are both generated from a single source of truth, `nav.json`, so every page shares one consistent, hierarchical navigation tree.
 
 Static files (images, PDFs, the stylesheet) are copied to `public/` as-is.
 
@@ -70,24 +72,29 @@ direnv allow
 
 This triggers Nix to build the dev shell defined in `flake.nix`, which provides `emacs`, `python3`, and `R`. Subsequent `cd`s into the project load the shell instantly from cache.
 
-**2. Build the site**
+**2. Build and serve — the easy way**
 
 ```bash
-emacs --batch -l publish.el -f org-publish-all
+just run
 ```
 
-Output lands in `public/`.
+This one recipe does everything: it rebuilds the site, starts the dev server (`serve.py`) on `http://localhost:8080`, and opens it in your browser. The dev server watches `content/`, `static/`, and `nav.json`, rebuilds on every save, and live-reloads any open page — so you can edit `.org` files and see the result without touching the terminal again.
 
-**3. View the site**
+> The live-reload client is injected only when a page is served by `serve.py`; it is never baked into `public/`, so the built output stays clean and deployable anywhere.
+
+**Or, the manual way**
+
+Build once, then serve the static output yourself:
 
 ```bash
-python3 -m http.server 8080 --directory public/
+emacs --batch -l publish.el -f org-publish-all      # output lands in public/
+python3 -m http.server 8080 --directory public/     # serve it (no live reload)
 ```
 
 Open `http://localhost:8080` in a browser.
 
 > **Why not just open `public/index.html` directly?**
-> The stylesheet is referenced as `/style.css` (a root-relative path). Browsers resolve root-relative paths against a server root, not the filesystem. The Python HTTP server provides that root. Opening the file directly will load the page without any styling.
+> The stylesheet is referenced as `/style.css` (a root-relative path). Browsers resolve root-relative paths against a server root, not the filesystem. A local HTTP server provides that root. Opening the file directly will load the page without any styling.
 
 ---
 
@@ -99,21 +106,27 @@ yappopotamus/
 ├── flake.nix                  Nix dev shell — pins Emacs, Python, R
 ├── .envrc                     Tells direnv to use the Nix flake
 ├── publish.el                 Emacs Lisp config that drives org-publish
+├── nav.json                   Navigation tree — single source of truth for the
+│                              sidebar and the homepage section index
+├── serve.py                   Dev server: live-reload + the page-management CLI
+├── justfile                   Task recipes (run, new-page, delete/move/rename)
+├── main.bib                   Shared bibliography (see Citations below)
 │
 ├── content/                   All .org source files
-│   ├── index.org              Home page
+│   ├── index.org              Home page (section index is auto-generated)
 │   ├── algorithms/
-│   │   ├── index.org          Algorithms tab — includes snippets below
-│   │   └── fibonacci.org      Snippet: recursive Fibonacci in Python
+│   │   ├── index.org          Algorithms section — includes snippets below
+│   │   ├── fibonacci.org      Snippet: recursive Fibonacci in Python
+│   │   └── spanning-trees/
+│   │       └── index.org      A nested sub-page (sections can nest to any depth)
 │   ├── ai/
-│   │   └── index.org          AI tab
-│   ├── linear-algebra/
-│   │   └── index.org          Linear Algebra tab
+│   │   └── index.org          AI section
 │   ├── statistics/
-│   │   ├── index.org          Statistics tab — includes snippets below
-│   │   └── linear-regression.org  Snippet: linear regression in R
+│   │   ├── index.org          Statistics section
+│   │   └── linear-regression/
+│   │       └── index.org      Nested sub-page
 │   └── examples/
-│       ├── index.org          Examples tab — includes all snippets below
+│       ├── index.org          Examples section
 │       ├── python-block.org   Python code block reference
 │       ├── r-block.org        R code block reference
 │       ├── tables.org         Manual and generated tables
@@ -122,16 +135,20 @@ yappopotamus/
 │       └── named-blocks.org   #+NAME and #+CALL reuse patterns
 │
 ├── static/
-│   └── style.css              Global stylesheet (copied to public/)
+│   ├── style.css              Global stylesheet (copied to public/)
+│   └── new-page.js            Sidebar behavior — active link, collapse, theme toggle
 │
 └── public/                    Generated output — do not edit by hand
     ├── index.html
     ├── style.css
+    ├── new-page.js
     ├── algorithms/
     │   ├── index.html
     │   └── fibonacci.html
     └── ...
 ```
+
+A **page** is a directory containing an `index.org`; nesting directories nests pages, so the navigation tree can go as deep as you like. Standalone snippet files (like `fibonacci.org`) live alongside a page's `index.org` and are pulled in with `#+INCLUDE`.
 
 `public/` is gitignored. It is always regenerable from the source files.
 
@@ -414,60 +431,51 @@ Open `content/algorithms/index.org` and add:
 
 **4. Rebuild**
 
+If the dev server (`just run`) is running, saving is enough — it rebuilds and reloads automatically. Otherwise rebuild by hand:
+
 ```bash
 emacs --batch -l publish.el -f org-publish-all
 ```
 
-The snippet now appears as a subsection of the Algorithms tab. It also has its own standalone page at `/algorithms/binary-search.html`.
+The snippet now appears as a subsection of the Algorithms section. It also has its own standalone page at `/algorithms/binary-search.html`.
 
 ---
 
-## How to Add a New Tab / Section
+## Adding & Managing Pages
 
-**1. Create the folder and index page**
+A **page** is a directory with an `index.org`; a top-level page is a section. You don't create these by hand or edit navigation directly — the `just` recipes (backed by `serve.py`) keep `content/`, `nav.json`, and `public/` in sync for you and rebuild the site automatically.
 
-```bash
-mkdir content/physics
-```
-
-Create `content/physics/index.org`:
-
-```org
-#+TITLE: Physics
-#+OPTIONS: toc:2 num:nil
-
-* Classical Mechanics
-
-#+INCLUDE: "newtons-laws.org" :minlevel 2
-```
-
-**2. Add the tab link to `publish.el`**
-
-Open `publish.el` and find the `wiki-preamble` variable. Add a new `<a>` tag:
-
-```elisp
-(defvar wiki-preamble
-  "...
-  <nav>
-    <a href=\"/index.html\">Home</a>
-    <a href=\"/algorithms/index.html\">Algorithms</a>
-    <a href=\"/ai/index.html\">AI</a>
-    <a href=\"/linear-algebra/index.html\">Linear Algebra</a>
-    <a href=\"/statistics/index.html\">Statistics</a>
-    <a href=\"/physics/index.html\">Physics</a>   ← add this line
-  </nav>
-  ...")
-```
-
-This is the only file that needs to change — `org-publish` discovers the new folder automatically because `:recursive t` is set.
-
-**3. Rebuild**
+**Add a page**
 
 ```bash
-emacs --batch -l publish.el -f org-publish-all
+just new-page "Physics"                            # new top-level section
+just new-page "Kinematics" physics                 # nested under Physics
+just new-page "Gradient Descent" ai/machine-learning
 ```
 
-The Physics tab appears in the nav bar on every page.
+The title becomes both the nav label and the URL slug (`"Gradient Descent"` → `gradient-descent`). The command:
+
+1. Scaffolds `content/<parent>/<slug>/index.org` with the standard page header (title, author, date, and the LaTeX/`hl` macro setup).
+2. Appends the entry to `nav.json` — under the parent you named, or at the top level if you omit it.
+3. Runs a full rebuild, so the new page appears in the sidebar **and** in the homepage section index on every page.
+
+The parent argument is a `content/` path (e.g. `ai/machine-learning`); omit it for a top-level section. The parent page must already exist. Navigation is sorted alphabetically by label at every level at build time (Home always first), so the order of entries in `nav.json` doesn't matter — just their nesting.
+
+**Rename, move, or delete a page**
+
+Each of these takes the page's `content/` path and rewrites `nav.json`, the source under `content/`, and the already-built output under `public/`, then rebuilds:
+
+```bash
+just rename-page statistics/likelihood "Maximum Likelihood"   # new title → new slug + #+TITLE:
+just move-page   statistics/likelihood ai                     # reparent (omit parent for top level)
+just delete-page ai/machine-learning                          # remove the page and everything nested under it
+```
+
+Any pages nested under the target move, rename, or delete along with it, and their internal links and nav entries are updated accordingly.
+
+**Why this is the only thing you touch**
+
+The sidebar tree, its collapse behavior, the active-link highlight, and the homepage section index are all derived from `nav.json` at build time by `publish.el`. Because these recipes maintain `nav.json` for you, adding or reorganizing pages never means editing `publish.el` or any per-page navigation markup.
 
 ---
 
@@ -535,6 +543,14 @@ as `[?]`, so it's worth glancing at the reference list after exporting.
 ---
 
 ## Building the Site
+
+**During development**, just run the dev server and let it build for you:
+
+```bash
+just run
+```
+
+It rebuilds on every save and live-reloads open pages (see [Getting Started](#getting-started)). The commands below are for one-off builds or when you're not running the server.
 
 **Standard build** (only rebuilds files that changed since the last build):
 

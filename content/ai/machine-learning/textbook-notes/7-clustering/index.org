@@ -11,3 +11,5 @@
 # This is used to shrink the spacing between bullet points
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+

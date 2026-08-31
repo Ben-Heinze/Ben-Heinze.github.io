@@ -3,24 +3,54 @@
 
 * Welcome
 
-This is my personal wiki — a collection of notes and examples from school and beyond.
+This is my personal wiki — a growing collection of notes, code, and worked
+examples from coursework and whatever else I happen to be digging into. It's
+written in plain-text [[https://orgmode.org/][Org mode]] and published as a fast, static site with a
+light and dark theme.
 
-Use the tabs above to browse by subject. Each tab is a folder of small, self-contained snippets that are stitched together into a single page.
+Everything lives in one place and links together: lecture notes sit beside the
+code that illustrates them, and a snippet written once can appear on as many
+pages as it's useful.
 
-#+HTML: <div id="wiki-toc">Loading table of contents&#8230;</div>
+* Browse by section
 
-* How snippets work
+Pick a subject from the sidebar on the left, or jump in from the index below.
+The sidebar lists every page in the wiki; this index lists the top-level
+sections and what each one currently holds. Both are generated automatically
+from the site's navigation, so they stay in sync as sections come and go.
 
-Each subject folder contains small =.org= files — one concept per file. The folder's =index.org= pulls them together with =#+INCLUDE=:
+#+HTML: <div id="wiki-toc">Loading section index&#8230;</div>
 
-#+begin_example
-* Recursion
+* Finding your way around
 
-,#+INCLUDE: "fibonacci.org" :minlevel 2
-#+end_example
+- *Sidebar* — the complete page tree. Click a caret to collapse or expand a
+  branch; the wiki remembers what you've opened between visits.
+- *Section index* — the table above links straight to each subject's landing
+  page.
+- *Light / dark theme* — the toggle at the bottom of the sidebar switches the
+  palette and remembers your choice.
+- *Stable links* — every page has its own permanent URL, so anything here can
+  be linked to directly.
 
-The =:minlevel 2= makes the snippet's top-level heading nest one level
-deeper, so it appears as a subsection of the including page.
+* How it's built
 
-A snippet can be included in multiple pages — edit it once, and every
-page that includes it updates on the next buiourld.
+Each page is a plain =.org= text file under =content/=. A subject is simply a
+folder, and its =index.org= stitches together small, single-topic snippet files
+with =#+INCLUDE= — so one snippet can be shared across several pages and edited
+in a single place. The build turns the whole tree into the static HTML you're
+reading, running any embedded Python, R, or shell blocks along the way and
+dropping their output inline.
+
+For the full mechanics — code blocks, includes, citations, tables, and the
+keyboard commands that go with them — see the [[file:org-cheatsheet/index.org][Org Cheatsheet]].
+
+* Adding a section
+
+Sections are cheap to add, and doing so never means editing this page.
+Scaffolding a new page also registers it in the shared navigation:
+
+: just new-page "Title" [parent]
+
+From there the new subject shows up in the sidebar /and/ in the section index
+above on its own — this home page is wired to whatever the navigation currently
+contains, not to any fixed list of subjects.
