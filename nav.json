@@ -207,5 +207,9 @@
     "label": "Job",
     "href": "/job/index.html",
     "summary": "Automatic test equipment acronyms & standards glossary"
+  },
+  {
+    "label": "NISL",
+    "href": "/nisl/index.html"
   }
 ]

@@ -32,9 +32,7 @@ where we use Bayes rule:
 
 - Given X = data
 - find the class to which query point $x_{q}$ belongs
-- the nearest neighbor rule states:  *come back to later*
-
-
+- the nearest neighbor rule states:  {{{hl(orange,COME BACK LATER)}}}
 
 
 \[
@@ -44,7 +42,6 @@ where we use Bayes rule:
   \end{cases}
 \]
 
-*write equation later*
 
 * K-nearest neighbor Estimation
 - Doesn't need to fix the size of the bin
@@ -96,3 +93,4 @@ When writing a hypothesis, narrow the scope of your hypothesis, and be specific 
 - MAE
 
 he goes on about conducting a proper experiment. 
+

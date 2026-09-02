@@ -12,6 +12,12 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
+
+#+begin_export html
+<embed src="Memory Management.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+
 * Uniprogramming
 Early memory management systems 
 - early computer systems supported one user and one program at a time (aka /uniprogramming/)
@@ -93,8 +99,11 @@ He shows figure 7.2: example of fixed partitioning of a 64-Mbyte memory. One blo
 - slightly better at handling smaller programs since we do have smaller partitions
 - Can still have internal fragmentation
 
-* Placement Algorithms
-How can we place programs into these partitions?
+** Disadvantages
+- If your program is larger than all of the partitions, then {{{hl(red,overlays)}}} must be used
+- {{{hl(red,internal fragmentation)}}}
+- number of partitions specified at system generation time limits the number of active (not suspended) processes in the system
+
 
 For equal sized partitions, as long as there is a free partition, you can load the program into it. If there are no available partitions swap a process already int the main memory to the secondary storage and load the new program to that partition
 
@@ -103,3 +112,100 @@ For unequal sized partitioning, assign the new process to the smallest available
 - efficient in terms of low fragmentation, but (check notes later)
 
 He shows an example where there are four partitions of varying sizes. The goal is to minimize internal fragmentation, but it doesn't efficiently utilize main memory, since programs are only being loaded based on size and not taking into account of available partitions.
+
+
+
+
+* Dynamic Partitioning
+
+To overcome some problems in fixed partitioning, dynamic partitioning was introduced.
+
+Partitions are of variable length and number. 
+- When a process is brought to memory, it is allocated exactly as much memory it requires 
+
+OS needs to keep track of boundaries of the partitions 
+
+/What happens when we use this strategy?/  
+- *External Fragmentation*: You will  see a lot of small holes in the main memory which cannot be occupied by processes.
+  - To remove this, we use /compaction/, which squishes the processes in the main memory to remove the gaps in memory, giving you one continuous free space rather than small holes between the processes.
+
+** Dynamic Placement Algorithms 
+
+Since compaction is time consuming and resource hungry the OS needs to be clever when choosing the best position for a process to reside in dynamic partitioning
+
+| Algorithm | Description | Worst case |
+| Best-fit  | Chooses the block that is closest in size to the request        | $O(n)$. | 
+| First-fit | Begings to scan memory from the beginning and pics the first free hole the process will fit in | Worst one since it will quickly leave very small holes in memory, which requires compaction sooner than later|
+| Next-fit  | begins to scan memory from the location of the last placement and chooses the next available block that is large enough. Once it reaches the end, it will go back to the beginning of the main memory (like best-fit but resumes from the last allocation) | Best option out of the three|
+
+
+* Buddy system
+- Combination of fixed and dynamic partitioning schemes.
+- {{{hl(orange,Read about this scheme in the book, will be on quiz)}}}
+
+
+* Memory Deallocation
+
+When the partitions are not used anymore, they should be released.
+
+** Fixed partitions
+Reset the free/busy status of the partition
+
+| Partition # | Starting | End | Action (binary if process is used or not) |
+| 0           | -        | -   | 0                                         |
+| 1           | -        | -   | 1                                         |
+| 2           | -        | -   | 0                                         |
+| 3           | -        | -   | 1                                         |
+| 4           | -        | -   | 1                                         |
+
+
+** Dynamic Partition
+
+Need to combine the free areas
+
+/Question: does the schemes we looked at provide a way to overcome problems arising from relocation requirement?/
+
+* Relocation - fixed vs Dynamic Partitioning 
+- A process will not always occupy the same place in memory over its lifetime 
+  - 
+- Dynamic partitioning $\to$ relocation is *always* required
+{{{hl(orange,COME BACK LATER)}}}
+- Fixed Partitioning $\to$ relocation is required *only if* a process can be reassigned to a different partition
+{{{hl(orange,COME BACK LATER)}}}
+- Consequence: The addresses a process references are *not fixed*
+{{{hl(orange,COME BACK LATER)}}}
+
+* Types of Addresses 
+
+| Type                 | Description                                                                                                          |
+| Physical or Absolute | Actual location in main memory                                                                                       |
+| Logical              | Reference to a memory location independent of the current assignment of data to memory                               |
+| Relative             | A particular example of logical address, in which the address is expressed as a location relative to some kown point |
+
+* Relative Addressing 
+
+- Memory reference in a loaded process are relative to the origin of the program
+- Hardware mechanism to translate relative addresses to physical addresses
+  - *Bounds register*: ending location of the program
+  - *Base register*: starting address of the running program
+
+He shows a diagram of hardware support for relocation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

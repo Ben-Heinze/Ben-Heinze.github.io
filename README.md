@@ -1,4 +1,4 @@
-# yappopotamus
+# Yappopotamus
 
 Personal wiki built with [Org mode](https://orgmode.org/), published to a static HTML website via Emacs `org-publish`. Content lives as plain-text `.org` files organized by subject. A single build command turns them into a browsable site with syntax-highlighted, executable code blocks.
 

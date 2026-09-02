@@ -1,0 +1,43 @@
+#+TITLE: NISL
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-01
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Causality Book by Pearl
+
+
+* 1 Intro to Probability Theory
+
+** 1.1.2 Basic Concepts in Probability Theory
+
+In Bayesian formalism, belief measures obey three basic axioms of probability calculus:
+
+1. \(0 \leq P(A) \leq 1\)
+
+2. \(P(\text{sure proposition}) = 1\)
+
+3. \(P(A \text{ or } B) = P(A) + P(B) \text{ if } A \text{ and } B \text{ are mutually exclusive} \)
+
+*Law of Total Probability*: In a joint probability, you can sum over the states of an event to /marginalize/ that probability. 
+For example, if we are calculating $P(A)$ from $P\left( A, B \right)$, and $B$ has binary states, we can marginalize over the states of $B$:
+
+
+\[
+  P(A) = P\left( A, B \right) + P\left( A, \neg B \right) \text{ where } P\left( A,B \right) \text{ is short for } P\left( A \wedge B \right)
+\]
+
+If B had more than two states, we can some over all of them to marginalize $B$ of the joint probability:
+
+\[
+  P\left( A \right) = \sum_{i=1}^{} P\left( A, B_{i} \right)
+\]
+

@@ -1,4 +1,4 @@
-#+TITLE: yappopotamus
+#+TITLE: Yappopotamus
 #+OPTIONS: toc:nil num:nil
 
 * Welcome
