@@ -12,4 +12,139 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
+/Semi-parametric Density Estimation/: A mixture of a parametric and non-parametric model, where a sample is multiple groups. Example is handwritten number classification: the numbers /4/ and /7/ has multiple ways of writing them (different groups), but they represent a single category.
+
+
+* Mixture Densities
+
+\[
+  p(x) = \sum_{i=1}^{k} p\left( x \mid \mathcal{G}_i \right)P\left( \mathcal{G}_i \right)
+\]
+
+| Symbol                                 | Description                                                                                              |
+| $\mathcal{G}_i$                        | Mixture Componenets (aka group or clusters)                                                              |
+| $p\left( x \mid \mathcal{G}_i \right)$ | Component Densities                                                                                      |
+| $P(\mathcal{G}_i)$                     | Mixture proportions                                                                                      |
+| $k$                                    | Number of components (hyperparameter)                                                                    |
+| $P(\cdot)$                             | a plain probability (a number between 0 and 1). Used for discrete things.                                |
+| $p(\cdot)$                             | a probability density (can be any non-negative number, even greater than 1). Used for continuous things. |
+
+These mixture components $\mathcal{G}_i$ correspond to classes $\mathcal{C}_{i}$, so we can use this for classification:
+
+
+\[
+  p(x) = \sum_{i=1}^{k} P\left( x \mid \mathcal{C}_i \right)P\left( \mathcal{C}_i \right)
+\]
+
+* k-Means Clustering
+
+** Preamble
+Starts with an example where you want to convert a 24bit/pixel image (16 million possible colors) to an 8bit/pixel image (256 colors). How do we find the best colors in this restricted color space to most accurately represent the original image (this is called /color quantization/)? 
+
+In general, this is basically a continuous $\to$ discrete space mapping (/vector quantization/).
+
+\(
+  \|x^{t}-m_i \| = \underset{j}{\min} \|  x^{t}-m_{j} \|
+\)
+
+| char    | Description                            |
+| $m_{j}$ | reference vectors (color maps)         |
+| $m_{i}$        | codebook vectors/code words    (Most similar 8bit entry)                                    |
+| $x^{t}$ | Sample (image pixel values in 24 bits) |
+
+We can use /quantization/ for compression too.
+
+Reconstruction error for compression:
+
+\begin{equation}
+  E(\{m_{i}\}_{i=1}^{k} \mid \mathbb{X}) = \sum_{t}^{} \sum_{i}^{}  b_{i}^{t} \| x^t - m_i\|^{2}
+  /label{eq:reconstruction}
+\end{equation}
+where
+\begin{equation}
+  b_{i}^{t}=\begin{cases}
+    1 & \text{if } \|x^{t}-m_{i}\| = \min_{j}\| x^{t}-m_{j}\| \\
+    0 & \text{otherwise}
+  \end{cases}
+\end{equation}
+
+** k-means clustering
+
+1. Start with some $m_{i}$ initialized randomly.
+2. At each iteration, calculate $b_{i}^{t}$ for all $x^{t}$, which are the /estimated labels/
+3. Once every point has a label, minimize Equation~\eqref{1} by taking the derivative with respects to $m_{i}$ and setting it to 0:
+\(
+  m_{i} = \frac{\sum_{t}^{} b_{i}^{t}x^{t}}{\sum_{t} b_{i}^{t}}
+\)
+
+The reference vector is set to the mean of all instances of the class, which is how we assign a new $m_i$. We iterate through this process until the means stabilize.
+
+Disadvantage: final $m_{i}$ is highly dependent on the initial $m_{i}$, but we have various methods to help with this:
+- Take randomly selected k-instances as the initial $m_i$
+- The mean of all data can be calucated and small random vectors may be added to the mean to get the k initial $m_{i}$
+- We calculate principle component, divide range into k-equal intervals (partitioning data into $k$ groups), then take the means of these groups as initial centers.
+
+#+begin_example
+{{{hl(orange,COME BACK LATER)}}} Add k-means pseudocode here (p 171)
+#+end_example
+
+* Expectation-Maximization Algorithm
+
+/Expectation-Maximization/ algorithm is used in maximum likelihood estimation. Goal is to find the parameter vector that maximizes the likelihood of the observed values. The book shows the math behind this.
+
+* Supervised Learning after Clustering
+
+Clustering has two purposes:
+1. Data exploration
+2. map data to new spaces where supervised learning is easier
+
+Dimensionality reduction is used to find correlations between variables, which is used in advertising. 
+
+Clustering is also a pre-processing stage. In a supervised setting, we can learn the discriminant or regression function with this new space. It is possible that $k$ (dimensionality of the new space) can be larger than $d$ (original dimensionality).
+
+* Spectral Clustering
+
+Instead of clustering in the original space, you can perform dimensionality reduction to make the clusters more apparent.
+
+Use Euclidean distance for dimensionality reduction if there are redundant or correlated features. Using Laplacian eigenmaps makes more sense than multidimensional scaling proper or PCA since these methods check for the perseveration of pairwise similarities between /all/ pairs, we only care about preserving similarities between neighboring instances.
+
+* Hierarchical Clustering
+
+Creates clusters in a hierarchical fashion.  Uses distance between points to create a Russian-nesting-doll of clusters. 
+
+| Clustering               | Description                                                                                                                                           |
+| Agglomerative Clustering | Starts with $N$ groups, slowly merges nearest groups until there is a single cluster.                                                                 |
+| Divisive Clustering      | starts with a single large group, then divides the large groups into smaller groups until each group is a single instance (opposite of agglomerative) |
+
+These methods require calculating distance between clusters. There are mutliple options for how you define distance:
+
+| Distance Method          | Description                                                                                  |
+| Sinle-Link Clustering    | Uses the smallest distance between all possible pairs between the two clusters               |
+| Complete-Link Clustering | Uses the largest possible distance between all pairs from teh two clusters                   |
+| Average-Link Clustering  | Averages the location of all points in each clusters, then draws distance from each averages |
+
+/Dendrogram/: Hierarchical tree structure created from Hierarchical clustering. You can choose the value $h$ to horizontally intersect sections of the tree to get various cluster numbers.
+
+* Choosing Number of clusters
+
+Fine-tuning $k$:
+- Applications can define it (e.i., color quantization)
+- plotting data in two dimensions with PCA may uncover an underlying structure
+- Setting a max allowed distance is equivalent to setting a max allowed reconstruction error per distance
+- validation of groups can sometimes be done manually by checking if the clusters actually code useful data. 
+- Depending on clustering method, you can plot reconstruction error or log-likelihood as a function of $k$ and look for an /elbow/. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

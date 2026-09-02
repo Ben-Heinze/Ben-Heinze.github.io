@@ -11,3 +11,78 @@
 # This is used to shrink the spacing between bullet points
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Parametric methods (density estimation, classification, regression) assume a model valid over the whole input space. 
+For example, regression assumes a linear model (1-to-1 input-output mapping), classification assumes normal density (classes are drawn from the same density).
+Parametric methods reduce the problem of estimating a probability density function, discriminant, or regression function to estimating the values of a small number of parameters. However, its disadvantage is that this assumption inst always true, and we may incur a large error. If we can't make these assumptions, we can use a semi parametric mixture model, or a non-parametric model.
+
+Nonparametric models assume /similar inputs have similar outputs/. These methods are also called /instance-based/ or /memory-based learning/ algorithms in the machine learning context. 
+
+* Nonparametric Density Estimation 
+
+** Histogram Estimator
+
+/Histogram/: input space is divided into equal-sized intervals called /bins/. Given an origin $x_{0}$ and a bin width $h$, the bins are the intervals $[x_{0} +mh, \text{   }x_{0}+(m+1)h)$ for positive and negative integers $m$ and the estimate is given as:
+
+\(
+  \hat{p}(x) = \frac{\#\{x^t \text{ in the same bin as } x\}}{Nh}
+\)
+
+
+When creating the histogram, we have to choose the origin and the bin width, but once the bin estimates are calculated and stored, we do not need to retain the training set. 
+
+There is a naive estimator we can use to set the origin:
+
+
+\[
+  \hat{p}(x) = \frac{\#\{x-h/2 < x^{t} \leq x+h/2 \}}{Nh}
+\]
+
+This naive estimator is equal to the histogram estimate where $x$ is always at the center of a bin of size $h$.
+
+** Kernel Estimator
+
+We can use a smooth weight function called a /kernel function/.
+
+*Gaussian kernel* is the most popular:
+
+\[
+  K(u) = \frac{1}{\sqrt{2\pi}}\exp \left[ -  \frac{u^{2}}{2} \right]
+\]
+
+A /kernel estimator (aka Parzen window)/ is defined as:
+
+\[
+  \hat{p}(x) = \frac{1}{Nh}\sum_{t=1}^{N} K \left( \frac{x-x^{t}}{h} \right) 
+\]
+
+| Char       | Description                                                                                                                                                              |
+| $K(\cdot)$ | kernel function. determines shape of the influences                                                                                                                      |
+| $h$        | window width. When small, each training instance has a large effect in a small region. When h is larger,There's more overlap of kernels and you get a smoother estimate. |
+
+The kernel estimate is the sum of 'bumps'. All $x^{t}$ have an effect on the estimate at $x$, and this effect decreases smoothly as $|x-x^{t}|$ increases.
+
+** k-Nearest Neighbor Estimator
+
+We control the degree of smoothing with $k$, the number of neighbors taken into account, which is smaller than $N$.
+
+/k-nearest neighbor (k-nn) density estimate:/
+\[
+  \hat{p}(x) = \frac{k}{2Nd_{k}(x)}
+\]
+
+Instead of fixing $h$ and checking how many samples fall into the bin, we fix $k$ (number of observations to fall in the bin), and compute the bin size. Where density is high, bins are small. Where density is low, bins are larger.
+
+* Generalization to Multivariate Data 
+
+/curse of dimensionality/: the concept of "closeness" blurs more as dimensionality increases.
+
+* Nonparametric classification
+
+Kernel estimator of the class-conditional density is given as:
+
+
+
+
+
+
