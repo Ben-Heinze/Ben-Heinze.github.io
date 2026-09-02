@@ -27,6 +27,8 @@ In Bayesian formalism, belief measures obey three basic axioms of probability ca
 
 3. \(P(A \text{ or } B) = P(A) + P(B) \text{ if } A \text{ and } B \text{ are mutually exclusive} \)
 
+*** Marginalizing Probabilities
+
 *Law of Total Probability*: In a joint probability, you can sum over the states of an event to /marginalize/ that probability. 
 For example, if we are calculating $P(A)$ from $P\left( A, B \right)$, and $B$ has binary states, we can marginalize over the states of $B$:
 
@@ -40,4 +42,67 @@ If B had more than two states, we can some over all of them to marginalize $B$ o
 \[
   P\left( A \right) = \sum_{i=1}^{} P\left( A, B_{i} \right)
 \]
+
+The process of summing up probabilities all over $B_{i}$ is called /Marginalizing/ over $B$; and the resulting probability $P\left( A \right)$, is called the /marginal/ probability of $A$.
+
+*** Conditional Probability
+
+The Conditional probabilities entails a Causality between two events. The probability distribution of one event is directly effected by the state of another event. If the state of an event $A$ doesn't change the probability distribution of event $B$, then we say that $A$ and $B$ are /independent/.
+
+The conditional probability represented as a joint event is:
+
+\[
+  P\left( A \mid B \right)  = \frac{P\left( A,B \right)}{P\left( B \right)}
+\]
+
+Which is just dividing out $B$'s probability from the joint probability.
+
+Visa versa, we can flip the equation around to calculate the joint probability of two events:
+\[
+  P\left( A,B \right) = P\left( A \mid B \right) P\left( B \right)
+\]
+
+
+*** Chain Rule
+
+A large joint probability with more than two events can be written by a /chain/ of conditional probabilities:
+
+\[
+  P\left( E_1, E_{2}, \ldots, E_n \right) = P\left( E_{n} \mid E_{n-1}, \ldots, E_2, E_1 \right) \ldots P\left( E_2 \mid E_1 \right) P\left( E_1 \right)
+\]
+
+
+
+*** Bayes' Rule
+
+The inversion formula for a conditional probability is the heart of Bayesian Probability. 
+
+\[
+  P\left( H \mid e \right) = \frac{P\left( e \mid H \right) P\left( H \right)}{P\left( e \right)} 
+\]
+
+| Char                       | Def                     |
+| H                          | Hypothesis              |
+| e                          | evidence                |
+| $P\left( H \right)$        | Previous belief (prior) |
+| $P\left( e \mid H \right)$ | likelihood              |
+| $P\left( H \mid e \right)$ | Posterior               |
+
+*** Probabilistic Model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

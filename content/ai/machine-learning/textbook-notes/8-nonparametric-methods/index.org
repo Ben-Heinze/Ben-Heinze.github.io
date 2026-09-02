@@ -82,7 +82,42 @@ Instead of fixing $h$ and checking how many samples fall into the bin, we fix $k
 Kernel estimator of the class-conditional density is given as:
 
 
+\[
+  \hat{p}(x \mid \mathcal{C}_{i}) = \frac{1}{N_{i}h^{d}} \sum_{t=1}^{N} K \left( \frac{x-x^{t}}{h} \right)r_{i}^{t}
+\]
+
+
+| Char        | Table                                                                                     |
+| $r_{i}^{t}$ | 1 if $x^{t} \in \mathcal{C}_{i}$ and 0 otherwise.                                         |
+| $N_{i}$     | number of labeled instances belonging to $\mathcal{C}_{i}: N_{i} = \sum_{t}^{} r_{i}^{t}$ |
+| x           | Assigned to the class for which the discriminant takes its maximum                        |
+
+The k-nn classifier assigns input to the class having the most examples among the neighbors. Aka, get $k$ number of neighbors, see their answer, and assign $x$ as the most popular answer. Ties can be broken with weighted votes or at random.
 
 
 
+* Condensed NN:
+Time and space complexity increase as the dataset increases. To account for this, a /condensing/ method is used to shrink the dataset without degrading performance. Select the smallest subset $\mathcal{Z}$ of $\mathcal{X}$ such that when $\mathcal{Z}$ is used in place of $\mathcal{X}$, error doesn't increase.
 
+#+BEGIN_LATEX 
+\noindent
+\mathcal{Z} \gets \emptyset \\
+Repeat \\
+For all x \in \mathcal{X} (in random order) \\  
+\indent find x' \in \mathcal{Z} such that ||x-x'|| = $\min_{x^j \in \mathcal{Z}||x-x^j||}$ \\
+\indent If class(x) \neq class(x') add x to \mathcal{Z} \\
+until \mathcal{Z} does not change \\
+#+END_LATEX
+
+Condensed nearest neighbor is a greedy algorithm that aims to minimize training error and complexity, measured by the size of the stored subset.
+
+* Distance-Based classification
+
+You can assign weights to k-nn with distance. The further the neighbor is from $x$, the less impact its vote has. The closer a neighbor is to $x$, the more impact its vote has. 
+
+
+* Outlier Detection
+
+Outlier Detection: Not usually used in supervised learning, but you can perform outlier detection with a /one-class classification/, which is used to weed-out anomalies.
+
+/Local Outlier Factor/ (LOF) {{{hl(orange,COME BACK LATER)}}}

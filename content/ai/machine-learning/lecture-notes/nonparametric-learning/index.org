@@ -94,3 +94,161 @@ When writing a hypothesis, narrow the scope of your hypothesis, and be specific 
 
 he goes on about conducting a proper experiment. 
 
+* Week 2 
+
+
+* Confusion Matrices
+
+suppose we have two classes:
+
+| x| Actual true|Actual False|
+|*predicted true*| # true positives|# false positives|
+|*predicted false*|# False negatives| # true negatives|
+
+\[ \text{Error:} \frac{FP+FN}{TP+TN+FP+FN}\]
+
+Precision: \[\frac{TP}{TP+FP}\]
+- The proportion of items predicted as positive that are actually positive 
+
+
+Recall = \[\frac{TP}{TP+FN}\]
+- The proportion of actually positive items that were correctly predicted as positive
+\[
+  F_{\beta} = (1+ \beta^{2}) \cdot \frac{precision \cdot recall}{\beta^{2} \cdot precision+recall},
+  \text{usually } \beta=1: F_{1}=2 \cdot \frac{precision \cdot recall}{Precision+recall}
+\]
+
+** Confusion Matrices
+
+3-class problem:
+
+|                   | Actual Class 1 | Actual class 2 | Actual class 3 |
+| Predicted class 1 | 15             | 2              | 4              |
+| Predicted class 2 | 3              | 12             | 1              |
+| Predicted class 3 | 4              | 2              | 17             |
+
+Recall: the proportion of actually positive items that were correctly predicted as positive (TP / (TP + FN)).
+
+Example:
+- $TP_1 = 15$
+- $TN_1 = 32$
+- $FN_1 = 7$
+- $FP_1 = 6$
+
+
+- Micro-averaging: preferred, but you lose info. {{{hl(orange,Add formula)}}}
+- Macro-averaging: {{{hl(orange,add formula)}}}
+
+
+* Hyperparameter Search
+
+| Char                                    | Def                                                       |
+| $\lambda$                               | set of Hyperparameters to be used by the search algorithm |
+| $A$                                     | Algorithm used to optimize/search                         |
+| $F$                                     | loss function                                             |
+| $M$                                     | Model                                                     |
+| $\mathbb{x}^{tr}$ and $\mathbb{x}^{te}$ | training and test examples                                |
+
+
+
+** Grid Search (Factorial Study)
+
+Tries a set of different values. Gets very expensive as you test more values
+
+** Random Search
+
+Select random combos for hyperparameters. Better than grid search 
+
+** Random Search (Hill Climb)
+
+Choose a random point, keep climbing up to the nearest local minimum. Elitist approach. Simulated Annealing is a better variant.
+
+
+* k-NN Classifier
+
+- may need to examine all examples in $E$ (training set)
+- each comparison involves computing $D(e, x_{q}) \forall e \in E$ which requires $O(d)$ calculations for $d$ dimensions
+- Worst-case performance for naive nearest neighbor search is $O()$
+{{{hl(orange,COME BACK LATER)}}}
+
+** Edited Nearest neighbor v1
+
+- "editing" is similar to stepwise backward elimination in features selection
+Removes misclassified examples from dataset
+1. for each $x^{t} \in X$ do 
+  1. classify $x^{t}$ using 1-nn on $X\backslash \{x^{t}\}$ 
+  2. compare class returned to true class of $x^{t}$
+  3. if disagree, remove $x^{t}$ from $X$
+2. Repeat until performance degrades on separate validation data set
+
+
+** Edited Nearest neighbor v2
+
+Second approach removes correct examples
+1. for each $x^{t} \in X$ do 
+  1. classify $x^{t}$ using 1-nn on $X\backslash \{x^{t}\}$ 
+  2. compare class returned to true class of $x^{t}$
+  3. if agree, remove $x^{t}$ from $X$
+2. Repeat until performance degrades on separate validation data set
+ 
+
+
+** Condensed Nearest neighbor
+
+
+Time and space complexity increase as the dataset increases. To account for this, a /condensing/ method is used to shrink the dataset without degrading performance. Select the smallest subset $\mathcal{Z}$ of $\mathcal{X}$ such that when $\mathcal{Z}$ is used in place of $\mathcal{X}$, error doesn't increase.
+
+#+BEGIN_LATEX 
+\noindent
+\mathcal{Z} \gets \emptyset \\
+Repeat \\
+For all x \in \mathcal{X} (in random order) \\  
+\indent find x' \in \mathcal{Z} such that ||x-x'|| = $\min_{x^j \in \mathcal{Z}||x-x^j||}$ \\
+\indent If class(x) \neq class(x') add x to \mathcal{Z} \\
+until \mathcal{Z} does not change \\
+#+END_LATEX
+
+Condensed nearest neighbor is a greedy algorithm that aims to minimize training error and complexity, measured by the size of the stored subset.
+
+To adapt this to regression, we can define a threshold.
+
+* KD-Tree
+
+You can reduce the average complexity to $O(d \log |E|)$ by sorting distance to find nearest neighbors. 
+
+When we plot a point down on the search space, we can define a nearest neighbor by a region. Look up /ranch-and-bound search/ for details. We won't be implementing this
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
