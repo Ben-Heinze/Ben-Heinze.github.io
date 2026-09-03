@@ -151,6 +151,268 @@ In short: /probability/ measures belief in a hypothesis, /odds/ re-package that 
 
 
 
+** 1.1.4 Random Variables and Expectations
+
+- /Variable/: attribute; takes one of several possible outcomes. *Capital letters* ($X, Y, Z$) are variables names
+- /Value/: the specific outcome. *Lowercase letters* ($x, y, z$) represent the specific value of the corresponding variable
+
+- /Partition/: Finite set $V$ of random Variables
+
+Each variable $X \in V$ can take on values from a finite domain $D_{X}$
+
+
+- /Real/ random variable: When the values of a random variable $X$ consist of real numbers
+
+/Mean/ or /expected value/ of $X$:
+
+\[
+  E(X) \triangleq \sum_{x}^{} x P(x)
+\]
+
+| Char | Def |
+| $\triangleq$     |   "is defined as"  |
+
+/Condition mean/ is the best estimate of $X$ given the observation $Y=y$. /Condition mean/ of $X$ given event $Y=y$:
+
+\[
+  E(X \mid y) \triangleq \sum_{x}^{} x P(x \mid y)
+\]
+
+/Expectation of any function/ $g$ of $X$:
+
+\[
+  E\left[ g(X) \right] \triangleq \sum_{x}^{} g(x) P(x)
+\]
+
+For example, here is a function $g(X) = (X - E(X))^{2}$, which is the /variance/ of $X$ denoted $\sigma_{X}^{2}$:
+
+\[
+ \sigma_{X}^{2} \triangleq E \left[ (X - E(X))^{2} \right]
+\]
+
+/Expectation/ for a two-variable joint probability:
+
+\[
+  E \left[ g(X, Y) \right] \triangleq \sum_{x, y}^{} g(x,y) P(x,y)
+\]
+
+
+/Covariance/: how two variables change together. $g(X,Y) = (X-E(X))(Y-E(Y))$
+
+\[
+  \sigma_{XY} \triangleq E \left[ \left( X - E(X) \right) \left( Y - E(Y) \right) \right]
+\]
+
+/Correlation Coefficient/: normalized covariance:
+
+\[
+   \rho_{XY} = \frac{\sigma_{XY}}{\sigma_{X} \sigma_{Y}}
+\]
+
+/Regression Coefficient/ (of $X$ and $Y$):
+
+\[
+  r_{XY} \triangleq \rho_{XY}\frac{\sigma_{X}}{\sigma_{Y}} = \frac{\sigma_{XY}}{\sigma_{Y}^{2}}
+\]
+
+
+The /conditional/ version of variance, covariance, and correlation coefficient is the same thing, but with $P(x,y \mid z)$ for the expectations.
+
+------------------------
+
+*** Continuous variables
+
+Expectation and correlation are more often used for continuous variables. Continuous variables are defined with a /density function $f(x)$/:
+
+\[
+  P(a \leq X \leq b) = \int_{a}^{b} f(x) \, dx
+\]
+
+
+The continuous version of the probability function is translated with an integral:
+
+\[
+  \int_{-\infty}^{\infty} f(x) \, dx \iff \sum_{x}^{} P(X) 
+\]
+
+For example, the /expectation/ for a continuous variable is defined as:
+
+\[
+  E(X) = \int_{-\infty}^{\infty} x f(x) \, dx
+\]
+
+This translations carry over to all of the discrete equations we just talked about.
+
+
+** 1.1.5 Conditional Independence and Graphoids
+
+/Conditional independence/: if learning the value of $Y$ doesn't give any insight about $X$, once we know $Z$:
+
+\[
+  P(x \mid y,z) = P(x \mid z)
+\]
+
+Dawid's notation for conditional independence:
+
+\[
+  (X \mathrel{⫫} Y \mid Z)_{P} \text{ iff }  P(x \mid y, z) = P(x \mid z)
+\]
+
+/Unconditional independence (Marginal independence)/: 
+
+\[
+  (X \mathrel{⫫} Y \mid \emptyset) \text{ iff } P(x \mid y) = P(x)
+\]
+
+----------------- 
+
+(partial) List of conditional independence relation $(X \mathrel{⫫} Y \mid Z)$, aka /graphoid axioms/. (Use $YW$ as shorthand for $Y \cup W$)
+
+| Word          | Def                                                                          |
+| Symmetry      | $(X \mathrel{⫫} Y \mid Z)\implies (Y \mathrel{⫫} X \mid Z)$ --- In any state of knowledge $Z$, if $Y$ tells us nothing new about $X$, then $X$ tells us nothing new about $Y$.                             |
+| Decomposition | $(X \mathrel{⫫} YW \mid Z) \implies (X \mathrel{⫫} Y \mid Z)$ --- If two combined items of information are judged irrelevant to $X$, then each separate item is irrelevant as well.                          |
+| Weak Union    | $(X \mathrel{⫫} YW \mid Z) \implies (X \mathrel{⫫} Y \mid WZ)$ --- Learning irrelevant information $W$ cannot help the irrelevant information $Y$ become relevant to $X$.                         |
+| Contraction   | $(X \mathrel{⫫} Y  \mid Z) \& (X \mathrel{⫫} W \mid ZY) \implies (X \mathrel{⫫} YW \mid Z)$ --- If we judge $W$ irrelevant to $X$ after learning some irrelevant information $Y$, then $W$ must have been irrelevant before we learned $Y$. (Together, weak union and contraction mean irrelevant information does not alter the relevance status of other propositions: what was relevant stays relevant, what was irrelevant stays irrelevant.) |
+| Intersection  | $(X \mathrel{⫫} W \mid ZY) \& (X \mathrel{⫫} Y \mid ZW) \implies (X \mathrel{⫫} YW \mid Z)$ --- If $Y$ is irrelevant to $X$ when we know $W$, and $W$ is irrelevant to $X$ when we know $Y$, then neither $W$ nor $Y$ (nor their combination) is relevant to $X$. (only valid in positive probability distributions)|
+
+
+* 1.2 Graphs and Probabilities
+
+Ive had like 9 classes individually teach me what a graph is. Im gonna ignore a lot of this section unless its relevant.
+
+*** 1.2.2 Bayesian Networks
+
+/Bayesian Network/: Directed graphs or DAGs that represent causal or temporal relationships.
+
+We can calculate a joint probability with the /chain rule/:
+
+\[
+  P(x_{1}, \ldots, x_{n}) = \prod_{j}^{} P(x_{j} \mid x_{1}, \ldots, x_{j-1})
+\]
+
+This is great, but the product grows exponentially with the number of variables. We can reduce the computation by calculating the conditional probability with only variables that are dependent of each other (cutting out independence lowers the number of conditional probabilities we need to calculate):
+
+\[
+  P(x_{j} \mid x_{1}, \ldots, x_{j-1}) = P(x_{j} \mid pa_{j})
+\]
+
+The set $PA_{j}$ is the (Markovian) parents of $X_{j}$.
+
+By using the two equations above, we can compute the joint probability more efficiently with:
+
+\[
+  P(x_{1}, \ldots, x_{3}) = \prod_{i}^{} P(x_{i} \mid pa_{i})
+\]
+
+This product decomposition does not need to be order-specific anymore. 
+
+*Markov Compatibility*:
+
+Markov compatibility is just a fancy way of asking: "does this graph actually match this probability distribution?"
+
+A distribution $P$ is /Markov compatible/ with a DAG $G$ if you can write $P$ using the parent-based product from above:
+
+\[
+  P(x_{1}, \ldots, x_{n}) = \prod_{i}^{} P(x_{i} \mid pa_{i})
+\]
+
+In other words, the graph is a valid picture of the distribution: every independence the graph claims (each variable depends only on its parents) is really true in $P$. If that decomposition holds, the graph and the distribution "agree" and we say $P$ is compatible with $G$ (equivalently, $G$ /represents/ $P$), or that $P$ is /Markov relative/ to $G$.
+
+
+*** 1.2.3 /d/-Separation Criterion
+
+#+begin_quote
+A path $p$ is said to be /d-separated/ (or blocked) by a set of nodes $Z$ iff 
+1. $p$ contains a chain $i \to m \to j$ or a fork $i \leftarrow m \rightarrow j$ such that the middle node $m$ in in $Z$, or 
+2. $p$ contains an inverted fork (or collider) $i \rightarrow m \leftarrow j$ such that the middle node $m$ is not in $Z$ and such that no descendent of $m$ is in $Z$.
+A set $Z$ is said to /d-separate/ $X$ from $Y$ iff $Z$ blocks every path from a node in $X$ to a node in $Y$
+#+end_quote
+
+Intuitively, /d/-separation tells us when information can flow along a path between $X$ and $Y$. A path is either /open/ (information flows ⇒ dependence) or /blocked/ (no flow ⇒ independence). Whether it is open depends only on the /junctions/ it passes through, and there are exactly three:
+
+#+begin_export html
+<div style="display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center;align-items:flex-start;margin:1rem 0;color:currentColor;">
+
+  <figure style="margin:0;text-align:center;max-width:15rem;">
+    <svg viewBox="0 0 260 90" width="220" role="img" aria-label="Chain: X arrow M arrow Y">
+      <defs>
+        <marker id="dsep-chain" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0,0 L10,4 L0,8 Z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.5">
+        <line x1="58"  y1="45" x2="112" y2="45" marker-end="url(#dsep-chain)"/>
+        <line x1="148" y1="45" x2="202" y2="45" marker-end="url(#dsep-chain)"/>
+        <circle cx="40" cy="45" r="18"/><circle cx="130" cy="45" r="18"/><circle cx="220" cy="45" r="18"/>
+      </g>
+      <g fill="currentColor" font-size="15" font-style="italic" text-anchor="middle">
+        <text x="40" y="50">X</text><text x="130" y="50">M</text><text x="220" y="50">Y</text>
+      </g>
+    </svg>
+    <figcaption style="font-size:0.85rem;line-height:1.4;"><strong>Chain</strong> (causal path).<br>Open by default. Conditioning on <em>M</em> <strong>blocks</strong> it ⇒ X ⫫ Y | M.</figcaption>
+  </figure>
+
+  <figure style="margin:0;text-align:center;max-width:15rem;">
+    <svg viewBox="0 0 260 90" width="220" role="img" aria-label="Fork: X arrow-from M arrow-to Y">
+      <defs>
+        <marker id="dsep-fork" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0,0 L10,4 L0,8 Z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.5">
+        <line x1="112" y1="45" x2="58"  y2="45" marker-end="url(#dsep-fork)"/>
+        <line x1="148" y1="45" x2="202" y2="45" marker-end="url(#dsep-fork)"/>
+        <circle cx="40" cy="45" r="18"/><circle cx="130" cy="45" r="18"/><circle cx="220" cy="45" r="18"/>
+      </g>
+      <g fill="currentColor" font-size="15" font-style="italic" text-anchor="middle">
+        <text x="40" y="50">X</text><text x="130" y="50">M</text><text x="220" y="50">Y</text>
+      </g>
+    </svg>
+    <figcaption style="font-size:0.85rem;line-height:1.4;"><strong>Fork / wedge</strong> (common cause).<br>Open by default. Conditioning on <em>M</em> <strong>blocks</strong> it ⇒ X ⫫ Y | M.</figcaption>
+  </figure>
+
+  <figure style="margin:0;text-align:center;max-width:15rem;">
+    <svg viewBox="0 0 260 90" width="220" role="img" aria-label="Collider: X arrow-to M arrow-from Y">
+      <defs>
+        <marker id="dsep-coll" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M0,0 L10,4 L0,8 Z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.5">
+        <line x1="58"  y1="45" x2="112" y2="45" marker-end="url(#dsep-coll)"/>
+        <line x1="202" y1="45" x2="148" y2="45" marker-end="url(#dsep-coll)"/>
+        <circle cx="40" cy="45" r="18"/><circle cx="130" cy="45" r="18"/><circle cx="220" cy="45" r="18"/>
+      </g>
+      <g fill="currentColor" font-size="15" font-style="italic" text-anchor="middle">
+        <text x="40" y="50">X</text><text x="130" y="50">M</text><text x="220" y="50">Y</text>
+      </g>
+    </svg>
+    <figcaption style="font-size:0.85rem;line-height:1.4;"><strong>Collider / v-structure</strong> (common effect).<br>Blocked by default (X ⫫ Y). Conditioning on <em>M</em> or any descendant <strong>opens</strong> it ⇒ X and Y become dependent.</figcaption>
+  </figure>
+
+</div>
+#+end_export
+
+Notice the collider is the odd one out: for chains and forks, conditioning on the middle node /blocks/ the path, but for a collider, conditioning on the middle node (or one of its descendants) /opens/ it. So a path is blocked iff it contains a non-collider that is /in/ $Z$, or a collider that is /not/ in $Z$ and has no descendant in $Z$.
+
+$Z$ /d-separates/ $X$ from $Y$ when it blocks /every/ path between them — which guarantees $X \mathrel{⫫} Y \mid Z$ in every distribution compatible with the graph.
+
+In short: conditioning on the middle node $M$ makes the /chain/ and the /fork/ conditionally /independent/, whereas it makes the /collider/ conditionally /dependent/.
+
+*** 1.2.4 Probabilistic Implications of /d/-Separation
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
