@@ -90,6 +90,65 @@ The inversion formula for a conditional probability is the heart of Bayesian Pro
 
 *** Probabilistic Model
 
+The Bayesian perspective is interesting because we can empirically verify relationships between English expressions.
+
+The /probabilistic model/ (aka /probability space/) is an encoding of information that lets us compute the probability of every well-informed sentence $S$ with the three basic axioms at the beginning of this section. 
+
+** 1.1.3 Combining Predictive and Diagnostic Supports
+
+
+The essence of Bayes' Rule can be showed as /odds/ and /likelihood ratio/ parameters by dividing Baye's rule by the complementary form for $P\left( \neg H \mid e \right)$, we get:
+
+\[
+  \frac{P\left( H \mid e \right)}{P\left( \neg H \mid e \right)} = \frac{P\left( e \mid H \right)}{P\left( e \mid \neg H \right)} \frac{P\left( H \right)}{P\left( \neg H \right)}
+\]
+
+/Prior Odds/ on H:
+
+\[
+  O(H) = \frac{P(H)}{P(\neg H)} = \frac{P(H)}{1-P(H)}
+\]
+
+/likelihood Ratio/:
+
+\[
+  L(e \mid H) = \frac{P(e \mid H)}{P(e \mid \neg H)}
+\]
+
+/Posterior Odds/:
+
+\[
+  O(H \mid e) = \frac{P(H \mid e)}{P(\neg H \mid e)}
+\]
+
+is given by the product:
+
+\[
+  O(H \mid e) = L(e \mid H) O(H)
+\]
+
+
+| char   | Def                                                                                                             |
+| $O(H)$ | Prior odds: Measure the Predictive or prospective support according to $H$ with the background knowledge alone. |
+|  $L(e \mid H)$      | Likelihood ratio: Represents the /diagnostic/ or /retrospective/ support given to $H$ given by the evidence actually observed. |
+
+*** Probability vs. Odds vs. Likelihood
+
+These three quantities are easy to conflate, but they answer different questions.
+
+*Probability* $P(H \mid e)$: how likely a hypothesis is, given the evidence. It is /normalized/ — it lives in $[0,1]$ and the states of $H$ sum to 1. This is what Bayes' Rule computes (the posterior). It answers /"how much should I believe H?"/
+
+*Odds* $O(H) = \frac{P(H)}{P(\neg H)} = \frac{P(H)}{1 - P(H)}$: a re-expression of a probability as the ratio of "it's true" to "it's false." It is just probability in a different coordinate system — running $[0, \infty)$ instead of $[0,1]$. Odds are convenient because updating becomes a simple product: $O(H \mid e) = L(e \mid H)\, O(H)$.
+
+*Likelihood* $P(e \mid H)$: the /reversed/ conditional — how well a hypothesis predicts the evidence actually observed. Here $H$ is held fixed and $e$ varies, so as a function of $H$ it is /not/ a probability distribution; it need not sum to 1. It answers /"if H were true, how expected is this data?"/
+
+| Quantity                   | What varies    | Normalized to 1?      | Question it answers          |
+| Probability $P(H \mid e)$  | the hypothesis | yes                   | How much do I believe H?     |
+| Odds $O(H)$                | (same as prob) | no — ranges $[0,\infty)$ | H vs. not-H, as a ratio      |
+| Likelihood $P(e \mid H)$   | the evidence   | no                    | How well does H predict data? |
+
+In short: /probability/ measures belief in a hypothesis, /odds/ re-package that belief as a ratio (making Bayesian updates multiplicative), and /likelihood/ measures how well a hypothesis predicts the data — the same conditional as probability but with the roles of $H$ and $e$ swapped, which is why it isn't a distribution.
+
 
 
 
