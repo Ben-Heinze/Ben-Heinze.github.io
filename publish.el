@@ -166,14 +166,41 @@ item has children, the nested subtree that the toggle collapses."
    (mapconcat #'wiki-nav-item items "\n")
    "\n</ul>"))
 
+(defun wiki-nav-natural-less (s1 s2)
+  "Natural-order comparison of S1 and S2 (case-insensitive).
+Runs of digits are compared by numeric value, so \"7\" sorts before \"20\"."
+  (let ((a (downcase (or s1 ""))) (b (downcase (or s2 "")))
+        (i 0) (j 0) (result nil) (done nil))
+    (while (not done)
+      (let ((la (length a)) (lb (length b)))
+        (cond
+         ((and (>= i la) (>= j lb)) (setq done t result nil))
+         ((>= i la) (setq done t result t))
+         ((>= j lb) (setq done t result nil))
+         ((and (>= (aref a i) ?0) (<= (aref a i) ?9)
+               (>= (aref b j) ?0) (<= (aref b j) ?9))
+          ;; Both positions start a digit run: compare numerically.
+          (let ((si i) (sj j))
+            (while (and (< i la) (>= (aref a i) ?0) (<= (aref a i) ?9)) (setq i (1+ i)))
+            (while (and (< j lb) (>= (aref b j) ?0) (<= (aref b j) ?9)) (setq j (1+ j)))
+            (let ((na (string-to-number (substring a si i)))
+                  (nb (string-to-number (substring b sj j))))
+              (cond ((< na nb) (setq done t result t))
+                    ((> na nb) (setq done t result nil))))))
+         (t
+          (cond ((< (aref a i) (aref b j)) (setq done t result t))
+                ((> (aref a i) (aref b j)) (setq done t result nil))
+                (t (setq i (1+ i) j (1+ j))))))))
+    result))
+
 (defun wiki-nav-less (a b)
-  "Ordering predicate for two nav items: alphabetical by label (case-insensitive).
+  "Ordering predicate for two nav items: natural order by label (case-insensitive).
 The Home entry (href \"/index.html\") always sorts first."
   (let ((ha (alist-get 'href a)) (hb (alist-get 'href b)))
     (cond ((string= ha "/index.html") t)
           ((string= hb "/index.html") nil)
-          (t (string-lessp (downcase (or (alist-get 'label a) ""))
-                           (downcase (or (alist-get 'label b) "")))))))
+          (t (wiki-nav-natural-less (alist-get 'label a)
+                                    (alist-get 'label b))))))
 
 (defun wiki-nav-sort (items)
   "Return ITEMS sorted alphabetically by label at every level of the hierarchy."
