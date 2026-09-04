@@ -209,6 +209,17 @@ nav .nav-tree a {
 nav .nav-tree a:hover { background: var(--nav-hover-bg); color: var(--nav-hover-text); }
 nav .nav-tree a.active { background: var(--nav-active-bg); color: var(--accent); font-weight: bold; }
 
+/* Local-only marker: pages flagged "private" in nav.json render only in the
+   local `just run` build; this lock flags them so a private page isn't mistaken
+   for a published one. It never appears on the deployed site. */
+.nav-private {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  line-height: 1;
+  opacity: 0.65;
+  cursor: default;
+}
+
 /* Nested links read as secondary to their parent */
 nav .nav-tree .nav-tree a {
   color: var(--nav-sub-link);

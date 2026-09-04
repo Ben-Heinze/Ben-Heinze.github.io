@@ -126,7 +126,7 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 ;; palette. It only sets the data-theme attribute the CSS keys off of; the
 ;; toggle button's click handler lives in new-page.js.
 (defvar wiki-html-head
-  "<link rel=\"stylesheet\" href=\"/style.css?v=11\" />
+  "<link rel=\"stylesheet\" href=\"/style.css?v=12\" />
 <script>(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>")
 
 ;; ── Navigation ──────────────────────────────────────────────────────────
@@ -134,6 +134,48 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 ;; with serve.py, which appends to it when a new page is created via
 ;; `just new-page`). Tabs are root-relative so they resolve from any
 ;; subdirectory.
+
+;; ── Private pages ─────────────────────────────────────────────────────────
+;; A nav entry marked "private": true in nav.json is kept out of the deployed
+;; site: its HTML/assets are not published and it is dropped from the sidebar
+;; and homepage TOC. This is the DEFAULT behavior here, so the live GitHub Pages
+;; build (which runs publish.el plainly) never leaks a private page. Setting the
+;; WIKI_INCLUDE_LOCAL env var — which `just run` and serve.py do, but CI does
+;; not — flips every gate below off, so private pages build and show locally.
+;; Toggle a page's flag with `just page-visibility <path> private|public`.
+(defvar wiki-include-local (and (getenv "WIKI_INCLUDE_LOCAL") t)
+  "When non-nil, publish pages marked \"private\" in nav.json too (local dev).")
+
+(defun wiki-href-to-dir (href)
+  "Content-relative directory for nav HREF: \"/job/index.html\" -> \"job\"."
+  (let ((s (replace-regexp-in-string "/index\\.html\\'" "" (or href ""))))
+    (replace-regexp-in-string "\\`/" "" s)))
+
+(defun wiki-private-dirs (items)
+  "Collect the content-relative dirs of every entry in ITEMS (recursing into
+children) whose 'private flag is set. A private parent contributes its dir,
+which covers its whole subtree."
+  (let (dirs)
+    (dolist (item items)
+      (when (alist-get 'private item)
+        (push (wiki-href-to-dir (alist-get 'href item)) dirs))
+      (setq dirs (append dirs (wiki-private-dirs (alist-get 'children item)))))
+    dirs))
+
+(defun wiki-nav-filter-local (items)
+  "Return ITEMS with private entries (and their subtrees) removed. When
+`wiki-include-local' is non-nil, ITEMS is returned unchanged so private pages
+appear locally."
+  (if wiki-include-local
+      items
+    (delq nil
+          (mapcar (lambda (item)
+                    (unless (alist-get 'private item)
+                      (let ((cell (assq 'children item)))
+                        (when cell
+                          (setcdr cell (wiki-nav-filter-local (cdr cell)))))
+                      item))
+                  items))))
 
 (defun wiki-html-escape (s)
   "Escape &, <, > in S for safe insertion into HTML."
@@ -153,9 +195,15 @@ item has children, the nested subtree that the toggle collapses."
   (let* ((children (alist-get 'children item))
          (toggle (if children
                      "<button type=\"button\" class=\"nav-toggle\" aria-expanded=\"true\" aria-label=\"Toggle section\"></button>"
-                   "<span class=\"nav-toggle-spacer\" aria-hidden=\"true\"></span>")))
+                   "<span class=\"nav-toggle-spacer\" aria-hidden=\"true\"></span>"))
+         ;; A private entry only ever renders in the local build (see the
+         ;; "Private pages" note), so mark it with a lock so you can tell at a
+         ;; glance which pages won't appear on the live site.
+         (badge (if (alist-get 'private item)
+                    "<span class=\"nav-private\" title=\"Private — visible locally, not published to the live site\" aria-label=\"Private\">\N{LOCK}</span>"
+                  "")))
     (concat "<li>"
-            "<div class=\"nav-row\">" toggle (wiki-nav-link item) "</div>"
+            "<div class=\"nav-row\">" toggle (wiki-nav-link item) badge "</div>"
             (if children (concat "\n" (wiki-nav-tree children) "\n") "")
             "</li>")))
 
@@ -216,7 +264,9 @@ The Home entry (href \"/index.html\") always sorts first."
          (json-key-type 'symbol)
          ;; Sort the whole hierarchy alphabetically so the sidebar and the
          ;; Location picker order stays consistent regardless of nav.json order.
-         (nav (wiki-nav-sort (json-read-file "nav.json"))))
+         ;; Private pages are filtered out first (unless building locally).
+         (nav (wiki-nav-sort
+               (wiki-nav-filter-local (json-read-file "nav.json")))))
     (concat
      "<a class=\"site-title\" href=\"/index.html\">yappopotamus</a>\n"
      "<nav>\n"
@@ -311,7 +361,8 @@ contents. See the comment above for how the contents cell is chosen."
   (let* ((json-array-type 'list)
          (json-object-type 'alist)
          (json-key-type 'symbol)
-         (nav (wiki-nav-sort (json-read-file "nav.json")))
+         (nav (wiki-nav-sort
+               (wiki-nav-filter-local (json-read-file "nav.json"))))
          (sections (seq-remove (lambda (it) (string= (alist-get 'href it) "/index.html")) nav)))
     (concat "<table>\n<thead><tr><th>Section</th><th>Contents</th></tr></thead>\n<tbody>\n"
             (mapconcat #'wiki-toc-row sections "\n")
@@ -334,12 +385,29 @@ table of contents generated from nav.json."
               (write-region (point-min) (point-max) file))
           (message "wiki-inject-toc: #wiki-toc placeholder not found in %s" file))))))
 
+;; Build the :exclude regexp that keeps private pages' HTML and assets out of
+;; the deployed build. nil (no exclusion) when building locally or when nothing
+;; is private. org-publish matches :exclude against each file's path RELATIVE to
+;; :base-directory (e.g. "job/index.org"), so the regexp is anchored at the
+;; start with \` and ends in "/" to drop every file under content/<dir>/ (the
+;; page and its whole subtree). See the "Private pages" note above.
+(defvar wiki-private-exclude
+  (unless wiki-include-local
+    (let* ((json-array-type 'list)
+           (json-object-type 'alist)
+           (json-key-type 'symbol)
+           (dirs (wiki-private-dirs (json-read-file "nav.json"))))
+      (when dirs
+        (concat "\\`\\(" (mapconcat #'regexp-quote dirs "\\|") "\\)/"))))
+  "Regexp matching files under any private page's directory, or nil.")
+
 (setq org-publish-project-alist
       `(("wiki-org"
          :base-directory "content/"
          :base-extension "org"
          :publishing-directory "public/"
          :recursive t
+         :exclude ,wiki-private-exclude
          :publishing-function org-html-publish-to-html
          :html-head ,wiki-html-head
          :html-preamble ,wiki-preamble
@@ -360,6 +428,7 @@ table of contents generated from nav.json."
          :base-extension "png\\|jpg\\|jpeg\\|gif\\|svg\\|pdf\\|mp4\\|webm"
          :publishing-directory "public/"
          :recursive t
+         :exclude ,wiki-private-exclude
          :publishing-function org-publish-attachment)
 
         ;; Stylesheet and any JS from static/ are copied as-is

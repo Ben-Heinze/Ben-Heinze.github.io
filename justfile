@@ -23,12 +23,20 @@ move-page path parent="":
 rename-page path title:
     python3 serve.py rename-page "{{path}}" "{{title}}"
 
+# Set whether a page is published to the live website. A `private` page still
+# appears under `just run` but is excluded from the deployed GitHub Pages site
+# (both its HTML and its nav/TOC links). Set it back with `public`.
+# Usage: just page-visibility job private
+#        just page-visibility job public
+page-visibility path visibility:
+    python3 serve.py page-visibility "{{path}}" "{{visibility}}"
+
 run:
     #!/usr/bin/env bash
     if [ -f .server.pid ] && kill -0 "$(cat .server.pid)" 2>/dev/null; then
         kill "$(cat .server.pid)"
     fi
-    emacs --batch -l publish.el --eval "(org-publish-all t)"
+    WIKI_INCLUDE_LOCAL=1 emacs --batch -l publish.el --eval "(org-publish-all t)"
     cp static/style.css public/style.css
     python3 serve.py &
     echo $! > .server.pid

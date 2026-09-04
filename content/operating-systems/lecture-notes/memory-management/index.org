@@ -192,8 +192,61 @@ Need to combine the free areas
 He shows a diagram of hardware support for relocation
 
 
+Both unequal fixed-size and variable-size partitioning schemes use memory inefficiently
+- /Fixed/: internal fragmentation (wasted space inside a partition)
+- /Variable/: external fragmentation (holes between allocations)
+
+/Paging/ eliminates external fragmentation and limits internal fragmentation.
+
+* Memory Management terms
+
+| Term | Def |
+| Frame | Fixed-length block of memory |
+| Page  | fixed-length block of data that resides in secondary memory (such as a disk). A page of data may temporarily be copied into a frame of main memory. Paging doesn't require consecutive frames, so it's able to fill in the gaps (Hence elimiating external fragmentation)|
+| Segment       | A variable-length block of data that resides in secondary memory. An entire segment may temporarily be copied into an available region of memory (segmentaiton) or the segment may be divided into pages which can be individually copied into main memory (combined segmentation and paging |
 
 
+
+
+** Page Table
+
+Maintained by OS, one for each process
+- Maps each page in the process to the frames that it holds
+  - (/page number $\to$ frame number/)
+- Accessed by the processor via hardware mechanism that points to the current process's page table
+- Used by processor to translate logical address into a physical address at runtime
+- page (and frame) size is always a power of 2 
+  - easier to convert logical $\to$ physical address
+  - $\left[ \log_{2} \text{pages-size} \right] =$ the number of memory locations you have in a page, this is the maximum number of pages you can have in a process. If you have 16-bit address with a page size of 1kb, you'd have $\left[ \log_{2} 1024 = 10 \right]$ pages.
+
+** Segmentation
+
+A program can be subdivided into segments
+- vary in length
+- there's a max length
+
+Segment table to represent the starting location and size of each segment loaded into the main memory 
+
+Addressing consists of two parts:
+1. Segment number
+2. Offset
+
+Similar to dynamic partitioning. Eliminates internal fragmentation
+
+- Visible to the programmer, unlike paging which is invisible
+- provided as a convenience for organizing programs and data logically
+- programmer or compiler assigns code and data to different segments (code, stack, heap, globals, etc)
+- For modular programming, code/data may be split further into multiple segments
+- Main drawback: Programmer must stay aware of the /maximum segments size/
+
+
+
+*** Addressing 
+- No simple relationship between logical addresses and physical addresses:
+1. Extract segment number
+2. Use number to access process's segment table to find starting physical address of the segment
+3. compare offset, express rightmost /m/ bits. If offset $\geq$ segment, it is invalid
+4. {{{hl(orange,COME BACK LATER)}}}
 
 
 

@@ -19,6 +19,13 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 PUBLIC = os.path.join(ROOT, 'public')
 NAV = os.path.join(ROOT, 'nav.json')
 
+# serve.py is local-only tooling: every rebuild it runs (the dev server and the
+# page-management commands) must include pages marked "private" in nav.json, so
+# they stay visible while working locally. publish.el gates on this env var and
+# excludes private pages by default; only the live GitHub Pages build (which
+# does not set it) drops them. See page_visibility_tab / the justfile.
+os.environ.setdefault('WIKI_INCLUDE_LOCAL', '1')
+
 # ── Live reload ─────────────────────────────────────────────────────────
 # The dev server watches content/ + static/ + nav.json and rebuilds on save,
 # then pushes a reload event over SSE to every open page. The client script is
@@ -171,6 +178,41 @@ def remove_entry(nav, href):
                 entry.pop('children', None)
             return removed
     return None
+
+
+def page_visibility_tab(href, visibility):
+    """Set whether the page at HREF is published to the live website.
+
+    visibility is 'private' (kept out of the deployed site, still shown under
+    `just run`) or 'public' (published). Flips the "private" flag on the nav
+    entry and rebuilds, since the nav is baked into every page.
+    """
+    if visibility not in ('public', 'private'):
+        raise ValueError("visibility must be 'public' or 'private'")
+
+    with open(NAV) as f:
+        nav = json.load(f)
+
+    entry = find_entry(nav, href)
+    if entry is None:
+        raise ValueError('page not found: ' + href)
+
+    if visibility == 'private':
+        entry['private'] = True
+    else:
+        entry.pop('private', None)
+
+    with open(NAV, 'w') as f:
+        json.dump(nav, f, indent=2)
+        f.write('\n')
+
+    # Full rebuild: private-ness affects both HTML emission and the nav/TOC
+    # baked into every page, so all pages must be regenerated.
+    subprocess.run(
+        ['emacs', '--batch', '-l', 'publish.el', '--eval', '(org-publish-all t)'],
+        cwd=ROOT, check=True,
+    )
+    return {'ok': True, 'href': href, 'visibility': visibility}
 
 
 def create_tab(label, parent_href):
@@ -557,6 +599,20 @@ def main():
             print('error: ' + str(e), file=sys.stderr)
             sys.exit(1)
         print('renamed ' + result['from'] + ' -> ' + result['to'])
+        return
+
+    if len(sys.argv) > 1 and sys.argv[1] == 'page-visibility':
+        # Set whether a page is published to the live website. Takes its
+        # content/ path (e.g. "job") and either "private" (kept local-only) or
+        # "public", flips the flag on the nav entry, and rebuilds.
+        path = sys.argv[2] if len(sys.argv) > 2 else ''
+        visibility = sys.argv[3] if len(sys.argv) > 3 else ''
+        try:
+            result = page_visibility_tab(path_to_href(path), visibility)
+        except Exception as e:
+            print('error: ' + str(e), file=sys.stderr)
+            sys.exit(1)
+        print(result['href'] + ' is now ' + result['visibility'])
         return
 
     os.chdir(ROOT)

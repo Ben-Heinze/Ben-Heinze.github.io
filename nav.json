@@ -200,13 +200,28 @@
             "href": "/operating-systems/lecture-notes/memory-management/index.html"
           }
         ]
+      },
+      {
+        "label": "Textbook Notes",
+        "href": "/operating-systems/textbook-notes/index.html",
+        "children": [
+          {
+            "label": "7 Memory Management",
+            "href": "/operating-systems/textbook-notes/7-memory-management/index.html"
+          },
+          {
+            "label": "8 Virtual Memory",
+            "href": "/operating-systems/textbook-notes/8-virtual-memory/index.html"
+          }
+        ]
       }
     ]
   },
   {
     "label": "Job",
     "href": "/job/index.html",
-    "summary": "Automatic test equipment acronyms & standards glossary"
+    "summary": "Automatic test equipment acronyms & standards glossary",
+    "private": true
   },
   {
     "label": "NISL",
