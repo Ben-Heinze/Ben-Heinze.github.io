@@ -198,7 +198,7 @@ Second approach removes correct examples
 
 Time and space complexity increase as the dataset increases. To account for this, a /condensing/ method is used to shrink the dataset without degrading performance. Select the smallest subset $\mathcal{Z}$ of $\mathcal{X}$ such that when $\mathcal{Z}$ is used in place of $\mathcal{X}$, error doesn't increase.
 
-#+BEGIN_LATEX 
+#+begin_quote
 \noindent
 \mathcal{Z} \gets \emptyset \\
 Repeat \\
@@ -206,7 +206,9 @@ For all x \in \mathcal{X} (in random order) \\
 \indent find x' \in \mathcal{Z} such that ||x-x'|| = $\min_{x^j \in \mathcal{Z}||x-x^j||}$ \\
 \indent If class(x) \neq class(x') add x to \mathcal{Z} \\
 until \mathcal{Z} does not change \\
-#+END_LATEX
+#+end_quote
+latex broken, {{{hl(orange,COME BACK LATER)}}}
+
 
 Condensed nearest neighbor is a greedy algorithm that aims to minimize training error and complexity, measured by the size of the stored subset.
 
@@ -218,15 +220,39 @@ You can reduce the average complexity to $O(d \log |E|)$ by sorting distance to 
 
 When we plot a point down on the search space, we can define a nearest neighbor by a region. Look up /ranch-and-bound search/ for details. We won't be implementing this
 
+* Principal Task in Nonparametric Learning
+
+Given a dataset, we want to estimate the probability distribution for that data
+
+Discrete probability: mass function
+Continuous probability: density function
+
+
+* Regression 
+
+** Parametric Regression
+
+Need to find coefficients in a predefined functional formula
+
+** Nonparametric Regression
+
+Examples from the data define the "shape" of the regression function
+
+** Regressogram Smoother
+
+Find origin, find bin width, estimate function at query point $x_{q}$, which is just taking the average
 
 
 
 
+** Running Mean Smoother
+
+Estimate function at query point (no defined origin), then see if point is in the bin.
+
+** Kernel Smoother
 
 
-
-
-
+Implements a form of locally-weighted regression 
 
 
 
