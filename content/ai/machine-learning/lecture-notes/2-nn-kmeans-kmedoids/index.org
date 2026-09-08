@@ -11,3 +11,7 @@
 # This is used to shrink the spacing between bullet points
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+#+begin_export html
+<embed src="week2Notes.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

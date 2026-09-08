@@ -121,6 +121,51 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 </script>
 ")
 
+;; ── Pseudocode blocks ───────────────────────────────────────────────────
+;; MathJax only renders text inside math delimiters (\( \) / \[ \]), so bare
+;; LaTeX pseudocode (\mathcal{Z} \gets \emptyset ...) written directly in a
+;; page exports as literal text. The `pseudocode' special block fixes that:
+;;
+;;   #+begin_pseudocode
+;;   \mathcal{Z} \gets \emptyset
+;;   \textbf{repeat}
+;;   \quad \textbf{for all } x \in \mathcal{X}
+;;   #+end_pseudocode
+;;
+;; Each line becomes one row of a left-aligned array inside an equation*
+;; environment, wrapped in a quote block for the usual indent/styling. Write
+;; one statement per line (no trailing \\ needed — any present are stripped),
+;; use \quad / \qquad for indentation, and \text{...} / \textbf{...} for
+;; prose words. Works for both MathJax (HTML) and PDF export.
+(defun wiki-expand-pseudocode-blocks (_backend)
+  "Rewrite #+begin_pseudocode blocks into display-math the exporter renders."
+  (goto-char (point-min))
+  (while (re-search-forward "^[ \t]*#\\+begin_pseudocode[ \t]*$" nil t)
+    (let ((start (match-beginning 0))
+          (body-start (line-beginning-position 2)))
+      (when (re-search-forward "^[ \t]*#\\+end_pseudocode[ \t]*$" nil t)
+        (let* ((body-end (match-beginning 0))
+               (end (match-end 0))
+               (lines (seq-remove
+                       #'string-empty-p
+                       (mapcar (lambda (l)
+                                 ;; Strip any trailing \\ so rows aren't doubled.
+                                 (string-trim
+                                  (replace-regexp-in-string "\\\\\\\\[ \t]*\\'" ""
+                                                            (string-trim l))))
+                               (split-string
+                                (buffer-substring-no-properties body-start body-end)
+                                "\n")))))
+          (delete-region start end)
+          (goto-char start)
+          ;; flalign* (not equation*) so the block sits flush left instead of
+          ;; centered; the lone & pins the array to the left margin.
+          (insert "#+begin_quote\n\\begin{flalign*}\n&\\begin{array}{l}\n"
+                  (mapconcat #'identity lines " \\\\\n")
+                  "\n\\end{array}&&\n\\end{flalign*}\n#+end_quote"))))))
+
+(add-hook 'org-export-before-processing-functions #'wiki-expand-pseudocode-blocks)
+
 ;; The inline theme script runs before the body paints so the stored (or
 ;; system-preferred) light/dark theme is applied with no flash of the wrong
 ;; palette. It only sets the data-theme attribute the CSS keys off of; the
