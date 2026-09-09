@@ -109,6 +109,7 @@ Time and space complexity increase as the dataset increases. To account for this
 #+end_pseudocode
 
 
+
 Condensed nearest neighbor is a greedy algorithm that aims to minimize training error and complexity, measured by the size of the stored subset.
 
 * Distance-Based classification

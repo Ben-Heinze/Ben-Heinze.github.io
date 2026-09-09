@@ -11,3 +11,76 @@
 # This is used to shrink the spacing between bullet points
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+* Outlier Detection
+
+Outlier detection is often an "unsupervised learning" process
+
+** Local Outlier factor
+
+Outliers are typically sparse
+- compare local density of a datapoint with average local density of other data points
+
+\[
+  LOF(x) = \frac{\delta_{k}(x)}{\sum_{s \in \mathcal{N}(x)}^{} \delta_{k}(s)/|\mathcal{N}(x)|}
+\]
+
+| $\delta_{k}(x)$ | distance between instance x and kth nn |
+|        $\mathcal{N}(x)$          |      {{{hl(orange,COME BACK LATER)}}}                                  |
+
+
+* Error in Nearest Neighbor
+
+Errors are introduced for multiple reasons:
+- noise
+- lack of precision
+- human Error
+- irrelevant attributes
+
+For continuous concepts, at best, an example is an approximation
+
+
+* Dimensionality Reduction
+Two principal categories:
+- Feature selection: choosing a subset of features
+- feature extraction: transform input features to a new feature space
+
+Example transformation: Fourier Transform
+- Data is often provided in the "time" domain
+- Data is converted to the "frequency" domain
+- Example algorithms: Discrete Fourier Transform, Fast Fourier Transform
+
+Representation Learning is a growing community that tries to optimize which features are important. Manifold learning is trying to learn the shape of a lower-dimensional field, then you can work within that lower-dimensional, easier plane
+
+** Models of Feature selection
+Filter Model: set all features $\to$ selecting best subset $\to$ learning algorithm $\to$ performance
+
+Wrapper Model: set of all features $\to$ Selecting best subset by looping (generating a subset $\iff$ learning algorithm) $\to$ performance
+
+*** Stepwise Forward selection
+- Wrapper method
+- Exponential
+
+Method: Add one feature at a time, evaluate a model with the new feature, calculate performance. Keep the subset of features that give you the best performance
+
+
+*** Stepwise Backward selection
+- Wrapper method
+- Quadratic runtime
+
+Method: Start with entire feature set, remove one at a time, calculate performance. Keep the smallest subset of features that give you the best performance
+
+
+** Local Search Methods
+Consider searching over the full space of possible features rather than adding or eliminating fores one at a time in a greedy fashion. It is referred to local each since it makes local modifications to a complete solution
+
+*** Hill Climbing
+- Start at in initial point in the search space. Look around the local neighborhood. Choose a way, see if performance improved, and take the step up if it did. You can add a /stochastic/ aspect by randomly selecting and flipping a bit in the vector, then checking performance after.
+
+
+*** Simulated Annealing
+
+It's like hill climbing, but you have a "temperature" that slowly decreases over time. If the temperature is high, the probability is more likely to choose a random step regardless of performance. The temperature slowly decreases over time, allowing the hill climbing to vary less until it converges.
+
+

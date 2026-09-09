@@ -198,6 +198,10 @@
           {
             "label": "Memory Management",
             "href": "/operating-systems/lecture-notes/memory-management/index.html"
+          },
+          {
+            "label": "3 Memory Hierarchy",
+            "href": "/operating-systems/lecture-notes/3-memory-hierarchy/index.html"
           }
         ]
       },
@@ -214,6 +218,11 @@
             "href": "/operating-systems/textbook-notes/8-virtual-memory/index.html"
           }
         ]
+      },
+      {
+        "label": "Assignments",
+        "href": "/operating-systems/assignments/index.html",
+        "private": true
       }
     ]
   },

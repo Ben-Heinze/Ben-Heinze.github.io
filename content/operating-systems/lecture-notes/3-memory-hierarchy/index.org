@@ -1,0 +1,115 @@
+#+TITLE: 3 Memory Hierarchy
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-09
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+What are the design constraints on a computer's memory?
+
+- How much?
+- How fast?
+- How expensive?
+
+There is a tradeoff. Faster access time costs more, greater capacity costs more. Is there a solution?
+
+Instead of having one massive main memory, they split memory into different sections:
+- Top level: Inboard memory (registers, cache, main memory)
+- Medium level: Outboard storage (Magnetic disk, CDs, DVDs, Blu-ray)
+- Bottom level: Offline storage (Magnetic tape)
+
+Going down this hierarchy:
+- decreasing cost per bit
+- increasing capacity
+- increasing access time 
+- decreasing frequency of access to the memory by the processor
+
+* Hit Ratio (H) and Average Access Time (A)
+
+
+
+* Principle of Locality
+
+
+* Secondary Memory/Auxiliary Memory
+
+- Nonvolatile
+- External
+- Used to store program data
+- less expensive
+
+* Cache Memory
+
+
+Largely invisible to the OS
+
+Interacts with other memory management hardware
+processor must access memory at least once per instruction cycle
+processor execution is limited by memory cycle time 
+{{{hl(orange,COME BACK LATER)}}}
+
+
+He shows figure 1.16: cache and main memory 
+
+* Cache Design
+
+Categories:
+- Cache size
+- Block size 
+- mapping function
+- replacement algorithm
+- write policy
+- Number of Cache Levels
+
+** Cache Size and Block Size
+
+- Increasing block size initially improves HIT ratio 
+  - This exploits spatial Locality
+  - If new block is too large, HIT ratio increases again
+  - Large blocks evict useful data
+  - *There is a balance for an optimal block size*
+
+- Mapping Function: Determines which cache location the block will occupy
+  - Two constraints: 
+    1. When one block is read in, another may be replaced, The more flexible the mapping function, 
+    2. the more complex is the circuitry required to search the cache
+
+    Three strategies:
+    1. Direct mapping: Each memory block has exactly one possible cache location
+    2. Fully Associate Mapping: A memory block can go anywhere in the cache
+      - Advantage: flexible, fewer conflicts
+      - Disadvantage: cache has to search/compare many entries, which increases hardware complexity
+    3. Set Associating Mapping: Comparison between the other two
+      - Divide the cache into sets, a memory block is assigned to one particular set, but it can go into any slot within that set
+      
+- Replacement Algorithm
+  - Least Recently Used (LRU) Algorithm: self explanatory
+
+- Write policy: dictates when the memory write operation takes place
+  - can occur every time the block is updated
+  - can occur when the block is replaced
+      - minimizes write operations
+      - Leaves main memory in an obsolete state
+
+
+* Average cost per bit
+- $C_{s}$ = Average cost per bit for the combined two level memory
+
+\[
+  C_{s} = \frac{c_{1}s_{1 + c_{2}s_{2}}}{s_{1}+s_{2}}
+\]
+
+We would like $C_{2} \approx C_{2}$
+
+
+
+
+
