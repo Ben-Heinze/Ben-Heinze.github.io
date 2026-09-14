@@ -136,4 +136,11 @@ All communication will be done via Canvas and Discord announcements.
 ** I/O Modules
 ** System Bus
 
-
+* Popup quiz 1:
+1. Supposed you use simple paging. The logical address is 15 bits long, 5 of which are used for the page number, and the remaining bits are used for offset. Assume a word is 1 byte. 
+  1. What is the max size of the process address space (process image) a system can support? *$2^{15}$ bytes*
+  2. What is they max number of pages system can have for each process? $2^{5}$
+  3. What is the size of one page? $2^{10}$
+2. When translating a lgocial address into phyiscla address, CPUs typically provide hardware support for address translation. Why is hardware support necessary for this process? Explain what would happen if address translatino were performed entirely in software without hardware support. *It take more time since accessing an address requires accessing multiple other addresses, so it isn't optimal.*
+3. Suppose we have a memory management that uses *dynamic partitioning*. We keep track of the free memory blocks using a data structure. Suppose ther are *N free memory blocks*. If we use a first-fit approach, Assume all (N) free blocks are equally likely to be the best fit. How many numbers of searches do you need on average? $\frac{N(N+1)}{2 \cdotN} = \frac{N+1}{2}$
+    

@@ -1,0 +1,72 @@
+#+TITLE: Virtual Memory
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-11
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Virtual memory: using secondary storage js if it were main memory (RAM). Virtual memory is provides the illusion that you have more than the available main memory.
+
+/Resident set/: portion of the process in main memory
+
+
+The OS can have a problem where once a process is needed in main memory when the main memory is full, it will have to swap out a process to make room for the new process. If this happens frequently, this can become a bottleneck for the processor since it spends more time swapping in/out processes rather than executing them. It's called /thrashing/ when an OS swaps instead of executes. To avoid this, you can try to predict which processes are least likely to be used in the near future.
+
+
+* To make VM work:
+  1. Hardware support for paging or segmentation
+  2. OS must have software for managing movement of pages/segments between secondary memory and main memory
+
+
+* Control Structure For Virtual Memory
+
+Each process has its own page table
+
+- Each /page table entry/ (PTE) contains the frame number of the corresponding page in main memory.
+- Page table is needed for virtual memory with little bit more info on it 
+
+
+Page tables cannot be modified by its processees, only by the management software or else pointers will be inaccurate. 
+
+
+* How large can a page table be 
+{{{hl(red,TEST)}}}
+
+Assume
+- Address size = 32 bits
+- Byte-level addressing (1 byte per addressable unit)
+- Page seize  = 4kb = $2^{12}$ bytes
+- Each page table entry = 4 bytes
+
+Step 1: What is the max virtual address space?
+- A 32-bit address can represent $2^{32}$ different addresses
+- Since we have byte-level addressing:
+  - $2^{32}$ bytes = *4GB*. Max virtual address space is 4gb.
+
+- Step 2: How many pages can a process have?
+  - Each page contains $2^{12}$ bytes 
+  - $\frac{2^{32} \text{bytes}}{2^{12}\text{bytes/page}} = 2^{20}$ pages
+  - A process can have at most $2^{20}$ pages
+
+- Step 3: How large can a page table be?
+  - There is only one PTE for each page
+  - Each entry is 4 bytes 
+    - $2^{20}$ entries $ \times 4$ bytes per entry = $2^{22}$ bytes = $4$ mb.
+    - Therefore, tha max PTE size for one process is 4mb.
+
+Now consider a system with many processes:
+- if 1-- processes are runniing, and each has a 4mb page table:
+  - $100b \times 4mb = 400mb$
+
+In this example, every process needs a page table of 4mb.
+
+*Can we afford to dedicate this much memory to page tables?*
+
+*How can modern OS's reduce memory required for page tables?*

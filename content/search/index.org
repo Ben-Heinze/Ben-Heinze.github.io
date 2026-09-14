@@ -1,0 +1,13 @@
+#+TITLE: Search
+#+AUTHOR: Ben Heinze
+#+STARTUP: noindent
+#+OPTIONS: toc:nil num:nil ^:nil
+
+Search across every page in the wiki. Matches on page titles and section
+headings are listed first, followed by fuzzy matches in the body text. Select a
+result to jump straight to that page and section. You can also press ~Ctrl~/~Cmd~
++ ~K~ from anywhere to open search.
+
+#+begin_export html
+<div id="search-app"></div>
+#+end_export

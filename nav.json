@@ -4,6 +4,10 @@
     "href": "/index.html"
   },
   {
+    "label": "Search",
+    "href": "/search/index.html"
+  },
+  {
     "label": "AI",
     "href": "/ai/index.html",
     "children": [
@@ -202,6 +206,10 @@
           {
             "label": "3 Memory Hierarchy",
             "href": "/operating-systems/lecture-notes/3-memory-hierarchy/index.html"
+          },
+          {
+            "label": "Virtual Memory",
+            "href": "/operating-systems/lecture-notes/virtual-memory/index.html"
           }
         ]
       },
@@ -234,6 +242,12 @@
   },
   {
     "label": "NISL",
-    "href": "/nisl/index.html"
+    "href": "/nisl/index.html",
+    "children": [
+      {
+        "label": "2 A Theory of Inferred Causation",
+        "href": "/nisl/2-a-theory-of-inferred-causation/index.html"
+      }
+    ]
   }
 ]

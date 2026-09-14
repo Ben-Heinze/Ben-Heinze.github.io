@@ -288,10 +288,14 @@ Runs of digits are compared by numeric value, so \"7\" sorts before \"20\"."
 
 (defun wiki-nav-less (a b)
   "Ordering predicate for two nav items: natural order by label (case-insensitive).
-The Home entry (href \"/index.html\") always sorts first."
+The Home entry (href \"/index.html\") always sorts first, and Search
+(href \"/search/index.html\") is pinned right below it; everything else is
+alphabetical."
   (let ((ha (alist-get 'href a)) (hb (alist-get 'href b)))
     (cond ((string= ha "/index.html") t)
           ((string= hb "/index.html") nil)
+          ((string= ha "/search/index.html") t)
+          ((string= hb "/search/index.html") nil)
           (t (wiki-nav-natural-less (alist-get 'label a)
                                     (alist-get 'label b))))))
 
@@ -325,7 +329,10 @@ The Home entry (href \"/index.html\") always sorts first."
      "</button>\n"
      ;; Sidebar behavior lives in static/new-page.js (copied to public/ by the
      ;; wiki-static component). `defer` waits for the preamble DOM to parse.
-     "<script src=\"/new-page.js?v=5\" defer></script>")))
+     "<script src=\"/new-page.js?v=5\" defer></script>\n"
+     ;; Site-wide search: the Ctrl/Cmd-K overlay and the /search/ page both live
+     ;; in static/search.js (copied to public/ by the wiki-static component).
+     "<script src=\"/search.js?v=1\" defer></script>")))
 
 (defvar wiki-preamble (wiki-build-preamble))
 
@@ -430,6 +437,146 @@ table of contents generated from nav.json."
               (write-region (point-min) (point-max) file))
           (message "wiki-inject-toc: #wiki-toc placeholder not found in %s" file))))))
 
+;; ── Search index ───────────────────────────────────────────────────────────
+;; A client-side Search feature (static/search.js + the /search/ page) needs a
+;; full-text index of the wiki. Since the deployed site is static, the index is
+;; a JSON file generated here at publish time and fetched by the browser.
+;;
+;; We index the *published* HTML under public/ (not the .org sources) so that
+;; every section record carries the exact heading `id` Org emitted for THIS
+;; build — those ids are content hashes that change when a heading's text
+;; changes, so reading them from the same build we ship is the only way the
+;; deep links (href#id) stay correct. Building from public/ also means private
+;; pages are excluded for free: on the deployed build they were never written
+;; there. See :completion-function on the wiki-org project below.
+;;
+;; Each record is {type,page,heading,href,body[,level]}:
+;;   type "title"   — one per page; heading = page title; href = the page URL.
+;;   type "heading" — one per <h2..h4 id>; href = page URL + "#" + heading id.
+;; search.js ranks title/heading matches above fuzzy matches in `body`.
+
+(defun wiki-html-to-text (html)
+  "Strip HTML tags/entities from HTML and collapse whitespace to plain text.
+Literal <,>,& only occur inside tags/entities in Org's output (real ones are
+escaped), so tag-stripping does not eat prose or inline math like \\(x<y\\)."
+  (let ((s (or html "")))
+    (setq s (replace-regexp-in-string "<[^>]*>" " " s))
+    (setq s (replace-regexp-in-string "&amp;" "&" s))
+    (setq s (replace-regexp-in-string "&lt;" "<" s))
+    (setq s (replace-regexp-in-string "&gt;" ">" s))
+    (setq s (replace-regexp-in-string "&quot;" "\"" s))
+    (setq s (replace-regexp-in-string "&#8212;" "—" s))
+    (setq s (replace-regexp-in-string "&#8211;" "–" s))
+    (setq s (replace-regexp-in-string "&#8217;" "’" s))
+    (setq s (replace-regexp-in-string "&#[0-9]+;" " " s))
+    (setq s (replace-regexp-in-string "&[a-zA-Z]+;" " " s))
+    (setq s (replace-regexp-in-string "[ \t\n\r]+" " " s))
+    (string-trim s)))
+
+(defun wiki-truncate (s n)
+  "Truncate string S to at most N chars, adding an ellipsis when cut."
+  (if (> (length s) n) (concat (substring s 0 n) "…") s))
+
+(defconst wiki-search-body-limit 600
+  "Max characters of body text stored per search record.")
+
+(defun wiki-region-body-text (start end &optional include-li)
+  "Plain text of the <p> (and, when INCLUDE-LI, <li>) elements between START
+and END in the current buffer. Skipping straight to paragraph/list content
+avoids indexing the table-of-contents and other chrome."
+  (let ((parts '()))
+    (save-excursion
+      (goto-char start)
+      (while (re-search-forward "<p>\\(\\(?:.\\|\n\\)*?\\)</p>" end t)
+        (push (wiki-html-to-text (match-string 1)) parts))
+      (when include-li
+        (goto-char start)
+        (while (re-search-forward "<li>\\(\\(?:.\\|\n\\)*?\\)</li>" end t)
+          (push (wiki-html-to-text (match-string 1)) parts))))
+    (wiki-truncate
+     (string-trim (replace-regexp-in-string
+                   "[ \t\n\r]+" " " (mapconcat #'identity (nreverse parts) " ")))
+     wiki-search-body-limit)))
+
+(defun wiki-page-title-in-buffer ()
+  "The page's display title from the current HTML buffer: the <h1 class=title>,
+falling back to <title>."
+  (save-excursion
+    (goto-char (point-min))
+    (cond
+     ((re-search-forward "<h1 class=\"title\">\\(\\(?:.\\|\n\\)*?\\)</h1>" nil t)
+      (wiki-html-to-text (match-string 1)))
+     ((progn (goto-char (point-min))
+             (re-search-forward "<title>\\(.*?\\)</title>" nil t))
+      (wiki-html-to-text (match-string 1)))
+     (t "Untitled"))))
+
+(defun wiki-collect-search-records (href)
+  "Return the list of search records for the HTML in the current buffer,
+whose page URL is HREF. Assumes point-min..point-max is one published page."
+  (let* ((title (wiki-page-title-in-buffer))
+         (content-start (save-excursion
+                          (goto-char (point-min))
+                          (if (re-search-forward "<div id=\"content\"" nil t)
+                              (point) (point-min))))
+         (heads '())
+         (records '()))
+    ;; Gather every id'd heading: (tag-start tag-end level id text).
+    (save-excursion
+      (goto-char content-start)
+      (while (re-search-forward
+              "<h\\([2-4]\\) id=\"\\([^\"]+\\)\">\\(\\(?:.\\|\n\\)*?\\)</h\\1>" nil t)
+        (push (list (match-beginning 0) (match-end 0)
+                    (string-to-number (match-string 1))
+                    (match-string 2)
+                    (wiki-html-to-text (match-string 3)))
+              heads)))
+    (setq heads (nreverse heads))
+    ;; Page-title record: intro paragraphs before the first heading (<p> only,
+    ;; so the table-of-contents list is not swept in).
+    (let ((intro-end (if heads (nth 0 (car heads)) (point-max))))
+      (push (list (cons 'type "title") (cons 'page title) (cons 'heading title)
+                  (cons 'href href)
+                  (cons 'body (wiki-region-body-text content-start intro-end nil)))
+            records))
+    ;; One record per heading: body is everything up to the next heading.
+    (let ((n (length heads)))
+      (dotimes (i n)
+        (let* ((h (nth i heads))
+               (body-start (nth 1 h))
+               (body-end (if (< (1+ i) n) (nth 0 (nth (1+ i) heads)) (point-max)))
+               (level (nth 2 h))
+               (hid (nth 3 h))
+               (htext (nth 4 h)))
+          (unless (or (string-empty-p htext)
+                      (member (downcase htext)
+                              '("references" "footnotes" "table of contents")))
+            (push (list (cons 'type "heading") (cons 'page title)
+                        (cons 'heading htext) (cons 'level level)
+                        (cons 'href (concat href "#" hid))
+                        (cons 'body (wiki-region-body-text body-start body-end t)))
+                  records)))))
+    (nreverse records)))
+
+(defun wiki-build-search-index (_project)
+  "Walk every published public/**/index.html and write public/search-index.json,
+a flat array of search records consumed by static/search.js."
+  (let* ((public-dir (expand-file-name "public/"))
+         (files (directory-files-recursively public-dir "\\`index\\.html\\'"))
+         (records '()))
+    (dolist (file files)
+      (let* ((rel (file-relative-name file public-dir))
+             (href (concat "/" rel)))
+        ;; The search page itself has no content worth indexing.
+        (unless (string-prefix-p "search/" rel)
+          (with-temp-buffer
+            (insert-file-contents file)
+            (setq records (append records (wiki-collect-search-records href)))))))
+    (let ((coding-system-for-write 'utf-8))
+      (with-temp-file (expand-file-name "public/search-index.json")
+        (insert (json-encode (vconcat records)))))
+    (message "wiki-build-search-index: wrote %d records" (length records))))
+
 ;; Build the :exclude regexp that keeps private pages' HTML and assets out of
 ;; the deployed build. nil (no exclusion) when building locally or when nothing
 ;; is private. org-publish matches :exclude against each file's path RELATIVE to
@@ -465,7 +612,7 @@ table of contents generated from nav.json."
          :with-author t
          :with-creator nil
          :with-timestamps nil
-         :completion-function (wiki-inject-toc))
+         :completion-function (wiki-inject-toc wiki-build-search-index))
 
         ;; Images and PDFs under content/ are copied as-is
         ("wiki-assets"

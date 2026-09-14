@@ -83,4 +83,56 @@ Consider searching over the full space of possible features rather than adding o
 
 It's like hill climbing, but you have a "temperature" that slowly decreases over time. If the temperature is high, the probability is more likely to choose a random step regardless of performance. The temperature slowly decreases over time, allowing the hill climbing to vary less until it converges.
 
+*** Genetic algorithm
+
+Suppose you have a vector $\mathcal{F}= \beta_{0},\beta_{1},\beta_{2},\beta_{3},\beta_{4},\beta_{5}$
+
+We can refer to this vector as a genome. betas can be on and off, and there is another vector of functions that, when $\mathcal{F}[x]$ is 1, the function is activated. 
+
+
+**** Selection and replacement
+
+- Fitness Proportionate Selection
+\[
+  P(X_{i}) = \frac{f(X_{i})}{\sum_{j=1}^{n-1} f(X_{j})}
+\]
+
+Fitness is based on performance of the model trained with the subset of features
+
+**** Recombination/Crossover
+
+A method of mating two (or more) parents selected from the population. We assume two parents are generate two offspring by splicing the parent chromosomes, then mixing/matching the splices. This shouldnt occur ine very instance, it should be a probability.
+
+**** Mutation
+Introduce a random variation for a point in the offspring. There is a small probability a mutation occurs to slightly alter the data. Then, there is a hyper-mutation, which has a very small chance, but it can significantly change the offspring.
+
+
+
+
+
+*** Principal Component Analysis (PCA)
+
+To calculate $k$, you can calculate the /Proportion of Variance/.
+
+You can use a scree graph
+
+**** Finding the linear discriminants 
+
+{{{hl(orange,COME BACK LATER)}}}
+
+
+* Clustering
+
+Expectation Maximization: a local search method that uses a max-likelihood approach.
+
+kmeans, kmeans++, 
+
+Theory says kmeans++ guarantees results will be O(log(k))-competitive relative to the optimzal clustering
+
+
+
+
+
+
+
 
