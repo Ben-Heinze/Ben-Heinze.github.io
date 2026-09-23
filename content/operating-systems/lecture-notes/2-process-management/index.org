@@ -128,6 +128,21 @@ Figure 3.6 (Five-State Process Model): New, Ready, Running, Blocked, Exit.
 
 *** State Transitions
 
+#+begin_export html
+<pre class="mermaid">
+flowchart LR
+    start(( )) -->|new process| New
+    New -->|admit| Ready
+    Ready -->|dispatch| Running
+    Running -->|timeout| Ready
+    Running -->|event wait| Blocked
+    Blocked -->|event occurs| Ready
+    Running -->|release| Exit
+    Ready -->|terminate| Exit
+    Blocked -->|terminate| Exit
+</pre>
+#+end_export
+
 | Transition        | When                                                                                                       |
 | Null $\to$ New     | A new process is created to execute a program                                                               |
 | New $\to$ Ready    | The OS moves a process from New to Ready when it is prepared to take on an additional process. Most systems set some limit based on the number of existing processes or the amount of virtual memory committed to existing processes |

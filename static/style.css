@@ -440,6 +440,132 @@ h4 { font-size: 1rem; font-style: italic; }
   border-left: none;
 }
 
+/* ── Page outline rail (Aerial-style) ──
+   A persistent right-hand column mirroring the current page's heading tree,
+   built at runtime by new-page.js from Org's own TOC links. It only appears on
+   wide screens (min-width: 1200px), where the body reserves a gutter for it; it
+   sits alongside the inline #table-of-contents card at the top of the page. The
+   link matching the section you're scrolling through gets .toc-rail-active. The
+   rail folds to a slim strip via .collapsed. */
+
+.toc-rail { display: none; } /* revealed only by the wide-screen query below */
+
+@media (min-width: 1200px) {
+  /* Reserve the right gutter for the rail (or a slim strip when collapsed). */
+  body.has-toc-rail { padding-right: 250px; }
+  body.has-toc-rail.toc-rail-collapsed { padding-right: 2.5rem; }
+
+  .toc-rail {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 100vh;
+    background: var(--sidebar-bg);
+    border-left: 1px solid var(--border);
+    font-family: sans-serif;
+    z-index: 10;
+  }
+
+  .toc-rail.collapsed { width: 2.5rem; }
+
+  .toc-rail-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+    padding: 1.5rem 0.6rem 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc-rail.collapsed .toc-rail-head {
+    padding: 1.5rem 0 0.6rem;
+    justify-content: center;
+    border-bottom: none;
+  }
+
+  .toc-rail-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .toc-rail.collapsed .toc-rail-title { display: none; }
+
+  .toc-rail-toggle {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: var(--nav-toggle);
+    cursor: pointer;
+    transition: color 0.12s ease, background 0.12s ease;
+  }
+  .toc-rail-toggle::before { content: "\203a"; font-size: 1rem; line-height: 1; } /* › */
+  .toc-rail.collapsed .toc-rail-toggle::before { content: "\2039"; }              /* ‹ */
+  .toc-rail-toggle:hover { color: var(--nav-link); background: var(--nav-hover-bg); }
+
+  .toc-rail-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 0.6rem 0.7rem 1.5rem;
+  }
+  .toc-rail.collapsed .toc-rail-body { display: none; }
+
+  .toc-rail-body ul { list-style: none; margin: 0; padding: 0; }
+  .toc-rail-body li { margin: 0; }
+
+  .toc-rail-body a {
+    display: block;
+    padding: 0.18rem 0.5rem;
+    border-left: 2px solid transparent;
+    border-radius: 0 4px 4px 0;
+    color: var(--nav-sub-link);
+    font-size: 0.82rem;
+    line-height: 1.35;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .toc-rail-body a:visited { color: var(--nav-sub-link); }
+  .toc-rail-body a:hover { background: var(--nav-hover-bg); color: var(--accent); }
+
+  /* Top-level headings read as the anchors of the outline. */
+  .toc-rail-body > ul > li > a { color: var(--nav-link); font-weight: 600; }
+
+  /* Nested levels indent behind a guide rail, matching the left nav. */
+  .toc-rail-body ul ul {
+    margin-left: 0.35rem;
+    padding-left: 0.35rem;
+    border-left: 1px solid var(--border);
+  }
+
+  /* The section you're currently reading. */
+  .toc-rail-body a.toc-rail-active {
+    border-left-color: var(--accent);
+    background: var(--nav-active-bg);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* An Org "anon" wrapper li (a skipped heading level) adds no indent step. */
+  .toc-rail-body li.toc-anon > ul { margin-left: 0; padding-left: 0; border-left: none; }
+}
+
 /* ── Links ── */
 
 a { color: var(--accent); text-decoration: none; }
@@ -749,4 +875,187 @@ body.search-open { overflow: hidden; }
 @media (max-width: 768px) {
   .search-backdrop { padding: 6vh 0.75rem 1rem; }
   .search-results { max-height: 70vh; }
+}
+
+/* ── Learn mode ──────────────────────────────────────────────────────────
+   A fixed "Learn" button (top-right) opens a study overlay built in
+   static/learn.js. The overlay mirrors the search modal; the button mirrors
+   the sidebar .theme-toggle. Colors reuse the theme variables throughout. */
+
+/* Floats over the content column. Below the search backdrop (z 100) and the
+   mobile nav button (z 30, top-left — no overlap). */
+.learn-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1.25rem;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  color: var(--nav-link);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px var(--shadow);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.learn-btn:hover { background: var(--nav-hover-bg); color: var(--nav-hover-text); }
+.learn-btn-icon { font-size: 0.9rem; line-height: 1; color: var(--accent); }
+
+/* Dimming backdrop + centered modal, same ladder as search. */
+.learn-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 1rem 2rem;
+  background: rgba(0, 0, 0, 0.45);
+}
+.learn-backdrop[hidden] { display: none; }
+body.learn-open { overflow: hidden; }
+
+.learn-modal {
+  width: 100%;
+  max-width: 640px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 18px 50px var(--shadow);
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+.learn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.learn-title {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.learn-progress { font-size: 0.78rem; color: var(--muted); }
+.learn-close {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+}
+.learn-close:hover { color: var(--text); }
+
+.learn-content { max-height: 65vh; overflow-y: auto; padding: 1.1rem 1.2rem 1.3rem; }
+
+.learn-card { display: flex; flex-direction: column; gap: 0.85rem; }
+.learn-crumb {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.learn-hint { font-size: 0.78rem; color: var(--muted); }
+.learn-front { font-size: 1.15rem; font-weight: 600; color: var(--heading); line-height: 1.4; }
+.learn-back {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--text);
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+.learn-empty { color: var(--muted); font-size: 0.95rem; padding: 1rem 0; text-align: center; }
+
+/* Primary action ("Show answer" / "Check" / "Next"). */
+.learn-primary {
+  align-self: flex-start;
+  padding: 0.45rem 0.9rem;
+  font-family: sans-serif;
+  font-size: 0.85rem;
+  color: var(--nav-hover-text);
+  background: var(--nav-active-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.learn-primary:hover { background: var(--nav-hover-bg); }
+
+/* Four grade buttons. */
+.learn-grade-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 0.4rem; }
+.learn-grade {
+  flex: 1;
+  min-width: 4rem;
+  padding: 0.45rem 0.6rem;
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  color: var(--nav-link);
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.learn-grade:hover { background: var(--nav-hover-bg); color: var(--nav-hover-text); }
+.learn-grade.is-suggested { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+/* Cloze deletion. */
+.learn-cloze { font-size: 0.98rem; line-height: 1.9; color: var(--text); }
+.learn-cloze-input {
+  min-width: 6rem;
+  padding: 0.1rem 0.35rem;
+  font-family: sans-serif;
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--code-inline-bg);
+  border: none;
+  border-bottom: 2px solid var(--border-strong);
+  outline: none;
+}
+.learn-cloze-input:focus { border-bottom-color: var(--accent); }
+.learn-cloze-input.is-correct { border-bottom-color: var(--example-border); color: var(--example-border); }
+.learn-cloze-input.is-wrong { border-bottom-color: #c0392b; color: #c0392b; }
+.learn-cloze-answer { color: var(--example-border); font-weight: 600; margin-left: 0.25rem; }
+
+/* Multiple choice. */
+.learn-mc { display: flex; flex-direction: column; gap: 0.5rem; }
+.learn-mc-option {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  font-family: sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--toc-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.learn-mc:not(.is-answered) .learn-mc-option:hover { background: var(--nav-hover-bg); border-color: var(--border-strong); }
+.learn-mc.is-answered .learn-mc-option { cursor: default; }
+.learn-mc-option.is-correct {
+  background: var(--example-bg);
+  border-color: var(--example-border);
+  color: var(--heading);
+}
+.learn-mc-option.is-wrong { border-color: #c0392b; color: #c0392b; }
+
+@media (max-width: 768px) {
+  .learn-backdrop { padding: 6vh 0.75rem 1rem; }
+  .learn-content { max-height: 72vh; }
+  /* Compact, icon-only button so it clears the top-left nav toggle. */
+  .learn-btn { top: 0.6rem; right: 0.75rem; padding: 0.4rem 0.5rem; }
+  .learn-btn-label { display: none; }
 }

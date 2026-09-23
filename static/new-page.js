@@ -161,6 +161,115 @@
     }
   }
 
+  // ── Page outline rail (Aerial-style) ──
+  // A persistent right-hand column that mirrors THIS page's heading tree, like
+  // the Aerial.nvim outline. It's built from the same links Org already emitted
+  // in #text-table-of-contents, so it needs no extra data and always matches
+  // the page. A scroll-spy highlights the section you're currently reading; a
+  // toggle folds the rail to a slim strip (state kept in localStorage). CSS
+  // only shows the rail on wide screens, where it sits alongside the inline TOC
+  // card at the top of the page (see .toc-rail in style.css).
+  var tocSource = document.getElementById('text-table-of-contents');
+  var srcList = tocSource && tocSource.querySelector(':scope > ul');
+  // Not worth a whole column for a page with almost no structure.
+  if (srcList && tocSource.querySelectorAll('a').length >= 2) {
+    var rail = document.createElement('aside');
+    rail.className = 'toc-rail';
+    rail.setAttribute('aria-label', 'On this page');
+
+    var railHead = document.createElement('div');
+    railHead.className = 'toc-rail-head';
+    var railTitle = document.createElement('span');
+    railTitle.className = 'toc-rail-title';
+    railTitle.textContent = 'On this page';
+    var railBtn = document.createElement('button');
+    railBtn.type = 'button';
+    railBtn.className = 'toc-rail-toggle';
+    railHead.appendChild(railTitle);
+    railHead.appendChild(railBtn);
+
+    var railBody = document.createElement('div');
+    railBody.className = 'toc-rail-body';
+    // Clone the (already .toc-anon-tagged) list so the rail inherits the same
+    // skipped-level handling the inline TOC block just applied above.
+    railBody.appendChild(srcList.cloneNode(true));
+
+    rail.appendChild(railHead);
+    rail.appendChild(railBody);
+    document.body.appendChild(rail);
+    document.body.classList.add('has-toc-rail');
+
+    // Pair each rail link with the heading it targets, in document order (Org
+    // emits the TOC that way), so the scroll-spy can walk them top to bottom.
+    var railPairs = [];
+    railBody.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      var id = decodeURIComponent(a.getAttribute('href').slice(1));
+      var heading = id && document.getElementById(id);
+      if (!heading) return;
+      railPairs.push({ link: a, heading: heading });
+      // Smooth-scroll to the section rather than the browser's instant jump.
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try { history.replaceState(null, '', '#' + id); } catch (e2) {}
+      });
+    });
+
+    // ── Scroll-spy ──
+    // The active section is the last heading whose top has scrolled above a
+    // band near the top of the viewport. rAF-throttled to keep scrolling smooth.
+    // The active link is also kept in view within the rail's own scroll area
+    // (never the page) so a long outline tracks your position.
+    var activePair = null;
+    var ACTIVE_OFFSET = 110;
+    function setActive(pair) {
+      if (pair === activePair) return;
+      if (activePair) activePair.link.classList.remove('toc-rail-active');
+      activePair = pair;
+      if (!pair) return;
+      pair.link.classList.add('toc-rail-active');
+      var lr = pair.link.getBoundingClientRect();
+      var br = railBody.getBoundingClientRect();
+      if (lr.top < br.top + 8) railBody.scrollTop -= (br.top + 8 - lr.top);
+      else if (lr.bottom > br.bottom - 8) railBody.scrollTop += (lr.bottom - (br.bottom - 8));
+    }
+    function updateActive() {
+      var current = railPairs[0] || null;
+      for (var i = 0; i < railPairs.length; i++) {
+        if (railPairs[i].heading.getBoundingClientRect().top - ACTIVE_OFFSET <= 0) current = railPairs[i];
+        else break;
+      }
+      setActive(current);
+    }
+    var ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(function () { updateActive(); ticking = false; });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    updateActive();
+
+    // ── Collapse toggle ──
+    var RAIL_KEY = 'tocRailCollapsed';
+    function setRailCollapsed(collapsed) {
+      rail.classList.toggle('collapsed', collapsed);
+      document.body.classList.toggle('toc-rail-collapsed', collapsed);
+      railBtn.setAttribute('aria-label', collapsed ? 'Expand outline' : 'Collapse outline');
+      railBtn.setAttribute('aria-expanded', String(!collapsed));
+    }
+    var railStored = null;
+    try { railStored = localStorage.getItem(RAIL_KEY); } catch (e) {}
+    setRailCollapsed(railStored === '1');
+    railBtn.addEventListener('click', function () {
+      var collapsed = !rail.classList.contains('collapsed');
+      setRailCollapsed(collapsed);
+      try { localStorage.setItem(RAIL_KEY, collapsed ? '1' : '0'); } catch (e) {}
+      if (!collapsed) updateActive();
+    });
+  }
+
   // ── Mobile off-canvas nav ──
   // On phones the sidebar is hidden off-screen (see the max-width:768px media
   // query in style.css) and opened via a hamburger button. The button and the
