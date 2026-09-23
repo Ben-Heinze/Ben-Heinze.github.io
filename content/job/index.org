@@ -45,3 +45,5 @@
 
 
 There usee to be aircrafts that had a whole suite of testing, but a lot of them went largely unused. This was stupid, so they created standards for these testing systems. Perry Memo (1994) acancelled all DoD Standards, and enforced commercial standards. 1996: Directive requiring families of test equipment conforming to commercial standards. There were three standards: cass (Consolidated Automated Support System), IFTE (Intermediate Family Test Environment), and MATE (Modular Automatic Test Equipment). MATE and I think IFTE got cancelled. eCASS Survived, and nowe we have three ATS Families: eCASS, NGATS, and VDATS (Versitile Diagnostic Automatic Test Station). 
+
+

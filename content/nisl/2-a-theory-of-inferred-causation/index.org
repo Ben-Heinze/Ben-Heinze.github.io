@@ -3,6 +3,8 @@
 #+DATE: 2026-09-14
 #+STARTUP: noindent
 
+#+OPTIONS: toc:nil
+
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
 
 # This is used to shrink the pdf page margins
@@ -14,3 +16,250 @@
 
 
 file pages 61-84
+
+* Preface
+
+Goal is to learn causal relationships from raw data (discovery). 
+
+Correlation != causation, but can we try to find patterns? what are the assumptions? 
+
+* 2.1 Intro (basic intuition)
+
+They don't directly say the relationship is causal, but Pearl keeps talking about "People percieving as causal", which is different. 
+
+Time is a possibly the most import aspect in human-interpretted causality, but it alone isn't good enough to establish causality. 
+
+Pearl discusses philosphy and how getting the truest, most genuine causality in a real environment is impossible since you need to know all causally relevant factors in advance. (basically, everything humans discover is essentally impossible to call "causal"). 
+
+
+Talks about how patterns can give meaningful interpretations in terms of causal directionality (two fair coin that are independent, but bell is rang whenever a heads comes up). 
+
+Are patterns of dependency (without temporal info) conceptually similar to certain causal directionalities and not others?
+
+Reichenbach wondered these patterns and asked if chains, forks, and colliders canb e used to uncover genuine causal influences from raw data. 
+
+
+* 2.2 Causal Modeling Framework
+
+Induction game against nature. claims natures possesses stable causal mechanisms that are organized in an acyclic structure. *bold claim imo*
+
+/Causal structure/: A st of variables $V$ is a DAG in which each nodes corresponds to a distinct element of $V$, and each link represents a direct functional relationship among the corresponding variables. 
+
+
+/Causal Markov condition/ is a core assumption in probability and causal modeling stating that a variable is conditionally independent of all its non-descendants, given its direct parent variables
+
+He talks about if we git super microscopic, everything is a deterministic extreme, and we can "zoom out" enough where the entire universe falls under the markov independence condition, then the set of parents $PA_i$ is considered the trueset of all relevant data that can cause var Xi. 
+
+Discusses 'latent' variables can be represented explicitly as it's own node in the graph, which is used to maintain the Markov property. The Markov property is lost when we don't properly represent the raw data with the model?
+
+Using raw data, chain, wedge, and collide structure with the Markov condition and latent variables, we can create a causal model defined by a joint probability distribution over the variables in the system. We are allowed to inspect the subset of "observed" variables, but this hides the causal modal and structure. Can we uncover the topology of D of the DAG from features? 
+
+
+* 2.3 Model Prefrences (Occam's Razor)
+
+Assuming $V = O$ (unknown structure = observed structure) in a non temporal space, we can create a structure that mimics the behavior of the data regardless of ordering. We can rule out any theory for which we find simpler, less elaborate models that are equally consistent with the data. Theories that survive this selection process is called /minimal/. 
+
+/Inferred Causation (Preliminary)/: Variable $X$ has causal influence on variable $Y$ if a directed path from $X$ to $Y$ exists in every minimal structure consistent with the data. Assumes all variables are observed.
+
+Next defs generalize minimality to structures with unobserved variables 
+
+/Latent structure/: Definition $L = <D, O>$ where $D$ is a causal structure over $V$ and $O \subset V$ is a set of observed variables 
+
+/Structure Preference/: The preference for simplicity is gauged by expressive power of a structures not having less parameters. Simpler is preferred because they are more constrained and it provides less opportunities to overhit the data. 
+
+
+/Minimality/: Latent structure $L$ is minimal or.t. Class $\math cal{L}$ $\iff$ $\\math cal{L}$ 
+
+/Consistency/: a latent structure is consistent with a distribution $\hat{P}$ over the observed structure if the topology of the graph can accommodate some model that generates the estimated distribution.
+
+/Inferred causation/: given $\hat{P}$, variable $C$ has a causal influence on variable $E \iff$ there exists a directed graph from $C$ to $E$ in every minimal latent structure consistent with $\hat{P}$. 
+
+
+He then taks about the conection between causality and probability: certain patterns of probabilistic dependencies imply an unambiguous causal dependency without making any assumption about the presence or absense of latent variables. The only assumption is minimality. Models that overfit the data are ruled out. 
+
+
+
+
+* 2.4 Stable Distributions
+
+
+Minimality doesn't guarantee the data-generating model would be minimal, nor that the search space of minimal structures is computationally practical. 
+
+/Stability/: restriction on the distribution (DAG-isomorphism,
+perfect-mapness, faithfulness) that conveys the assumption that all
+independences embedded in $P$ are stable. They are entailed by the structure of
+model $D$ and remain invariant to any change in the parameters $\Theta_D$. A
+causal model generates a stable distribution iff it contains no extraneous
+independences.
+
+This is saying that if you vary the parameters from $\Theta$ to $\Theta'$, no independence in $P$ can be destroyed. 
+
+
+Relationship between stability and minimality: 
+- Theory 1: object in the picture is a chair
+- Theory 2: object is either a chair, or two chairs but one chair completely hides the other
+
+We sold prefer theory 1 since it's more minimal, unless we have evidence that
+contradicts theory 1. Stability rules out T2, since it would be unlikely for
+two chairs to be aligned perfectly where one hides the other. This would be an
+/unstable/ alignment. Some independences are structural, some are numerically
+unstable
+
+* Recovering DAG Structures 
+
+- Added stability assumption, every distribution has a unique minimal causal structure as long as there are no hidden variables (from theorem 1.2.8).
+
+
+
+* Inductive Causation Algorithm (IC)
+
+Input: $\hat{P}$: stable distribution on a set $V$ of variables
+Output: A pattern $H(\hat{P})$ compatible with $\hat{P}$.
+
+1. For each pair $a$ and $b$ of variables, search for a set $S_{ab}$ s.t. $a$ and $b$ are independent in $\hat{P}$, conditioned on $S_{ab}$. Construct an undirected graph $G$ s.t. vertices $a$ and $b$ are connected with an edge iff no set $S_{ab}$ can be found.
+2. for each par of nonadjacent variables $a$ and $b$ with a common neighbor $c$, check if $c \in S_{ab}$. If yes, continue. If not, make $c$ dependent on $a$ and $b$. 
+3. In a partially directed graph that results from this, orient as many of the undirected edges as possible subject to two conditions:
+  1. Any alternative orientation would yield a new v-structure
+  2. Any alternative orientation would yield a directed cycle
+
+This method has been refined in multiple ways.
+
+
+Step three uses four rules on page 51. Seems like all of them are just saying "keep the chain direction going"
+
+
+Dor and Tarsi offered an algorithm that removed vertices if they had: 1. No edge is directed outward from $v$, and 2. every neighbor of $v$ that is connected to $v$ through an undirected edge is also adjacent to all the other neighbors of $v$.
+
+This is coming back to how there is always an independence assumption, and an acyclic assumption, which is why it is so important that the graphs are DAGs. 
+
+Latent structures need special treatment  since their constraints impose on the distribution and cannot completely be represented as a set of conditional independence statements, but these constraints can at least be identified which helps us recover valid fragments of latent structures.
+
+* 2.6 Recovering Latent Structures 
+
+
+When there are latent variables, we cannot guarantee the existence a latent structure that's a DAG among the minimal latent structures compatible with $\hat{P}$. We can reduce our search space with this: For every latent structure $L$, there's a dependency-equivalent latent strcuture (projection) of $L$ on $O$ in which every unobserved onode is a root node with exactly two observed children.
+
+Theorem 2.6.2: Any latent structure has at least one projection. This allows finding distinguished projections of any minimal model of $\hat{P}$. 
+
+IC* Algorithm 
+
+
+* Local Criteria for Inferring Causal Relations 
+
+The partially directed graph from the IC* output has: 
+- marks unidirectional: genuine Causation
+- unmarked unidirectional:  potential causation 
+- bidirectional: spurious association
+- undirected: undetermined relationships 
+
+Causation between two variables requires a third variable to exhibit a specific pattern of dependence with the two variables. "No causation without manipulation". The third variable must be identified within the data itself as if nature performed the experiment.
+
+/potential cause/: Variable $X$ has a potential causal influence on another variable $Y$ if:
+- $X$ and $Y$ are dependent in every context 
+- there exists var $Z$ and a context $S$ s.t.:
+  1. X and Z are independent given S 
+  2. Z and Y are dependent given S
+"Context" refers to a set of variables tied to specific values.
+
+
+
+/Genuine Cause/: Var $X$ has a genuine causal influence on another variable $Y$ if there exists a variable $Z$ such that either:
+1. X and Y are dependent in any context and there exists a context S satisfying 
+  1. Z is a potential cause of X 
+  2. Z and Y are dependent given S 
+  3. Z and Y are independent given S $\cup$ X 
+2. X and Y are in the transitive closure of the relation defined in criterion 1 
+
+/Spurious Association/: $X$ and $Y$ are spuriously associated if they are dependent in some contet and there exists two other variables $(Z_{1} \text{ and } Z_{2})$and two contexts $S_{1}$ and $S_2$ such that:
+1. $Z_{2}$ and $X$ are dependent given $S_{2}$
+2. $Z_{2}$ and $Y$ are independent given $S_{2}$
+
+/Genuine Causation with Temporal Information/: Variable X has a causal influence on $Y$ if there is a thrid variable $Z$ and a context $S$ both occuring before $X$ such that:
+1. $Z$ is dependent of Y given S 
+2. Z is independent of Y given $S \cup X$
+
+/Spurious Association with Temporal Information/: Two variables $X$ and $Y$ are spuriously associated if they are dependent in some context $S$, if $X$ precedes $Y$, and if there exists a variable $Z$ satisfying:
+1. Z is independent of Y given S 
+2. Z is dependent of X given S
+
+--------------
+
+All these definitions showed that all causal relations are inferred from at least three variables. 
+
+/intransitive triplet/: Info that allows us to conclude one variable is not a causal consequence of another comes in this form 
+
+
+* 2.8 Nontemportal Causation and Statistical Time
+
+
+Determining the direction of causal influences from non-temporal data brings up philosphical questions.
+
+Why should orientations determined solely by statistical dependencies have anything to do with the flow of time?
+
+People have temporal and statistical expectations.
+- Temporal: one thing comes before another
+- statistical: expects a complete causal explaination to screen off various effects. Explanations not screened off are considered "incomplete". Resudial dependencies are "spurious" or "unexplained"
+
+"classless coexistence of temporal and statistical expectations implies the statistics of natural phenomena must exhibit some basic temporal bias". We rare finding a phenomenon where knowledge of the present state would render the components of the past state conditionally independent. 
+
+
+/Statistical Time/: Given an empirical distribution $P$, a statistical time of $P$ is any ordering of the variables that agrees with at least one minimal causal structure consistent with $P$.
+
+/Conjecture: Temporal Bias/: In most natural phenomenon, the physical time coincides with at least one statistical time
+
+You can make stat. time in the representation run contrary to physical time by making $X_{t}'$ and $Y_{t}'$ will be indpendent of each other conditional on their future values ($X_{t+1}'$ and $y_{t+1}'$), rather than their past values. 
+
+
+
+* Conclusion
+
+
+Even though statistical analysis cannot distinguish genuine causation from spurious covariation in every conceivable case, in many times it can. 
+
+Using the minimality assumption (and/or stability), patterns of dependencies can be extracted to find genuine causal relationships. 
+
+
+However, we can't attribute these dependency patterns to hidden layers since it can violate Occam's Razor. We need to prioritize simplicity 
+
+---------
+ 
+Are the causal relationships inferred by the IC algorithm safe?
+- can we design a 3d object from a 2d shadow? not well. Pearl says this is not safe, but it can be good enough depending on the structure.  
+
+IC* Algorithm will not label a directed edge as genuine if there is no causal influence, and if the observed distribution is stable relative to its underlying causal model .
+
+
+Practically, the minimality assumption and stability (no accidental independencies) lead to an effective algorithm for modeling possible causal models that can generate data (transparent and latent). Their lab derived causal models with tens of variables in <5000 samples. 
+
+"Corn and Hog Correlations"- corn price $X$ is clearly identified as a cause of hog price $Y$, but not the other way around. This is because of variables corn crop $Z$. 
+
+Fitness to data is an insufficient criterion for validating causal theories. Causal models should be chosen by a criterion that challenges their stability against changing conditions instead.
+
+* 2.9.1 On Minimality, Markov, and Stability
+
+
+People are traditionally against inferring causation from association. Statisticians and philosophers dont like this guy. 
+
+He defends his work in this chapter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,147 @@
+#+TITLE: 5 Tree Learning
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-21
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+* Decision Tree Learning 
+
+- Rule Induction
+- Explanation Based Learning 
+  - Speed up classification 
+  - Domain theory $\to$ explains examples
+- Sequential Covering
+
+
+
+* Classification Tree
+
+- tree where interior nodes are decision variables, and the leaf nodes are class labels
+
+
+** Decision Tree Problem
+
+Given example set $\mathcal{D}$ and feature set $\mathcal{F}$, does there exist a decision tree using only features from $\mathcal{F}$ for classifying examples in $\mathcal{D}$ such that the cost of the decision tree is less than $w$? 
+This problem in NP-complete.
+
+*** ID3 Outlook Example 
+Gives an examples from Quinlans paper on ID3.
+
+Using temp, humanity, and wind, try to guess the outlook (sunny, raining, overcast). There is no guarantee that it produces balanced tree. 
+
+*** ID3 Algorithm
+
+This is a greedy search algorithm
+
+Start with two classes. Using Shannon's Information Theory, calculate the entrory within the data.
+
+{{{hl(orange,COME BACK LATER)}}} add equation here
+
+
+Using shannon's information gain, you can calculate the amount of uncertainty each value of a node reduces. 
+
+
+See the "Entropy and Mutual Information" section for more info
+
+
+*** Gain Ratio
+
+We need to be careful not to use "features   that correspond to unique identifiers as decision variables in the tree"
+
+Intrinsic Value (IV) mimics entropy (uncertainty $\cdot$ probability), except it looks at the partition sizes alone and discards the classes.
+\[
+  IV(f_i) = -\sum_{j=1}^{m_i} \frac{(p_j+n_j)}{(p+n)} \log \frac{(p_j + n_j)}{(p+n)} 
+\]
+
+gain ratio uses info gain as the numerator, then the intrinsic value as the denominator
+
+\[
+  gainRatio(f_i) = \frac{gain(f_i)}{IV(f_i)}
+\]
+
+
+** Continuous Attributes 
+- Standard decision trees assume discrete attributes
+- Decision Trees are able to handle continuous attributes as well
+- Generally, when dealing with continuous attributes, binary splits are generated for those attributes
+    - if $f_i < val \to$ go right 
+    - else $\to$ go left
+
+** Real Valued Features for regression 
+
+Discretize: partition data with bins. 
+Equal Frequency: Four bins, every 4 points from baseline 
+
+
+
+** Regression Tree Learning 
+
+Task is to learn a tree that predicts real-valued functions $f(x)$. The primary change over classification trees is the splitting criterion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

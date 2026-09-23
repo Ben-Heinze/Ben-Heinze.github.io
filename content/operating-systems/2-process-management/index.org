@@ -1,0 +1,76 @@
+#+TITLE: 2 Process Management
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-21
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Process Description and Control
+
+** Program vs Process 
+- A recipe is a program. Cooking the dish is a process 
+- a /program/ is passive. Just a file on disk, a set of instructions 
+- A /process/ is a program brought to life
+
+*** Process 
+- Instance of a program running on a computer (user's POV)
+- Entity that can be assigned to and executed on a processor (OS POV)
+- {{{hl(green,Unit of activity characterized by the execution of a sequence of instructions\, current state\, and an associated set of program resources (OS Implementer's POV)
+)}}}
+
+
+**  Process Elements 
+- Program code 
+
+
+While the program is executing, this process can be uniquely characterized by a number of elements, including:
+  - Identifier
+  - State 
+  - Priority 
+  - Program Counter 
+  - Memory Pointers 
+  - Context data 
+  - I/O Status information
+  - accounting information
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

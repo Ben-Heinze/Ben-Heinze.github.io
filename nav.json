@@ -46,6 +46,14 @@
               {
                 "label": "Nonparametric Learning",
                 "href": "/ai/machine-learning/lecture-notes/nonparametric-learning/index.html"
+              },
+              {
+                "label": "5 Learning Thoery",
+                "href": "/ai/machine-learning/lecture-notes/5-learning-thoery/index.html"
+              },
+              {
+                "label": "5 Tree Learning",
+                "href": "/ai/machine-learning/lecture-notes/5-tree-learning/index.html"
               }
             ]
           },
@@ -231,6 +239,10 @@
         "label": "Assignments",
         "href": "/operating-systems/assignments/index.html",
         "private": true
+      },
+      {
+        "label": "2 Process Management",
+        "href": "/operating-systems/2-process-management/index.html"
       }
     ]
   },
