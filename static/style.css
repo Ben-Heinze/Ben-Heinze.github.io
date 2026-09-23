@@ -282,24 +282,163 @@ h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 
 h3 { font-size: 1.2rem; }
 h4 { font-size: 1rem; font-style: italic; }
 
-/* ── Table of Contents ── */
+/* ── Table of Contents ──
+   Org emits the TOC as a nested <ul> tree, which on a heading-heavy page
+   stacks into a very tall vertical strip. This renders it instead as a compact
+   card: a header bar you can click to fold the whole thing away, and a body
+   whose top-level sections flow into two columns (break-inside keeps each
+   section glued to its children). Typography follows the sidebar nav — small
+   sans-serif, muted links, a guide rail per nesting level — so the TOC reads
+   as navigation chrome rather than as a second copy of the page.
+   The "Contents" label, the section count, the toggle button and the
+   data-cols attribute are all added by new-page.js. */
 
 #table-of-contents {
   background: var(--toc-bg);
   border: 1px solid var(--border);
-  display: inline-block;
-  padding: 1rem 1.5rem;
-  margin: 0.5rem 0 2rem;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  margin: 0.5rem 0 2.25rem;
+  padding: 0;
+  overflow: hidden;
+  font-family: sans-serif;
+  font-size: 0.85rem;
 }
 
-#table-of-contents h2 {
-  font-size: 1rem;
+/* Header bar: doubles as the fold/unfold control (the click handler sits on
+   the h2, so hitting either the label or the caret toggles). */
+#table-of-contents > h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.45rem 0.8rem;
   border: none;
-  margin-top: 0;
+  border-bottom: 1px solid var(--border);
+  font-family: sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  user-select: none;
 }
 
-#table-of-contents ul { margin-left: 1.2rem; }
+#table-of-contents.toc-enhanced > h2 { cursor: pointer; }
+#table-of-contents.toc-enhanced > h2:hover { color: var(--nav-hover-text); }
+
+.toc-count {
+  font-weight: 400;
+  font-size: 0.95em;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.7;
+}
+
+.toc-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: none;
+  color: var(--nav-toggle);
+  cursor: pointer;
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+
+.toc-toggle::before { content: "\25be"; font-size: 0.72rem; line-height: 1; }
+.toc-toggle:hover { color: var(--nav-link); background: var(--nav-hover-bg); }
+
+/* Folded: caret points right and the tree is hidden, leaving just the bar. */
+#table-of-contents.toc-collapsed > h2 { border-bottom: none; }
+#table-of-contents.toc-collapsed .toc-toggle { transform: rotate(-90deg); }
+#table-of-contents.toc-collapsed #text-table-of-contents { display: none; }
+
+#text-table-of-contents { padding: 0.6rem 0.8rem 0.7rem; }
+
+#text-table-of-contents ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Top-level sections flow into two columns, each kept whole by break-inside,
+   with a hairline rule down the gutter. This is the default so the layout
+   holds even before new-page.js runs. */
+#text-table-of-contents > ul {
+  columns: 2;
+  column-gap: 1.6rem;
+  column-rule: 1px solid var(--border);
+}
+
+/* A TOC short enough that new-page.js marks it one-column keeps its links in a
+   single run, and the card hugs them instead of stretching a handful of
+   entries across the full text width. */
+#table-of-contents[data-cols="1"] {
+  width: fit-content;
+  min-width: 15rem;
+  max-width: 100%;
+}
+
+#table-of-contents[data-cols="1"] #text-table-of-contents > ul {
+  columns: 1;
+  column-rule: none;
+}
+
+#text-table-of-contents > ul > li {
+  break-inside: avoid;
+  margin-bottom: 0.3rem;
+}
+
+#text-table-of-contents li { margin: 0; }
+
+#text-table-of-contents a {
+  display: block;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  color: var(--nav-link);
+  line-height: 1.35;
+}
+
+#text-table-of-contents a:visited { color: var(--nav-link); }
+
+#text-table-of-contents a:hover {
+  background: var(--nav-hover-bg);
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* Top-level entries read as the section headers of the list. */
+#text-table-of-contents > ul > li > a {
+  font-weight: 600;
+  color: var(--heading);
+}
+
+/* Every nesting level indents behind a guide rail, matching the sidebar. */
+#text-table-of-contents ul ul {
+  margin-left: 0.4rem;
+  padding-left: 0.4rem;
+  border-left: 1px solid var(--border-strong);
+}
+
+#text-table-of-contents ul ul a {
+  color: var(--nav-sub-link);
+  font-size: 0.96em;
+}
+
+#text-table-of-contents ul ul a:hover { color: var(--accent); }
+
+/* Org emits a link-less <li> wrapper when a page skips a heading level; it
+   would otherwise add an empty rail-and-indent step for nothing. */
+#text-table-of-contents li.toc-anon > ul {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: none;
+}
 
 /* ── Links ── */
 
@@ -429,6 +568,12 @@ hr {
 .nav-backdrop { display: none; }
 
 @media (max-width: 768px) {
+  /* A phone-width column is too narrow to split the TOC in two. */
+  #text-table-of-contents > ul {
+    columns: 1;
+    column-rule: none;
+  }
+
   /* Content spans the full width; the sidebar no longer reserves a gutter. */
   body { padding-left: 0; }
   html, body { overflow-x: hidden; } /* a wide child must scroll itself, not the page */

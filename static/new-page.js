@@ -103,6 +103,64 @@
     });
   });
 
+  // ── Page table of contents ──
+  // Org publishes the TOC as a bare nested list with a "Table of Contents"
+  // heading. Here it becomes a card: a shorter label plus a section count, a
+  // caret that folds the tree away (remembered across pages in localStorage),
+  // and a data-cols hint so style.css splits a long TOC into two columns
+  // instead of one very tall strip.
+  var toc = document.getElementById('table-of-contents');
+  if (toc) {
+    var tocLinks = toc.querySelectorAll('#text-table-of-contents a');
+    toc.classList.add('toc-enhanced');
+    toc.setAttribute('data-cols', tocLinks.length > 8 ? '2' : '1');
+
+    // A heading level skipped in the source leaves a link-less <li> wrapper;
+    // flag it so CSS drops its empty indent step.
+    toc.querySelectorAll('#text-table-of-contents li').forEach(function (li) {
+      if (!li.querySelector(':scope > a')) li.classList.add('toc-anon');
+    });
+
+    var tocHead = toc.querySelector(':scope > h2');
+    if (tocHead) {
+      var TOC_KEY = 'tocCollapsed';
+      tocHead.textContent = 'Contents';
+
+      var tocCount = document.createElement('span');
+      tocCount.className = 'toc-count';
+      tocCount.textContent = tocLinks.length + (tocLinks.length === 1 ? ' section' : ' sections');
+      tocHead.appendChild(tocCount);
+
+      var tocBtn = document.createElement('button');
+      tocBtn.type = 'button';
+      tocBtn.className = 'toc-toggle';
+      tocHead.appendChild(tocBtn);
+
+      var setTocCollapsed = function (collapsed) {
+        toc.classList.toggle('toc-collapsed', collapsed);
+        tocBtn.setAttribute('aria-expanded', String(!collapsed));
+        tocBtn.setAttribute('aria-label', collapsed ? 'Show contents' : 'Hide contents');
+      };
+
+      // Folded state is a deliberate choice once made; until then, a long TOC
+      // starts folded on a phone, where one narrow column of 30-odd links
+      // would otherwise push the page itself off the screen.
+      var tocStored = null;
+      try { tocStored = localStorage.getItem(TOC_KEY); } catch (e) {}
+      setTocCollapsed(tocStored === null
+        ? (window.innerWidth <= 768 && tocLinks.length > 12)
+        : tocStored === '1');
+
+      // The listener lives on the header, so a click anywhere along the bar —
+      // label or caret — folds it; the button's click just bubbles up here.
+      tocHead.addEventListener('click', function () {
+        var collapsed = !toc.classList.contains('toc-collapsed');
+        setTocCollapsed(collapsed);
+        try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {}
+      });
+    }
+  }
+
   // ── Mobile off-canvas nav ──
   // On phones the sidebar is hidden off-screen (see the max-width:768px media
   // query in style.css) and opened via a hamburger button. The button and the
