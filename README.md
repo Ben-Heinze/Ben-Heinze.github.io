@@ -17,9 +17,10 @@ Personal wiki built with [Org mode](https://orgmode.org/), published to a static
 9. [Emacs Interactive Commands](#emacs-interactive-commands)
 10. [How to Add a New Snippet](#how-to-add-a-new-snippet)
 11. [Adding & Managing Pages](#adding--managing-pages)
-12. [Citations & Bibliography](#citations--bibliography)
-13. [Building the Site](#building-the-site)
-14. [Initial Project Setup Notes](#initial-project-setup-notes)
+12. [Turning a Lecture PDF into Notes](#turning-a-lecture-pdf-into-notes)
+13. [Citations & Bibliography](#citations--bibliography)
+14. [Building the Site](#building-the-site)
+15. [Initial Project Setup Notes](#initial-project-setup-notes)
 
 ---
 
@@ -109,8 +110,12 @@ yappopotamus/
 ├── nav.json                   Navigation tree — single source of truth for the
 │                              sidebar and the homepage section index
 ├── serve.py                   Dev server: live-reload + the page-management CLI
+├── pdftext.py                 PDF → text dump, for turning lecture PDFs into notes
 ├── justfile                   Task recipes (run, new-page, delete/move/rename)
 ├── main.bib                   Shared bibliography (see Citations below)
+│
+├── unparsed_pdfs/             Drop a lecture PDF here to work through it
+├── parsed_pdfs/               Its text dump (just parse-pdf) and the notes built from it
 │
 ├── content/                   All .org source files
 │   ├── index.org              Home page (section index is auto-generated)
@@ -476,6 +481,24 @@ Any pages nested under the target move, rename, or delete along with it, and the
 **Why this is the only thing you touch**
 
 The sidebar tree, its collapse behavior, the active-link highlight, and the homepage section index are all derived from `nav.json` at build time by `publish.el`. Because these recipes maintain `nav.json` for you, adding or reorganizing pages never means editing `publish.el` or any per-page navigation markup.
+
+---
+
+## Turning a Lecture PDF into Notes
+
+Slide decks and handouts arrive as PDFs. `just parse-pdf` dumps one to text so you can write notes against it instead of squinting at a viewer:
+
+```bash
+just parse-pdf "unparsed_pdfs/Week 5 Notes.pdf"        # → parsed_pdfs/Week 5 Notes.txt
+just parse-pdf "unparsed_pdfs/Week 5 Notes.pdf" --pages 12,13
+just parse-pdf "unparsed_pdfs/Week 5 Notes.pdf" --forms
+```
+
+Every line is prefixed with its font size and x offset, which is what makes the dump usable: the largest size on a page is that page's title, and the x offsets recover the bullet nesting levels. `--plain` drops the prefix when you just want to read the prose. `--forms` additionally reads Form XObjects, which is where diagram labels and figure captions live — off by default because it also pulls in decorative furniture.
+
+`pdftext.py` is self-contained (no poppler, no third-party packages). It handles object streams, the page tree, `/ToUnicode` CMaps, and — for the Identity-H subset fonts PowerPoint emits, whose `/ToUnicode` is only a stub — the embedded TrueType `cmap` table.
+
+**One limitation to plan around:** equations set in math fonts usually have a sparse `/ToUnicode` that covers the operators but not the italic variables, and those subsets carry no `post` table. Operators, relations and structure come through (`∑ ∈ ≥ ∨ ⇒ ℋ θ`), the variable letters do not. Reconstruct formulas from the surrounding prose, which names the quantities, rather than expecting to lift them verbatim.
 
 ---
 

@@ -31,6 +31,25 @@ rename-page path title:
 page-visibility path visibility:
     python3 serve.py page-visibility "{{path}}" "{{visibility}}"
 
+# Dump a PDF's text to parsed_pdfs/<name>.txt, ready to turn into org notes.
+# Each line is prefixed with its font size and x offset: the biggest size on a
+# page is its title, and the x offsets give you the bullet nesting.
+# Pass extra flags straight through: --pages 1,4,7 (just those pages),
+# --forms (also read Form XObjects, where diagram labels live), --plain (no prefix).
+# Usage: just parse-pdf content/ai/machine-learning/syllabus.pdf --pages 1,2
+#        just parse-pdf "unparsed_pdfs/Week 5 Notes.pdf"
+parse-pdf pdf *flags:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    out="parsed_pdfs/$(basename "{{pdf}}" .pdf).txt"
+    mkdir -p parsed_pdfs
+    python3 pdftext.py "{{pdf}}" {{flags}} > "$out"
+    pages=$(grep -c '^───── page' "$out" || true)
+    printf '%s (%s lines, %s pages)\n' "$out" "$(wc -l < "$out")" "$pages"
+    if [ "$pages" -eq 0 ]; then
+        echo "  no text found — those pages are probably images; try --forms" >&2
+    fi
+
 run:
     #!/usr/bin/env bash
     if [ -f .server.pid ] && kill -0 "$(cat .server.pid)" 2>/dev/null; then
