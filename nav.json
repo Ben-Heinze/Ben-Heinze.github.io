@@ -36,20 +36,16 @@
                 "href": "/ai/machine-learning/lecture-notes/1-intro-to-ml/index.html"
               },
               {
-                "label": "2 NN kmeans kmedoids",
-                "href": "/ai/machine-learning/lecture-notes/2-nn-kmeans-kmedoids/index.html"
+                "label": "3 Density Estimation",
+                "href": "/ai/machine-learning/lecture-notes/3-density-estimation/index.html"
               },
               {
-                "label": "3 Density Estimation and Kernsls",
-                "href": "/ai/machine-learning/lecture-notes/3-density-estimation-and-kernsls/index.html"
+                "label": "2 Nonparametric Learning",
+                "href": "/ai/machine-learning/lecture-notes/2-nonparametric-learning/index.html"
               },
               {
-                "label": "Nonparametric Learning",
-                "href": "/ai/machine-learning/lecture-notes/nonparametric-learning/index.html"
-              },
-              {
-                "label": "5 Learning Thoery",
-                "href": "/ai/machine-learning/lecture-notes/5-learning-thoery/index.html"
+                "label": "4 Learning Theory",
+                "href": "/ai/machine-learning/lecture-notes/4-learning-theory/index.html"
               },
               {
                 "label": "5 Tree Learning",
@@ -208,16 +204,12 @@
             "href": "/operating-systems/lecture-notes/computer-system-overview/index.html"
           },
           {
-            "label": "Memory Management",
-            "href": "/operating-systems/lecture-notes/memory-management/index.html"
+            "label": "1 Memory Management",
+            "href": "/operating-systems/lecture-notes/1-memory-management/index.html"
           },
           {
-            "label": "3 Memory Hierarchy",
-            "href": "/operating-systems/lecture-notes/3-memory-hierarchy/index.html"
-          },
-          {
-            "label": "Virtual Memory",
-            "href": "/operating-systems/lecture-notes/virtual-memory/index.html"
+            "label": "2 Process Management",
+            "href": "/operating-systems/lecture-notes/2-process-management/index.html"
           }
         ]
       },
@@ -239,10 +231,6 @@
         "label": "Assignments",
         "href": "/operating-systems/assignments/index.html",
         "private": true
-      },
-      {
-        "label": "2 Process Management",
-        "href": "/operating-systems/2-process-management/index.html"
       }
     ]
   },

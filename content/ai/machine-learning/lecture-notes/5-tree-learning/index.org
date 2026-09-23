@@ -44,7 +44,7 @@ This is a greedy search algorithm
 
 Start with two classes. Using Shannon's Information Theory, calculate the entrory within the data.
 
-{{{hl(orange,COME BACK LATER)}}} add equation here
+{{{hl(orange,COME BACK LATER)}}} add equation here — needs the week 5 deck, which was not among the parsed PDFs
 
 
 Using shannon's information gain, you can calculate the amount of uncertainty each value of a node reduces. 

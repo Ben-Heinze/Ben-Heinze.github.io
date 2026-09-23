@@ -84,9 +84,17 @@ Disadvantage: final $m_{i}$ is highly dependent on the initial $m_{i}$, but we h
 - The mean of all data can be calucated and small random vectors may be added to the mean to get the k initial $m_{i}$
 - We calculate principle component, divide range into k-equal intervals (partitioning data into $k$ groups), then take the means of these groups as initial centers.
 
-#+begin_example
-{{{hl(orange,COME BACK LATER)}}} Add k-means pseudocode here (p 171)
-#+end_example
+Putting those three steps together, with $b_{i}^{t}$ and the $m_{i}$ update as defined above:
+
+#+begin_pseudocode
+\text{initialize } m_{i}, i=1,\ldots,k \text{, e.g. to } k \text{ random } x^{t}
+\textbf{repeat}
+\quad \textbf{for all } x^{t} \in \mathbb{X}
+\qquad b_{i}^{t} \gets 1 \text{ if } \lVert x^{t}-m_{i} \rVert = \min_{j} \lVert x^{t}-m_{j} \rVert \text{, else } 0
+\quad \textbf{for all } m_{i}, i=1,\ldots,k
+\qquad m_{i} \gets \textstyle\sum_{t} b_{i}^{t}x^{t} / \textstyle\sum_{t} b_{i}^{t}
+\textbf{until } m_{i} \text{ converge}
+#+end_pseudocode
 
 * Expectation-Maximization Algorithm
 

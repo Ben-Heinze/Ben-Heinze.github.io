@@ -12,4 +12,10 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
+| Week           | Topic                                                                      |
+| Week 1 (Aug 28) | 1 Intro to ML --- types of ML, Winnow-2, inductive bias, risk and loss       |
+| Week 2 (Sep 4)  | 2 Nonparametric Learning --- Parzen windows, k-NN, experiments, KDE, smoothers |
+| Week 3 (Sep 11) | 3 Density Estimation --- outliers, dimensionality reduction, PCA/LDA, clustering |
+| Week 4 (Sep 18) | 4 Learning Theory --- cluster evaluation, version spaces, PAC, VC dimension  |
+| Week 5 (Sep 21) | 5 Tree Learning --- decision trees, ID3, regression trees                    |
 

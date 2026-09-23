@@ -1,0 +1,548 @@
+#+TITLE: 2 Nonparametric Learning
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-31
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Week 2 Notes.pdf][Week 2: Nonparametric Learning (PDF)]]
+
+* Classification
+
+ Suppose we are presented with a query point $x_{q}$, and want to know the class to which it belongs
+
+A probabilistic approach:
+\(
+  c = \underset{c \in C}{\arg\max} P(c \mid x_q)
+\)
+
+
+where we use Bayes rule:
+
+\(
+  P(c \mid x_{q}) = \frac{P\left( x_q \mid c \right)P(c)}{P\left( x_q \right)} = \frac{P\left( x_q \mid c \right)P(c)}{\sum_{c' \in C}^{} P(x_q \mid c') P(c')}
+\)
+
+So this is a /density estimation/ task: we need to estimate $P(x_q \mid c)$ and $P(c)$.
+
+* Parzen Window Classification
+
+- Given X = data
+- find the class to which query point $x_{q}$ belongs
+- the nearest neighbor rule states: find $j \in \mathcal{X}$ such that for all $i \in \mathcal{X}$ with $i \neq j$, $D(x_{q}, x_{j}) < D(x_{q}, x_{i})$, and return the class label $c \in \mathcal{C}$ associated with example $j$
+
+
+\[
+  H(u) =\begin{cases}
+    1 & |u_{j}| < \frac{1}{2}, j=1,\ldots, d \\
+    0 & \text{otherwise}
+  \end{cases}
+\]
+
+The window counts how many examples of each class land inside the box around
+$x_{q}$, giving a per-class density estimate, and the class is whichever estimate
+is largest:
+
+\[
+  c_{q} = \underset{c}{\arg\max}\ \hat{p}(x_{q} \mid c)
+\]
+
+* K-nearest neighbor Estimation
+- Doesn't need to fix the size of the bin
+- The parameter $k$ specifies how many of the neighbors are used in the estimate
+- $D(x,x^{t})$: distance function between $x$ and $x^{t}$
+  - Distance to the k-the neighbor. It determines the size of the bin
+
+Where the Parzen window fixes $h$ and lets the count vary, $k$-NN estimation fixes
+the count and lets the bin grow until it holds $k$ neighbors.
+
+* Voronoi Diagram
+
+A way to section off the data space as regions that represent classes. Then, you ask which region the point is in to determine its class
+
+* Distance Metrics
+
+- Metric Spaces
+  1. Non-negative: $D(x,y) \geq 0$
+  2. Reflexive: $D(x,y) =0 \iff x=y$
+  3. Symmetric: $D(x,y) = D(y,x)$
+  4. Triangle Inequality: $D(x,y) + D(y,z) \geq D(x,z)$
+
+*Minkowski distance* ($L^{p}$ norm) is typically used to measure the distance between a query point $x_q$ to an example point $x_j$:
+\[
+  D_{p}(x, y) = (\sum_{i=1}^{d} |x_{i}-y_{i}|^{p})^{\frac{1}{p}}
+\]
+- $p=1$: Manhattan distance: used when dimensions don't have similar properties (age, weight, gender)
+- $p=2$: Euclidean distance: used when dimensions have similar properties (width, height, depths)
+- Boolean values have Hamming distance
+- Max-coordinate Distance: $D_{\infty}(x,y) = \max_{i}|x_{i} - y_i|$
+
+Written out, the three special cases are
+
+\[
+  D_{1}(x,y) = \sum_{i=1}^{d} |x_{i}-y_{i}| \text{ and } D_{2}(x,y) = \sqrt{\sum_{i=1}^{d} \left( x_{i}-y_{i} \right)^{2}} \text{ and } D_{\infty}(x,y) = \max_{i} |x_{i}-y_{i}|
+\]
+
+* Calculating Distance for Categorical Data
+
+1. *one-hot encoding may not work as well for ordinal data, since some categories have implied order: (months of a year). In the report, write your assumptions*
+2. Value Difference Metric (only works for classification). It takes a probabilistic approach. *Explain Here*.
+
+The slides define it like this. Let $f(x)$ be a feature of data instance $x$, with
+$f(x) \in \{ v_{1}, \ldots, v_{k} \}$. Then
+
+| Char        | Def                                                                                           |
+| $N_{i}$     | $\#\{f(x) = v_{i}\}$, the number of times in $\mathcal{D}$ that $f(x)$ takes the value $v_{i}$ |
+| $N_{i,c}$   | $\#\{f(x) = v_{i} \wedge class = c\}$, the same count restricted to members of class $c$        |
+
+For feature $f$, the distance between two feature values $v_{i}$ and $v_{j}$ is
+
+\[
+  \delta(v_{i},v_{j}) = \sum_{c}^{} \left| \frac{N_{i,c}}{N_{i}} - \frac{N_{j,c}}{N_{j}} \right|^{q}
+\]
+
+Two values are close when they induce the same distribution over classes, which is
+why this only works for classification — it needs class labels to compare against.
+
+* Mixing data types
+
+You can mix numerical and categorical distances with specific methods. You already know this
+
+
+* Creating an Experiment
+
+When writing a hypothesis, narrow the scope of your hypothesis, and be specific about which metrics you are testing. It must be numerically testable.
+
+ Testable Measures include:
+- Accuracy
+- Precision, recall, F1
+- Cross entropy
+- Area under the ROC curve (AUC)
+- MSE
+- MAE
+
+he goes on about conducting a proper experiment.
+
+The deck's roadmap for /Experimental Methods/ is: the hypothesis, a testable
+measure, then experiments — hold-out, cross-validation, tuning, factorial design,
+and self-adaptive systems.
+
+** Why a Hypothesis
+
+Science is observational (inductive) and hypothesis-driven, and so is machine
+learning — which is why models are often called /hypotheses/. A strong, testable
+hypothesis:
+- Defines the scope of the research
+- Provides means to keep research objective
+- Determines the means to evaluate results
+- Enables quantifiable (statistical) methods to be employed
+- Facilitates understanding, and determining significance/usefulness
+
+The slides grade hypotheses on four axes, each with a poor and a better version:
+
+| Axis                   | Poor                                           | Better                                                                                            |
+| Narrow scope           | Image classification                           | Classification of cloud types based on evolutionary spectral feature selection in deep learning   |
+| Quantifiable           | Algorithm $X$ will be better than algorithm $Y$ | Algorithm $X$ augmented with local search will yield a significant increase in both precision and recall than without the augmentation |
+| Understandable         | Reliable extraction of redaction hermeneutics in the Textus Receptus | Accurate identification of editorial preferences in ancient Greek texts, such as the Textus Receptus |
+| Significant and useful | Accurate classification of fruit fly geometry  | Improved accuracy in gene alignment based on frequented regions in De Bruijn Graphs                |
+
+** Kinds of Experiment
+
+- Single run: define parameters for the algorithms and run on the target problems, then compare results. Leaves open how the parameters were selected and whether the result is enough to draw conclusions
+- Multiple runs: run several independent trials to generate a sample of the evaluation measure, then compare /distributions/ of results
+- Cross validation: applies to supervised learning or model building. Divide data into a training set and a test set; evaluation focuses on the test set because that is what tests generalization
+
+Three layouts appear in the slides: /repeated hold-out/ ($K$ random train/test
+splits), /$K$-fold cross validation/ (each fold serves as the test set once), and
+/$K \times 2$ cross validation/ ($K$ pairs of complementary random halves).
+
+** Null Models
+
+A null model is the baseline any real model has to beat:
+- Classification: return the most frequent class
+- Regression: return the average of the response values
+
+In the context of $k$-nearest neighbor:
+- Classification: do a simple majority vote of the $k$ neighbors
+- Regression: do a simple arithmetic mean of the $k$ neighbors
+- We will change the regression rule to provide a /weighted/ mean, and the weighting function is called a /kernel/
+
+* Confusion Matrices
+
+suppose we have two classes:
+
+| x| Actual true|Actual False|
+|*predicted true*| # true positives|# false positives|
+|*predicted false*|# False negatives| # true negatives|
+
+\[ \text{Error:} \frac{FP+FN}{TP+TN+FP+FN}\]
+
+Precision: \[\frac{TP}{TP+FP}\]
+- The proportion of items predicted as positive that are actually positive
+
+
+Recall = \[\frac{TP}{TP+FN}\]
+- The proportion of actually positive items that were correctly predicted as positive
+\[
+  F_{\beta} = (1+ \beta^{2}) \cdot \frac{precision \cdot recall}{\beta^{2} \cdot precision+recall},
+  \text{usually } \beta=1: F_{1}=2 \cdot \frac{precision \cdot recall}{Precision+recall}
+\]
+
+** Multi-class
+
+3-class problem:
+
+|                   | Actual Class 1 | Actual class 2 | Actual class 3 |
+| Predicted class 1 | 15             | 2              | 4              |
+| Predicted class 2 | 3              | 12             | 1              |
+| Predicted class 3 | 4              | 2              | 17             |
+
+Recall: the proportion of actually positive items that were correctly predicted as positive (TP / (TP + FN)).
+
+Example:
+- $TP_1 = 15$
+- $TN_1 = 32$
+- $FN_1 = 7$
+- $FP_1 = 6$
+
+
+- Micro-averaging: preferred, but you lose info. Pool the counts across classes first, then divide:
+
+\[
+  P_{micro} = \frac{\sum_{i}^{} TP_{i}}{\sum_{i}^{} TP_{i}+FP_{i}} \text{ and } R_{micro} = \frac{\sum_{i}^{} TP_{i}}{\sum_{i}^{} TP_{i}+FN_{i}}
+\]
+
+- Macro-averaging: score each class on its own, then average the scores, so every class counts equally regardless of size:
+
+\[
+  P_{macro} = \frac{1}{L}\sum_{i}^{} \frac{TP_{i}}{TP_{i}+FP_{i}} \text{ and } R_{macro} = \frac{1}{L}\sum_{i}^{} \frac{TP_{i}}{TP_{i}+FN_{i}}
+\]
+
+where $L$ is the number of classes.
+
+* Hyperparameter Search
+
+| Char                                    | Def                                                       |
+| $\lambda$                               | set of Hyperparameters to be used by the search algorithm |
+| $A$                                     | Algorithm used to optimize/search                         |
+| $F$                                     | loss function                                             |
+| $M$                                     | Model                                                     |
+| $\mathbb{x}^{tr}$ and $\mathbb{x}^{te}$ | training and test examples                                |
+
+Tuning is then itself an optimization problem:
+
+\[
+  \lambda^{*} = \underset{\lambda}{\arg\min}\ F(\lambda; M, A, \mathbb{x}^{tr}, \mathbb{x}^{te})
+\]
+
+** Grid Search (Factorial Study)
+
+Tries a set of different values. Gets very expensive as you test more values
+
+- Regard each parameter as a "factor"; since each parameter is real-valued, define a set of discrete levels
+- Define a "grid" of all combinations of levels
+- Expensive but parallelizable: for $d$ variables and $k$ levels there are $k^{d}$ combinations
+- Compromise: fix $d-1$ variables and vary the $d^{th}$
+
+** Random Search
+
+Select random combos for hyperparameters. Better than grid search
+
+- Replaces exhaustive enumeration of parameter values, keeping the best combination found
+- Easy to parallelize, as in grid search
+- Often outperforms grid search both in final parameters (no need to discretize) and in computational performance
+
+** Random Search (Hill Climb)
+
+Choose a random point, keep climbing up to the nearest local minimum. Elitist approach. Simulated Annealing is a better variant.
+
+#+begin_pseudocode
+\text{initialize } \lambda \in \mathbb{R}^{|\lambda|} \text{ to a random vector of hyperparameters}
+\textbf{while } \textbf{not } \text{terminate() } \textbf{do}
+\quad \text{sample a new } \lambda' \in \mathbb{R}^{|\lambda|} \text{ from a hypersphere surrounding } \lambda
+\quad \textbf{if } F(\lambda') < F(\lambda) \textbf{ then } \lambda \gets \lambda'
+#+end_pseudocode
+
+To draw $\lambda'$ from the hypersphere: generate a $(d+1)$-dimensional vector $x$
+from $N(0,1)$, compute its radius $r = \sqrt{\sum_{i} x_{i}^{2}}$, divide the vector
+by that radius, and randomly discard one of the components.
+
+** Bayesian Optimization
+
+Treat parameter search as optimizing a black-box function: define a prior over
+where to sample, update it from the results of sampling, and repeat to
+convergence. It often beats grid and random search on both quality and cost,
+though optimizing the acquisition function itself can be expensive.
+
+1. Assume a uniform prior over the hyperparameters and generate a vector $\lambda$
+2. Add $\lambda$ to the history $H$ and evaluate your algorithm with it
+3. Repeat: select a new vector $\lambda'$ by maximizing an acquisition function $u$, evaluate performance with it, and add it to $H$
+
+The acquisition function updates the prior from previous experience by assessing
+the utility of a hyperparameter choice; Bayesian optimization usually assumes a
+Gaussian process. One common choice is /expected improvement/:
+
+\[
+  EI(\lambda) = \left( \mu(\lambda)-F(\lambda^{*}) \right)\Phi(Z) + \sigma(\lambda)\phi(Z) \text{ where } Z = \frac{\mu(\lambda)-F(\lambda^{*})-\xi}{\sigma(\lambda)}
+\]
+
+Here $\Phi$ is the normal CDF and $\phi$ the normal PDF, $\lambda^{*}$ is the best
+set of parameters seen so far, and $\xi$ balances exploration against
+exploitation. The mean $\mu(\lambda)$ and standard deviation $\sigma(\lambda)$ are
+updated iteratively as samples are generated; whenever $\sigma(\lambda) = 0$ the
+equations go to zero.
+
+** Gradient-Based Optimization
+
+Sometimes parameter tuning follows a convex function, and even when it doesn't you
+can assume it is and search for a local optimum — which amounts to hill climbing.
+Strategies: generate several modifications within a neighborhood and take the
+best, do the same by random search, or apply random search with simulated
+annealing.
+
+** Meta-Evolution
+
+You can also use an evolutionary algorithm to pick the hyperparameters for you. To
+avoid having to tune the meta-EA, it is customary to give it default nominal
+settings — otherwise it is "turtles all the way down."
+
+* k-NN Classifier
+
+- may need to examine all examples in $E$ (training set)
+- each comparison involves computing $D(e, x_{q}) \forall e \in E$ which requires $O(d)$ calculations for $d$ dimensions
+- Worst-case performance for naive nearest neighbor search is $O(d|E|)$
+
+That is $|E|$ comparisons, each costing $O(d)$, so we need methods to address this
+complexity. Two directions: reduce the size of the exemplar set (/edited nearest
+neighbor/), or replace the exemplars with prototypes (/condensed nearest
+neighbor/).
+
+** Edited Nearest neighbor v1
+
+- "editing" is similar to stepwise backward elimination in features selection
+Removes misclassified examples from dataset
+1. for each $x^{t} \in X$ do
+  1. classify $x^{t}$ using 1-nn on $X\backslash \{x^{t}\}$
+  2. compare class returned to true class of $x^{t}$
+  3. if disagree, remove $x^{t}$ from $X$
+2. Repeat until performance degrades on separate validation data set
+
+
+** Edited Nearest neighbor v2
+
+Second approach removes correct examples
+1. for each $x^{t} \in X$ do
+  1. classify $x^{t}$ using 1-nn on $X\backslash \{x^{t}\}$
+  2. compare class returned to true class of $x^{t}$
+  3. if agree, remove $x^{t}$ from $X$
+2. Repeat until performance degrades on separate validation data set
+
+
+
+** Condensed Nearest neighbor
+
+
+Time and space complexity increase as the dataset increases. To account for this, a /condensing/ method is used to shrink the dataset without degrading performance. Select the smallest subset $\mathcal{Z}$ of $\mathcal{X}$ such that when $\mathcal{Z}$ is used in place of $\mathcal{X}$, error doesn't increase.
+
+#+begin_pseudocode
+\mathcal{Z} \gets \emptyset
+\textbf{repeat}
+\quad \textbf{for all } x \in \mathcal{X} \text{ (in random order)}
+\qquad \text{find } x' \in \mathcal{Z} \text{ such that } \lVert x-x' \rVert = \min_{x^{j} \in \mathcal{Z}} \lVert x-x^{j} \rVert
+\qquad \textbf{if } \operatorname{class}(x) \neq \operatorname{class}(x') \text{ add } x \text{ to } \mathcal{Z}
+\textbf{until } \mathcal{Z} \text{ does not change}
+#+end_pseudocode
+
+Condensed nearest neighbor is a greedy algorithm that aims to minimize training error and complexity, measured by the size of the stored subset.
+
+To adapt this to regression, we can define a threshold.
+
+* KD-Tree
+
+You can reduce the average complexity to $O(d \log |E|)$ by sorting distance to find nearest neighbors.
+
+When we plot a point down on the search space, we can define a nearest neighbor by a region. Look up /ranch-and-bound search/ for details. We won't be implementing this
+
+The slides build one from $E = \{[7,3], [2,5], [3,8], [8,9]\}$, splitting on
+$y = 7$ at the root, then $x = 5$ and $x = 3$ below it, so each leaf holds one
+point and a query like $[4,4]$ only descends one branch.
+
+* Principal Task in Nonparametric Learning
+
+Given a dataset, we want to estimate the probability distribution for that data
+
+Discrete probability: mass function
+Continuous probability: density function
+
+** Deriving an Approach
+
+Work off $N$ data samples $\mathcal{X} = x^{1}, \ldots, x^{N}$ drawn from $p$, with
+no parametric form assumed for $p$. Ask: what is the probability that $k$ of the
+samples fall in some region $\mathcal{R}$? That count is binomial,
+
+\[
+  P(k) = \binom{N}{k} P^{k}(1-P)^{N-k} \text{ so } E[k] = NP \text{ and } \frac{k}{N} \approx P
+\]
+
+Combining with the definition of a density function, $P = \int_{\mathcal{R}} p(x)dx \approx p(x)V_{\mathcal{R}}$, so
+
+\[
+  \hat{p}(x) \approx \frac{k}{N V_{\mathcal{R}}}
+\]
+
+Assume a hypercube with side length $h$; then $V_{\mathcal{R}} \approx h^{d}$ and
+$\hat{p}(x) \approx \frac{k}{Nh^{d}}$. For both Parzen windows and $k$-NN, the
+density is approximated by the points in the region defined by the window or by
+the number of neighbors.
+
+** Histogram Estimator
+
+Set an origin $x_{0}$, define a bin width $h$, and specify a bin as $[x_{0}+mh, x_{0}+(m+1)h)$. Then
+
+\[
+  \hat{p}(x) = \frac{1}{Nh} \sum_{t}^{} \mathbb{1}\{ x^{t} \in \text{bin}(x) \}
+\]
+
+** Naive Estimator
+
+No origin needed. Define a bin width $h$ and put the bin around the query point
+as $(x-h, x+h]$. Then
+
+\[
+  \hat{p}(x) = \frac{1}{2Nh} \sum_{t}^{} \mathbb{1}\{ x^{t} \in (x-h, x+h] \}
+\]
+
+** Weighted Estimators
+
+Generalizing that idea gives
+
+\[
+  \hat{p}(x) \approx \frac{1}{Nh} \sum_{t=1}^{N} w \left( \frac{x-x^{t}}{h} \right) \text{ where } w(u) = \begin{cases}
+    \frac{1}{2} & |u| < 1 \\
+    0 & \text{otherwise}
+  \end{cases}
+\]
+
+** Kernel Functions
+
+The weighting function is the basis for what we call /kernels/, denoted $K(u)$.
+The weight is determined by similarity to a data point, where
+
+- $K(u) \geq 0$ for all $u$
+- $K(-u) = K(u)$ for all $u$ (symmetric)
+- $\int_{-\infty}^{\infty} K(u)du = 1$
+- the triangle inequality need not apply
+
+A kernel defines a /feature map/ $\phi : \mathcal{X} \to \mathcal{Z}$ such that
+$K(x_{i},x_{j}) = \phi(x_{i})^{T}\phi(x_{j})$. Kernels come back with support
+vector machines.
+
+** Kernel Density Estimation (KDE)
+
+\[
+  \hat{p}(x) = \frac{1}{Nh} \sum_{t}^{} K \left( \frac{x-x^{t}}{h} \right)
+\]
+
+With the Gaussian (radial basis function) kernel $K(u) = \frac{1}{\sqrt{2\pi}}\exp \left( -\frac{u^{2}}{2} \right)$ this becomes
+
+\[
+  \hat{p}(x) = \frac{1}{\sqrt{2\pi}Nh} \sum_{t}^{} \exp \left( -\frac{(x-x^{t})^{2}}{2h^{2}} \right)
+\]
+
+** Parzen Window Estimator
+
+Combining the Parzen window with kernels gives an alternative to the naive estimator:
+
+\[
+  \hat{p}(x) = \frac{1}{Nh^{d}} \sum_{t=1}^{N} K \left( \frac{x-x^{t}}{h} \right) \text{ where } K(u) = \frac{1}{(2\pi)^{d/2}} \exp \left( -\frac{\|u\|^{2}}{2} \right)
+\]
+
+Including the covariance $\Sigma$ instead of assuming spherical windows,
+
+\[
+  K(u) = \frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}} \exp \left( -\frac{1}{2}u^{T}\Sigma^{-1}u \right)
+\]
+
+** K-Nearest Neighbor Estimator
+
+Assume a distance function $D(x,x^{t})$ and let $x_{(k)}$ be the $k^{th}$ nearest
+neighbor, so the bin width is $h = D(x,x_{(k)})$. Then
+
+\[
+  \hat{p}(x) = \frac{k}{2N D(x,x_{(k)})}
+\]
+
+Restricting the same count to class $c_{i}$ gives $\hat{p}(x, c_{i}) = \frac{k_{i}}{2N D(x,x_{(k)})}$, and by the definition of conditional probability
+
+\[
+  \hat{P}(c_{i} \mid x) = \frac{\hat{p}(x,c_{i})}{\hat{p}(x)} = \frac{k_{i}}{k}
+\]
+
+So the posterior is estimated by the fraction of samples within the
+$k$-neighborhood labeled $c_{i}$, and the selected class for $x_{q}$ is the one
+with the largest count:
+
+\[
+  c_{q} = \underset{c_{i} \in \mathcal{C}}{\arg\max}\ \hat{P}(c_{i} \mid x_{q})
+\]
+
+* Regression
+
+Suppose we are presented with a query point $x_{q}$ and want to compute the
+function value at that point, where the data is
+$\mathcal{X} = \{ x^{t}, r^{t} \}_{t=1}^{N}$ with $r^{t} = g(x^{t}) + \epsilon$.
+
+** Parametric Regression
+
+Need to find coefficients in a predefined functional formula
+
+Minimize a loss such as sum squared error, which leads to least squares regression.
+
+** Nonparametric Regression
+
+Examples from the data define the "shape" of the regression function
+
+The regressed output $\hat{g}(x_{q})$ is computed at query time, and the result is
+called a /smoother/.
+
+** Regressogram Smoother
+
+Find origin, find bin width, estimate function at query point $x_{q}$, which is just taking the average
+
+\[
+  \hat{g}(x_{q}) = \frac{\sum_{t=1}^{N} b(x_{q},x^{t}) r^{t}}{\sum_{t=1}^{N} b(x_{q},x^{t})} \text{ where } b(x_{q},x^{t}) = \begin{cases}
+    1 & \text{if } x^{t} \in \text{bin}(x_{q}) \\
+    0 & \text{otherwise}
+  \end{cases}
+\]
+
+** Running Mean Smoother
+
+Estimate function at query point (no defined origin), then see if point is in the bin.
+
+\[
+  \hat{g}(x_{q}) = \frac{\sum_{t=1}^{N} w \left( \frac{x_{q}-x^{t}}{h} \right) r^{t}}{\sum_{t=1}^{N} w \left( \frac{x_{q}-x^{t}}{h} \right)} \text{ where } w(u) = \begin{cases}
+    1 & \text{if } |u| < 1 \\
+    0 & \text{otherwise}
+  \end{cases}
+\]
+
+** Kernel Smoother
+
+
+Implements a form of locally-weighted regression
+
+Options are to select $k$ neighbors of $x_{q}$ and fit a linear, polynomial or
+piece-wise linear function — but the better option is to employ a kernel function
+and apply a weighted average:
+
+\[
+  \hat{g}(x_{q}) = \frac{\sum_{t=1}^{N} K(x_{q},x^{t}) r^{t}}{\sum_{t=1}^{N} K(x_{q},x^{t})} \text{ where } K(x_{q},x^{t}) = \exp \left( -\gamma D(x_{q},x^{t}) \right)
+\]

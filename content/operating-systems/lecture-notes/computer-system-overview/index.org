@@ -12,23 +12,339 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-#+begin_export html
-<embed src="lecture1.pdf" width="100%" height="800px" type="application/pdf">
-#+end_export
+Slides: [[file:overview.pdf][Computer System Overview (PDF)]] · [[file:lecture1.pdf][Lecture 01 handout (PDF)]]
 
+* Basic Elements
 
-#+begin_export html
-<embed src="overview.pdf" width="100%" height="800px" type="application/pdf">
-#+end_export
+At a top level, a computer consists of processor, memory, and I/O components, with one or more modules of each type. These components are interconnected in some fashion to achieve the main function of the computer, which is to execute programs.
 
+** Processor
+- Controls the operations of the computer
+- Performs the data processing functions
+- Referred to as the /Central Processing Unit/ (CPU)
 
-opcode is the unique binary combo that corresponds to an instruction
+** Main Memory
+- Stores data and programs
+- Typically volatile
+  - Contents of the memory is lost when the computer is shut down
+- Referred to as /real memory/ or /primary memory/
+- Hard disk (secondary storage) and main memory are two different things
 
 RAM resembles a stack (not the data structure). One row in the stack is called a /frame/. The length of the frame is called a /word/.
 
+** I/O Modules
+- Move data between the computer and its external environments
+  - Secondary memory devices
+  - Communication equipment
+  - Terminals
+
+** System Bus
+- Provides for communication among processors, main memory, and I/O modules
+
+Figure 1.1 (Computer Components: Top-Level View) puts these together: the CPU holds =PC= (program counter), =IR= (instruction register), =MAR= (memory address register), =MBR= (memory buffer register), =I/O AR= (input/output address register) and =I/O BR= (input/output buffer register) around an execution unit; main memory holds instructions and data in addresses $0 \ldots n-1$; the system bus connects the CPU to memory and to an I/O module with its buffers.
+
+* Processor Variants
+
+** Microprocessor
+- A processor implemented on a single integrated circuit (chip)
+- Modern microprocessors typically contain multiple processor cores (multiprocessors on a single chip)
+
+** GPU
+- Provide efficient computation on arrays of data using Single-Instruction Multiple Data (SIMD) techniques pioneered in supercomputers
+- Not just used for rendering graphics
+  - Training and running neural networks
+  - Scientific computation
+  - Crypto mining
+  - Big data analysis
+  - And many more...
+
+** Digital Signal Processor (DSP)
+- Specialized processors designed to efficiently process /streaming signals/, such as audio, video, and sensor data
+- Traditionally embedded in I/O devices, such as modems and audio systems
+- Increasingly used as standalone computational units, particularly in smartphones and other embedded/mobile systems
+- Common applications include audio/video encoding and decoding (codecs)
+- Can provide hardware acceleration for encryption and other security operations
+  - Example: Broadcom BCM5862x series
+- DSPs are optimized for specialized workloads rather than general-purpose computation
+
+** System on a Chip (SoC)
+- The traditional microprocessor is increasingly evolving into a System-on-a-Chip (SoC)
+- Modern systems increasingly integrate many components onto a single chip
+- An SoC can integrate CPUs, CPU caches, GPUs, DSPs, memory controllers, and various I/O interfaces and accelerators
+- Provides a highly integrated platform for computing and specialized processing
+- Widely used in smartphones, tablets, and other embedded devices
+- Example: Qualcomm Snapdragon 8 Gen 3
+
+* Instruction Execution
+
+- A program consists of a set of instructions stored in memory
+- The processor reads (fetches) instructions from memory, then executes each instruction
+- Processing required for a single instruction is called an /instruction cycle/ (Figure 1.2, Basic Instruction Cycle: START $\to$ fetch stage $\to$ execute stage $\to$ HALT)
+- Program execution halts only if the processor is turned off, some sort of unrecoverable error occurs, or a program instruction that halts the processor is encountered
+
+opcode is the unique binary combo that corresponds to an instruction
+
+** Instruction Fetch and Execute
+- The processor fetches an instruction from memory
+- The program counter (PC) holds the address of the next instruction to be fetched
+  - PC is incremented after each fetch, unless instructed otherwise
+
+** Instruction Register
+- Fetched instruction is loaded into the Instruction Register (IR)
+- Processor then interprets the instruction and performs the required action. These actions fall into four categories:
+  - Processor $\leftrightarrow$ memory: data transfer between processor and memory (both ways)
+  - Processor $\leftrightarrow$ I/O: data transfer to or from a peripheral device, by transferring between processor and I/O module
+  - Data processing: arithmetic and logical operations on data
+  - Control: an instruction may specify that the sequence of execution be altered (e.g. branching instructions)
+
+* Interrupts
+
+- Mechanism by which other modules (I/O, memory) may interrupt the normal sequencing of the processor
+- Provided to improve processor utilization
+  - Most I/O devices are slower than the processor
+  - Processor must pause to wait for the device
+  - Wasteful use of the processor
+- When an interrupt occurs the user program is suspended and the interrupt handler code is executed; once the handler finishes, execution of the suspended process resumes
+- The user program does not have to contain any special code to accommodate interrupts — the processor and the OS are responsible for suspending the user program, then resuming it at the same point
+- The interrupt-handler routine is generally part of the OS
 
 The CPU checks for any interrupts. It changes the instruction cycle slightly, but it is useful. Sometimes, you need to disable interrupts
 
-  /multiprogramming/ is running is used in the CPU by choosing another process to run while the previous program is waiting. 
+** Types of Interrupts
+
+| Type             | Source                                                                                                                                                                                             |
+| Program          | Generated by some condition that occurs as a result of an instruction execution, such as arithmetic overflow, division by zero, attempt to execute an illegal machine instruction, and reference outside a user's allowed memory space |
+| Timer            | Generated by a timer within the processor. This allows the operating system to perform certain functions on a regular basis                                                                          |
+| I/O              | Generated by an I/O controller, to signal normal completion of an operation or to signal a variety of error conditions                                                                               |
+| Hardware failure | Generated by a failure, such as power failure or memory failure parity error                                                                                                                         |
+
+** Interrupt Stage in the Instruction Cycle
+
+To accommodate interrupts, an /interrupt stage/ is added to the instruction cycle (Figure 1.7, Instruction Cycle with Interrupts): fetch stage $\to$ execute stage $\to$ interrupt stage, where the processor checks for an interrupt and, if one is pending, initiates the interrupt handler. With interrupts disabled the stage is skipped.
+
+The slides walk through the control flow both ways: first without interrupts (the user program's WRITE calls wait on the I/O program), then with interrupts, where the processor continues working and is notified on completion.
+
+The /PSW/ (program status word) contains status information about the currently running process, including memory usage information, condition codes, and other status information such as an interrupt enable/disable bit and a kernel/user-mode bit.
+
+* Operating System
+
+- If you took CSCI-366, you'll remember how difficult it is to write programs for bare metal
+- OS is the computing system that manages all the hardware and software
+  - Controls the execution of application programs
+  - Acts as an interface between applications and hardware
+- Provides a set of services to system users
+- Objectives:
+  - Convenience
+  - Efficiency
+  - Ability to evolve
+
+In the first part of this course, we will mainly focus on how the OS works, the related concepts as well as algorithms. Some concepts related to distributed computing and network operating systems will be covered later, along with some computer architecture and hardware.
+
+** What is an OS Composed of?
+
+| Manager           | Responsibility                                       |
+| Memory Manager    | Controls and manages the main memory                 |
+| Processor Manager | Decides how to allocate processing power to processes |
+| Device Manager    | Manages every device, channel, and control unit      |
+| File Manager      | Manages the file system                              |
+| Network Manager   | Manages network connections                          |
+
+* Evolution of Operating Systems
+
+The deck traces four types of operating system, in order: serial processing $\to$ simple batch systems $\to$ multiprogrammed batch systems $\to$ time sharing systems.
+
+** Serial Processing
+- No operating system
+- Programmers interacted directly with the hardware
+- Users have access to the computers in "series"
+- Problems
+  - Scheduling was horrendous
+  - Took considerable amount of time to set up a program to run
+
+** Batch Processing
+- People wanted to maximize processor utilization
+- Introduced the /Monitor/
+  - User no longer has direct access to the processor
+  - Job is submitted to a computer operator who batches them together and places them on an input device
+  - Program branches back to the monitor when finished
+- Monitor controls the sequence of events
+- /Resident Monitor/ is a software that is always in the memory
+- Monitor reads in a job and gives control; the job returns control to the monitor
+
+From the point of view of the processor:
+- Processor executes instructions from the memory containing the monitor
+- At some point it has an instruction to load and execute the next job
+- Processor executes the job until it ends or finds an error condition
+- Either of these two events causes the processor to invoke instructions from the monitor
+
+*** Hardware Features the Monitor Needs
+
+The monitor is just a software. For the monitor to work properly, special hardware features must be available:
+
+| Feature                 | Why                                                                                          |
+| Memory protection       | While the user program is executing, it must not alter the memory area containing the monitor |
+| Timer                   | Prevents a job from monopolizing the system                                                  |
+| Privileged instructions | Can only be executed by the monitor                                                          |
+| Interrupts              | Gives the OS more flexibility in controlling user programs                                    |
+
+** Memory Protection and Modes of Operation
+
+| User Mode                                       | Kernel Mode                                |
+| User program executes in user mode              | Monitor executes in kernel mode            |
+| Certain areas of memory are protected from user access | Privileged instructions may be executed |
+| Certain instructions may not be executed        | Protected areas of memory may be accessed  |
+
+** Multiprogrammed Batch Systems
+- Even though batch systems somewhat improved processor utilization, the processor is often idle because of I/O operations
+- This led to /multiprogrammed/ batch systems
+
+** Uniprogramming
+
+The processor spends a certain amount of time executing, until it reaches an I/O instruction; it must then wait until that I/O instruction concludes before proceeding.
+
+The slides work the cost out on a single job:
+
+| Step                       | Time  |
+| Read one record from a file | 15 μs |
+| Execute 100 instructions    | 1 μs  |
+| Write one record to file    | 15 μs |
+| Total                       | 31 μs |
+
+Percent of CPU utilization $= \frac{1}{31} = 0.032 = 3.2\%$.
+
+** Multiprogramming
+
+  /multiprogramming/ is running is used in the CPU by choosing another process to run while the previous program is waiting.
+
+** Time-Sharing Systems
+- In multiprogramming batch systems users did not interact with the computer directly
+- People needed computers to handle interactive jobs
+- For this to happen a new type of OS was introduced — /time sharing systems/
+- Multiple users can simultaneously access the computer through terminals
+- OS interleaves execution of each user program in short bursts, or /quanta/, of computation
+
+*** Time Sharing vs Batch Multiprogramming
+
+|                       | Batch Multiprogramming                              | Time sharing                     |
+| Principle objective   | Maximize processor use                              | Maximize response time           |
+| Source directive to OS | Job control language commands provided with the job | Commands entered at the terminals |
+
+** OS Generations
+- Early computing (1940-1950)
+  - No OS
+- First generation (1950-1960)
+  - Mainframes and batch systems
+  - Multiprogramming
+- Second generation (1960-1970)
+  - Multiprogramming and timesharing
+- Third generation (1970-1980)
+  - Personal computing
+  - Development of GUI
+- Fourth generation (1980-2000)
+  - Microkernels: a modular approach to OS design
+- Modern OS (2000-present)
+  - Mobile OS
+  - Cloud and virtualization: cloud based OS (Ex: Azure)
+  - Distributed OS: work seamlessly across multiple devices
+  - Real-time and embedded systems: OS tailored for specific devices and applications
+
+* Memory Hierarchy
+
+These are from the later (2026-09-09) lecture, not the overview deck above.
+
+What are the design constraints on a computer's memory?
+
+- How much?
+- How fast?
+- How expensive?
+
+There is a tradeoff. Faster access time costs more, greater capacity costs more. Is there a solution?
+
+Instead of having one massive main memory, they split memory into different sections:
+- Top level: Inboard memory (registers, cache, main memory)
+- Medium level: Outboard storage (Magnetic disk, CDs, DVDs, Blu-ray)
+- Bottom level: Offline storage (Magnetic tape)
+
+Going down this hierarchy:
+- decreasing cost per bit
+- increasing capacity
+- increasing access time
+- decreasing frequency of access to the memory by the processor
+
+** Hit Ratio (H) and Average Access Time (A)
+
+{{{hl(orange,COME BACK LATER)}}} needs the memory-hierarchy deck, which is not one of the three OS PDFs
+
+** Principle of Locality
+
+{{{hl(orange,COME BACK LATER)}}} needs the memory-hierarchy deck, which is not one of the three OS PDFs
+
+** Secondary Memory/Auxiliary Memory
+
+- Nonvolatile
+- External
+- Used to store program data
+- less expensive
+
+** Cache Memory
 
 
+Largely invisible to the OS
+
+Interacts with other memory management hardware
+processor must access memory at least once per instruction cycle
+processor execution is limited by memory cycle time
+{{{hl(orange,COME BACK LATER)}}} needs the memory-hierarchy deck, which is not one of the three OS PDFs
+
+
+He shows figure 1.16: cache and main memory
+
+** Cache Design
+
+Categories:
+- Cache size
+- Block size
+- mapping function
+- replacement algorithm
+- write policy
+- Number of Cache Levels
+
+*** Cache Size and Block Size
+
+- Increasing block size initially improves HIT ratio
+  - This exploits spatial Locality
+  - If new block is too large, HIT ratio increases again
+  - Large blocks evict useful data
+  - *There is a balance for an optimal block size*
+
+- Mapping Function: Determines which cache location the block will occupy
+  - Two constraints:
+    1. When one block is read in, another may be replaced, The more flexible the mapping function,
+    2. the more complex is the circuitry required to search the cache
+
+    Three strategies:
+    1. Direct mapping: Each memory block has exactly one possible cache location
+    2. Fully Associate Mapping: A memory block can go anywhere in the cache
+      - Advantage: flexible, fewer conflicts
+      - Disadvantage: cache has to search/compare many entries, which increases hardware complexity
+    3. Set Associating Mapping: Comparison between the other two
+      - Divide the cache into sets, a memory block is assigned to one particular set, but it can go into any slot within that set
+
+- Replacement Algorithm
+  - Least Recently Used (LRU) Algorithm: self explanatory
+
+- Write policy: dictates when the memory write operation takes place
+  - can occur every time the block is updated
+  - can occur when the block is replaced
+      - minimizes write operations
+      - Leaves main memory in an obsolete state
+
+
+** Average cost per bit
+- $C_{s}$ = Average cost per bit for the combined two level memory
+
+\[
+  C_{s} = \frac{c_{1}s_{1 + c_{2}s_{2}}}{s_{1}+s_{2}}
+\]
+
+We would like $C_{2} \approx C_{2}$

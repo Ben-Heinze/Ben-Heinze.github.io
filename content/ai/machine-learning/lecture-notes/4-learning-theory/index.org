@@ -1,0 +1,696 @@
+#+TITLE: 4 Learning Theory
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-14
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Week 4 Notes.pdf][Week 4: Learning Theory (PDF)]]
+
+* K-Medoids
+
+Representative object or member of a data set
+
+Different objective fucntions:
+
+- K-means: find centroids of clusters that minimize the distance from the points to their clusters
+- K-Medoids: Same thing as k means, but instead of looking at a distance from an arbitrary centroid, we look at the distance to the representative sample from the dataset.
+Medoid is like a median: we reduce the influence of outliers
+
+Side by side, the two objective functions only differ in what the distance is measured to:
+
+\[
+  SSE = \sum_{i=1}^{k} \sum_{x \in C_{i}}^{} \| x-c_{i} \|^{2} \text{ and } SSE = \sum_{i=1}^{k} \sum_{x \in C_{i}}^{} \| x-m_{i} \|^{2}
+\]
+
+where $c_{i}$ is the centroid of cluster $C_{i}$ and $m_{i}$ is its medoid.
+
+** Partitioning Around Medoids (PAM)
+
+{{{hl(orange,COME BACK LATER)}}} insert psuedocode here — the PAM slide is an image with no text layer, so it can't be pulled from the deck
+
+1. Select medoids at random
+2. get min distance from xi in dataset from medoids like k-means
+3. Find the points that minimize distortion by brining those points closer to the medoids (i think)
+
+The partition comes from dividing the data up by
+
+** Fuzzy c-Means
+
+A method to create "fuzzy" clusters, where $f$ is a level of "fuzzification" in the range (1,$\infty$)
+
+Fuzzy: instead of assigning datapoints to clusters in a binary scenario, you have a "degree of membership" between the two clusters. The degree of membership algorithmically becomes a weighting function.
+
+- $f \to 1$ makes clusters more "crisp"
+- $f \to \infty$ makes clusters more "fuzzy"
+
+The weighting function looks like a kernel function.
+
+Writing $w_{j}(c_{i})$ for the degree of membership of point $x_{j}$ in cluster $c_{i}$, the objective function is
+
+\[
+  J_{f} = \sum_{i=1}^{k} \sum_{j=1}^{N} w_{j}(c_{i})^{f} \| x_{j}-c_{i} \|^{2}
+\]
+
+with memberships and centroids updated as
+
+\[
+  w_{j}(c_{i}) = \frac{1}{\sum_{l=1}^{k} \left( \frac{\| x_{j}-c_{i} \|}{\| x_{j}-c_{l} \|} \right)^{2/(f-1)}} \text{ and } c_{i} = \frac{\sum_{j=1}^{N} w_{j}(c_{i})^{f}x_{j}}{\sum_{j=1}^{N} w_{j}(c_{i})^{f}}
+\]
+
+* Cluster Evaluation
+
+{{{hl(red,Clustering does not equal Classification)}}}
+
+- Evaluating clusters using classification metrics is *not valid*. You need to consider the geometry of the clusters found.
+- the principal 'preference bias' is to find clusters where:
+  - clusters are well separated in distance
+  - members of clusters are "close" to one another
+
+One measurement of cluster validity is to divide cohesion by separation
+
+Let $d(x,x')$ denote the proximity (similarity or distance) between two points, and
+let $c_{i}$ denote the centroid of the $i^{th}$ cluster (and stand in for the
+cluster itself). Then
+
+- Cohesion: $Coh(c_{i}) = \sum_{x \in c_{i}}^{} d(x,c_{i})$
+- Separation: $Sep(c_{i},c_{j}) = d(c_{i},c_{j})$
+
+and the simple evaluation is the ratio of the two:
+
+\[
+  CE = \frac{\sum_{c \in C}^{} Coh(c)}{\sum_{c_{i},c_{j} \in C}^{} Sep(c_{i},c_{j})}
+\]
+
+
+** Cluster Sum Squared Error
+
+Name is deceptive because of the term "error".
+
+The two measures are the same idea as cohesion and separation. Within Group Sum
+Squared Error and Between Group Sum Squared Error are
+
+\[
+  SSE(k) = \sum_{i=1}^{k} \sum_{x \in C_{i}}^{} \| x-c_{i} \|^{2} \text{ and } SSB(k) = \sum_{i=1}^{k} |C_{i}| \| c_{i}-\bar{x} \|^{2}
+\]
+
+where $|C_{i}|$ denotes the number of points in cluster $C_{i}$ and $\bar{x}$ is the
+overall mean.
+
+** Pseudo-F
+
+Calinski-Harabasz measure, derived from ANOVA
+
+Letting $k$ denote the number of clusters and $N$ the number of points,
+
+\[
+  F(k) = \frac{SSB(k)/(k-1)}{SSE(k)/(N-k)}
+\]
+
+Higher scores are better.
+
+** Silhouette Coefficient
+
+Fir each datapoint, calculate the average distance between that point and every other point in that cluster. For each data point, find the minimum average distance to the points in each of the other clusters not containing xi. The, for each point xi, calculate silhouette coefficient.
+
+\[
+  a_{i} = \frac{1}{|C_{i}|}\sum_{x_{j} \in C_{i}}^{} d(x_{i},x_{j})
+\]
+
+\[
+  b_{i} = \min_{C_{j} \in C \setminus \{C_{i}\}} \frac{1}{|C_{j}|}\sum_{x_{j} \in C_{j}}^{} d(x_{i},x_{j})
+\]
+
+\[
+  s_{i} = \frac{b_{i}-a_{i}}{\max \{ a_{i},b_{i} \}}
+\]
+
+and the overall coefficient over all the clusters is
+
+\[
+  SC = \frac{1}{|\mathcal{X}|}\sum_{x_{i} \in \mathcal{X}}^{} s_{i}
+\]
+
+This returns a value between $-1$ and $+1$, and ideally we want to be as close to
+$+1$ as possible — which means $a_{i} < b_{i}$, with $a_{i}$ close to zero.
+
+
+** Rand Index
+
+Clustering still $\neq$ classification, but there is a temptation to compare clusters
+to classes, and more generally a question of how to compare two distinct
+clusterings. Let $C_{1}$ and $C_{2}$ be two clusterings and count pairs of points:
+
+| Char | Def                                                                                   |
+| $a$  | pairs in the same cluster in $C_{1}$ that are also in the same cluster in $C_{2}$      |
+| $b$  | pairs in different clusters in $C_{1}$ that are also in different clusters in $C_{2}$  |
+| $c$  | pairs in the same cluster in $C_{1}$ but in different clusters in $C_{2}$              |
+| $d$  | pairs in different clusters in $C_{1}$ but in the same cluster in $C_{2}$              |
+
+** Adjusted Rand Index
+
+The base Rand Index is susceptible to spurious relationships among the data points,
+and the /adjusted/ index corrects for them. Let
+$n_{ij} = |C_{i} \cap C_{j}|$, $a_{i} = \sum_{j}^{} n_{ij}$ and
+$b_{j} = \sum_{i}^{} n_{ij}$ from the contingency table. Then
+
+\[
+  ARI(C_{i},C_{j}) = \frac{\sum_{ij}^{} \binom{n_{ij}}{2} - \left[ \sum_{i}^{} \binom{a_{i}}{2} \sum_{j}^{} \binom{b_{j}}{2} \right]/\binom{n}{2}}{\frac{1}{2}\left[ \sum_{i}^{} \binom{a_{i}}{2} + \sum_{j}^{} \binom{b_{j}}{2} \right] - \left[ \sum_{i}^{} \binom{a_{i}}{2} \sum_{j}^{} \binom{b_{j}}{2} \right]/\binom{n}{2}}
+\]
+
+** Dunn Index
+
+Provides a cluster "validity" score based on the number of clusters. The max Dunn index over different nubmers of clusters can be used to determine an appropriate number of clusters
+
+Given clusters $C_{i}$ and $C_{j}$ and a proximity $d(\cdot,\cdot)$, let
+$\Delta(C_{i}) = \max_{x_{a},x_{b} \in C_{i}} d(x_{a},x_{b})$ be the /diameter/ of
+cluster $C_{i}$. Then
+
+\[
+  Dunn = \frac{\min_{C_{i} \in C} \min_{C_{j} \in C \setminus C_{i}} d(C_{i},C_{j})}{\max_{C_{l} \in C} \Delta(C_{l})}
+\]
+
+* Leader Clustering
+
+Ideally, we would like tot adapt the number of clusters needed rather than tuning it.
+
+/Leader clustering Algorithm/ considers the distance of an example from the existing clusters. If that distance exceeds a threshold (which is tunable), a new cluster is created. If there is a cluster with a large number of examples greater than $\theta$, the reference vectors re duplicated and perturbed and members reassigned to the new clusters.
+
+Finally, any cluster whose membership falls below a second threshold has its
+reference vector eliminated, so the cluster count adapts in both directions.
+
+
+* Version Spaces
+
+Hypothesis: some type of model
+Hypothesis $h$ is {{{hl(red,consistent)}}}, with examples $\mathcal{D} \iff h(x) = c(x)$  for each example in $\mathcal{D}$.
+
+
+\(
+  \text{consistent}(h,\mathcal{D}) \equiv (\forall <x, c(x)> \in \mathcal{D}, h(x) = c(x)
+\)
+
+Version space $VS(h, \mathcal{D})$ is the subset of all hypotheses kn $\mathcal{H}$ that are consistent with the training examples $\mathcal{D}$
+
+\(
+  VS(h,\mathcal{D}) \equiv \{ h \in \mathcal{H} \mid \text{consistent}(h,\mathcal{D}) \}
+\)
+
+Slow to converge.
+
+Candidate elimination has no preference bias since it keeps track of all consistent hypotheses
+
+However that consistency entails an assumption that all examples are labeled correctly (no noise)
+
+** Representing Version Spaces
+
+Key idea: version spaces can be represented by only keeping track of maximally general $(G)$ and maximally specific $(S)$ members of $VS(h, \mathcal{D})$.
+
+Every member of the version space lies between these boundaries.
+
+\(
+  VS(h,\mathcal{D}) = \{ h \in \mathcal{H} \mid \exists s \in S\ \exists g \in G\ g \geq h \geq s \}
+\)
+
+** Candidate Elimination Algorithm
+
+- Initialize $G$ to the set of maximally general hypotheses in $\mathcal{H}$
+- Initialize $S$ to the set of maximally specific hypotheses in $\mathcal{H}$
+
+Consider both positive and negative examples.
+
+For each *positive* training example $e$, do:
+- Remove from $G$ any hypothesis inconsistent with $e$
+- For each hypothesis $s$ in $S$ not consistent with $e$
+  - Remove $s$ from $S$
+  - Add to $S$ all minimal /generalizations/ of $s$ such that $h$ is consistent with $e$ and some member of $G$ is more general than $h$
+- Remove from $S$ any hypothesis that is more general than another hypothesis in $S$
+
+For each *negative* training example $e$, do:
+- Remove from $S$ any hypothesis inconsistent with $e$
+- For each hypothesis $g$ in $G$ not consistent with $e$
+  - Remove $g$ from $G$
+  - Add to $G$ all minimal /specializations/ of $g$ such that $h$ is consistent with $e$ and some member of $S$ is more specific than $h$
+- Remove from $G$ any hypothesis that is more specific than another hypothesis in $G$
+
+Shows Trace example
+
+*** Example: EnjoySport
+
+The training data, over =Sky=, =Temp=, =Humid=, =Wind=, =Water= and =Forecst=:
+
+| Sky   | Temp | Humid  | Wind   | Water | Forecst | EnjoySpt |
+| Sunny | Warm | Normal | Strong | Warm  | Same    | Yes      |
+| Sunny | Warm | High   | Strong | Warm  | Same    | Yes      |
+| Rainy | Cold | High   | Strong | Warm  | Change  | No       |
+| Sunny | Warm | High   | Strong | Cool  | Change  | Yes      |
+
+What is a general concept that describes this?
+
+*** Example Trace
+
+Both boundaries start as far apart as they can be — $S$ at the most specific
+hypothesis, $G$ at the most general:
+
+- $S_{0}$: $\{ \langle \emptyset, \emptyset, \emptyset, \emptyset, \emptyset, \emptyset \rangle \}$
+- $G_{0}$: $\{ \langle ?, ?, ?, ?, ?, ? \rangle \}$
+
+$E_{1}$: $\langle Sunny, Warm, Normal, Strong, Warm, Same \rangle$ *+*. A positive
+example generalizes $S$, and $G$ is untouched:
+- $S_{1}$: $\{ \langle Sunny, Warm, Normal, Strong, Warm, Same \rangle \}$
+- $G_{1}$: $\{ \langle ?, ?, ?, ?, ?, ? \rangle \}$
+
+$E_{2}$: $\langle Sunny, Warm, High, Strong, Warm, Same \rangle$ *+*. $S$ generalizes
+again, dropping =Humid= where the two positives disagree:
+- $S_{2}$: $\{ \langle Sunny, Warm, ?, Strong, Warm, Same \rangle \}$
+- $G_{2}$: $\{ \langle ?, ?, ?, ?, ?, ? \rangle \}$
+
+$E_{3}$: $\langle Rainy, Cold, High, Strong, Warm, Change \rangle$ *−*. The negative
+example leaves $S$ alone and /specializes/ $G$ into every minimal way of excluding it:
+- $S_{3}$: $\{ \langle Sunny, Warm, ?, Strong, Warm, Same \rangle \}$
+- $G_{3}$: $\{ \langle Sunny, ?, ?, ?, ?, ? \rangle, \langle ?, Warm, ?, ?, ?, ? \rangle, \langle ?, ?, ?, ?, ?, Same \rangle \}$
+
+$E_{4}$: $\langle Sunny, Warm, High, Strong, Cool, Change \rangle$ *+*. The last
+positive generalizes $S$ once more and knocks the $Same$ hypothesis out of $G$.
+
+*** Final Version Space
+
+- $S_{4}$: $\{ \langle Sunny, Warm, ?, Strong, ?, ? \rangle \}$
+- $G_{4}$: $\{ \langle Sunny, ?, ?, ?, ?, ? \rangle, \langle ?, Warm, ?, ?, ?, ? \rangle \}$
+
+with the hypotheses in between being
+$\langle Sunny, ?, ?, Strong, ?, ? \rangle$,
+$\langle Sunny, Warm, ?, ?, ?, ? \rangle$ and
+$\langle ?, Warm, ?, ?, Strong, ? \rangle$.
+
+*** Version Space Summary
+
+- Candidate elimination will converge to the target concept if the training data $\mathcal{D}$ is error free, and the target concept exists in $\mathcal{H}$
+- The algorithm is iterative — it allows choosing the training examples incrementally
+- Unseen examples can be classified from partially learned concepts
+- The approach works with many different languages (representations) for $\mathcal{H}$, as long as the partial order can be determined
+- Version spaces can be slow to converge, especially when encountering a large number of consistent examples
+- For some languages the boundary sets can grow very large (exponential)
+- The bias is in the representation of $\mathcal{H}$ (the language)
+
+* Computational Learning Theory
+
+- What general laws constrain inductive learning?
+- What learning problem can we solve?
+- when can we trust the output of a learning algorithm?
+  - We seek a theory relating the probability of successful learning, the number of training examples, the complexity of the hypothesis space, the accuracy to which the target concept is approximated, and the manner in which training examples are presented
+
+The rest of this week is the formal answer to that third question: the Haussler
+bound and PAC learning say how many examples make the output trustworthy, and to
+what confidence.
+
+- Our goal is to create *Models* of learning
+
+
+* Learning Models
+
+When specific learning, we need to consider:
+1. Who is the learner?
+2. Whats the problem domain?
+3. Where does experience come from?
+4. Is any prior knowledge available?
+5. What are the performance criteria?
+
+
+
+* Typical Concept Learning Task
+
+- Given
+  - Instance space $\mathcal{X}$
+  - Target function $c$
+  - Hypothesis $\mathcal{H}$
+  - Training examples $\mathcal{D}$
+- Determine
+  - Hypothesis $h \in \mathcal{H}$ such that $h(x) = c(x), \forall x \in \mathcal{D}$ (memorize training data)
+  - Hypothesis $h \in \mathcal{H}$ such that $h(x) = c(x), \forall x \in \mathcal{X}$ (generalize to unseen data)
+
+Concretely, for /EnjoySport/ the instance space is possible days described by
+=Sky=, =AirTemp=, =Humidity=, =Wind=, =Water= and =Forecast=; the target function is
+$c : \mathcal{X} \to \{0,1\}$; and $\mathcal{H}$ is conjunctions of literals, so
+$\langle ?, Warm, High, ?, ?, ? \rangle$ means
+$AirTemp(x) = Warm \wedge Humid(x) = High \Rightarrow EnjoySport(x)$.
+
+* Notation
+
+| $\mathcal{C}$| Class of possible concepts|
+| $\mathcal{X}$ | Set of instances |
+| $n$ | Length of each instance|
+| $\mathcal{L}$ |Learner |
+| $\mathcal{H}$ | Hypotheis space |
+| $\epsilon$ | error parameter |
+| $\delta$ |confidence parameter (excess error probability bound) |
+| $size(c)$ | encoding length of $c$, assuming some representation (aka description length)|
+
+
+
+* Sample Complexity
+
+sample complexity: a measure of how many training examples are sufficient to learn the target concept. Tepends on how we get out examples.
+- Active learning
+- Passive learning from teacher-annotated examples
+- Passive learning from teacher-selected examples: a teacher who knows $c$ provides a sequence of examples $\langle x_{i}, c(x_{i}) \rangle$, and may or may not be helpful (optimal)
+
+Note that /sufficient/ means having enough examples to be confident the concept has
+been learned, where /necessary/ means the minimum number of examples required to
+learn it.
+
+** Active Learning
+
+learner proposes instance $x$
+- teacher provides $c(x)$
+  - comprehensiveness: assume $c$ is in learner's hypothesis space $\mathcal{H}$
+  - query is a form of inductive bias (sometimes non-trivial)
+- optimal query strategy: play 20 questions
+  - Keep choosing an instance $x$ that splits the hypothesis search space $VS(\mathcal{H}, \mathcal{D})$ in half
+  - when that is possible, $\lg |\mathcal{H}|$ queries suffice
+
+** Teacher Annotated
+
+- Given $\mathcal{D}$, $\mathcal{H}$, $\mathcal{C}$, and training instances generated by a fixed, unknown probability distribution $\mathcal{P}$ over $\mathcal{X}$
+- Learner Observes a sequence drawn from $\mathcal{P}$
+  - $\mathcal{D}$: examples of form <x, c(x)> for target concept $c$
+  - instances $x \in \mathcal{D} \tilde \mathcal{P}$
+  - teacher provides target value $c(x)$ for each
+- Learner must output hypothesis $h$ estimating $c$
+
+** Teacher Selected
+
+- Teacher provides training samples
+- Optimal teacher is sometimes called a "helpful" teachers
+- Optimal teaching strategy deponds upon $\mathcal{H}$ used by learner
+
+** N Boolean Attributes
+
+If $n$ possible Boolean attributes in $\mathcal{H}$, $n + 1$ examples suffice. You can divide the search space for a boolean classification in half by giving the learner one good example.
+
+- Helpful teacher could aid learner in acquiring concept in at most n+1 examples (could be less).
+
+The slides work it with "things that are trees" over =<Green?>=, =<Tall?>=,
+=<HasBark?>=, starting from
+$H_{0} = Green \wedge \neg Green \wedge Tall \wedge \neg Tall \wedge HasBark \wedge \neg HasBark$.
+The first positive example $Green \wedge Tall \wedge HasBark$ eliminates $n$ literals,
+giving $H_{1} = Green \wedge Tall \wedge HasBark$; a second positive example
+$Green \wedge \neg Tall \wedge HasBark$ leaves $H_{2} = Green \wedge HasBark$. An active
+learner can do the same in $n+1$ examples if it asks the right questions, but a
+learner passively receiving /randomly selected/ examples may need more — which is
+the question the next sections answer.
+
+
+* True Error
+/True error/ ($error_{\mathcal{P})}$): the probability that $h$ will misclassify an instance drawn at random according to $\mathcal{P}$, with respect to target concept $c$ and distribution $\mathcal{P}$.
+
+\[
+  error_{\mathcal{P}}(h) = P_{x \in \mathcal{P}}\left[ c(x) \neq h(x) \right]
+\]
+
+- Training error: how often $h(x) \neq c(x)$ over /training instances/, selected according to $\mathcal{S}$
+- True error: how often $h(x) \neq c(x)$ over /future random instances/
+
+The question is then whether we can bound the true error of $h$ given its training error.
+
+** Exhausting Version Space
+Version space is said to be $\epsilon$-exhausted w.r.t. $c$ and $\mathcal{D}$ if every hypothesis $h$ in the version space has true error less than $\epsilon$ w.r.t. $c$ and $\mathcal{D}$.
+
+\(
+  \forall h \in VS(\mathcal{H},\mathcal{D}),\ error_{\mathcal{P}}(h) < \epsilon
+\)
+
+*Haussler Theorem*: If the hypothesis space $\mathcal{H}$ is finite, and $\mathcal{D}$ is a sequence of $m \geq 1$ indipendent random examples of some target concept $c$, then for any $0 \leq \epsilon \leq 1$, the probibaility that the version space w.r.t. $\mathcal{H}$ and $\mathcal{D}$ is not e-exhauseted (w.r.t. c) is less than or equal to
+
+\[
+  |\mathcal{H}|e^{-\epsilon m}
+\]
+
+The proof bounds the probability that there exists a "bad" hypothesis $h$ that is
+consistent with $m$ examples while $error_{\mathcal{P}}(h) > \epsilon$:
+- the probability that $h$ is consistent with one example is less than $1-\epsilon$
+- the $m$ examples are drawn independently, so the probability $h$ is consistent with all $m$ is less than $(1-\epsilon)^{m}$
+- the probability that /some/ hypothesis in $\mathcal{H}$ is consistent with all $m$ is less than $|\mathcal{H}|(1-\epsilon)^{m}$
+- but for $0 \leq \epsilon \leq 1$ we have $1-\epsilon \leq e^{-\epsilon}$, so $|\mathcal{H}|(1-\epsilon)^{m} \leq |\mathcal{H}|e^{-\epsilon m}$ $\blacksquare$
+
+** Number of required examples:
+
+Using Haussler's theorem, we can create the inequality:
+
+\(
+  m \geq \frac{1}{\epsilon} \left( ln|\mathcal{H}| + ln \frac{1}{\delta} \right)
+\)
+
+This comes from wanting the failure probability below a threshold $\delta$, i.e.
+$|\mathcal{H}|e^{-\epsilon m} \leq \delta$, and solving for $m$.
+
+
+** Conjnuctions of boolean literals
+
+Using Haussler's theorem, if we assume conjunctions of ocnstraints on up to $n$ Boolean attributes, then $|\mathcal{H}| = 3^{n}$. Why $3^{n}$? It can take on three values: true, false, and dont care.
+
+
+thus,
+
+
+\(
+  m \geq \frac{1}{\epsilon} \left( ln|3^{n}| + ln \frac{1}{\delta} \right)
+\)
+
+which simplifies to $m \geq \frac{1}{\epsilon}\left( n \ln 3 + \ln \frac{1}{\delta} \right)$.
+
+For EnjoySport $|\mathcal{H}| = 729$. Assuming a goal of $1-\delta = 95\%$ with
+$error_{\mathcal{P}}(h) < 0.1$,
+
+\[
+  m \geq \frac{1}{0.1}\left( \ln 729 + \ln \frac{1}{0.05} \right) \approx 95.9
+\]
+
+so about 96 examples.
+
+* Agnostic Learning
+
+So far, we assumed $c \in \mathcal{H}$. For agnostic learning, we don't assume this. Instead, we attempt to find the clsoest hypothesis possible. Sample complexity is
+
+
+\(
+  m \geq \frac{1}{2 \epsilon^{2}} \left( ln|\mathcal{H}| + ln \frac{1}{\delta} \right)
+\)
+
+that is, the hypothesis making the fewest errors on the training set, with the bound
+following from Hoeffding bounds rather than from consistency.
+
+** Ex: Unbiased Learner
+
+Sample complexity is not always polynomial. For an unbiased learner
+$|\mathcal{H}| = 2^{|\mathcal{X}|}$, and if $\mathcal{X}$ consists of $n$ Boolean
+attributes then $|\mathcal{X}| = 2^{n}$, so
+
+\[
+  m \geq \frac{1}{\epsilon}\left( 2^{n}\ln 2 + \ln \frac{1}{\delta} \right)
+\]
+
+which is exponential in $n$.
+
+
+* PAC Learning
+
+Probably approximately Correct
+
+pac learnable means efficient
+
+Leslie Valiant proposed the framework in 1984; the term PAC was coined by Dana
+Angluin and Philip Laird in 1986. $\mathcal{C}$ is *PAC-learnable* by $\mathcal{L}$
+using $\mathcal{H}$ if for all $c \in \mathcal{C}$, all distributions $\mathcal{P}$
+over $\mathcal{X}$, all $\epsilon$ with $0 < \epsilon < 1/2$ and all $\delta$ with
+$0 < \delta < 1/2$, the learner $\mathcal{L}$ will with probability at least
+$(1-\delta)$ output a hypothesis $h \in \mathcal{H}$ such that
+$error_{\mathcal{P}}(h) \leq \epsilon$.
+
+It is *efficiently PAC-learnable* if $\mathcal{L}$ runs in time polynomial in
+$\frac{1}{\epsilon}$, $\frac{1}{\delta}$, $n$ and $size(c)$ — efficiency is
+typically tied to sample complexity.
+
+* VC Dimension
+
+- provides a measure of expressiveness of infinite hypothesis spaces
+
+What is it?
+- define a partition. There is a type called a dichotomy partition (split it into two).
+
+The preceding treatment assumed finite hypothesis spaces, but some infinite spaces
+are more expressive than others — rectangles versus 17-sided convex polygons versus
+general convex polygons, or a linear threshold function versus a conjunction of
+linear threshold units. We need a measure of expressiveness other than $|\mathcal{H}|$.
+
+The Vapnik-Chervonenkis dimension $VC(\mathcal{H})$ is analogous to
+$|\mathcal{H}|$ — there are sample complexity bounds in terms of it — and it depends
+on the notion of /shattering/. A /partition/ of a set $S$ is a collection of disjoint
+sets $S_{i}$ whose union is $S$.
+
+The running example: classify cars as "family car" or "non-family car", where the
+inductive bias for the classifier is a set of rectangles and there are two
+attributes, $x_{1}$ = price (US dollars) and $x_{2}$ = engine power (volume in cubic
+inches). The slides show the training set, the correct class as a rectangle, the
+classification error between the learned and correct rectangles, and finally the
+version space: the most specific hypothesis $S$, the most general hypothesis $G$, and
+every $h \in \mathcal{H}$ between $S$ and $G$ that is consistent and makes up the
+version space (Mitchell, 1997).
+
+Shattering:
+
+$N$ points in $\mathcal{X}$ can be labeled in $2^{N}$ ways as $+/-$. If there exists
+an $h \in \mathcal{H}$ consistent with each of those labelings, then $\mathcal{H}$
+/shatters/ $\mathcal{X}$, and $VC(\mathcal{H}) = N$.
+
+The *VC-dimension* of a hypothesis space $\mathcal{H}$, written $VC(\mathcal{H})$
+and defined over an implicit instance space $\mathcal{X}$, is the size of the largest
+finite subset of $\mathcal{X}$ shattered by $\mathcal{H}$. If arbitrarily large
+finite subsets can be shattered then $VC(\mathcal{H}) = \infty$.
+
+| Hypothesis space                              | $VC$ |
+| half intervals in $\mathbb{R}$                | 1    |
+| intervals in $\mathbb{R}$                     | 2    |
+| half spaces in $\mathbb{R}^{2}$               | 3    |
+| axis-parallel rectangles in $\mathbb{R}^{2}$  | 4    |
+
+Worked examples from the slides: intervals $[a,b]$ on the real axis can shatter 1 or
+2 points but not 3; any two points on the $X$-$Y$ plane are shattered by a single
+line, as is any set of three non-collinear points. In general the VC dimension of
+linear decision surfaces in $d$ dimensions is $d+1$.
+
+Using the VC dimension we can bound sample complexity for infinite spaces. Blumer
+/et al./ give an upper (sufficient) bound and Ehrenfeucht /et al./ a lower
+(necessary) one:
+
+\[
+  m \geq \frac{1}{\epsilon}\left( 4\lg \frac{2}{\delta} + 8 VC(\mathcal{H})\lg \frac{13}{\epsilon} \right)
+\]
+
+\[
+  m \geq \max \left[ \frac{1}{\epsilon}\log \frac{1}{\delta}, \frac{VC(\mathcal{H})-1}{32} \right]
+\]
+
+Model selection: we saw theneed for inductive bias correstionding to assumptions about $\mathcal{H}$.
+Many consider the VC dimension as the strength of the inductive bias.
+
+Fundamentally, learning is an /ill-posed problem/ — the data is not sufficient to
+find a unique solution. /Generalization/ is how well a model performs on new data,
+/overfitting/ is $\mathcal{H}$ more complex than $c$ or $f$, and /underfitting/ is
+$\mathcal{H}$ less complex than $c$ or $f$.
+
+** Tripe Tradeoff
+- Complexeicty of $\mathcal{H}$
+- Training set size, $N$
+- Generalization error, $E$, on new data
+
+How do we balance all of this?
+
+The trade-off (Dietterich, 2003) runs as follows: as $N$ increases, $E$ decreases;
+as the complexity of $\mathcal{H}$ increases, $E$ first decreases and then increases
+again once the space is more complex than the concept.
+
+
+
+** VC(H) and Inductive Bias
+- Unbiased hypothesis space $\mathcal{H}$ shatters the entire instance space $X$ since it includes all possible hypotheses
+- AKA, $\mathcal{H}$ is able to induce every partition on set $X$ of all possible instances (regardless of the set $X$)
+- the larger the subset $X$ that can be shattered, the /more expensive/ a hypothesis space is (i.e., the less biased).
+
+
+
+
+** VC(H) and Sample Complexity
+
+- VC(H) prescribes an Occam algorithm for infinite hypothesis spaceas
+
+Given a sample $\mathcal{D}$ of $m$ examples, find some $h$ consistent with all $m$
+of them. If
+
+\[
+  m \geq \frac{1}{\epsilon}\left( 8 VC(\mathcal{H})\lg \frac{13}{\epsilon} + 4\lg \frac{2}{\delta} \right)
+\]
+
+then with probability at least $(1-\delta)$, $h$ has true error less than $\epsilon$.
+If $m$ is polynomial it is a PAC learning algorithm, and to be efficient we also
+need to produce $h$ efficiently. Note that $|\mathcal{H}| > 2^{m}$ is required to
+shatter $m$ examples, i.e. $VC(\mathcal{H}) \leq \lg |\mathcal{H}|$.
+
+* Making Decisions
+
+Much of machine learning is about making decisions. Suppose we are deciding between
+two options $\omega_{1}$ and $\omega_{2}$, which means two choices $\alpha_{1}$ and
+$\alpha_{2}$ are available to us, and the goal is to use evidence $x$ to decide.
+
+** Risk Minimization
+
+Consider the /cost/ of a decision, written $\lambda(\alpha_{i} \mid \omega_{j})$ —
+or $\lambda_{ij}$ — where $\alpha_{i}$ is our choice and $\omega_{j}$ is the correct
+one. The goal is to minimize expected loss, computed with the /risk/ functional
+
+\[
+  R(\alpha_{i} \mid x) = \sum_{j}^{} \lambda_{ij} P(\omega_{j} \mid x)
+\]
+
+** Computing Risk
+
+Start from $P(\omega_{j} \mid x)$ and use Bayes rule:
+
+\[
+  P(\omega_{j} \mid x) = \frac{P(x \mid \omega_{j})P(\omega_{j})}{P(x)} \text{ where } P(x) = \sum_{k}^{} P(x \mid \omega_{k})P(\omega_{k})
+\]
+
+We seek $\alpha^{*} = \underset{\alpha_{i}}{\arg\min}\ R(\alpha_{i} \mid x)$. For two choices,
+
+\[
+  R(\alpha_{1} \mid x) = \lambda_{11}P(\omega_{1} \mid x) + \lambda_{12}P(\omega_{2} \mid x) \text{ and } R(\alpha_{2} \mid x) = \lambda_{21}P(\omega_{1} \mid x) + \lambda_{22}P(\omega_{2} \mid x)
+\]
+
+and we pick $\omega_{1}$ over $\omega_{2}$ if $R(\alpha_{1} \mid x) < R(\alpha_{2} \mid x)$. Rearranging,
+
+\[
+  \left( \lambda_{11}-\lambda_{21} \right)P(\omega_{1} \mid x) < \left( \lambda_{22}-\lambda_{12} \right)P(\omega_{2} \mid x)
+\]
+
+and applying Bayes rule again turns the posteriors into likelihoods and priors:
+
+\[
+  \left( \lambda_{11}-\lambda_{21} \right)P(x \mid \omega_{1})P(\omega_{1}) < \left( \lambda_{22}-\lambda_{12} \right)P(x \mid \omega_{2})P(\omega_{2})
+\]
+
+** 0/1 Loss
+
+Apply 0/1 loss, among the most basic loss functions: $\lambda_{11} = \lambda_{22} = 0$
+and $\lambda_{12} = \lambda_{21} = 1$. The inequality collapses to
+
+\[
+  -P(x \mid \omega_{1})P(\omega_{1}) < -P(x \mid \omega_{2})P(\omega_{2})
+\]
+
+so we choose $\omega_{1}$ over $\omega_{2}$ if
+$P(x \mid \omega_{1})P(\omega_{1}) > P(x \mid \omega_{2})P(\omega_{2})$, which is just
+$P(\omega_{1} \mid x) > P(\omega_{2} \mid x)$.
+
+** Bayes Decision Criterion
+
+Generally we want the most probable hypothesis given the training data. The
+/maximum a posteriori/ hypothesis is
+
+\[
+  h_{MAP} = \underset{h \in \mathcal{H}}{\arg\max} P(h \mid \mathcal{D}) = \underset{h \in \mathcal{H}}{\arg\max} \frac{P(\mathcal{D} \mid h)P(h)}{P(\mathcal{D})} = \underset{h \in \mathcal{H}}{\arg\max} P(\mathcal{D} \mid h)P(h)
+\]
+
+dropping $P(\mathcal{D})$ because it does not depend on $h$. If we assume all priors
+are equal, $P(h_{i}) = P(h_{j})$ for all $i \neq j$, this simplifies to the
+/maximum likelihood/ hypothesis:
+
+\[
+  h_{ML} = \underset{h \in \mathcal{H}}{\arg\max} P(\mathcal{D} \mid h)
+\]

@@ -12,6 +12,8 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
+Slides: [[file:Week 1 Notes.pdf][Week 1: Introduction (PDF)]]
+
 * What is machine learning?
 - Computer program that improves performance over time
 - mapping of data into a model
@@ -38,6 +40,7 @@
   - clustering
   - Dimensionality Reduction
   - Association analysis
+  - Representation learning
   - Manifold learning: Trying to find the underlying geometry and to map the data to that underlying space
 *Classification and clustering are not the same. Clustering is identifying similarities within the data. The classification is a secondary process.*
 ** Reinforcement Learning
@@ -51,8 +54,9 @@
 - one common approach is called "self-training"
 
 
-Then he talked about classification vs regression. TLDR: classification is discrete, regression is continuous
+* Machine Learning Problem Types
 
+Then he talked about classification vs regression. TLDR: classification is discrete, regression is continuous
 
 * The Winnow-2 Algorithm
 
@@ -100,8 +104,12 @@ w_i & \text{if } x_{i} =0 \\
 ** Example
 
 \(
- f(x) = (x_{1} \vee x_{2}) \wedge v_{3}
+ f(x) = (x_{1} \vee x_{2}) \wedge x_{3}
 \)
+
+The slides run this example with $\mathbb{w} = [1.0\ 1.0\ 1.0]$, $\alpha = 2$ and
+$\theta = 0.5$, and the weights walk through $[1.0\ 1.0\ 0.5]$, $[1.0\ 0.5\ 0.5]$,
+$[0.5\ 0.5\ 0.5]$, $[0.25\ 0.25\ 0.5]$ as demotions fire.
 
 #+begin_src python
 import pandas as pd
@@ -194,7 +202,9 @@ for xi, target in zip(X, y):
 
 * Why does Machine Learning Work?
 Definition: consider any concept learning algorithm $L$ for a set of instances $X$. The inductive bias of $L$ is any minimal set of assertions $B$ such that for any target concept $c$ and corresponding training examples $D_c$, 
-$\forall x_{i} \in X, (B \wedge D_c \wedge x_i \vdash L(x_{i} D_c)$ 
+\[
+  \forall x_{i} \in X, (B \wedge D_{c} \wedge x_{i}) \vdash L(x_{i}, D_{c})
+\]
 
 Theorem: A learner that makes no a priori assumptions regarding the identity of the target concept has no rational basis for classifying any unseen instances.
 *Interpretation: an unbiased learner cannot learn!*
@@ -204,16 +214,44 @@ Theorem: A learner that makes no a priori assumptions regarding the identity of 
 - *Preference Bias* (aka selection bias) : How the learner searches the hypothesis space and decides which hypotheses are better than others (reduce error)
   - Emphasized that ML is a /search/ process. How do you traverse the search space and make decisions based on that space.
   - emphasizes search in ML involves /optimization/
+  - The objective is to maximize performance
   - Examples: maximizing performance/minimizing loss
+  - Making the model as simple as possible (Principle of Parsimony, aka Occam's Razor): this avoids /overfitting/
 
 Winnow-2 has a linear representation bias. This can only solve problems that have a linear divide between the classes.It can learn AND, but not XOR with the given set of features we discussed.
 
+\[
+  h(x) = 1 \text{ iff } \sum_{i=1}^{d} w_{i}x_{i} > \theta
+\]
+
+The slides show this two ways: with weights $[0.5\ 0.5]$ and a threshold of
+$\theta = 0.5$ the separator is a line, while exclusive OR has no linear
+separator at all, so that concept does not match the linear representation bias.
+
 * No Free Lunch Theorem
- 
+
 There is no algorithm that is good for every solution. You can find an optimal solution for a particular solution, but models will always perform better on some datasets than others.
 
+Stated formally, treat machine learning as an optimization problem and define the
+sample of $m$ input/output pairs seen so far as
 
-Inductive Learning hypothesis: Any *hypothesis* found to approximation the target function well over a sufficiently *large set of training examples* will also approximate the target function well over the over unobserved examples
+\[
+  d_{m} = \{ (d_{m}^{x}(1), d_{m}^{y}(1)), \ldots, (d_{m}^{x}(m), d_{m}^{y}(m)) \}
+\]
+
+so the $i^{th}$ mapping is $(d_{m}^{x}(i), d_{m}^{y}(i))$. Comparing two
+algorithms $a_{1}$ and $a_{2}$ relative to learning a target function $f$ means
+considering $P(d_{m}^{y} \mid f, m, a)$.
+
+*Theorem (Wolpert & Macready)*: for any pair of algorithms $a_{1}$ and $a_{2}$,
+
+\[
+  \sum_{f} P(d_{m}^{y} \mid f, m, a_{1}) = \sum_{f} P(d_{m}^{y} \mid f, m, a_{2})
+\]
+
+Averaged over every possible target function, the two algorithms perform identically.
+
+Inductive Learning hypothesis: Any *hypothesis* found to approximation the target function well over a sufficiently *large set of training examples* will also approximate the target function well over the over unobserved examples (Mitchell, 1997)
 - End goal is to learn a model capable of generalizing on examples not used in the training process
 
 
@@ -237,7 +275,7 @@ True error is the expected loss over the entire underlying distribution of possi
 - *Sample error* of $h$ with respect to $f$ and data sample $\mathcal{s}$ is the proportion of examples $h$ misclassifies. 
 
 \[
-  \text{error}_{\mathcal{S}}(h) = \frac{1}{n}\sum_{x \in \mathcal{S}} \delta(f(x),h(x)), \text{where } \delta(f(x),(h(x)) = \begin{cases}
+  \text{error}_{\mathcal{S}}(h) = \frac{1}{n}\sum_{x \in \mathcal{S}} \delta(f(x),h(x)), \text{where } \delta(f(x),h(x)) = \begin{cases}
     1 & f(x) = h(x) \\
     0 & f(x) \neq h(x)
   \end{cases}
@@ -277,9 +315,56 @@ Loss functions include:
 - Absolute Error
 - Log Loss (cross entropy) $L_{\log}$
 
+Writing $\hat{y}$ for the model output and $y$ for the ground truth, the slides give:
+
+\[
+  L_{01}(\hat{y},y) = \begin{cases}
+    1 & \hat{y} = y \\
+    0 & \hat{y} \neq y
+  \end{cases}
+\]
+
+\[
+  L^{2}(\hat{y},y) = \left( \hat{y}-y \right)^{2}
+\]
+
+\[
+  L_{hinge}(\hat{y},y) = \max \{ 0, 1-\hat{y} \cdot y \}
+\]
+
+\[
+  L_{\log}(\hat{y}(x),y) = y \log \hat{y}(x) + (1-y)\log \left( 1-\hat{y}(x) \right)
+\]
+
+where $\hat{y}(x)$ for log loss is a logistic sigmoid squashing the model output into $(0,1)$.
+
 * Bias-Variance Trade-off
 
-When you look at the squared loss and the expected value over the dataset, it can be rewritten as a bias+variance equation. 
+When you look at the squared loss and the expected value over the dataset, it can be rewritten as a bias+variance equation.
+
+Let $r = f(x) + \epsilon$ where the noise $\epsilon$ is drawn from an unknown
+distribution, and learn a model $g(x)$. Measuring loss by expected squared error
+over the sample $\mathcal{X}$,
+
+\[
+  E(\theta \mid \mathcal{X}) = \frac{1}{N} \sum_{t}^{} \left( r^{t}-g(x^{t} \mid \theta) \right)^{2}
+\]
+
+that expected squared error splits into a term that no model can remove and a term that is the model's own fault:
+
+\[
+  E\left[ (r-g(x))^{2} \mid x \right] = E\left[ \left( r-E[r \mid x] \right)^{2} \mid x \right] + \left( E[r \mid x]-g(x) \right)^{2}
+\]
+
+The first term is /noise/ and the second is /squared error/. Re-arranging the
+squared error over different training samples (Alpaydin p. 72, Eq. 11) gives the
+bias and the variance:
+
+\[
+  E_{\mathcal{X}}\left[ \left( E[r \mid x]-g(x) \right)^{2} \right] = \left( E[r \mid x]-E_{\mathcal{X}}[g(x)] \right)^{2} + E_{\mathcal{X}}\left[ \left( g(x)-E_{\mathcal{X}}[g(x)] \right)^{2} \right]
+\]
+
+with /bias/ on the left of the sum and /variance/ on the right.
 
 When training a model, prediction error can be broken down into two competing sources:
 - *Bias*: Error from overly simplistic assumptions in the model. High bias means the model /underfits/, missing real patterns in the data (e.g., fitting a straight line to curved data).
@@ -300,8 +385,11 @@ versa.
 
 * Takeaways:
 - match algorithm to problem based on the situation. No free lunch
+  - Don't look for a panacea of learning algorithms
 - Understand your problem and your data
-- pick model representation that balances bias/variance 
-- consider performance function 
+- pick model representation that balances bias/variance
+- consider performance function
+  - Consider the effect of the performance (i.e., loss) function on the behavior of the learning algorithm
 - pick an algorithm for the situation.
+  - Pick one that is well-suited to optimize that performance function
 

@@ -123,19 +123,6 @@ Example Ideas:
 
 All communication will be done via Canvas and Discord announcements. 
 
-* Topics
-** Memory management
-** Processor management
-** Device management
-** File management
-
-
-* Components of a computer system
-** Processor
-** Main Memory (ram)
-** I/O Modules
-** System Bus
-
 * Popup quiz 1:
 1. Supposed you use simple paging. The logical address is 15 bits long, 5 of which are used for the page number, and the remaining bits are used for offset. Assume a word is 1 byte. 
   1. What is the max size of the process address space (process image) a system can support? *$2^{15}$ bytes*

@@ -121,4 +121,12 @@ You can assign weights to k-nn with distance. The further the neighbor is from $
 
 Outlier Detection: Not usually used in supervised learning, but you can perform outlier detection with a /one-class classification/, which is used to weed-out anomalies.
 
-/Local Outlier Factor/ (LOF) {{{hl(orange,COME BACK LATER)}}}
+/Local Outlier Factor/ (LOF): outliers typically occur in sparse areas of the space, so compare the local density of a data point against the average local density of the points around it.
+
+Let $\delta_{k}(x)$ be the distance between an instance $x$ and its $k^{th}$ nearest neighbor, and let $\mathcal{N}(x)$ be the examples in the neighborhood of $x$ (its $k$ nearest neighbors). For all $s \in \mathcal{N}(x)$, take the average $\delta_{k}(s)$. Then
+
+\[
+  LOF(x) = \frac{\delta_{k}(x)}{\sum_{s \in \mathcal{N}(x)}^{} \delta_{k}(s)/|\mathcal{N}(x)|}
+\]
+
+A $LOF$ close to 1.0 indicates the point is not an outlier; a $LOF$ significantly larger than one indicates that it is.

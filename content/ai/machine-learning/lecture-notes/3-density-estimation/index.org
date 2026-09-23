@@ -1,0 +1,323 @@
+#+TITLE: 3 Density Estimation
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-08-29
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Week 3 Notes.pdf][Week 3: Density Estimation (PDF)]]
+
+* Outlier Detection
+
+Outlier detection is often an "unsupervised learning" process
+
+An /outlier/ is an example that is "very much different" from other examples in the
+data set. Outliers are not generally regarded as classes in the traditional sense,
+and they are not generally labeled as such — which is why detecting them is usually
+unsupervised. Identifying (i.e. classifying) an example as an outlier leads to
+so-called /one-class classification/, and the point of detecting them is to take
+separate action, such as filtering.
+
+** Local Outlier factor
+
+Outliers are typically sparse
+- compare local density of a datapoint with average local density of other data points
+
+\[
+  LOF(x) = \frac{\delta_{k}(x)}{\sum_{s \in \mathcal{N}(x)}^{} \delta_{k}(s)/|\mathcal{N}(x)|}
+\]
+
+| $\delta_{k}(x)$ | distance between instance x and kth nn |
+|        $\mathcal{N}(x)$          |      the examples in the neighborhood of $x$ (e.g. its $k$ nearest neighbors), so $|\mathcal{N}(x)|$ is how many there are                            |
+
+So the denominator is the average $\delta_{k}$ over $x$'s own neighbors: $LOF$ close
+to 1.0 indicates not an outlier, while $LOF$ significantly larger than one indicates
+an outlier.
+
+* Error in Nearest Neighbor
+
+Errors are introduced for multiple reasons:
+- noise
+- lack of precision
+- human Error
+- irrelevant attributes
+
+For continuous concepts, at best, an example is an approximation
+
+Generally it is not reasonable to assume examples accurately represent concepts.
+
+
+* Dimensionality Reduction
+Two principal categories:
+- Feature selection: choosing a subset of features
+- feature extraction: transform input features to a new feature space
+
+Example transformation: Fourier Transform
+- Data is often provided in the "time" domain
+- Data is converted to the "frequency" domain
+- Example algorithms: Discrete Fourier Transform, Fast Fourier Transform
+
+Representation Learning is a growing community that tries to optimize which features are important. Manifold learning is trying to learn the shape of a lower-dimensional field, then you can work within that lower-dimensional, easier plane
+
+** Models of Feature selection
+Filter Model: set all features $\to$ selecting best subset $\to$ learning algorithm $\to$ performance
+
+Wrapper Model: set of all features $\to$ Selecting best subset by looping (generating a subset $\iff$ learning algorithm) $\to$ performance
+
+*** Stepwise Forward selection
+- Wrapper method
+- Exponential
+
+Method: Add one feature at a time, evaluate a model with the new feature, calculate performance. Keep the subset of features that give you the best performance
+
+Given a feature set $\mathcal{F} = \{ f_{1}, \ldots, f_{d} \}$ and a data set
+$\mathcal{D}$, begin with an empty feature set $\mathcal{F}_{0} = \cdot$ and grow it.
+Similar in principle to /condensed nearest neighbor/.
+
+
+*** Stepwise Backward selection
+- Wrapper method
+- Quadratic runtime
+
+Method: Start with entire feature set, remove one at a time, calculate performance. Keep the smallest subset of features that give you the best performance
+
+Here $\mathcal{F}_{0} = \{ f_{1}, \ldots, f_{d} \}$ and features are dropped one at a
+time, removing the worst each round. Similar in principle to /edited nearest
+neighbor/.
+
+
+** Local Search Methods
+Consider searching over the full space of possible features rather than adding or eliminating fores one at a time in a greedy fashion. It is referred to local each since it makes local modifications to a complete solution
+
+*** Hill Climbing
+- Start at in initial point in the search space. Look around the local neighborhood. Choose a way, see if performance improved, and take the step up if it did. You can add a /stochastic/ aspect by randomly selecting and flipping a bit in the vector, then checking performance after.
+
+The state is a binary vector the length of the feature count, where 1 means the
+feature is selected, and performance is evaluated by training a model on the
+selected features. /Simple/ hill climbing incrementally flips each bit and retains
+the best flip; /stochastic/ hill climbing (aka first-choice or random-mutation hill
+climbing) flips one bit at random, taking it if better and discarding it if not.
+Note that the two stepwise methods above are hill climbers.
+
+
+*** Simulated Annealing
+
+It's like hill climbing, but you have a "temperature" that slowly decreases over time. If the temperature is high, the probability is more likely to choose a random step regardless of performance. The temperature slowly decreases over time, allowing the hill climbing to vary less until it converges.
+
+*** Genetic algorithm
+
+Suppose you have a vector $\mathcal{F}= \beta_{0},\beta_{1},\beta_{2},\beta_{3},\beta_{4},\beta_{5}$
+
+We can refer to this vector as a genome. betas can be on and off, and there is another vector of functions that, when $\mathcal{F}[x]$ is 1, the function is activated.
+
+So an individual is a bit string such as $\mathcal{F}_{1} = 1001011010$, and the
+population is $\mathcal{P} = \{ \mathcal{F}_{1}, \ldots, \mathcal{F}_{n-1} \}$.
+
+
+**** Selection and replacement
+
+- Fitness Proportionate Selection
+\[
+  P(X_{i}) = \frac{f(X_{i})}{\sum_{j=1}^{n-1} f(X_{j})}
+\]
+
+Fitness is based on performance of the model trained with the subset of features
+
+We assume /steady state/ replacement, meaning only a small subset of the population
+is replaced each generation rather than the whole population.
+
+**** Recombination/Crossover
+
+A method of mating two (or more) parents selected from the population. We assume two parents are generate two offspring by splicing the parent chromosomes, then mixing/matching the splices. This shouldnt occur ine very instance, it should be a probability.
+
+With parents $[1\ 1\ 1\ 1\ 1\ 1\ 1\ 1\ 1\ 1]$ and $[0\ 0\ 0\ 0\ 0\ 0\ 0\ 0\ 0\ 0]$,
+a single crossover point gives offspring $[1\ 1\ 1\ 1\ 0\ 0\ 0\ 0\ 0\ 0]$ and
+$[0\ 0\ 0\ 0\ 1\ 1\ 1\ 1\ 1\ 1]$.
+
+**** Mutation
+Introduce a random variation for a point in the offspring. There is a small probability a mutation occurs to slightly alter the data. Then, there is a hyper-mutation, which has a very small chance, but it can significantly change the offspring.
+
+The slides "march" down each individual and randomly swap a subset of bits, so
+those same offspring might mutate to $[1\ 1\ 0\ 1\ 0\ 0\ 0\ 0\ 1\ 0]$ and
+$[0\ 0\ 0\ 1\ 1\ 1\ 0\ 1\ 1\ 0]$.
+
+** Principal Component Analysis (PCA)
+
+To calculate $k$, you can calculate the /Proportion of Variance/.
+
+You can use a scree graph
+
+The goal is to find an orthogonal basis set that explains the variance in the data.
+Let $\mathcal{D} = \{ x^{1}, \ldots, x^{N} \}$ be examples in $d$-dimensional space,
+so $x^{t} = f_{1}, \ldots, f_{d}$. Then
+
+\[
+  m = \frac{1}{N}\sum_{t=1}^{N} x^{t} \text{ and } x^{t\prime} = x^{t}-m
+\]
+
+\[
+  S = \frac{1}{N}\sum_{t=1}^{N} \left( x^{t}-m \right)^{2} = \frac{1}{N}\sum_{t=1}^{N} \left( x^{t\prime} \right)^{2}
+\]
+
+Now consider the /covariance/ between pairs of features $f_{i}$ and $f_{j}$:
+
+\[
+  \sigma_{ij} = \frac{1}{N}\sum_{t}^{} \left( x_{it}-m_{i} \right)\left( x_{jt}-m_{j} \right) = \frac{1}{N}\sum_{t}^{} x'_{it}x'_{jt}
+\]
+
+Apply SVD to the covariance matrix and solve for the eigenvalue matrix,
+$D = W^{T} \text{Cov}\, W$, where
+- the off-diagonal entries of $D$ are all zero
+- the diagonal entries of $D$ are the square roots of the eigenvalues of $\text{Cov}$, which are the variances of the transformed data along the principal axes (components)
+- the row vectors of $W$ are the eigenvectors of $\text{Cov}$, and are called the /principal components/
+
+** Fisher's Linear Discriminant Analysis
+
+*** Finding the linear discriminants
+
+Let $\mathcal{F} = f_{1}, \ldots, f_{d}$ be a feature vector, let $m_{1}$ be the mean
+vector of examples from class $\mathcal{C}_{1}$ and $m_{2}$ the mean vector from
+class $\mathcal{C}_{2}$ (assuming two classes), and let $m'_{1}$ and $m'_{2}$ be
+those means after projection onto $w$. Given a sample
+$\mathcal{X} = \{ x^{t}, r^{t} \}$, where $r^{t}=1$ marks membership in
+$\mathcal{C}_{1}$:
+
+\[
+  m'_{1} = \frac{\sum_{t}^{} w^{T}x^{t}r^{t}}{\sum_{t}^{} r^{t}} = w^{T}m_{1} \Rightarrow s_{1}^{2} = \sum_{t}^{} \left( w^{T}x^{t}-m'_{1} \right)^{2}r^{t}
+\]
+
+\[
+  m'_{2} = \frac{\sum_{t}^{} w^{T}x^{t}(1-r^{t})}{\sum_{t}^{} (1-r^{t})} = w^{T}m_{2} \Rightarrow s_{2}^{2} = \sum_{t}^{} \left( w^{T}x^{t}-m'_{2} \right)^{2}(1-r^{t})
+\]
+
+Following projection we want two things: the classes well separated, so
+$m'_{1}-m'_{2}$ large, and minimal scatter, so $s_{1}^{2}+s_{2}^{2}$ small. Find the
+weight vector $w$ maximizing
+
+\[
+  J(w) = \frac{\left( m'_{1}-m'_{2} \right)^{2}}{s_{1}^{2}+s_{2}^{2}}
+\]
+
+*** Between-class scatter
+
+Rewrite the numerator as a projection onto $w$:
+
+\[
+  \left( m'_{1}-m'_{2} \right)^{2} = \left( w^{T}m_{1}-w^{T}m_{2} \right)^{2} = w^{T}\left( m_{1}-m_{2} \right)\left( m_{1}-m_{2} \right)^{T}w = w^{T}S_{B}w
+\]
+
+where $S_{B} = \left( m_{1}-m_{2} \right)\left( m_{1}-m_{2} \right)^{T}$.
+
+*** Within-class scatter
+
+Rewrite the denominator the same way:
+
+\[
+  s_{1}^{2} = \sum_{t}^{} \left( w^{T}x^{t}-m'_{1} \right)^{2}r^{t} = w^{T}\left[ \sum_{t}^{} r^{t}\left( x^{t}-m_{1} \right)\left( x^{t}-m_{1} \right)^{T} \right]w = w^{T}S_{1}w
+\]
+
+Total class scatter is $S_{W} = S_{1}+S_{2}$, so the denominator becomes
+$s_{1}^{2}+s_{2}^{2} = w^{T}S_{W}w$.
+
+*** Final objective function
+
+\[
+  J(w) = \frac{w^{T}S_{B}w}{w^{T}S_{W}w}
+\]
+
+Taking the derivative, setting it to zero and solving yields
+
+\[
+  \nabla_{w}J(w) = 0 \Rightarrow w = S_{W}^{-1}\left( m_{1}-m_{2} \right)
+\]
+
+* Clustering
+
+Expectation Maximization: a local search method that uses a max-likelihood approach.
+
+kmeans, kmeans++,
+
+Theory says kmeans++ guarantees results will be O(log(k))-competitive relative to the optimzal clustering
+
+** Expectation Maximization
+
+A local search method to find values of variables that are not observed directly,
+using a maximum-likelihood approach. With observed variables $X$ and unobserved
+variables $Z$, the goal is the set of parameters $\Phi$ maximizing the likelihood
+$\mathcal{L}(\Phi \mid X)$; when hidden (latent) factors affect this we model them
+with $Z$ and maximize $\mathcal{L}(\Phi \mid X, Z)$ instead. That is the idea we use
+to cluster the data.
+
+** EM for Clustering
+
+Assumptions: we have $k$ multivariate Gaussian/spherical clusters, each with an
+unknown mean vector $\mu_{1}, \ldots, \mu_{k}$, and we do not know which Gaussian
+generated which data point. Apply EM to find the cluster means, then use the means
+to assign the points.
+
+Describe a generated instance as $B_{i} = x_{i}, z_{i1}, z_{i2}$, where $z_{ij}=1$
+means $x_{i}$ was generated by cluster $j$. Begin by guessing
+$h = \mu_{1}, \mu_{2}$ at random, then alternate:
+
+E step (expectation):
+
+\[
+  E[z_{i1}] = \frac{p(x_{i} \mid \mu_{1})}{\sum_{j=1}^{2} p(x_{i} \mid \mu_{j})} = \frac{\exp \left( -\frac{1}{2\sigma^{2}}\left( x_{i}-\mu_{1} \right)^{2} \right)}{\sum_{j=1}^{2} \exp \left( -\frac{1}{2\sigma^{2}}\left( x_{i}-\mu_{j} \right)^{2} \right)}
+\]
+
+M step (maximization), giving $h' = \mu'_{1}, \mu'_{2}$:
+
+\[
+  \mu_{1} = \frac{\sum_{i=1}^{N} E[z_{i1}]x_{i}}{\sum_{i=1}^{N} E[z_{i1}]}
+\]
+
+** k-Means Clustering
+
+The slides run the one-dimensional set $1, 2, 3, 6, 7, 8, 10, 11, 12$ with $K=3$
+and initial means $m_{1}=1$, $m_{2}=4$, $m_{3}=12$; it converges to the three
+obvious groups with means $2$, $7$ and $11$.
+
+** k-means++
+
+Shortcomings of $k$-means:
+- Worst-case time complexity is super-polynomial (both $k$-means and $k$-medoids are actually NP-hard)
+- Final clusters can be objectively bad relative to the optimal clustering, i.e. unbounded relative to it
+
+Both issues are affected by the initial cluster centroids, especially the second,
+so $k$-means++ focuses on choosing those initial centroids, and the result
+guarantees clusters whose suboptimality can be bounded.
+
+#+begin_pseudocode
+C \gets \emptyset
+\text{choose } c_{1} \text{ uniformly at random from } \mathcal{X} \text{ and add it to } C
+\textbf{repeat}
+\quad \text{let } D(x) \text{ be the minimum distance from } x \text{ to the closest center already chosen}
+\quad \text{choose the next center } c_{i} = x' \in \mathcal{X} \setminus C \text{ with probability } D(x')^{2} / \textstyle\sum_{x \in \mathcal{X} \setminus C} D(x)^{2}
+\textbf{until } k \text{ cluster centers have been selected}
+#+end_pseudocode
+
+So the first centroid is an example drawn uniformly from the data set, and each
+later one is drawn probabilistically, favouring points far from the nearest
+existing centroid.
+
+*** Theory
+
+Let $\phi = \sum_{x \in \mathcal{X}}^{} \min_{c \in C} \| x-c \|^{2}$ denote the
+/potential/ of clusters $C$, and let $\phi_{OPT}$ denote the potential of the
+optimal clustering of $\mathcal{X}$.
+
+*Theorem*: if $C$ is constructed using $k$-means++, then
+
+\[
+  E[\phi] \leq 8\left( \ln k + 2 \right)\phi_{OPT}
+\]
+
+which is what it means to say $k$-means++ is $O(\log k)$-competitive relative to the
+optimal clustering.

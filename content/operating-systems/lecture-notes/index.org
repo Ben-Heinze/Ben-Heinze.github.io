@@ -13,33 +13,9 @@
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
 
-|Date|Topic|
-|Week 1| Computer System Overview |
-|Week 2| Memory Management|
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+| Date            | Topic                                                          |
+| Week 1 (Aug 26) | Computer System Overview                                       |
+| Week 2 (Aug 31) | 1 Memory Management                                            |
+| Week 3 (Sep 9)  | Memory Hierarchy --- at the bottom of Computer System Overview  |
+| Week 3 (Sep 11) | Virtual Memory --- at the bottom of 1 Memory Management        |
+| Week 5 (Sep 21) | 2 Process Management                                           |

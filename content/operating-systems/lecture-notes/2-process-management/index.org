@@ -1,0 +1,419 @@
+#+TITLE: 2 Process Management
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-21
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Process Management.pdf][Process Management (PDF)]]
+
+* OS Management of Application Execution
+
+- Resources are made available to multiple applications
+- The processor is switched among multiple applications so all will appear to be progressing
+- The processor and I/O devices can be used efficiently
+
+* Program vs Process
+- A recipe is a program. Cooking the dish is a process
+- a /program/ is passive. Just a file on disk, a set of instructions
+- A /process/ is a program brought to life
+
+* What is a Process?
+- Instance of a program running on a computer (user's POV)
+- Entity that can be assigned to and executed on a processor (OS POV)
+- {{{hl(green,Unit of activity characterized by the execution of a sequence of instructions\, current state\, and an associated set of program resources (OS Implementer's POV))}}}
+
+The deck attributes each definition to a different viewpoint: an instance of a program running on a computer is the /user's/ point of view; the entity that can be assigned to and executed on a processor is the /OS scheduler's/ point of view; a unit of activity characterized by a sequence of instructions, a current state, and an associated set of system resources is the /OS implementer's/ point of view.
+
+* Process Elements
+- Program code
+  - which may be shared with other processes that are executing the same program
+- A set of data associated with that code
+
+
+While the program is executing, this process can be uniquely characterized by a number of elements, including:
+  - Identifier
+  - State
+  - Priority
+  - Program Counter
+  - Memory Pointers
+  - Context data
+  - I/O Status information
+  - accounting information
+
+* Why It Matters
+
+It matters because the *OS has to manage many processes at once*, and without these elements it wouldn't be able to:
+- Distinguish processes
+- Suspend and resume correctly
+- Provide isolation and protection
+- Coordinate resources
+  - I/O and scheduling info lets the OS fairly share devices, files, and CPU time among processes
+
+The process elements *allow the OS to treat each process as a distinct, manageable unit*, enabling multitasking, protection, and efficient resource use.
+
+* Process Control Block (PCB)
+
+The OS stores these elements for each process in a dedicated data structure: the /Process Control Block/ (PCB). Figure 3.1 shows a simplified PCB — identifier, state, priority, program counter, memory pointers, context data, I/O status information, accounting information.
+
+** What Happens When a Process Is Interrupted?
+- The current values of the program counter and the processor registers (context data) are saved in the appropriate fields in the PCB
+- The state of the process is changed to some other value, such as blocked or ready
+- Then the OS is free to put some other process in the running state
+
+* Process States
+
+- We can characterize the behavior of an individual /process/ by listing the sequence of instructions that execute for that process. Such a listing is referred to as a /trace/ of the process
+- We can also characterize the behavior of the /processor/ (not to be confused with process) by showing how the traces of the various processes are interleaved
+
+** Trace and Dispatcher
+
+| Term       | Meaning                                                                                    |
+| Trace      | The behavior of an individual process, by listing the sequence of instructions that execute for that process |
+| Dispatcher | Small program that switches the processor from one process to another                       |
+
+The behavior of the processor can be characterized by showing how the traces of the various processes are interleaved. The slides walk the same example twice: first from each of the processes' point of view, then from the processor's point of view (Figure 3.2, Snapshot of Example Execution, with three processes at addresses 5000, 8000 and 12000 and a dispatcher at 100, and Figure 3.7, Process States for the Trace of Figure 3.4).
+
+Animation: [[https://www.cs.montana.edu/adiesha/animations/assets/os/process-trace.html][process trace]]
+
+** Two-State Process Model
+- The OS's main job is controlling process execution — deciding the interleaving pattern and allocating resources
+- To manage that, we need a simple way to describe what a process is doing at any moment
+- The simplest model: a process is either *Running* (currently on the processor) or *Not Running* (everything else)
+
+Figure 3.5 (Two-State Process Model) shows the dispatch/pause transitions between them, with a queue feeding the dispatcher.
+
+- The PCB can be used to keep track of the process information — where the process is in memory, and the current state of the process
+- When a process is not being executed it will stay in the queue, waiting for its turn
+
+** Creating and Terminating Processes
+
+- When a new process is added to those currently being managed, the OS builds the necessary data structure to handle them — namely the PCB
+- In a batch environment, a process is created in response to the submission of a job
+- In an interactive environment, a process is created when a new user attempts to log on
+- The OS is responsible for creation of a new process
+- The OS may also create processes on behalf of an application
+  - /Process spawning/ gives a *parent process* and a *child process*
+
+| Cause                           | What happens                                                                                                                     |
+| New batch job                   | The OS is provided with a batch job control stream, usually on tape or disk. When the OS is prepared to take on new work, it will read the next sequence of job control commands |
+| Interactive log-on              | A user at a terminal logs on to the system                                                                                        |
+| Created by OS to provide a service | The OS can create a process to perform a function on behalf of a user program, without the user having to wait (e.g. a process to control printing) |
+| Spawned by existing process     | For purposes of modularity or to exploit parallelism, a user program can dictate the creation of a number of processes             |
+
+*** Process Termination
+- There must be a way to terminate a process and inform the user
+- In batch systems, typically a job includes a halt instruction or an explicit OS service call for termination
+  - This generates an interrupt to the processor, which invokes the necessary part of the OS to deal with the job completion
+- In a time-sharing system, when a user logs off or shuts off the terminal a process may terminate
+- In a workstation, when the user quits an application a process may terminate
+- A process may terminate on errors or fault conditions
+
+** Limitations of the Two-State Model
+- Not all processes are ready to execute — a process that has issued an I/O request must wait for it to finish before it can run again
+- So the "Not Running" state actually hides two different situations: processes that are *ready* to execute, and processes that are *blocked* waiting for an event
+- With a single queue for all not-running processes, the dispatcher can't just take the next one — it may have to search the queue for a process that is actually ready to run
+- The two-state model can't express this difference, so it can't manage it. We need a better model
+
+** Five-State Process Model
+
+Figure 3.6 (Five-State Process Model): New, Ready, Running, Blocked, Exit.
+
+*** State Transitions
+
+| Transition        | When                                                                                                       |
+| Null $\to$ New     | A new process is created to execute a program                                                               |
+| New $\to$ Ready    | The OS moves a process from New to Ready when it is prepared to take on an additional process. Most systems set some limit based on the number of existing processes or the amount of virtual memory committed to existing processes |
+| Ready $\to$ Running | The dispatcher selects a process to run when the system is ready for a process to run                       |
+| Running $\to$ Exit  | The currently running process is terminated by the OS if the process indicates that it has completed, or if it aborts |
+| Running $\to$ Ready | When the maximum allowed time is reached, or a priority-based situation                                     |
+| Running $\to$ Blocked | A process is put in the Blocked state if it requests something for which it must wait: a system call, an I/O operation, or inter-process communication |
+| Blocked $\to$ Ready | A process in the Blocked state is moved to Ready when the event for which it has been waiting occurs        |
+| Ready $\to$ Exit    | In some systems a parent may terminate a child process at any time. Also, if a parent terminates, all child processes associated with that parent may be terminated |
+| Blocked $\to$ Exit  | Same reasons as above                                                                                       |
+
+** Queuing Model
+
+The simple approach is one blocked queue. Any disadvantages?
+- When an event occurs, the OS must scan the entire blocked queue, searching for those processes waiting on that event
+  - There could be thousands of processes at a given time waiting for an I/O event
+  - E.g. a disk read completes
+
+Figure 3.8 (Queuing Model for Figure 3.6) is the refinement: a ready queue plus one blocked queue per event, with dispatch, timeout, and event-wait/event-occurs transitions.
+
+** Swapping
+
+- What if all processes in main memory are blocked and there is no empty space (or we are low on space)?
+- Maybe we need more states to handle concepts of virtual memory
+
+** Suspended Processes
+
+- /Swapping/
+  - Moves (part or all) of a process from main memory to secondary storage
+  - Concept in virtual memory
+  - When none of the processes in main memory is in the Ready state, the OS swaps one of the blocked processes out onto disk into a /suspend queue/
+    - This is a queue of existing processes that have been temporarily kicked out of main memory, or suspended
+    - The OS then brings in another process from the suspend queue, or it honors a new-process request
+    - Execution then continues with the newly arrived process
+- We can add a Suspend state to support this
+
+We can improve this further:
+- A suspended process may still be waiting for an event to occur
+- The event that the suspended process was waiting for may have occurred already
+- Note that if we use virtual memory, we can execute a process which is only partially in main memory
+- But even with VM, the OS may have to swap the whole process
+
+This is why Figure 3.9 (Process State Transition Diagram with Suspend States) splits suspension into Blocked/Suspend and Ready/Suspend.
+
+*** Characteristics of a Suspended Process
+- The process is not immediately available for execution
+- The process may or may not be waiting on an event
+- The process was placed in a suspended state by an agent: either itself, a parent process, or the OS, for the purpose of preventing its execution
+- The process may not be removed from this state until the agent explicitly orders the removal
+
+*** Reasons for Process Suspension
+
+| Reason                   | Explanation                                                                                                     |
+| Swapping                 | The OS needs to release sufficient main memory to bring in a process that is ready to execute                    |
+| Other OS reason          | The OS may suspend a background or utility process, or a process that is suspected of causing a problem          |
+| Interactive user request | A user may wish to suspend execution of a program for purposes of debugging, or in connection with the use of a resource |
+| Timing                   | A process may be executed periodically (e.g. an accounting or system monitoring process) and may be suspended while waiting for the next time interval |
+| Parent process request   | A parent process may wish to suspend execution of a descendent to examine or modify the suspended process, or to coordinate the activity of various descendants |
+
+* Process Description
+
+What information does the OS need to control processes and manage resources for them? Figure 3.10 shows processes and resources as a resource-allocation snapshot; Figure 3.11 gives the general structure of the OS control tables, which fall into four groups.
+
+** OS Control Structures
+
+*** Memory Tables
+- Used to keep track of both main (real) and secondary (virtual) memory
+- Processes are maintained on secondary memory using some sort of virtual memory or simple swapping mechanism
+- Page table, segment table, swap table, etc.
+
+Must include:
+- Allocation of main memory to processes
+- Allocation of secondary memory to processes
+- Protection attributes of blocks of main or virtual memory
+- Information needed to manage virtual memory
+
+*** I/O Tables
+- Used by the OS to manage the I/O devices and channels of the computer system
+- At any given time, an I/O device may be available or assigned to a particular process
+- Device status table, I/O buffer table, etc.
+- Keeps track of processes which request I/O devices
+
+If an I/O operation is in progress, the OS needs to know:
+- The status of the I/O operation
+- The location in main memory being used as the source or destination of the I/O transfer
+
+*** File Tables
+- Information may be maintained and used by a file management system
+  - In which case the OS has little or no knowledge of files
+- In other operating systems, much of the detail of file management is managed by the OS itself
+- File descriptor table
+
+These tables provide information about:
+- Existence of files
+- Location on secondary memory
+- Current status
+- Other attributes
+
+*** Process Table
+- Must be maintained to manage processes
+- There must be some reference to memory, I/O, and files, directly or indirectly
+- The tables themselves must be accessible by the OS and therefore are subject to memory management
+
+Important notes:
+- These four distinct sets of tables must be linked or cross-referenced in some fashion
+- The OS must have some knowledge of the basic environment
+
+** Process Control Structures
+
+To manage and control a process, the OS must know where the process is located and the attributes of the process that are necessary for its management.
+
+*** Process Location
+- A process must include a program or set of programs to be executed
+- A process will consist of at least sufficient memory to hold the programs and data of that process
+- The execution of a program typically involves a stack that is used to keep track of procedure calls and parameter passing between procedures
+
+*** Process Attributes
+- Each process has associated with it a number of attributes that are used by the OS for process control
+- That collection of attributes is referred to as a /process control block/
+
+*** Process Image
+
+The collection of program, data, stack, and attributes is referred to as the /process image/.
+
+| Part                 | What it holds                                                                                                       |
+| User Program         | The program to be executed                                                                                          |
+| User Data            | The modifiable part of the user space. May include program data, a user stack area, and programs that may be modified |
+| Stack                | Each process has one or more last-in-first-out (LIFO) stacks associated with it. A stack is used to store parameters and calling addresses for procedure and system calls |
+| Process Control Block | Data needed by the OS to control the process                                                                        |
+
+The location of the process image depends on the memory management scheme:
+- Simple case
+  - The process image is maintained as a contiguous, or continuous, block of memory
+  - This block can be maintained in secondary storage
+  - The entire block must be brought into main memory to execute the process
+- Virtual memory
+  - No need to bring the whole block into main memory
+  - Load it into virtual memory (the OS will figure everything else out)
+
+** Process Control Block Categories
+
+We can group process control block information into 3 categories (Figure 3.13): Process Identification, Processor State Information, and Process Control Information.
+
+*** Process Identification
+
+Numeric identifiers that may be stored with the process control block include:
+1. Identifier of this process
+2. Identifier of the process that created this process
+3. User identifier
+
+- Each process is assigned a unique numeric identifier
+  - Otherwise, there must be a mapping that allows the OS to locate the appropriate tables based on the process identifier
+- Many of the tables controlled by the OS may use process identifiers to cross-reference process tables
+- Memory tables may be organized to provide a map of main memory with an indication of which process is assigned to each region
+  - Similar references will appear in I/O and file tables
+- When processes communicate with one another, the process identifier informs the OS of the destination of a particular communication
+- When processes are allowed to create other processes, identifiers indicate the parent and descendants of each process
+
+*** Processor State Information
+
+Consists of the contents of the processor registers.
+
+- User-visible registers
+  - A user-visible register is one that may be referenced by means of the machine language that the processor executes while in user mode
+  - x86 (32-bit): =EAX=, =EBX=, =ECX=, =EDX= (previously special purpose registers, now general-purpose)
+- Control and status registers
+  - Registers that are employed to control the operation of the processor
+  - Ex: PC, condition codes, status information registers
+  - x86 flags: =CF=, =ZF=, =SF=, =OF=, =PF=, =IF=, =DF=, =TF=
+- Stack pointers
+  - Each process has one or more LIFO system stacks associated with it. A stack is used to store parameters and calling addresses for procedure and system calls. The stack pointer points to the top of the stack
+
+The /program status word/ (PSW) contains condition codes plus other status information. The =EFLAGS= register (Figure 3.12, x86 EFLAGS Register) is an example of a PSW used by any OS running on an x86 processor; ARM has the Current Program Status Register (=CPSR=).
+
+*** Process Control Information
+
+The additional information needed by the OS to control and coordinate the various active processes.
+
+- Scheduling and State Information — information needed by the OS to perform its scheduling function. Typical items include:
+  - Process state
+  - Priority
+  - Scheduling related information: depends on the scheduling algorithm used by the OS
+  - Event: the event that the process is waiting for before it can be resumed
+- Data Structuring
+- Inter-process communication information
+- Process privileges
+- Memory management
+  - Pointers to page/segment tables
+- Resource ownership and utilization
+  - Resources controlled by the process may be indicated, such as opened files
+
+Figure 3.14 (Process List Structures) shows the PCBs chained onto Running, Ready and Blocked lists.
+
+** Role of the PCB
+- Important data structure in an OS
+  - Contains all of the information about a process that is needed by the OS
+  - PCBs are read and/or modified by virtually every module in the OS
+  - Defines the state of the OS
+    - The OS's behavior (scheduling, switching processes, responding to events) depends entirely on the information in the PCBs
+- Difficulty is not access, but protection
+  - A bug in a single routine could damage process control blocks, which could destroy the system's ability to manage the affected processes
+  - A design change in the structure or semantics of the process control block could affect a number of modules in the OS
+- A handler can be used which takes care of writing and reading PCBs
+  - Trade-off between performance and trust
+
+* Process Control
+
+Modes of execution — a quick recap; we looked at this concept in the overview.
+
+** Modes of Execution
+
+| User Mode                                | System Mode                                                    |
+| Less-privileged mode                     | More-privileged mode                                           |
+| User programs typically execute in this mode | Also referred to as control mode or kernel mode              |
+|                                          | Runs the kernel of the operating system (the kernel is the core of the OS) |
+
+Why?
+- To protect the OS and key operating system tables, such as PCBs and page tables, from interference by user programs and malicious actors
+
+How does the processor know which mode to be in?
+- Typically the PSW indicates the mode of execution
+- A bit in the PSW changes in response to certain events
+  - A user program makes a call to an OS service
+  - An interrupt triggers
+- Upon returning from such services to the user process, this bit is set back to user mode
+  - The interrupt handling routine contains an IRT (interrupt return) at the end
+- When issuing a system call, the user program places the system call identifier and system call arguments in a predefined area, then executes a special instruction that has the effect of interrupting execution at the user level and transferring control to the kernel
+
+Most processors support at least two modes of execution:
+- x86 (Intel/AMD) supports 4 privilege levels (rings 0–3):
+  - Ring 0 $\to$ kernel mode (full access)
+  - Rings 1–2 $\to$ rarely used, sometimes for drivers or hypervisors
+  - Ring 3 $\to$ user mode
+
+** Typical Functions of an OS Kernel
+
+| Area              | Functions                                                                                                                     |
+| Process management | Process creation and termination; process scheduling and dispatching; process switching; process synchronization and inter-process communication; management of process control blocks |
+| Memory management  | Allocation of address space to processes; swapping; page and segment management                                                 |
+| I/O management     | Buffer management; allocation of I/O channels and devices to processes                                                          |
+| Support functions  | Interrupt handling; accounting; monitoring                                                                                      |
+
+** Process Creation
+
+Once the OS decides to create a new process it:
+1. Assigns a unique process identifier to the new process
+2. Allocates space for the process
+3. Initializes the process control block
+4. Sets the appropriate linkages
+5. Creates or expands other data structures
+
+** Process Switching
+
+When a running process is interrupted, the OS assigns another process to the running state and turns control over to that process.
+
+Problems to consider:
+1. Which events trigger a process switch?
+2. Mode switching and process switching
+3. What happens to the control structures?
+
+*** Mechanisms for Interrupting a Process
+
+| Mechanism       | Cause                                                | Use                                        |
+| Interrupt       | External to the execution of the current instruction | Reaction to an asynchronous external event |
+| Trap            | Associated with the execution of the current instruction | Handling of an error or an exception condition |
+| Supervisor call | Explicit request                                     | Call to an operating system function       |
+
+System interrupts come in two types:
+
+| Interrupt                                                              | Trap                                                        |
+| Due to some sort of event that is external to and independent of the currently running process | An error or exception condition generated within the currently running process |
+| Clock interrupt, I/O interrupt, memory fault                            | The OS determines if the condition is fatal                 |
+| /Time slice/: the maximum amount of time that a process can execute before being interrupted | If fatal, the process is moved to the Exit state and a process switch occurs; otherwise the action depends on the nature of the error and the design of the OS |
+
+** Mode Switching
+
+| If no interrupts are pending, the processor:                                      | If an interrupt is pending, the processor:                                                   |
+| Proceeds to the fetch stage and fetches the next instruction of the current program in the current process | Sets the program counter to the starting address of an interrupt handler program              |
+|                                                                                   | Switches from user mode to kernel mode so that the interrupt processing code may include privileged instructions |
+
+** Change of Process State
+
+1. Save the context of the processor
+2. Update the process control block of the process currently in the Running state
+3. Move the process control block of this process to the appropriate queue
+4. Select another process for execution
+5. Update the process control block of the process selected
+6. Update memory management data structures
+7. Restore the context of the processor to that which existed at the time the selected process was last switched out
