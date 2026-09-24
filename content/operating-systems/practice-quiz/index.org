@@ -1,0 +1,316 @@
+#+TITLE: Practice Quiz — Memory & Virtual Memory
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-24
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+A variation of the original [[file:../quiz/][Quiz]] plus extra questions covering virtual memory,
+page tables and the TLB. Answers are hidden — click *Learn* (top-right) to test
+yourself. Material lives on the [[file:../study/][Study Guide]].
+
+* Fragmentation & Partitioning
+
+** The wasted space inside a partition when a process is smaller than the partition it occupies is called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: internal fragmentation
+:END:
+
+Fill in the blank.
+
+** The many small unusable holes left between allocations in dynamic partitioning are called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: external fragmentation
+:END:
+
+Fill in the blank.
+
+** Dynamic partitioning eliminates internal fragmentation but introduces external fragmentation.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: True
+:END:
+
+True / False.
+
+** The placement algorithm that chooses the free block closest in size to the request is __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Best-fit
+:END:
+
+- Best-fit
+- First-fit
+- Next-fit
+- Worst-fit
+
+** Which placement algorithm scans from the beginning of memory and takes the first hole large enough?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: First-fit
+:END:
+
+- Best-fit
+- First-fit
+- Next-fit
+- Last-fit
+
+** The scheme described as a combination of fixed and dynamic partitioning is the __________ system.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: buddy
+:END:
+
+Fill in the blank.
+
+** Under dynamic partitioning, relocation is only sometimes required.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: False — under dynamic partitioning relocation is always required (swap-in and compaction move processes).
+:END:
+
+True / False.
+
+* Addresses & Requirements
+
+** A reference to a memory location that is independent of the current assignment of data to memory is a __________ address.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: logical
+:END:
+
+Fill in the blank.
+
+** The actual location of a word in main memory is called the __________ (or absolute) address.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: physical
+:END:
+
+Fill in the blank.
+
+** Which two registers translate relative addresses to physical addresses and enforce bounds at run time?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: The base register (start address) and the bounds register (ending location).
+:END:
+
+Short answer.
+
+** Memory protection must be enforced by the operating system software rather than the processor hardware.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: False — it must be enforced by the processor (hardware), because the OS cannot anticipate every memory reference.
+:END:
+
+True / False.
+
+** Which memory-management requirement is most readily satisfied by segmentation?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Logical organization (handling programs as modules).
+:END:
+
+- Relocation
+- Logical organization
+- Physical organization
+- Protection
+
+** Name the five memory-management requirements.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Relocation, protection, sharing, logical organization, physical organization.
+:END:
+
+Short answer.
+
+* Paging & Segmentation
+
+** Equal, fixed-size chunks of main memory are called __________, and the same-size chunks of a process are called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: frames; pages
+:END:
+
+Fill in the blanks.
+
+** Paging requires a process's pages to be placed in contiguous frames.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: False — pages need not be contiguous; that is what lets paging eliminate external fragmentation.
+:END:
+
+True / False.
+
+** In paging, the only wasted space is internal fragmentation amounting to at most a fraction of the process's __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: last page
+:END:
+
+Fill in the blank.
+
+** Why must page (and frame) size always be a power of 2?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: So the logical address equals the relative address and the physical address can be formed by appending the frame number to the offset — making logical-to-physical translation easy.
+:END:
+
+Short answer.
+
+** Segmentation is visible to the programmer, whereas paging is invisible.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: True
+:END:
+
+True / False.
+
+** In combined paging and segmentation, address translation requires how many table lookups per reference?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Two — the segment table (to find the segment's page table), then the page table (to find the frame).
+:END:
+
+Short answer.
+
+** A segment table entry stores which two pieces of information about a segment?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: The starting (base) address and the length of the segment.
+:END:
+
+Short answer.
+
+* Virtual Memory
+
+** The portion of a process that is actually in main memory at a given time is called the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: resident set
+:END:
+
+Fill in the blank.
+
+** When the OS spends most of its time swapping pieces in and out rather than executing, this is called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: thrashing
+:END:
+
+Fill in the blank.
+
+** The observation that a process's memory references tend to cluster over a short period is the principle of __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: locality
+:END:
+
+Fill in the blank.
+
+** With virtual memory, all pages of a process must be in main memory before it can run.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: False — not all pages need be resident; nonresident pages are brought in on demand when faulted.
+:END:
+
+True / False.
+
+** What event occurs when the processor references a page whose present bit is not set?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: A page fault (a memory-access fault interrupt), after which the OS reads the needed page in from disk.
+:END:
+
+Short answer.
+
+** Give two benefits of virtual memory over loading whole processes.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: More processes can be kept in main memory (higher multiprogramming / better CPU use), and a process may be larger than all of physical main memory.
+:END:
+
+Short answer.
+
+* Page Tables & TLB
+
+** How large can a page table be? (32-bit address, byte addressing, 4 KB pages, 4-byte entries) — give the full working.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Step 1: max virtual address space = 2 to the 32nd = 4 GB. Step 2: pages per process = 2 to the 32nd / 2 to the 12th = 2 to the 20th pages. Step 3: page table = 2 to the 20th entries times 4 bytes = 2 to the 22nd bytes = 4 MB. So one process needs a 4 MB page table.
+:END:
+
+Flagged as a test question in the lecture notes. Short answer — show the three steps.
+
+** With the 4 KB-page example, what is the maximum virtual address space of a process?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: 2 to the 32nd bytes = 4 GB (a 32-bit address with byte-level addressing).
+:END:
+
+Short answer.
+
+** With the 4 KB-page example, how many pages can a single process have?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: 2 to the 32nd / 2 to the 12th = 2 to the 20th pages.
+:END:
+
+Short answer.
+
+** If 100 processes each need a 4 MB page table, how much memory do the page tables alone consume, and why is that a problem?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: 100 × 4 MB = 400 MB. That is far too much main memory to dedicate to page tables, which is why modern OSes page the page tables themselves (multi-level) or use inverted page tables.
+:END:
+
+Short answer.
+
+** How do modern operating systems reduce the memory required for page tables?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Store page tables in virtual memory and use multi-level (e.g. two-level) page tables so only the root plus needed portions stay resident, or use an inverted page table (one entry per frame, sized by physical memory).
+:END:
+
+Short answer.
+
+** The high-speed cache of recently used page-table entries is the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: translation lookaside buffer (TLB)
+:END:
+
+Fill in the blank.
+
+** A page-table structure with one entry per real frame (rather than one per virtual page), indexed via a hash, is called a(n) __________ page table.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: inverted
+:END:
+
+Fill in the blank.
+
+** Why is a two-level page table used?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Because a single flat page table can be too large to keep in main memory; the page table is itself paged, with a small root/directory table resident and other portions kept in virtual memory.
+:END:
+
+Short answer.
+
+** The page-table entry bit that indicates whether a page has been altered since it was loaded is the __________ bit.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: modify (M)
+:END:
+
+Fill in the blank.

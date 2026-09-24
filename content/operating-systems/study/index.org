@@ -1,0 +1,249 @@
+#+TITLE: Study Guide — Memory Management
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-24
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+A single, readable study page compiling the memory-management material covered
+in the lecture notes and the quiz. Terms in /italic/ are the ones worth
+memorising — the *Learn* button (top-right) turns them into fill-in-the-blank
+cards. For a self-test, see the [[file:../quiz/][Quiz]] and [[file:../practice-quiz/][Practice Quiz]] pages.
+
+* Uniprogramming vs. Multiprogramming
+
+Early systems used /uniprogramming/: one user, one program at a time, with the
+entire program loaded contiguously into main memory. Memory was divided into two
+parts — one for the OS and one for the single user program. This wasted
+resources: program size was limited by available memory, unused allocated memory
+was wasted, and the CPU sat idle during I/O.
+
+In a /multiprogramming/ system the user portion of memory is divided to hold
+several processes at once, so the CPU can switch to another process while one
+waits on I/O. /Memory management/ is how the OS decides that division — how
+memory is allocated to and used by the different processes.
+
+* Memory Management Requirements
+
+The five requirements a memory-management scheme is meant to satisfy.
+
+** Relocation
+
+/Relocation/ is the ability to load a program into any available part of main
+memory and still access its memory locations correctly. It is needed because the
+programmer does not know in advance where the program will sit, and because a
+process may be swapped out and later swapped back into a *different* region. The
+processor translates addresses at run time so the program need not care where it
+was loaded.
+
+** Protection
+
+/Protection/ ensures the memory allocated to a process cannot be accessed by
+other, unauthorised processes. Because relocation makes a program's location
+unpredictable, addresses cannot be checked at compile time — every memory
+reference must be checked at /run time/. This check must be done by the /processor
+(hardware)/, not the OS, because the OS cannot anticipate every reference a
+program will make. Mechanisms that support relocation also support protection.
+
+** Sharing
+
+/Sharing/ lets several processes access the same portion of main memory in a
+controlled way — for example, one copy of a shared program or a common data
+structure — without compromising protection. The same mechanisms that support
+relocation also support sharing.
+
+** Logical Organization
+
+/Logical organization/ means structuring memory to match how programs are built:
+as /modules/ (code, data, stack) rather than one flat linear space. Handling
+memory as modules allows independent compilation, per-module protection
+(read-only / execute-only), and module-level sharing. /Segmentation/ is the
+technique that most readily supports this.
+
+** Physical Organization
+
+/Physical organization/ concerns managing the two-level memory — fast, volatile,
+expensive main memory versus slow, cheap, non-volatile secondary memory — and the
+flow of information between them. This flow should be a /system/ responsibility,
+not the programmer's, because main memory may be too small and because in
+multiprogramming the programmer cannot know at coding time how much space is
+available or where.
+
+* Types of Addresses
+
+- /Physical/ (absolute): the actual location in main memory.
+- /Logical/: a reference to a memory location independent of the current
+  assignment of data to memory.
+- /Relative/: a special case of a logical address, expressed as a location
+  relative to some known point (e.g. the start of the program).
+
+** Relative addressing hardware
+
+Memory references in a loaded process are relative to the origin of the program,
+and a hardware mechanism translates relative addresses into physical addresses at
+run time using two registers: the /base register/ (start address of the running
+program) and the /bounds register/ (ending location, used to catch out-of-range
+references — which is also how protection is enforced).
+
+* Fixed Partitioning
+
+/Fixed partitioning/ divides main memory into a number of static partitions at
+system-generation time. A process is loaded into a partition of equal or greater
+size. It is simple with little OS overhead, but has three drawbacks: /internal
+fragmentation/ (a process smaller than its partition wastes the leftover space
+inside it), inefficient memory use, and a fixed maximum number of active
+processes. A program larger than a partition needs /overlays/.
+
+- /Equal-size partitions/: placement is trivial — any free partition will do.
+- /Unequal-size partitions/: assign each process to the smallest partition it
+  fits in (minimises internal fragmentation), typically with a queue per
+  partition.
+
+* Dynamic Partitioning
+
+/Dynamic partitioning/ creates partitions of variable length and number: each
+process is given exactly as much contiguous memory as it needs. This removes
+internal fragmentation but produces /external fragmentation/ — many small holes
+between allocations that no process can use. The fix is /compaction/: shifting
+resident processes together to merge the holes into one contiguous free block
+(time-consuming, so used sparingly). Because compaction and swap-in move
+processes around, relocation is /always/ required.
+
+** Placement algorithms
+
+- /Best-fit/: choose the free block closest in size to the request.
+- /First-fit/: scan from the beginning and take the first hole that fits — tends
+  to leave small holes near the start, forcing compaction sooner.
+- /Next-fit/: scan from the location of the last placement and take the next hole
+  that fits, wrapping to the start when it reaches the end.
+
+* Paging
+
+/Paging/ divides main memory into equal, fixed-size /frames/ and divides each
+process into /pages/ of the same size. A process is loaded by placing all its
+pages into any available frames, which /need not be contiguous/ — this is what
+eliminates external fragmentation. The only waste is a small amount of internal
+fragmentation, at most a fraction of the process's /last page/.
+
+Paging is /transparent/ to the programmer. With a page size that is a power of 2,
+a logical address (page number, offset) is identical to the relative address, and
+the processor forms the physical address simply by /appending/ the frame number
+to the offset — no addition needed.
+
+** Page table
+
+The OS maintains one /page table/ per process. It maps each /page number to its
+frame number/ and is used by the processor to translate logical → physical
+addresses at run time. Page and frame sizes are always a power of 2 to make that
+translation easy.
+
+* Segmentation
+
+/Segmentation/ divides a process into a number of /segments/ that vary in length
+(up to a maximum), matching the program's logical modules. An address is a
+(segment number, offset) pair, resolved through a /segment table/ holding each
+segment's starting address and length. Unlike paging, segmentation is /visible/
+to the programmer. It eliminates internal fragmentation but, being similar to
+dynamic partitioning, suffers from /external fragmentation/.
+
+* Combined Paging and Segmentation
+
+A user's address space is split into /segments/ (by the programmer); each segment
+is then split into fixed-size /pages/. Translation is two-level: the segment
+number indexes the segment table to find that segment's page table, then the page
+number indexes the page table to find the frame. It combines paging's efficient
+memory use with segmentation's modularity, sharing, and protection — at the cost
+of /complex memory-management overhead/ (two tables and two lookups per
+reference).
+
+* Why paging is preferred today
+
+Most systems use paging as the core scheme because it eliminates /external
+fragmentation/ with only minimal internal fragmentation, is transparent to the
+programmer, and has simple, fast hardware translation. Segmentation and
+paging+segmentation are more complex to implement, and segmentation still suffers
+from external fragmentation.
+
+* Simple vs. Virtual Memory schemes
+
+| Scheme                    | Key idea                                          | Fragmentation            |
+| Simple Paging             | all pages loaded into equal-size frames           | small internal only      |
+| Simple Segmentation       | all segments loaded into variable partitions      | external                 |
+| Virtual Memory Paging     | not all pages need be resident; faulted in        | small internal only      |
+| Virtual Memory Segmentation | not all segments need be resident; faulted in   | external                 |
+
+The virtual-memory rows add a higher degree of multiprogramming and a large
+virtual address space, at the cost of complex memory-management overhead.
+
+* Virtual Memory
+
+/Virtual memory/ uses secondary storage as if it were main memory, giving the
+illusion of more memory than physically exists. The portion of a process actually
+in main memory is its /resident set/. When a referenced page is not resident, the
+processor raises a /page fault/, and the OS reads the needed page in from disk
+(dispatching another process meanwhile).
+
+Two consequences: more processes can be kept in memory (better CPU use), and a
+process may be /larger than all of main memory/.
+
+** Thrashing
+
+/Thrashing/ is when the OS spends most of its time swapping pages in and out
+rather than executing instructions — it happens when it repeatedly evicts a piece
+just before it is needed. It is avoided by guessing, from recent history, which
+pieces are /least/ likely to be used soon.
+
+** Principle of locality
+
+The /principle of locality/ states that a process's instruction and data
+references tend to cluster over any short period. This is why keeping only a few
+pieces of a process resident works, and why intelligent guesses about future use
+(to avoid thrashing) are possible.
+
+** Page-fault rate vs. page size
+
+As page size grows (with a reasonable number of frames), the fault rate first
+/rises/, then /falls/:
+- Small pages: many pages fit in memory, capturing most of the recent locality,
+  so faults are low.
+- Larger pages: each page holds locations further from any recent reference, so
+  locality is diluted and the fault rate rises to a maximum.
+- Very large pages: a page approaches the size of the whole process; when one
+  page spans the entire process there are no page faults, so the rate falls again.
+
+* Page Tables at Scale
+
+A flat page table's size is proportional to the virtual address space, which can
+be huge. Worked example (32-bit address, byte addressing, 4 KB = $2^{12}$-byte
+pages, 4-byte entries): $2^{32}/2^{12} = 2^{20}$ pages, so one process needs
+$2^{20}\times 4 = 4$ MB of page table. With 100 processes that is 400 MB — too
+much to keep entirely in main memory.
+
+** Two-level page table
+
+The page table is itself paged: a /root (directory) page table/ points to pages
+of the user page table, which are stored in virtual memory. Only the root and the
+currently needed portions stay resident. The top address bits index the root, the
+next bits index the user page-table page.
+
+** Inverted page table
+
+An /inverted page table/ has one entry per real /frame/ rather than one per
+virtual page, so its size is fixed by physical memory, not by the address space.
+The virtual page number is /hashed/ to an index; collisions are handled by
+chaining.
+
+** Translation Lookaside Buffer (TLB)
+
+Without help, each reference needs two memory accesses (page table, then data).
+The /TLB/ is a high-speed cache of recently used page-table entries. On a /TLB
+hit/ the frame number is read directly; on a miss the processor walks the page
+table (and faults if the page is not present). It works because of the principle
+of locality.

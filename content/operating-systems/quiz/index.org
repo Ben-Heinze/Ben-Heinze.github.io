@@ -1,0 +1,356 @@
+#+TITLE: Quiz — Memory Management
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-24
+#+STARTUP: noindent
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The original 27-question memory-management quiz, made interactive. Type or select
+your answers, then *Submit* to auto-grade the objective questions and reveal the
+correct answers. The three essays are shown with a model answer to self-assess.
+See also the [[file:../answer-key/][Answer Key]], [[file:../practice-quiz/][Practice Quiz]], and [[file:../study/][Study Guide]].
+
+#+begin_export html
+<style>
+  .quiz { max-width: 52rem; }
+  .quiz-q { margin: 1.4rem 0; padding: 0.9rem 1.1rem; border: 1px solid rgba(128,128,128,0.35);
+            border-radius: 8px; }
+  .quiz-q .qnum { font-weight: 700; margin-right: 0.35rem; }
+  .quiz-prompt { margin-bottom: 0.7rem; }
+  .quiz-opts { list-style: none; padding: 0; margin: 0; }
+  .quiz-opts li { margin: 0.25rem 0; }
+  .quiz-opts label { cursor: pointer; }
+  .quiz input[type="text"], .quiz textarea {
+    width: 100%; box-sizing: border-box; padding: 0.45rem 0.55rem;
+    border: 1px solid rgba(128,128,128,0.5); border-radius: 6px;
+    background: transparent; color: inherit; font: inherit; }
+  .quiz textarea { min-height: 5.5rem; resize: vertical; }
+  .quiz-feedback { margin-top: 0.6rem; padding: 0.55rem 0.7rem; border-radius: 6px;
+                   display: none; font-size: 0.95em; }
+  .quiz-feedback.show { display: block; }
+  .quiz-toolbar { margin: 1rem 0 1.4rem; display: flex; gap: 0.7rem; flex-wrap: wrap; align-items: center; }
+  .quiz-stopwatch { font-variant-numeric: tabular-nums; font-size: 1.35rem; font-weight: 700;
+                    padding: 0.15rem 0.6rem; border: 1px solid rgba(128,128,128,0.35); border-radius: 6px;
+                    min-width: 4.6rem; text-align: center; }
+  .quiz-stopwatch.running { border-color: currentColor; }
+  .quiz-actions { margin: 1.4rem 0; display: flex; gap: 0.7rem; flex-wrap: wrap; }
+  .quiz-btn { padding: 0.5rem 1.1rem; border-radius: 6px; border: 1px solid rgba(128,128,128,0.5);
+              background: transparent; color: inherit; font: inherit; cursor: pointer; }
+  .quiz-btn.primary { border-color: currentColor; font-weight: 600; }
+  .quiz-btn:hover { border-color: currentColor; }
+  .quiz-score { display: none; margin: 1rem 0; padding: 0.8rem 1rem; border-radius: 8px;
+                border: 1px solid currentColor; font-weight: 600; }
+  .quiz-score.show { display: block; }
+  /* correctness colours, tuned for light + dark */
+  .quiz-c-ok    { color: #1a7f37; }
+  .quiz-c-bad   { color: #cf222e; }
+  .quiz-q.is-correct   { border-color: #1a7f37; }
+  .quiz-q.is-incorrect { border-color: #cf222e; }
+  .quiz-feedback.ok  { background: rgba(26,127,55,0.12); }
+  .quiz-feedback.bad { background: rgba(207,34,46,0.12); }
+  .quiz-feedback.info{ background: rgba(128,128,128,0.14); }
+  @media (prefers-color-scheme: dark) {
+    .quiz-c-ok  { color: #3fb950; }
+    .quiz-c-bad { color: #ff7b72; }
+    .quiz-q.is-correct   { border-color: #3fb950; }
+    .quiz-q.is-incorrect { border-color: #ff7b72; }
+  }
+</style>
+
+<div class="quiz-toolbar">
+  <button type="button" class="quiz-btn" id="quiz-shuffle">Shuffle</button>
+  <button type="button" class="quiz-btn" id="quiz-timer-toggle">Start timer</button>
+  <span class="quiz-stopwatch" id="quiz-stopwatch" aria-live="off">00:00</span>
+</div>
+
+<div class="quiz" id="quiz"></div>
+<div class="quiz-actions">
+  <button type="button" class="quiz-btn primary" id="quiz-submit">Submit &amp; grade</button>
+  <button type="button" class="quiz-btn" id="quiz-reveal">Show answers</button>
+  <button type="button" class="quiz-btn" id="quiz-reset">Reset</button>
+</div>
+<div class="quiz-score" id="quiz-score"></div>
+
+<script id="quiz-data" type="application/json">
+[
+ {"n":1,"type":"fill","q":"A __________ is a reference to a memory location independent of the current assignment of data to memory.","answer":"logical address","accept":["logical address","logical"],"explain":"A logical address is independent of where data currently sits in memory."},
+ {"n":2,"type":"essay","q":"In a virtual-memory paging system, explain why the page-fault rate starts low for small page sizes, rises to a maximum as page size grows, then falls again for very large page sizes.","answer":"By the principle of locality. Small pages let many pages stay resident, capturing recent references, so faults are low. Larger pages hold locations further from any recent reference, diluting locality, so faults rise. Very large pages eventually span the whole process; when one page covers the entire process there are no faults, so the rate falls."},
+ {"n":3,"type":"mc","q":"Main memory divided into a number of equal-size frames is the __________ technique.","options":["Simple paging","Fixed Partitioning","Dynamic Partitioning","Virtual memory segmentation"],"answer":"Simple paging","explain":"Equal-size frames + equal-size pages = paging."},
+ {"n":4,"type":"mc","q":"The dynamic-partitioning placement algorithm that scans from the location of the last placement and chooses the next block large enough is called __________.","options":["Last-fit","Best-Fit","Next-Fit","First-Fit"],"answer":"Next-Fit","explain":"Next-fit resumes scanning from the last placement."},
+ {"n":5,"type":"mc","q":"A problem with the largely obsolete Fixed Partitioning technique is:","options":["Allowing only a fixed number of processes","Inefficient use of memory","Internal fragmentation","All of the above"],"answer":"All of the above","explain":"Fixed partitioning limits active processes, wastes memory, and causes internal fragmentation."},
+ {"n":6,"type":"essay","q":"Why is paging preferred over segmentation or paging combined with segmentation as the core memory-management scheme?","answer":"Paging is easier to implement and eliminates external fragmentation with only minimal internal fragmentation. It is transparent to the programmer and has simple hardware translation. Segmentation and paging+segmentation are more complex, and segmentation also suffers from external fragmentation."},
+ {"n":7,"type":"tf","q":"The principal operation of memory management is to bring processes into main memory for execution by the processor.","answer":"True","explain":"This is the definition given in the textbook."},
+ {"n":8,"type":"tf","q":"In a uniprogramming system main memory is divided into two parts.","answer":"True","explain":"One part for the operating system, one for the single user program."},
+ {"n":9,"type":"tf","q":"A physical address is the location of a word relative to the beginning of the program, and the processor translates that into a logical address.","answer":"False","explain":"That describes a relative (logical) address; the processor translates relative to physical, not the reverse."},
+ {"n":10,"type":"tf","q":"A hardware mechanism is needed for translating relative addresses to physical main memory addresses at the time of execution of the instruction that contains the reference.","answer":"True","explain":"Base/bounds hardware does this at run time."},
+ {"n":11,"type":"mc","q":"With __________ a process is loaded by loading all of its segments into dynamic partitions that need not be contiguous.","options":["Simple Paging","Virtual memory segmentation","Virtual memory paging","Simple segmentation"],"answer":"Simple segmentation","explain":"'All of its segments' loaded = simple (non-virtual) segmentation."},
+ {"n":12,"type":"mc","q":"In a segmentation scheme a process is divided into __________.","options":["one segment per thread","a number of threads","a number of segments which need not be of equal size","a number of segments which must be of equal size"],"answer":"a number of segments which need not be of equal size","explain":"Segments vary in length (up to a maximum)."},
+ {"n":13,"type":"tf","q":"In a multiprogramming system the available main memory is NOT generally shared among a number of processes.","answer":"False","explain":"In multiprogramming main memory IS shared among several processes."},
+ {"n":14,"type":"mc","q":"The page table for each process maintains __________.","options":["The physical memory location of the process","The frame location for each page of the process","The page location for each frame of the process","The logical memory location of the process"],"answer":"The frame location for each page of the process","explain":"It maps page number to frame number."},
+ {"n":15,"type":"mc","q":"In a segmentation scheme, wasted space is due to __________.","options":["Internal fragmentation","Pages of different specified sizes","External fragmentation","Frames of different specified sizes"],"answer":"External fragmentation","explain":"Segmentation eliminates internal fragmentation but suffers external fragmentation."},
+ {"n":16,"type":"tf","q":"Segmentation does not eliminate internal fragmentation.","answer":"False","explain":"Segmentation DOES eliminate internal fragmentation (it suffers external fragmentation instead)."},
+ {"n":17,"type":"essay","q":"With dynamic partitioning, which of the five memory-management requirements are met - relocation, protection, sharing, logical organization, physical organization - and why?","answer":"Relocation: yes (processes are swapped and compacted, so they move). Protection: yes (a single contiguous block is bounded by base/bounds registers). Sharing: no (separate contiguous blocks make sharing a region awkward without copying). Logical organization: no (one flat block, not segmented into modules). Physical organization: only partially (the OS handles swapping, but the whole process must fit in main memory, so a program cannot exceed it)."},
+ {"n":18,"type":"mc","q":"Available chunks of memory are known as __________.","options":["Frames","Segments","Addresses","Pages"],"answer":"Frames","explain":"Frames = available chunks of memory; pages = chunks of a process."},
+ {"n":19,"type":"fill","q":"The __________ shows the frame location for each page of the process.","answer":"page table","accept":["page table"],"explain":"The page table maps each page to its frame."},
+ {"n":20,"type":"tf","q":"Secondary memory provides fast access at relatively high cost.","answer":"False","explain":"That describes main memory; secondary memory is slower and cheaper (but non-volatile)."},
+ {"n":21,"type":"tf","q":"All segments of all programs must be of the same length.","answer":"False","explain":"Segments vary in length; there is only a maximum length."},
+ {"n":22,"type":"tf","q":"In a multiprogramming environment the programmer knows at the time of coding how much space will be available and where that space will be.","answer":"False","explain":"The programmer does not know this in advance."},
+ {"n":23,"type":"mc","q":"The chunks of a process are known as __________.","options":["Pages","Addresses","Frames","Segments"],"answer":"Pages","explain":"Pages = chunks of a process."},
+ {"n":24,"type":"tf","q":"Any protection mechanism must have the flexibility to allow several processes to access the same portion of main memory.","answer":"True","explain":"This supports sharing (e.g. one copy of a shared program)."},
+ {"n":25,"type":"mc","q":"Main memory divided into a number of static partitions at system-generation time is __________.","options":["Fixed partitioning","Simple segmentation","Dynamic Partitioning","Simple Paging"],"answer":"Fixed partitioning","explain":"Static partitions set at system-generation time = fixed partitioning."},
+ {"n":26,"type":"mc","q":"One technique for overcoming external fragmentation is __________.","options":["Loading","Compaction","Relocation","Partitioning"],"answer":"Compaction","explain":"Compaction shifts processes together to merge the holes."},
+ {"n":27,"type":"fill","q":"In a practice known as __________, program and data are organized so that various modules can be assigned the same region of memory, with a main program switching modules in and out as needed.","answer":"overlaying","accept":["overlaying","overlays","overlay"],"explain":"Overlaying reuses one region of memory for different modules."}
+]
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var data = JSON.parse(document.getElementById('quiz-data').textContent);
+  var root = document.getElementById('quiz');
+
+  function norm(s) {
+    return (s || '').trim().toLowerCase().replace(/\s+/g, ' ').replace(/[.’']/g, function (c) {
+      return c === '.' ? '' : "'";
+    }).replace(/[.]$/, '').trim();
+  }
+
+  var order = data.slice();      // current display order (shuffled in place)
+  var nodes = {};                // n -> {el, feedback, get, set, item}
+
+  function buildQuestion(item) {
+    var q = document.createElement('div');
+    q.className = 'quiz-q';
+    q.id = 'q' + item.n;
+
+    var prompt = document.createElement('div');
+    prompt.className = 'quiz-prompt';
+    prompt.innerHTML = '<span class="qnum">' + item.n + '.</span>';
+    prompt.appendChild(document.createTextNode(item.q));
+    q.appendChild(prompt);
+
+    var getAnswer, setAnswer;
+
+    if (item.type === 'mc' || item.type === 'tf') {
+      var opts = item.type === 'tf' ? ['True', 'False'] : item.options;
+      var ul = document.createElement('ul');
+      ul.className = 'quiz-opts';
+      opts.forEach(function (opt) {
+        var li = document.createElement('li');
+        var label = document.createElement('label');
+        var radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'q' + item.n;
+        radio.value = opt;
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(' ' + opt));
+        li.appendChild(label);
+        ul.appendChild(li);
+      });
+      q.appendChild(ul);
+      getAnswer = function () {
+        var sel = q.querySelector('input[name="q' + item.n + '"]:checked');
+        return sel ? sel.value : null;
+      };
+      setAnswer = function (val) {
+        if (val == null) return;
+        q.querySelectorAll('input[name="q' + item.n + '"]').forEach(function (r) {
+          if (r.value === val) r.checked = true;
+        });
+      };
+    } else if (item.type === 'fill') {
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+      input.placeholder = 'Type your answer';
+      q.appendChild(input);
+      getAnswer = function () { return input.value; };
+      setAnswer = function (val) { input.value = val || ''; };
+    } else { // essay
+      var ta = document.createElement('textarea');
+      ta.placeholder = 'Write your answer, then Submit to see a model answer to self-assess.';
+      q.appendChild(ta);
+      getAnswer = function () { return ta.value; };
+      setAnswer = function (val) { ta.value = val || ''; };
+    }
+
+    var fb = document.createElement('div');
+    fb.className = 'quiz-feedback';
+    q.appendChild(fb);
+
+    nodes[item.n] = { el: q, feedback: fb, get: getAnswer, set: setAnswer, item: item };
+    return q;
+  }
+
+  function renderAll() {
+    root.innerHTML = '';
+    nodes = {};
+    order.forEach(function (item) { root.appendChild(buildQuestion(item)); });
+  }
+
+  renderAll();
+
+  function clearScore() {
+    var score = document.getElementById('quiz-score');
+    score.className = 'quiz-score';
+    score.innerHTML = '';
+  }
+
+  function shuffle() {
+    // Preserve any answers already entered, then reorder and restore them.
+    var saved = {};
+    data.forEach(function (item) { if (nodes[item.n]) saved[item.n] = nodes[item.n].get(); });
+    for (var i = order.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = order[i]; order[i] = order[j]; order[j] = t;
+    }
+    renderAll();
+    data.forEach(function (item) { if (saved[item.n] != null) nodes[item.n].set(saved[item.n]); });
+    clearScore();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function isCorrect(item, user) {
+    if (user == null) return false;
+    if (item.type === 'mc' || item.type === 'tf') return user === item.answer;
+    if (item.type === 'fill') {
+      var u = norm(user);
+      return item.accept.some(function (a) { return norm(a) === u; });
+    }
+    return null; // essay: not auto-graded
+  }
+
+  function grade(showOnly) {
+    var correct = 0, objective = 0;
+    data.forEach(function (item) {
+      var node = nodes[item.n];
+      var user = node.get();
+      var fb = node.feedback;
+      node.el.classList.remove('is-correct', 'is-incorrect');
+      fb.classList.remove('ok', 'bad', 'info');
+
+      if (item.type === 'essay') {
+        fb.classList.add('show', 'info');
+        fb.innerHTML = '<strong>Model answer (self-assess):</strong> ' + escapeHtml(item.answer);
+        return;
+      }
+
+      objective++;
+      var ok = isCorrect(item, user);
+      if (!showOnly && ok) correct++;
+      fb.classList.add('show');
+
+      if (showOnly) {
+        fb.classList.add('info');
+        fb.innerHTML = '<strong>Answer:</strong> <span class="quiz-c-ok">' +
+          escapeHtml(item.answer) + '</span>' +
+          (item.explain ? ' &mdash; ' + escapeHtml(item.explain) : '');
+      } else if (ok) {
+        node.el.classList.add('is-correct');
+        fb.classList.add('ok');
+        fb.innerHTML = '<span class="quiz-c-ok"><strong>Correct.</strong></span> ' +
+          (item.explain ? escapeHtml(item.explain) : '');
+      } else {
+        node.el.classList.add('is-incorrect');
+        fb.classList.add('bad');
+        var yours = (user == null || user === '') ? '(blank)' : escapeHtml(user);
+        fb.innerHTML = '<span class="quiz-c-bad"><strong>Incorrect.</strong></span> ' +
+          'Your answer: ' + yours + '<br><strong>Correct:</strong> <span class="quiz-c-ok">' +
+          escapeHtml(item.answer) + '</span>' +
+          (item.explain ? ' &mdash; ' + escapeHtml(item.explain) : '');
+      }
+    });
+
+    var score = document.getElementById('quiz-score');
+    score.classList.add('show');
+    if (showOnly) {
+      score.innerHTML = 'Answers revealed. Objective questions: ' + objective +
+        '. Essays (Q2, Q6, Q17): self-assess against the model answers.';
+    } else {
+      var pct = Math.round((correct / objective) * 100);
+      score.innerHTML = 'Score: <span class="quiz-c-ok">' + correct + ' / ' + objective +
+        '</span> objective correct (' + pct + '%). ' +
+        'Essays (Q2, Q6, Q17) are self-assessed against the model answers below.';
+    }
+    score.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function reset() {
+    data.forEach(function (item) {
+      var node = nodes[item.n];
+      node.el.classList.remove('is-correct', 'is-incorrect');
+      node.feedback.className = 'quiz-feedback';
+      node.feedback.innerHTML = '';
+      var inputs = node.el.querySelectorAll('input, textarea');
+      inputs.forEach(function (i) {
+        if (i.type === 'radio') i.checked = false; else i.value = '';
+      });
+    });
+    clearScore();
+    swReset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ── Stopwatch (counts up when started; toggle pauses/resumes) ──────────────
+  var swEl = document.getElementById('quiz-stopwatch');
+  var swBtn = document.getElementById('quiz-timer-toggle');
+  var swRunning = false, swStart = 0, swElapsed = 0, swInt = null;
+
+  function fmt(ms) {
+    var total = Math.floor(ms / 1000);
+    var m = Math.floor(total / 60), s = total % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  function swTick() {
+    swEl.textContent = fmt(swElapsed + (swRunning ? Date.now() - swStart : 0));
+  }
+  function swStartFn() {
+    if (swRunning) return;
+    swRunning = true;
+    swStart = Date.now();
+    swEl.classList.add('running');
+    swBtn.textContent = 'Pause';
+    swInt = setInterval(swTick, 250);
+    swTick();
+  }
+  function swPause() {
+    if (!swRunning) return;
+    swElapsed += Date.now() - swStart;
+    swRunning = false;
+    clearInterval(swInt);
+    swEl.classList.remove('running');
+    swBtn.textContent = 'Resume';
+    swTick();
+  }
+  function swReset() {
+    swRunning = false;
+    clearInterval(swInt);
+    swElapsed = 0;
+    swEl.classList.remove('running');
+    swBtn.textContent = 'Start timer';
+    swEl.textContent = '00:00';
+  }
+
+  document.getElementById('quiz-submit').addEventListener('click', function () { grade(false); });
+  document.getElementById('quiz-reveal').addEventListener('click', function () { grade(true); });
+  document.getElementById('quiz-reset').addEventListener('click', reset);
+  document.getElementById('quiz-shuffle').addEventListener('click', shuffle);
+  swBtn.addEventListener('click', function () { swRunning ? swPause() : swStartFn(); });
+}());
+</script>
+#+end_export

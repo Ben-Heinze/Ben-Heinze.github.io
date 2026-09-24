@@ -1,0 +1,98 @@
+#+TITLE: Answer Key — Memory Management Quiz
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-24
+#+STARTUP: noindent
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The 27 questions from the [[file:../quiz/][Quiz]] with answers shown. (=#+LEARN: nil= keeps this
+page out of Learn mode so the answers don't leak into the flashcard decks.)
+
+* 1. A __________ is a reference to a memory location independent of the current assignment of data to memory.
+*Answer:* logical address
+
+* 2. Explain the page-fault-rate vs. page-size curve (low → rises to a max → falls).
+*Answer:* By the /principle of locality/. Small pages let many pages stay resident, capturing recent references, so faults are low. Larger pages hold locations further from any recent reference, diluting locality, so faults rise. Very large pages eventually span the whole process; when one page covers the entire process there are no faults, so the rate falls.
+
+* 3. Main memory divided into a number of equal-size frames is the __________ technique.
+*Answer:* Simple paging
+
+* 4. The placement algorithm that scans from the last placement and takes the next block large enough is __________.
+*Answer:* Next-Fit
+
+* 5. A problem with the obsolete Fixed Partitioning technique is:
+*Answer:* All of the above (fixed number of processes, inefficient memory use, internal fragmentation)
+
+* 6. Why is paging preferred over segmentation or paging+segmentation?
+*Answer:* Easier to implement; eliminates external fragmentation with minimal internal fragmentation; transparent to the programmer; simple hardware translation. Segmentation and paging+segmentation are more complex, and segmentation also suffers external fragmentation.
+
+* 7. The principal operation of memory management is to bring processes into main memory for execution by the processor.
+*Answer:* True
+
+* 8. In a uniprogramming system main memory is divided into two parts.
+*Answer:* True — one part for the OS, one for the single user program.
+
+* 9. A physical address is the location of a word relative to the beginning of the program, and the processor translates that into a logical address.
+*Answer:* False — that is a relative (logical) address; the processor translates relative → physical, not the reverse.
+
+* 10. A hardware mechanism is needed for translating relative addresses to physical addresses at the time of execution.
+*Answer:* True
+
+* 11. With __________ a process is loaded by loading all of its segments into dynamic partitions that need not be contiguous.
+*Answer:* Simple segmentation
+
+* 12. In a segmentation scheme a process is divided into __________.
+*Answer:* a number of segments which need not be of equal size
+
+* 13. In a multiprogramming system the available main memory is NOT generally shared among processes.
+*Answer:* False — main memory IS shared among several processes.
+
+* 14. The page table for each process maintains __________.
+*Answer:* The frame location for each page of the process
+
+* 15. In a segmentation scheme, wasted space is due to __________.
+*Answer:* External fragmentation
+
+* 16. Segmentation does not eliminate internal fragmentation.
+*Answer:* False — segmentation DOES eliminate internal fragmentation (it suffers external fragmentation).
+
+* 17. With dynamic partitioning, which of the five requirements are met and why?
+*Answer:* Relocation — yes (processes are swapped and compacted). Protection — yes (a contiguous block bounded by base/bounds registers). Sharing — no (separate contiguous blocks make sharing awkward without copying). Logical organization — no (one flat block, not module/segmented). Physical organization — partially (OS handles swapping, but the whole process must fit in main memory).
+
+* 18. Available chunks of memory are known as __________.
+*Answer:* Frames
+
+* 19. The __________ shows the frame location for each page of the process.
+*Answer:* page table
+
+* 20. Secondary memory provides fast access at relatively high cost.
+*Answer:* False — that is main memory; secondary memory is slower and cheaper (but non-volatile).
+
+* 21. All segments of all programs must be of the same length.
+*Answer:* False — segments vary in length (only a maximum length exists).
+
+* 22. In a multiprogramming environment the programmer knows at coding time how much space is available and where.
+*Answer:* False — the programmer does not know this in advance.
+
+* 23. The chunks of a process are known as __________.
+*Answer:* Pages
+
+* 24. Any protection mechanism must allow several processes to access the same portion of main memory.
+*Answer:* True
+
+* 25. Main memory divided into static partitions at system-generation time is __________.
+*Answer:* Fixed partitioning
+
+* 26. One technique for overcoming external fragmentation is __________.
+*Answer:* Compaction
+
+* 27. The practice where modules share the same region of memory, switched in/out by a main program, is __________.
+*Answer:* overlaying

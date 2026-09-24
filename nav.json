@@ -229,8 +229,23 @@
       },
       {
         "label": "Assignments",
-        "href": "/operating-systems/assignments/index.html",
-        "private": true
+        "href": "/operating-systems/assignments/index.html"
+      },
+      {
+        "label": "Study",
+        "href": "/operating-systems/study/index.html"
+      },
+      {
+        "label": "Quiz",
+        "href": "/operating-systems/quiz/index.html"
+      },
+      {
+        "label": "Practice Quiz",
+        "href": "/operating-systems/practice-quiz/index.html"
+      },
+      {
+        "label": "Answer Key",
+        "href": "/operating-systems/answer-key/index.html"
       }
     ]
   },
