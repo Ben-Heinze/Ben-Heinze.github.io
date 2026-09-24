@@ -30,7 +30,7 @@ This course meets on Mondays, Wednesdays, and Fridays from 08:00 a.m.–0850 a.m
 Course resources
 
 ** Textbook
--  Operating Systems (9th edition), by William Stallings, Pearson
+- [[https://montana.instructure.com/courses/35966/modules/items/2468448][Operating Systems (9th edition), by William Stallings, Pearson]]
 -  Please read the assigned sections of the book each week.
 
 Instructor: Adiesha Liyanage

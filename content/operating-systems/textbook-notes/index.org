@@ -12,4 +12,5 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-[[https://courses.vitalsource.com/][Book]]
+[[https://courses.vitalsource.com/ ][Book]]
+[[https://montana.instructure.com/courses/35966/modules/items/2468448][book]]
