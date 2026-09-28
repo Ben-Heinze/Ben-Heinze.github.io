@@ -246,6 +246,18 @@
       {
         "label": "Answer Key",
         "href": "/operating-systems/answer-key/index.html"
+      },
+      {
+        "label": "Calculation Practice",
+        "href": "/operating-systems/calculations/index.html"
+      },
+      {
+        "label": "Practice Test",
+        "href": "/operating-systems/practice-test/index.html"
+      },
+      {
+        "label": "Question Bank",
+        "href": "/operating-systems/question-bank/index.html"
       }
     ]
   },

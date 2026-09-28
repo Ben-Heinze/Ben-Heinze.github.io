@@ -12,8 +12,9 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
+Slides: [[file:Week 5 Notes.pdf][Week 5: Tree Learning (PDF)]]
 
-* Decision Tree Learning 
+* Decision Tree Learning
 
 - Rule Induction
 - Explanation Based Learning 
@@ -40,17 +41,73 @@ Using temp, humanity, and wind, try to guess the outlook (sunny, raining, overca
 
 *** ID3 Algorithm
 
-This is a greedy search algorithm
+This is a greedy search algorithm (Iterative Dichotomizer 3, J. R. Quinlan), based on Shannon's Information Theory: at each node, pick the feature that reduces entropy the most.
 
-Start with two classes. Using Shannon's Information Theory, calculate the entrory within the data.
+Start by assuming only two classes (this generalizes below). Let $p$ be the number of positive examples and $n$ the number of negative examples in the data. The entropy (amount of uncertainty) is
 
-{{{hl(orange,COME BACK LATER)}}} add equation here — needs the week 5 deck, which was not among the parsed PDFs
+\[
+  H(p,n) = -\frac{p}{p+n} \lg \frac{p}{p+n} - \frac{n}{p+n} \lg \frac{n}{p+n}
+\]
 
+Now consider a feature $f_i \in \mathcal{F}$ that partitions the data into subsets, where subset $j$ holds $p_j$ positive and $n_j$ negative examples. The /expected entropy/ after splitting on $f_i$ is the weighted average of the entropies of the partitions:
 
-Using shannon's information gain, you can calculate the amount of uncertainty each value of a node reduces. 
+\[
+  E(f_i) = \sum_{j} \frac{p_j + n_j}{p+n} H(p_j, n_j)
+\]
 
+Using Shannon's information gain, we can calculate the amount of uncertainty each feature removes — it is the entropy before the split minus the expected entropy after:
+
+\[
+  gain(f_i) = H(p,n) - E(f_i)
+\]
+
+ID3 greedily chooses the feature with the largest information gain at each node.
 
 See the "Entropy and Mutual Information" section for more info
+
+**** More than Two Classes
+
+With $k > 2$ classes, the entropy of a class structure $p_1, \ldots, p_k$ generalizes to
+
+\[
+  I(p_1, \ldots, p_k) = -\sum_{\ell=1}^{k} \frac{p_\ell}{p_1 + \cdots + p_k} \lg \frac{p_\ell}{p_1 + \cdots + p_k}
+\]
+
+and the expected entropy of a feature $f_i$, summing over its partition values $j$, becomes
+
+\[
+  E(f_i) = \sum_{j} \frac{p_{j,1} + \cdots + p_{j,k}}{p_1 + \cdots + p_k} I(p_{j,1}, \ldots, p_{j,k})
+\]
+
+**** Worked Example (Outlook)
+
+The Quinlan weather set has 14 examples, 9 positive ($P$) and 5 negative ($N$), so the entropy of the whole set is
+
+\[
+  H(9,5) = -\frac{9}{14}\lg\frac{9}{14} - \frac{5}{14}\lg\frac{5}{14} \approx 0.94
+\]
+
+Splitting on =Outlook= gives three partitions — sunny $(2,3)$, overcast $(4,0)$ and rainy $(3,2)$:
+
+\[
+  H_{sunny} \approx 0.971, \quad H_{overcast} = 0.0, \quad H_{rainy} \approx 0.971
+\]
+
+so the expected entropy and gain are
+
+\[
+  E(\text{Outlook}) = \tfrac{5}{14}(0.971) + \tfrac{4}{14}(0.0) + \tfrac{5}{14}(0.971) \approx 0.694, \quad gain(\text{Outlook}) = 0.94 - 0.694 = 0.246
+\]
+
+Doing the same for every feature gives the gains
+
+| Feature      | $E(f_i)$ | $gain(f_i)$ |
+| Outlook      | 0.694    | 0.246       |
+| Temperature  | 0.911    | 0.029       |
+| Humidity     | 0.789    | 0.151       |
+| Wind         | 0.892    | 0.048       |
+
+so =Outlook= wins the root split. Note that overcast is pure ($H = 0$), so it becomes a leaf immediately. There is no guarantee that this produces a balanced tree.
 
 
 *** Gain Ratio
@@ -83,9 +140,230 @@ Equal Frequency: Four bins, every 4 points from baseline
 
 
 
-** Regression Tree Learning 
+** Regression Tree Learning
 
-Task is to learn a tree that predicts real-valued functions $f(x)$. The primary change over classification trees is the splitting criterion
+Task is to learn a tree that predicts real-valued functions $f(x)$. The primary change over classification trees is the splitting criterion.
+
+The leaves fit a /linear regression/ — Ordinary Linear Regression (OLR) / Ordinary Least Squares (OLS). Given a training set $\mathcal{D} = \{ (x_i, y_i) \}_{i=1}^{N}$ with $y_i \in \mathbb{R}$, the response is assumed to have the form $y_i = f(x_i) + \epsilon$, with a linear functional form
+
+\[
+  f(x_i) = w_0 + \sum_{j=1}^{d} w_j x_{ji}
+\]
+
+We find suitable values for $\{ w_0, w_1, \ldots, w_d \}$ by minimizing the mean squared error loss
+
+\[
+  MSE = \frac{1}{N} \sum_{i=1}^{N} \left( f(x_i) - y_i \right)^2
+\]
+
+*** Maximum Likelihood Estimation
+
+Recall the assumption $y_i = f(x_i) + \epsilon$ with Gaussian noise $\epsilon \sim \mathcal{N}(0, \sigma^2)$. The maximum likelihood hypothesis is
+
+\[
+  h_{ML} = \underset{h \in \mathcal{H}}{\arg\max} \prod_{i=1}^{N} P(y_i \mid h) = \underset{h \in \mathcal{H}}{\arg\max} \prod_{i=1}^{N} \frac{1}{\sigma\sqrt{2\pi}} \exp\left( -\frac{1}{2}\left( \frac{f(x_i) - y_i}{\sigma} \right)^2 \right)
+\]
+
+Taking logs and dropping the constants that do not depend on $h$ collapses this to a /least squares/ problem:
+
+\[
+  h_{ML} = \underset{h \in \mathcal{H}}{\arg\min} \sum_{i=1}^{N} \left( f(x_i) - y_i \right)^2
+\]
+
+so MLE under Gaussian noise /is/ least squares. The gradient descent rule follows:
+
+\[
+  \nabla_{w} E(w) = \frac{1}{N} \sum_{i=1}^{N} \left( f(x_i) - y_i \right) x_i
+\]
+
+*** Real-Valued Features
+
+Binary splits only. Sort the data by the feature in question and consider successive midpoints. This can still lead to excessive splits to evaluate, so instead of every midpoint we can:
+
+- consider /quantiles/, or
+- consider the /mean/, /mean $-$ one standard deviation/, and /mean $+$ one standard deviation/.
+
+Binning strategies for continuous attributes:
+
+- /Equal width/: fixed-size bins (e.g. four bins, every $1.9$ from baseline).
+- /Equal frequency/: bins holding the same number of points (e.g. four bins, every 4 points from baseline).
+
+*** Using a Regression Tree
+
+The tree is a piecewise-constant /regressogram/ (with local least squares at the leaves; watch the /small disjuncts/ problem). Typically we just predict the /mean/ of the points that land at the leaf:
+
+\[
+  \hat{y} = \frac{\sum_i b_R(x_i)\, y_i}{\sum_i b_R(x_i)} \quad \text{where} \quad b_R(x) = \begin{cases} 1 & \text{if } x \in R \\ 0 & \text{otherwise} \end{cases}
+\]
+
+*** Splitting Criterion
+
+Use mean squared error (MSE) with "early stopping". Let $\mathcal{X}_{mj} \subseteq \mathcal{X}_{m}$ be the subset of the points at node $m$ that take branch $j$, so that $\bigcup_j \mathcal{X}_{mj} = \mathcal{X}_{m}$, and let $b_{mj}(x) = 1$ iff $x \in \mathcal{X}_{mj}$. Estimate the response at each branch as its mean $\hat{y}_{mj}$, then make the split that minimizes
+
+\[
+  E_{m} = \frac{1}{N_m} \sum_{j} \sum_{x} \left( y - \hat{y}_{mj} \right)^2 b_{mj}(x)
+\]
+
+* Overfitting
+
+We say a tree $T$ /overfits/ the data $\mathcal{D}$ if there exists another tree $T'$ such that
+
+- $error_{train}(T) < error_{train}(T')$, but
+- $error_{\mathcal{P}}(T) > error_{\mathcal{P}}(T')$
+
+In other words, error on the /training/ data is low while /generalization/ error is high — the tree is fitting the "noise" in the data. Overfitting is often tied to the number of parameters in the model.
+
+** Using a Validation Set
+
+To avoid overfitting, one approach is to keep a separate /validation/ set and track the training error $error_{train}(i)$ relative to the validation error $error_{val}(i)$. When the two curves diverge, overfitting is starting to occur.
+
+Issues:
+- If data is limited, holding out a validation set makes matters worse.
+- Comparing an algorithm that uses a validation set against one that does not is unfair.
+- Alternative: /regularization/.
+
+** Reduced Error Pruning
+
+Also known as {{{hl(blue,post-pruning)}}}:
+
+1. Grow the tree until it cannot be grown any further (it overfits).
+2. Tag vertices for possible pruning.
+3. Test possible pruned trees by removing tagged vertices one at a time.
+4. Test the best pruned tree against the original on the validation set.
+5. Accept the pruned tree if it is no worse.
+6. Repeat until performance on the validation set starts to degrade.
+
+** Early Stopping
+
+Also known as {{{hl(blue,pre-pruning)}}}. Commonly used on regression trees (but works on classification trees too), and can be done with or without a validation set.
+
+For /regression/, the loss function is $MSE(m)$. Set a tuned threshold $\theta_r$ as a stopping criterion: once $MSE(m)$ drops below $\theta_r$, stop splitting.
+
+For /classification/, Quinlan proposed an early-stopping rule for ID3 using a $\chi^2$ test. The null hypothesis $H_0$ is that the attribute $f$ is independent of the class of the objects being split by $f$ (e.g. test at 99% confidence). Using the counts expected under independence,
+
+\[
+  p'_{i} = p \cdot \frac{p_i + n_i}{p + n}, \qquad n'_{i} = n \cdot \frac{p_i + n_i}{p + n}
+\]
+
+the statistic is
+
+\[
+  \chi^2 = \sum_{i} \left( \frac{(p_i - p'_i)^2}{p'_i} + \frac{(n_i - n'_i)^2}{n'_i} \right)
+\]
+
+with $\nu - 1$ degrees of freedom, where $\nu$ is the number of values $f$ can take on.
+
+* Preference Bias vs. Representation Bias
+
+** Preference Bias
+
+How we /select/ the attributes in the tree. Using information gain (classification) or MSE (regression) is a "greedy" choice:
+
+- Information gain incorporates the preference bias to reduce uncertainty/entropy in the data.
+- MSE incorporates the preference bias to reduce error.
+
+Both tend to prefer /shallow/ trees, which supports generalization.
+
+** Representation Bias
+
+How the splits themselves are /shaped/. Most decision trees assume {{{hl(blue,univariate)}}} splits (also called "axis-parallel").
+
+/Oblique/ (multi-variate) trees instead replace each node with a split of the form
+
+\[
+  w_0 + \sum_{i=1}^{d} w_i f_i < \theta
+\]
+
+Oblique Classifier 1 (OC1) searches for good separating hyperplanes by /perturbation/ — iteratively adjusting one coefficient at a time to reduce impurity.
+
+* Logic and Rule Induction
+
+The other route to a classifier is a set of logical /rules/ (the Sequential Covering / Rule Induction thread from the start of the deck). This rests on logic as a formal language for knowledge — historically central to symbolic AI (Logic Theorist, GPS), and, compared to models like neural networks, comparatively /easy to understand/, which supports {{{hl(blue,explainable)}}} machine learning.
+
+** Propositional Logic
+
+The simplest formal logic, largely based on set theory, forming the foundation for most other logics.
+
+*Syntax*:
+- The constants $T$ and $F$ are sentences.
+- A propositional symbol (e.g. $P$, $Q$, $R$) is a sentence.
+- If $\alpha$ and $\beta$ are sentences, then so are $(\alpha)$, $\neg\alpha$ and $\alpha \vee \beta$ (and by extension $\wedge$, $\Rightarrow$, $\Leftrightarrow$).
+
+*Semantics*:
+- $T$ and $F$ have fixed interpretations (True and False).
+- If $\alpha$ is True, then so is $(\alpha)$; if $\alpha$ is False, then $\neg\alpha$ is True.
+- If either $\alpha$ or $\beta$ is True, then $\alpha \vee \beta$ is True.
+
+*** Inference Rules
+
+- Double-Negation: $\neg\neg\alpha \vdash \alpha$
+- AND-Elim: $\alpha_1 \wedge \cdots \wedge \alpha_n \vdash \alpha_i$
+- AND-Intro: $\alpha_1, \ldots, \alpha_n \vdash [\alpha_1 \wedge \cdots \wedge \alpha_n]$
+- OR-Intro: $\alpha_i \vdash [\alpha_1 \vee \cdots \vee \alpha_n]$
+- Modus Ponens: $\alpha \Rightarrow \beta,\ \alpha \vdash \beta$
+- Modus Tollens: $\alpha \Rightarrow \beta,\ \neg\beta \vdash \neg\alpha$
+- Unit Resolution: $\alpha \vee \beta,\ \neg\beta \vdash \alpha$
+- Resolution: $\alpha \vee \beta,\ \neg\beta \vee \gamma \vdash \alpha \vee \gamma$
+- Subsumption: $\alpha \wedge \beta \vee \beta \vdash \beta$
+
+*** Normal Forms
+
+- /Conjunctive Normal Form (CNF)/: a conjunction of disjunctions (clauses) of literals.
+- /Disjunctive Normal Form (DNF)/: a disjunction of conjunctions (terms) of literals.
+- /Horn Form/: a conjunction of Horn clauses (clauses with $\leq 1$ positive literal), often written as a set of implications (implicative normal form), e.g. $y \Rightarrow x$ and $z \wedge w \Rightarrow y$.
+
+** First-Order Logic
+
+Also called Predicate Calculus. It extends propositional logic beyond flat propositions with:
+
+- /Constants/ (individuals in the world) — =KingJohn=, $2$, =MSU=, ...
+- /Variables/ — $x$, $y$, =row=, =col=
+- /Functions/ (map individuals to individuals) — =Sqrt=, =LeftLegOf=, ...
+- /Predicates/ (map individuals to truth values) — =Brother=, $>$, $==$, ...
+- /Connectives/ — $\wedge, \vee, \neg, \Rightarrow, \Leftrightarrow$
+- /Quantifiers/ — universal $\forall$ and existential $\exists$
+- /Equality/ — $=$
+
+*** Quantifiers
+
+- Universals are like /conjunction/: $\forall x\, P(x)$ means $P$ holds for all values $x$ (usually paired with implication).
+- Existentials are like /disjunction/: $\exists x\, P(x)$ means $P$ holds for some value $x$ (usually paired with conjunction).
+- Switching the order of /like/ quantifiers does not change meaning; switching the order of /different/ quantifiers does.
+
+*** Inference Rules in FOL
+
+The propositional rules still apply, plus:
+
+- /Universal Elim/: if $\forall x\, P(x)$ is true, then $P(a)$ is true for any constant $a$ in the domain (like AND-Elimination).
+- /Existential Intro/: if $P(a)$ is true, then $\exists x\, P(x)$ is true (like OR-Introduction).
+- /Existential Elim/: if $\exists x\, P(x)$ is true, then $P(a)$ is true for some constant $a$ not appearing elsewhere (a /Skolem constant/).
+- /Generalized Modus Ponens/ combines AND-Intro, Universal-Elim and Modus Ponens. It requires finding substitutions that let "facts" match the left-hand sides of rules — this matching process is called {{{hl(blue,unification)}}}.
+
+** Resolution Theorem Proving
+
+A proof by contradiction, using unification to match terms in clauses:
+
+1. Negate the theorem to be proven.
+2. Add it to the axiom set.
+3. Convert all axioms to clause form.
+4. Resolve clauses until either the empty clause is produced or no resolvable clauses remain.
+
+The empty clause proves the theorem (a contradiction). The deck's worked example: given "whoever can read is literate", "dolphins are not literate", and "some dolphins are intelligent", prove "some who are intelligent cannot read" — resolution derives NIL. $\blacksquare$
+
+** Covering and FOIL
+
+A rule "covers" a subset of the examples in $\mathcal{D}$ if the left-hand side of the rule matches those examples. /Sequential covering/ learns a set of rules one rule at a time, each covering part of the data.
+
+=FOIL= learns Prolog-style rules and selects predicates by /information gain/, similar to decision trees. For a literal $\ell$ added to a rule,
+
+\[
+  FoilGain(\ell, Rule) = t \left( \lg \frac{p_1}{p_1 + n_1} - \lg \frac{p_0}{p_0 + n_0} \right)
+\]
+
+where
+- $p_0, n_0$ are the positive/negative bindings covered by $Rule$,
+- $p_1, n_1$ are the positive/negative bindings covered by $Rule + \ell$, and
+- $t$ is the number of prior positive bindings still covered by $Rule + \ell$.
 
 
 

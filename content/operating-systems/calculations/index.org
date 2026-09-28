@@ -1,0 +1,29 @@
+#+TITLE: Calculation Practice
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-24
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: type:calc
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Repeatable practice for the calculation-based questions on Test 1 — page-table size,
+average memory access time, TLB effective access time, hit ratio, and CPU
+utilization. *Submit* to auto-grade (worked steps appear on reveal); *New test*
+regenerates every problem with fresh numbers, so you can drill as many times as you
+like.
+
+These are rendered by the shared quiz engine from the calc questions in the
+[[file:../question-bank/][Question Bank]] (=#+QUIZ_TEST: type:calc=). Formulas for hit ratio / AMAT / TLB are the
+standard textbook forms (your notes marked these =COME BACK LATER=); page-table and
+CPU-utilization calcs follow your notes. See the [[file:../study/][Study Guide]] for the concepts.
+
+# The interactive calc UI (a <div data-quiz-test="type:calc">) is injected here by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.
