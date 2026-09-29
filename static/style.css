@@ -81,6 +81,11 @@ body {
   padding-left: 220px;
 }
 
+/* A wide child (table, equation, code block) must scroll itself, never the
+   page. Belt-and-suspenders behind the per-element containment below; the
+   fixed sidebar/rail aren't clipped since position:fixed ignores this. */
+html, body { overflow-x: hidden; }
+
 /* ── Sidebar ── */
 
 #preamble {
@@ -106,6 +111,11 @@ body {
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
   border-bottom: 2px solid var(--accent);
+  /* The sidebar's overflow-y:auto implies overflow-x:auto, so a title wider
+     than the 220px column (e.g. under an engine with wider font metrics) would
+     be clipped mid-word. Let the single long word break onto a second line
+     instead — a no-op where it already fits (mainstream browsers, one line). */
+  overflow-wrap: anywhere;
 }
 
 .site-title:visited {
@@ -446,11 +456,14 @@ h4 { font-size: 1rem; font-style: italic; }
    wide screens (min-width: 1200px), where the body reserves a gutter for it; it
    sits alongside the inline #table-of-contents card at the top of the page. The
    link matching the section you're scrolling through gets .toc-rail-active. The
-   rail folds to a slim strip via .collapsed. */
+   rail folds to a slim strip via .collapsed.
+   Gated at 1400px, not 1200: by 1400 the content column has already hit its
+   860px max-width, so revealing the 250px rail here doesn't narrow content —
+   below that the rail would only squeeze the text. */
 
 .toc-rail { display: none; } /* revealed only by the wide-screen query below */
 
-@media (min-width: 1200px) {
+@media (min-width: 1400px) {
   /* Reserve the right gutter for the rail (or a slim strip when collapsed). */
   body.has-toc-rail { padding-right: 250px; }
   body.has-toc-rail.toc-rail-collapsed { padding-right: 2.5rem; }
@@ -620,6 +633,11 @@ img {
 
 .figure p { font-size: 0.88rem; color: var(--muted); margin-top: 0.25rem; }
 
+/* Display equations can be far wider than a narrow content column, so let them
+   scroll within themselves rather than pushing the page sideways. Applies at
+   every width — a shrunken desktop window overflows just as a phone does. */
+mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+
 /* ── Embedded PDFs ── */
 /* PDFs are shown through the browser's native viewer via <embed>/<object>,
    whose page content CSS can't restyle directly. But a `filter` on the host
@@ -642,6 +660,11 @@ table {
   margin: 1rem 0;
   font-size: 0.95rem;
 }
+
+/* A wide table scrolls within itself instead of stretching the viewport. The
+   standard responsive-table trick (display:block turns the table box into a
+   scroll container); applied at every width, not just on phones. */
+#content table { display: block; width: 100%; overflow-x: auto; }
 
 th, td {
   border: 1px solid var(--border);
@@ -681,28 +704,22 @@ hr {
 .hl-blue   { color: #0000FF; font-weight: bold; }
 .hl-purple { color: #8B00FF; font-weight: bold; }
 
-/* ── Mobile / small screens ──
+/* ── Medium screens & phones ──
    The desktop layout is a fixed 220px sidebar with the body padded to clear it.
-   That doesn't fit a phone, so below 768px the sidebar becomes an off-canvas
-   drawer: hidden off the left edge, slid in by a hamburger button, and dimmed
-   behind a tap-to-close backdrop. The button + backdrop are created in
-   new-page.js and appended to <body> (NOT inside #preamble) — a transformed
-   sidebar would otherwise trap their position:fixed to itself. They stay
-   display:none until this media query turns them on, so desktop is unaffected. */
+   That eats a big share of any shrunken window, so below 1024px the sidebar
+   becomes an off-canvas drawer: hidden off the left edge, slid in by a hamburger
+   button, and dimmed behind a tap-to-close backdrop. The button + backdrop are
+   created in new-page.js and appended to <body> (NOT inside #preamble) — a
+   transformed sidebar would otherwise trap their position:fixed to itself. They
+   stay display:none until the query below turns them on, so wide screens are
+   unaffected. A tighter set of phone-only tweaks follows in the 768px block. */
 
 .nav-open-btn,
 .nav-backdrop { display: none; }
 
-@media (max-width: 768px) {
-  /* A phone-width column is too narrow to split the TOC in two. */
-  #text-table-of-contents > ul {
-    columns: 1;
-    column-rule: none;
-  }
-
+@media (max-width: 1023px) {
   /* Content spans the full width; the sidebar no longer reserves a gutter. */
   body { padding-left: 0; }
-  html, body { overflow-x: hidden; } /* a wide child must scroll itself, not the page */
 
   /* Off-canvas drawer, slid in when <body> gains .nav-open. */
   #preamble {
@@ -751,12 +768,20 @@ hr {
   }
   body.nav-open .nav-backdrop { opacity: 1; pointer-events: auto; }
 
-  /* Reclaim the generous desktop padding; leave room up top for the button. */
-  #content { padding: 3.25rem 1.1rem 2rem; }
+  /* Full-width content, but keep generous desktop side padding (medium windows
+     have room); just leave space up top for the fixed hamburger. */
+  #content { padding: 3.25rem 2.5rem 2rem; }
+}
 
-  /* Wide blocks scroll within themselves instead of stretching the viewport. */
-  #content table { display: block; width: 100%; overflow-x: auto; }
-  mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+@media (max-width: 768px) {
+  /* A phone-width column is too narrow to split the TOC in two. */
+  #text-table-of-contents > ul {
+    columns: 1;
+    column-rule: none;
+  }
+
+  /* Tighten the side padding for a phone (the 1024px block set the top). */
+  #content { padding: 3.25rem 1.1rem 2rem; }
   #table-of-contents { display: block; padding: 0.75rem 1rem; }
 }
 

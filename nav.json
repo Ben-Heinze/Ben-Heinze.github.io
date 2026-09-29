@@ -50,6 +50,10 @@
               {
                 "label": "5 Tree Learning",
                 "href": "/ai/machine-learning/lecture-notes/5-tree-learning/index.html"
+              },
+              {
+                "label": "6 Ensembles",
+                "href": "/ai/machine-learning/lecture-notes/6-ensembles/index.html"
               }
             ]
           },
