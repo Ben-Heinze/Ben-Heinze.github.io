@@ -1,4 +1,5 @@
 #+TITLE: MST Cut Property
+#+TAGS: graphs, proofs, spanning-trees
 #+OPTIONS: toc:nil num:nil
 
 *Lemma (Cut Property).* Suppose $S$ is a subset of the nodes of

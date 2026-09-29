@@ -8,6 +8,11 @@
     "href": "/search/index.html"
   },
   {
+    "label": "Tags",
+    "href": "/tags/index.html",
+    "summary": "Browse every page by subject tag"
+  },
+  {
     "label": "AI",
     "href": "/ai/index.html",
     "children": [
@@ -200,68 +205,68 @@
     "href": "/operating-systems/index.html",
     "children": [
       {
-        "label": "Lecture Notes",
-        "href": "/operating-systems/lecture-notes/index.html",
+        "label": "Lectures",
+        "href": "/operating-systems/lectures/index.html",
         "children": [
           {
-            "label": "Computer System Overview",
-            "href": "/operating-systems/lecture-notes/computer-system-overview/index.html"
+            "label": "0 Computer System Overview",
+            "href": "/operating-systems/lectures/0-computer-system-overview/index.html"
           },
           {
             "label": "1 Memory Management",
-            "href": "/operating-systems/lecture-notes/1-memory-management/index.html"
+            "href": "/operating-systems/lectures/1-memory-management/index.html"
           },
           {
             "label": "2 Process Management",
-            "href": "/operating-systems/lecture-notes/2-process-management/index.html"
+            "href": "/operating-systems/lectures/2-process-management/index.html"
           }
         ]
       },
       {
-        "label": "Textbook Notes",
-        "href": "/operating-systems/textbook-notes/index.html",
+        "label": "Textbook",
+        "href": "/operating-systems/textbook/index.html",
         "children": [
           {
             "label": "7 Memory Management",
-            "href": "/operating-systems/textbook-notes/7-memory-management/index.html"
+            "href": "/operating-systems/textbook/7-memory-management/index.html"
           },
           {
             "label": "8 Virtual Memory",
-            "href": "/operating-systems/textbook-notes/8-virtual-memory/index.html"
+            "href": "/operating-systems/textbook/8-virtual-memory/index.html"
           }
         ]
       },
       {
-        "label": "Assignments",
-        "href": "/operating-systems/assignments/index.html"
+        "label": "Quiz 1",
+        "href": "/operating-systems/quiz-1/index.html",
+        "children": [
+          {
+            "label": "Answer Key",
+            "href": "/operating-systems/quiz-1/answer-key/index.html"
+          },
+          {
+            "label": "Practice Quiz",
+            "href": "/operating-systems/quiz-1/practice-quiz/index.html"
+          }
+        ]
       },
       {
-        "label": "Study",
-        "href": "/operating-systems/study/index.html"
-      },
-      {
-        "label": "Quiz",
-        "href": "/operating-systems/quiz/index.html"
-      },
-      {
-        "label": "Practice Quiz",
-        "href": "/operating-systems/practice-quiz/index.html"
-      },
-      {
-        "label": "Answer Key",
-        "href": "/operating-systems/answer-key/index.html"
-      },
-      {
-        "label": "Calculation Practice",
-        "href": "/operating-systems/calculations/index.html"
-      },
-      {
-        "label": "Practice Test",
-        "href": "/operating-systems/practice-test/index.html"
-      },
-      {
-        "label": "Question Bank",
-        "href": "/operating-systems/question-bank/index.html"
+        "label": "Test 1",
+        "href": "/operating-systems/test-1/index.html",
+        "children": [
+          {
+            "label": "Practice Test",
+            "href": "/operating-systems/test-1/practice-test/index.html"
+          },
+          {
+            "label": "Question Bank",
+            "href": "/operating-systems/test-1/question-bank/index.html"
+          },
+          {
+            "label": "Calculation Practice",
+            "href": "/operating-systems/test-1/calculations/index.html"
+          }
+        ]
       }
     ]
   },

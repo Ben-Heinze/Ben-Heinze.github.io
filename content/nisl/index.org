@@ -1,6 +1,7 @@
 #+TITLE: NISL
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-09-01
+#+TAGS: causality, probability
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@

@@ -1,4 +1,5 @@
 #+TITLE: Edit Distance
+#+TAGS: dynamic-programming, strings
 #+OPTIONS: toc:nil num:nil
 
 *Problem.* Given two strings, how many edits are needed to turn one

@@ -1,6 +1,7 @@
 #+TITLE: 7 Clustering
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-08-31
+#+TAGS: clustering, machine-learning
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@

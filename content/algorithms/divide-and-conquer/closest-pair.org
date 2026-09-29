@@ -1,4 +1,5 @@
 #+TITLE: Closest Pair of Points
+#+TAGS: divide-and-conquer, geometry
 #+OPTIONS: toc:nil num:nil
 
 *Goal.* Given $n$ points in the plane, find a pair of points with

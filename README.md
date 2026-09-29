@@ -17,10 +17,11 @@ Personal wiki built with [Org mode](https://orgmode.org/), published to a static
 9. [Emacs Interactive Commands](#emacs-interactive-commands)
 10. [How to Add a New Snippet](#how-to-add-a-new-snippet)
 11. [Adding & Managing Pages](#adding--managing-pages)
-12. [Turning a Lecture PDF into Notes](#turning-a-lecture-pdf-into-notes)
-13. [Citations & Bibliography](#citations--bibliography)
-14. [Building the Site](#building-the-site)
-15. [Initial Project Setup Notes](#initial-project-setup-notes)
+12. [Tagging Pages](#tagging-pages)
+13. [Turning a Lecture PDF into Notes](#turning-a-lecture-pdf-into-notes)
+14. [Citations & Bibliography](#citations--bibliography)
+15. [Building the Site](#building-the-site)
+16. [Initial Project Setup Notes](#initial-project-setup-notes)
 
 ---
 
@@ -119,6 +120,8 @@ yappopotamus/
 │
 ├── content/                   All .org source files
 │   ├── index.org              Home page (section index is auto-generated)
+│   ├── search/index.org       Mount point for the search UI
+│   ├── tags/index.org         Mount point for the tag browser
 │   ├── algorithms/
 │   │   ├── index.org          Algorithms section — includes snippets below
 │   │   ├── fibonacci.org      Snippet: recursive Fibonacci in Python
@@ -139,9 +142,13 @@ yappopotamus/
 │       ├── text-formatting.org  Inline markup, lists, block quotes
 │       └── named-blocks.org   #+NAME and #+CALL reuse patterns
 │
-├── static/
-│   ├── style.css              Global stylesheet (copied to public/)
-│   └── new-page.js            Sidebar behavior — active link, collapse, theme toggle
+├── static/                    Client-side assets, copied verbatim to public/
+│   ├── style.css              Global stylesheet
+│   ├── new-page.js            Sidebar behavior — active link, collapse, theme toggle
+│   ├── search.js              Site search: the Ctrl/Cmd-K overlay and /search/
+│   ├── learn.js               Per-page Learn mode (flashcards, cloze, MC)
+│   ├── quiz.js                Gradeable quiz widgets
+│   └── tags.js                The /tags/ browser and the subject graph
 │
 └── public/                    Generated output — do not edit by hand
     ├── index.html
@@ -481,6 +488,92 @@ Any pages nested under the target move, rename, or delete along with it, and the
 **Why this is the only thing you touch**
 
 The sidebar tree, its collapse behavior, the active-link highlight, and the homepage section index are all derived from `nav.json` at build time by `publish.el`. Because these recipes maintain `nav.json` for you, adding or reorganizing pages never means editing `publish.el` or any per-page navigation markup.
+
+---
+
+## Tagging Pages
+
+The sidebar is a tree, so every page sits in exactly one place. Tags are the other way through the wiki: a page lists the subjects it touches, and any two pages sharing a subject are linked no matter which sections they live in. Week 5 of the Machine Learning lectures, the probability page on entropy, and a quiz that reuses the same idea can all carry `entropy` and find each other.
+
+A page declares its tags with one keyword in its `.org` source:
+
+```org
+#+TITLE: 5 Tree Learning
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-21
+#+TAGS: machine-learning, decision-trees, week-5, entropy
+```
+
+You don't have to write that line by hand:
+
+```bash
+just tag-page ai/machine-learning/lecture-notes/5-tree-learning week-5 entropy
+just tag-page algorithms/fibonacci dynamic-programming,memoization
+just untag-page ai/machine-learning/lecture-notes/5-tree-learning entropy
+just new-page "Gradient Descent" ai/machine-learning "optimization, week-3"
+```
+
+The path is a `content/` path, and unlike the page recipes it accepts both shapes of page: a directory holding an `index.org`, and a standalone snippet page like `algorithms/fibonacci` that is `#+INCLUDE`d elsewhere but also publishes on its own.
+
+Tags are slugs, normalized the same way page titles are — lowercased, with runs of punctuation and spaces collapsed to single hyphens. So write multi-word tags hyphenated (`dynamic-programming`); `just` splits variadic arguments on whitespace whatever you quote, so a phrase would land as two separate tags.
+
+**Browsing and searching by tag**
+
+```bash
+just list-tags              # every tag and how many pages use it, most-used first
+just list-tags ai/machine-learning   # one page's tags
+just list-tags --untagged   # every page with no tags yet — the backfill worklist
+```
+
+Once tags exist, four things pick them up automatically on the next build:
+
+1. **Chips under the page title** on every tagged page, each linking to that tag.
+2. **The `/tags/` page** (in the sidebar) — every tag with its page count, and a per-tag list of the pages carrying it.
+3. **The subject graph**, the *Graph* tab on that same page — see below.
+4. **Search** — `tag:week-5` in the Ctrl/Cmd-K overlay lists that tag's pages; combine it with text (`tag:week-5 entropy`) to narrow a normal search to tagged pages only.
+
+**The subject graph**
+
+`nav.json` is a tree, so every page hangs in exactly one place. The graph is the other view of the same wiki: each tagged page is a vertex, and two pages are joined whenever they share a tag — the more tags in common, the harder the edge pulls them together. Clusters form on their own, and they are the honest ones: the algorithms pages pull into a knot, the OS lectures chain off to one side, the ML and probability notes overlap wherever entropy or likelihood shows up in both.
+
+Hover a page to light up its neighbours and read its tags, click to open it, drag to rearrange. The tag row above the canvas highlights everything carrying one tag without hiding the rest, so you keep the whole map for context.
+
+**Zooming reveals more.** Scrolling doesn't magnify — it changes how much of the hierarchy is unpacked. Zoomed out, every page under a section collapses into one vertex sized by how much it holds, and all the tag links between two sections merge into a single thick edge:
+
+```
+depth 1  ●Algorithms (19)   ●AI (7)   ●Operating Systems (5)   ●Statistics (3)  …
+depth 2  ●Machine Learning (7)  ●Spanning Trees (3)  ●Greedy Scheduling (3)  …
+depth 4  ●Kruskal's Algorithm  ●Prim's Algorithm  ●5 Tree Learning  …  (all 37)
+```
+
+Scroll in and each group splits into its subsections, then into the pages themselves; scroll out and they fold back. Clicking a grouped vertex opens just that one up. Children unfold from wherever their group was standing, so the picture stays recognisable across a level change instead of rearranging itself.
+
+The levels come from the `content/` path — `ai/machine-learning/lecture-notes/5-tree-learning` is four deep, so there are four levels — which means this keeps working as the wiki grows: at 300 pages the top level is still a handful of sections. Grouped vertices are titled from `nav.json`, so a section reads "AI" and "NISL" rather than a de-slugified "Ai" and "Nisl".
+
+It is drawn by `static/tags.js` from `public/tag-index.json` — a small force-directed layout on a canvas, written out rather than pulled from a library, so `static/` stays dependency-free and the graph inherits the site's light/dark variables instead of fighting them.
+
+**Private pages and the graph**
+
+A page marked private (`just page-visibility job private`) is a full participant in the local graph — it appears as a vertex, carries its tags, and links to whatever it shares them with — and is absent from the deployed one entirely: no vertex, no tags, no section label, no search record, no link. Tagging a private page is safe.
+
+That separation is not one gate but several. The `:exclude` regexp stops the page's HTML being written; then the sidebar, the homepage table, the search index, the learn deck, the quiz bank and the tag manifest each have to filter it again — the index passes especially, since they walk `content/` themselves and bypass `org-publish`'s `:exclude` entirely. A miss in any one of them would be silent.
+
+So rather than trust all of them, `wiki-assert-no-private-leak` runs last and audits the finished `public/` tree: no published files under a private path, no mention of it in any manifest, no page linking to it. If it finds anything it aborts with a non-zero exit, which fails the GitHub Pages workflow at the build step so nothing is deployed. It only runs when `WIKI_INCLUDE_LOCAL` is unset — locally, private pages are published on purpose.
+
+**Keeping the vocabulary clean**
+
+Typos are what quietly break this: `week5` and `week-5` become two unrelated subjects, and the pages you meant to link stay unlinked. So a tag that closely resembles one already in use stops and asks, since the near miss is almost certainly what you meant:
+
+```
+$ just tag-page ai/machine-learning/lecture-notes/4-learning-theory week5
+content/ai/machine-learning/lecture-notes/4-learning-theory/index.org
+  "week5" looks like "week-5" (1 page) — nothing changed.
+  Use the existing tag, or re-run with --new to keep it separate.
+```
+
+A tag that resembles nothing is just a new subject — it's noted and applied, no ceremony. `--new` forces a near miss through when you really do mean two separate tags.
+
+One wrinkle worth knowing: `#+TAGS:` is also a real Org keyword, which interactively feeds heading-tag completion. It has no effect on the build or the published site, but inside Emacs `C-c C-q` will offer these as candidates. Pinning `org-tag-alist` in `.dir-locals.el` is the fix if that ever gets annoying.
 
 ---
 

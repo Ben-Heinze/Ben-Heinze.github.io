@@ -1,6 +1,7 @@
 #+TITLE: Linear Programming
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-07-04
+#+TAGS: linear-programming
 #+STARTUP: noindent
 #+OPTIONS: toc:2 num:nil
 

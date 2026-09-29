@@ -1,6 +1,7 @@
 #+TITLE: 4 Learning Theory
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-09-14
+#+TAGS: machine-learning, week-4
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@

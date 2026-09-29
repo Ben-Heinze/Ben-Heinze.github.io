@@ -1,6 +1,7 @@
 #+TITLE: Bayesian Networks
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-08-18
+#+TAGS: causality, probability
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@

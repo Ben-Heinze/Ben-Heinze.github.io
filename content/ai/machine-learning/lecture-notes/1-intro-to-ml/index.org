@@ -1,6 +1,7 @@
 #+TITLE: 1 Intro to ML
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-08-29
+#+TAGS: machine-learning, week-1
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@

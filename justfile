@@ -1,8 +1,40 @@
 # Scaffold a new page + nav entry and rebuild.
-# Parent is a content/ path (omit for top level).
+# Parent is a content/ path (omit for top level). Tags are optional; pass them as
+# one comma-separated string (you must give a parent, even "", to reach them).
 # Usage: just new-page "Gradient Descent" ai/machine-learning
-new-page title parent="":
-    python3 serve.py new-page "{{title}}" "{{parent}}"
+#        just new-page "Gradient Descent" ai/machine-learning "optimization, week-3"
+new-page title parent="" tags="":
+    python3 serve.py new-page "{{title}}" "{{parent}}" "{{tags}}"
+
+# Tag a page with one or more subjects, linking it to every other page sharing
+# them: chips under its title, an entry on /tags/, and `tag:name` in search.
+# The path is a content/ path — either a page directory ("operating-systems") or
+# a standalone snippet page ("algorithms/fibonacci").
+# Tags are slugs, so write multi-word ones hyphenated: "dynamic-programming", not
+# "Dynamic Programming" — just splits variadic arguments on whitespace whatever
+# you quote, so a phrase would become two separate tags. Commas work too.
+# A tag that closely resembles an existing one is treated as a typo and stops,
+# since that near miss is almost certainly what you meant; --new means it.
+# Usage: just tag-page ai/machine-learning/lecture-notes/5-tree-learning week-5 entropy
+#        just tag-page algorithms/fibonacci dynamic-programming,memoization
+#        just tag-page operating-systems paging --new
+tag-page path *tags:
+    python3 serve.py tag-page "{{path}}" {{tags}}
+
+# Remove one or more tags from a page. The inverse of tag-page; taking the last
+# tag off a page removes its #+TAGS: line entirely.
+# Usage: just untag-page ai/machine-learning/lecture-notes/5-tree-learning entropy
+untag-page path *tags:
+    python3 serve.py untag-page "{{path}}" {{tags}}
+
+# Show the wiki's tags. With no argument, every tag and how many pages use it
+# (most-used first). With a content/ path, just that page's tags. With
+# --untagged, every page carrying no tags yet — the backfill worklist.
+# Usage: just list-tags
+#        just list-tags ai/machine-learning
+#        just list-tags --untagged
+list-tags *args:
+    python3 serve.py list-tags {{args}}
 
 # Delete a page + its nav entry and rebuild. The inverse of new-page.
 # Pass the content/ path of the page (any pages nested under it go too).

@@ -1,0 +1,27 @@
+#+TITLE: Quiz 1
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-24
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: exam
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The original 27-question memory-management quiz, rendered interactively. Pick your
+answers, start the timer, and *Submit* to auto-grade; *Show answers* reveals the
+correct ones (the three essays show a model answer to self-assess), and *New test*
+shuffles for another run.
+
+The questions are authored in the [[file:../test-1/question-bank/][Question Bank]] (tag =exam=) and rendered here by
+the shared quiz engine (=#+QUIZ_TEST: exam=). See also the [[file:answer-key/][Answer Key]],
+[[file:practice-quiz/][Practice Quiz]], and the [[file:../test-1/][Test 1]] study guide.
+
+# The interactive quiz UI (a <div data-quiz-test="exam">) is injected here by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.

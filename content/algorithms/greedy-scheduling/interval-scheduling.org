@@ -1,4 +1,5 @@
 #+TITLE: Interval Scheduling (Single Room)
+#+TAGS: greedy, scheduling
 #+OPTIONS: toc:nil num:nil
 
 *Input.*

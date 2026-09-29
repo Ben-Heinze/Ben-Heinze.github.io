@@ -1,4 +1,5 @@
 #+TITLE: Ford-Fulkerson Algorithm
+#+TAGS: flow-networks, graphs
 #+OPTIONS: toc:nil num:nil
 
 * Algorithm overview

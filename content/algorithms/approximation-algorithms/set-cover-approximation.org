@@ -1,4 +1,5 @@
 #+TITLE: Set Cover — Greedy $\ln n$-Approximation
+#+TAGS: approximation, greedy
 #+OPTIONS: toc:nil num:nil
 
 *Set Cover.* Given a /universe/ of elements and a collection of sets

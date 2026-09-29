@@ -1,4 +1,5 @@
 #+TITLE: Vertex Cover as an ILP
+#+TAGS: linear-programming, vertex-cover
 #+OPTIONS: toc:nil num:nil
 
 *Vertex Cover ILP.*

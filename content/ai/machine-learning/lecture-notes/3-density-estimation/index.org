@@ -1,6 +1,7 @@
 #+TITLE: 3 Density Estimation
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-08-29
+#+TAGS: density-estimation, machine-learning, probability, week-3
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@

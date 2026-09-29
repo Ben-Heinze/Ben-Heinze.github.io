@@ -1,4 +1,5 @@
 #+TITLE: Kruskal's Algorithm
+#+TAGS: graphs, greedy, spanning-trees
 #+OPTIONS: toc:nil num:nil
 
 *Kruskal's MST Algorithm.* Repeatedly add the edge with the smallest

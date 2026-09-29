@@ -1,6 +1,7 @@
 #+TITLE: 5 Tree Learning
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-09-21
+#+TAGS: decision-trees, entropy, machine-learning, week-5
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@

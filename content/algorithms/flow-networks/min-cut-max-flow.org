@@ -1,4 +1,5 @@
 #+TITLE: Min-Cut / Max-Flow
+#+TAGS: flow-networks, graphs, proofs
 #+OPTIONS: toc:nil num:nil
 
 *Theorem.* The flow returned by Ford-Fulkerson is a maximum flow.

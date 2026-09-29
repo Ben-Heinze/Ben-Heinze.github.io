@@ -8,19 +8,72 @@
 //   1. "Pages & sections" — matches on page titles / section headings.
 //   2. "In-page matches"  — fuzzy matches in body text, shown as snippets.
 // Selecting a result navigates to its href (page URL, or page URL + #section).
+//
+// A query may also carry `tag:<name>` tokens, which restrict results to pages
+// carrying every named tag (see /tags/). `tag:week-5` on its own lists that
+// tag's pages; combined with text it narrows the normal search.
 (function () {
   'use strict';
 
   // ── Index loading ──────────────────────────────────────────────────────
+  // Two manifests. search-index.json is the text index, built from the
+  // published HTML. tag-index.json is the tag data, built from the .org
+  // sources — a separate file rather than a `tags` field on every search
+  // record because it is the single source of truth the /tags/ page also
+  // reads, and because it covers every page: the text index only walks
+  // index.html, so the ~40 standalone snippet pages have no record in it at
+  // all and would otherwise be invisible to `tag:`.
   var INDEX = [];
+  var PAGE_TAGS = {};   // page href (no #fragment) -> tag list
+  var TAG_PAGES = [];   // [{ page, href, tags }] for every tagged page
   var indexPromise = null;
   function loadIndex() {
     if (indexPromise) return indexPromise;
-    indexPromise = fetch('/search-index.json')
+    var text = fetch('/search-index.json')
       .then(function (r) { return r.json(); })
-      .then(function (data) { INDEX = Array.isArray(data) ? data : []; return INDEX; })
-      .catch(function () { INDEX = []; return INDEX; });
+      .then(function (d) { INDEX = Array.isArray(d) ? d : []; })
+      .catch(function () { INDEX = []; });
+    var tags = fetch('/tag-index.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        TAG_PAGES = (d && Array.isArray(d.pages)) ? d.pages : [];
+        PAGE_TAGS = {};
+        TAG_PAGES.forEach(function (p) { PAGE_TAGS[p.href] = p.tags || []; });
+      })
+      .catch(function () { TAG_PAGES = []; PAGE_TAGS = {}; });
+    indexPromise = Promise.all([text, tags]).then(function () { return INDEX; });
     return indexPromise;
+  }
+
+  function pageHref(rec) { return (rec.href || '').split('#')[0]; }
+  function tagsOf(rec) { return PAGE_TAGS[pageHref(rec)] || []; }
+
+  // ── Tag tokens ─────────────────────────────────────────────────────────
+  // Pull `tag:foo` out of the raw query, leaving the free-text remainder.
+  // Tags are normalized the same way publish.el and serve.py normalize them
+  // (lowercase, non-alphanumerics to hyphens) so `tag:Week 5` can't be typed —
+  // but `tag:WEEK-5` still works.
+  function parseQuery(query) {
+    var tags = [], words = [];
+    (query || '').split(/\s+/).forEach(function (tok) {
+      if (!tok) return;
+      var m = /^tag:(.*)$/i.exec(tok);
+      if (m) {
+        var t = m[1].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (t) tags.push(t);
+      } else {
+        words.push(tok);
+      }
+    });
+    return { tags: tags, text: words.join(' ') };
+  }
+
+  function hasEveryTag(rec, tags) {
+    var own = tagsOf(rec);
+    for (var i = 0; i < tags.length; i++) {
+      if (own.indexOf(tags[i]) === -1) return false;
+    }
+    return true;
   }
 
   // ── Matching ───────────────────────────────────────────────────────────
@@ -100,16 +153,43 @@
 
   // ── Query → ranked results ─────────────────────────────────────────────
   function runSearch(query) {
+    var q = parseQuery(query);
     var t1 = [], t2 = [];
+
+    // Tags with no text to match: list the tagged pages themselves. Needed as
+    // its own branch because scoreText returns null for an empty term list, so
+    // falling through would report "no results" for a tag that clearly has some.
+    // Built straight from the tag manifest rather than from search records, so
+    // it covers every tagged page and lists each one once instead of once per
+    // section heading.
+    if (q.tags.length && !q.text) {
+      TAG_PAGES.forEach(function (p) {
+        var own = p.tags || [];
+        for (var i = 0; i < q.tags.length; i++) {
+          if (own.indexOf(q.tags[i]) === -1) return;
+        }
+        t1.push({ rec: { type: 'title', page: p.page, heading: p.page, href: p.href },
+                  score: 0, ranges: [] });
+      });
+      t1.sort(function (a, b) {
+        return a.rec.heading < b.rec.heading ? -1 : a.rec.heading > b.rec.heading ? 1 : 0;
+      });
+      return {
+        t1: t1.slice(0, 60), t2: [],
+        label: 'Tagged ' + q.tags.map(function (t) { return '“' + t + '”'; }).join(' + ')
+      };
+    }
+
     for (var i = 0; i < INDEX.length; i++) {
       var rec = INDEX[i];
-      var hm = scoreText(query, rec.heading, true); // headings: fuzzy allowed
+      if (q.tags.length && !hasEveryTag(rec, q.tags)) continue;
+      var hm = scoreText(q.text, rec.heading, true); // headings: fuzzy allowed
       if (hm) {
         var boost = rec.type === 'title' ? 60 : 0; // pages edge out their sections
         t1.push({ rec: rec, score: hm.score + boost, ranges: hm.ranges });
         continue;
       }
-      var bm = scoreText(query, rec.body, false);   // body: literal substrings only
+      var bm = scoreText(q.text, rec.body, false);  // body: literal substrings only
       if (bm) t2.push({ rec: rec, score: bm.score, snippet: buildSnippet(rec.body, bm.ranges) });
     }
     var byScore = function (a, b) { return b.score - a.score; };
@@ -210,7 +290,15 @@
       results.innerHTML = '';
       flat = []; active = -1;
       if (!q) {
-        results.appendChild(note('search-note', 'Type to search titles, sections, and page text.'));
+        results.appendChild(note('search-note',
+          'Type to search titles, sections, and page text. Use tag:name to filter by tag.'));
+        return;
+      }
+      // Mid-typing "tag:" with nothing after it: say so instead of flashing
+      // "No results", which is what an empty query would otherwise produce.
+      var parsed = parseQuery(q);
+      if (!parsed.tags.length && !parsed.text) {
+        results.appendChild(note('search-note', 'Finish the tag name, or see all tags on the Tags page.'));
         return;
       }
       var res = runSearch(q);
@@ -220,7 +308,7 @@
       }
       var pos = 0;
       if (res.t1.length) {
-        results.appendChild(note('search-group-label', 'Pages & sections'));
+        results.appendChild(note('search-group-label', res.label || 'Pages & sections'));
         res.t1.forEach(function (item) { results.appendChild(resultNode(item, false, pos++)); flat.push(item.rec); });
       }
       if (res.t2.length) {

@@ -1,4 +1,5 @@
 #+TITLE: Prim's Algorithm
+#+TAGS: graphs, greedy, spanning-trees
 #+OPTIONS: toc:nil num:nil
 
 *Prim's Algorithm.* Mark an arbitrary node as connected. Then repeatedly

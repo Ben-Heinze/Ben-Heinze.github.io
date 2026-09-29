@@ -50,15 +50,23 @@ WATCH_DIRS = [os.path.join(ROOT, 'content'), os.path.join(ROOT, 'static')]
 WATCH_FILES = [NAV]
 
 
-def build(force=False):
+def build(force=False, quiet=False):
     """Publish the site. force=True rebuilds every page (needed when nav.json
     changed); otherwise org-publish only re-exports files whose content changed.
+
+    quiet=True swallows Emacs' per-file chatter (~130 lines) and replays it only
+    if the build fails, for commands whose own output is the point.
     """
-    subprocess.run(
+    proc = subprocess.run(
         ['emacs', '--batch', '-l', 'publish.el', '--eval',
          '(org-publish-all %s)' % ('t' if force else 'nil')],
-        cwd=ROOT, check=True,
+        cwd=ROOT, check=not quiet,
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE if quiet else None,
     )
+    if quiet and proc.returncode != 0:
+        print((proc.stdout or b'').decode('utf-8', 'replace'))
+        raise subprocess.CalledProcessError(proc.returncode, proc.args)
     # Mirror the `just run` recipe: keep the served stylesheet in lockstep.
     style_src = os.path.join(ROOT, 'static', 'style.css')
     if os.path.isfile(style_src):
@@ -119,13 +127,15 @@ def watch_loop():
             continue
         notify_reload()
 
-# Scaffold text for a brand-new page. {{TITLE}} and {{DATE}} are substituted via
-# str.replace (not .format) so the literal LaTeX braces below pass through
-# untouched.
+# Scaffold text for a brand-new page. {{TITLE}}, {{DATE}} and {{TAGS}} are
+# substituted via str.replace (not .format) so the literal LaTeX braces below
+# pass through untouched. {{TAGS}} expands to a whole "#+TAGS: …\n" line, or to
+# nothing when the page is created untagged — so untagged pages keep a clean
+# header and `just tag-page` inserts the line later if it's ever needed.
 GENERIC_ORG = r"""#+TITLE: {{TITLE}}
 #+AUTHOR: Ben Heinze
 #+DATE: {{DATE}}
-#+STARTUP: noindent
+{{TAGS}}#+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
 
@@ -141,6 +151,353 @@ GENERIC_ORG = r"""#+TITLE: {{TITLE}}
 def slugify(label):
     slug = re.sub(r'[^a-z0-9]+', '-', label.strip().lower()).strip('-')
     return slug
+
+
+# ── Page tags ───────────────────────────────────────────────────────────
+# A page declares the subjects it touches with a page-level Org keyword:
+#
+#     #+TAGS: machine-learning, week-5, entropy
+#
+# nav.json is a strict tree, so two pages on the same subject in different
+# sections have nothing linking them; tags are the cross-cutting second axis.
+# publish.el reads the same keyword to render the chips under each page title,
+# to write public/tag-index.json for the /tags/ browse page, and to power the
+# `tag:` filter in site search.
+#
+# Everything here is plain Python over content/ — no Emacs — so `just list-tags`
+# is instant and works on a cold checkout with nothing built yet.
+
+TAGS_RE = re.compile(r'(?im)^#\+TAGS:.*$')
+
+# A new #+TAGS: line is inserted after whichever of these the page already has,
+# so it lands with the rest of the frontmatter. Tried in this order — #+DATE: is
+# normally the last header line, and #+TITLE: is the fallback and by far the
+# common case: plenty of pages (content/algorithms/fibonacci.org,
+# content/search/index.org) carry no #+DATE: or #+AUTHOR: at all.
+TAG_ANCHORS = ('DATE', 'AUTHOR', 'TITLE')
+
+
+def normalize_tag(tag):
+    """Canonical slug for a tag.
+
+    Deliberately `slugify`, the same normalizer page titles use, and mirrored
+    character-for-character by `wiki-normalize-tag' in publish.el. If those two
+    ever drift, a chip's #<tag> fragment stops matching the key static/tags.js
+    builds from tag-index.json, and the two sides disagree about what counts as
+    the same tag.
+    """
+    return slugify(tag)
+
+
+def split_tags(text):
+    """Parse a '#+TAGS:' value into normalized tags. Deduped, sorted, empties
+    dropped.
+
+    Commas are the only separator: a tag may contain spaces, which `slugify`
+    turns into hyphens, so "Machine Learning" is one tag and not two. Callers
+    with tags already split into a list (the CLI, where argv did the splitting)
+    join them with commas rather than spaces for the same reason.
+    """
+    out = []
+    for raw in (text or '').split(','):
+        tag = normalize_tag(raw)
+        if tag and tag not in out:
+            out.append(tag)
+    return sorted(out)
+
+
+def resolve_org(path):
+    """Map a content/ path to its .org source file.
+
+    Pages come in two shapes: a directory holding an index.org (the 63 pages in
+    nav.json), and a standalone .org beside its parent's index.org that is
+    #+INCLUDEd but also publishes as its own page (fibonacci.org and ~40
+    others). Both are taggable, so both resolve here. Accepts a path with or
+    without a trailing '.org'.
+    """
+    rel = (path or '').strip('/')
+    if not rel:
+        raise ValueError('a page path is required')
+    if rel.endswith('.org'):
+        candidates = [rel]
+    else:
+        candidates = [os.path.join(rel, 'index.org'), rel + '.org']
+    for cand in candidates:
+        full = os.path.join(ROOT, 'content', cand)
+        if os.path.isfile(full):
+            return full
+    raise ValueError('no page at content/' + candidates[0] +
+                     (' (or content/' + candidates[-1] + ')'
+                      if len(candidates) > 1 else ''))
+
+
+def _frontmatter_end(body):
+    """Index of the end of BODY's leading keyword block (its first heading, or
+    the end of the file). Tags are only ever read from or written into this
+    region, so a '#+TAGS:' shown as an example further down a page — as
+    content/org-cheatsheet/index.org might — is never mistaken for a
+    declaration. Mirrors the same guard in `wiki-page-frontmatter'."""
+    m = re.search(r'(?m)^\*+[ \t]', body)
+    return m.start() if m else len(body)
+
+
+def read_tags(org_path):
+    """The normalized tags declared by the .org file at ORG_PATH."""
+    with open(org_path) as f:
+        body = f.read()
+    head = body[:_frontmatter_end(body)]
+    m = TAGS_RE.search(head)
+    if not m:
+        return []
+    return split_tags(m.group(0).split(':', 1)[1])
+
+
+def write_tags(org_path, tags):
+    """Set the .org file at ORG_PATH to declare exactly TAGS.
+
+    Rewrites an existing '#+TAGS:' line in place; inserts one after the last
+    TAG_ANCHORS keyword when there is none; removes the line entirely when TAGS
+    is empty, so an untagged page is byte-identical to one that never had tags.
+
+    Sorts here rather than trusting callers, so the line on disk is always in one
+    canonical order and re-tagging a page never produces a spurious diff.
+    """
+    tags = sorted(set(tags))
+    with open(org_path) as f:
+        body = f.read()
+    end = _frontmatter_end(body)
+    head, rest = body[:end], body[end:]
+
+    line = '#+TAGS: ' + ', '.join(tags)
+    # A lambda, not a replacement string, in every sub() below: tag text
+    # containing \1 or \g would otherwise be read as a backreference. Same
+    # reason rename_tab uses one for #+TITLE:.
+    if TAGS_RE.search(head):
+        if tags:
+            head = TAGS_RE.sub(lambda m: line, head, count=1)
+        else:
+            # Drop the line and its newline, so removing the last tag leaves the
+            # file exactly as it was before any tag was added.
+            head = re.sub(r'(?im)^#\+TAGS:.*$\n?', lambda m: '', head, count=1)
+    elif tags:
+        at = None
+        for key in TAG_ANCHORS:
+            m = re.search(r'(?im)^#\+' + key + r':.*$', head)
+            if m:
+                at = m.end()
+                break
+        if at is None:
+            head = line + '\n' + head   # no frontmatter at all: go to the top
+        else:
+            head = head[:at] + '\n' + line + head[at:]
+
+    with open(org_path, 'w') as f:
+        f.write(head + rest)
+
+
+def content_pages():
+    """Every taggable .org file under content/, as (rel_path, abs_path) pairs.
+
+    Dotfiles are skipped: an org buffer open in Emacs leaves a dangling
+    .#name.org lock symlink beside it.
+    """
+    base = os.path.join(ROOT, 'content')
+    out = []
+    for root, dirs, files in os.walk(base):
+        dirs[:] = sorted(d for d in dirs if not d.startswith('.'))
+        for fn in sorted(files):
+            if fn.endswith('.org') and not fn.startswith('.'):
+                full = os.path.join(root, fn)
+                out.append((os.path.relpath(full, base), full))
+    return out
+
+
+def collect_tags():
+    """Map every tag in the wiki to the rel paths of the pages carrying it."""
+    index = {}
+    for rel, full in content_pages():
+        for tag in read_tags(full):
+            index.setdefault(tag, []).append(rel)
+    return index
+
+
+def page_label(rel):
+    """A page's content/ path as the CLI addresses it: 'ai/index.org' -> 'ai',
+    'algorithms/fibonacci.org' -> 'algorithms/fibonacci'. The inverse of
+    resolve_org, for printing."""
+    if rel.endswith('/index.org'):
+        return rel[:-len('/index.org')]
+    if rel == 'index.org':
+        return ''
+    return rel[:-len('.org')]
+
+
+def series_siblings(a, b):
+    """True when two tags read as members of a numbered series rather than a typo
+    of one another.
+
+    Numbered tags are the one place where two nearly identical names are both
+    correct and deliberate — a wiki full of "5 Tree Learning" and "8 Virtual
+    Memory" will grow week-4 alongside week-5, and stopping to confirm every one
+    of those would be pure friction. The distinction is which part differs:
+
+        week-4  vs week-5   same letters, different number -> a series
+        week5   vs week-5   same letters, same number      -> a typo
+    """
+    letters = lambda s: re.sub(r'[^a-z]', '', s)
+    digits = lambda s: re.sub(r'[^0-9]', '', s)
+    return (letters(a) == letters(b)
+            and bool(digits(a)) and bool(digits(b))
+            and digits(a) != digits(b))
+
+
+def check_new_tags(tags, known, allow_new):
+    """Vet tags that no page carries yet. Returns True when it is safe to apply.
+
+    Typos are what quietly degrade a tag graph: "week5" and "week-5" become two
+    unrelated subjects, and the pages you meant to link stay unlinked. But most
+    new tags are not typos — they are new subjects — and a wiki has to be able to
+    grow its vocabulary without ceremony.
+
+    So the two cases are treated differently. A new tag that closely resembles an
+    existing one is the typo case: it stops and asks, since the near miss is
+    almost certainly what you meant. A new tag that resembles nothing is just a
+    new subject: it is noted and applied. --new forces the first case through.
+    """
+    import difflib
+
+    fresh = [t for t in tags if t not in known]
+    if not fresh:
+        return True
+
+    blocked = []
+    for tag in fresh:
+        near = difflib.get_close_matches(tag, sorted(known), n=1, cutoff=0.75)
+        if near and series_siblings(tag, near[0]):
+            near = []          # a numbered sibling, not a typo — see above
+        if near and not allow_new:
+            blocked.append((tag, near[0]))
+        else:
+            print('  note: "%s" is new to the wiki' % tag)
+
+    for tag, near in blocked:
+        print('  "%s" looks like "%s" (%d page%s) — nothing changed.'
+              % (tag, near, len(known[near]), '' if len(known[near]) == 1 else 's'))
+    if blocked:
+        print('  Use the existing tag, or re-run with --new to keep %s separate.'
+              % ('them' if len(blocked) > 1 else 'it'))
+        return False
+    return True
+
+
+def rebuild_for_tags():
+    """Rebuild after a tag edit, unless the dev server is already going to.
+
+    A tag edit touches a file under content/, which serve.py's own watcher is
+    polling — so under `just run` it rebuilds within about a second. Building
+    here too would put two Emacs processes through the read-modify-write passes
+    (wiki-inject-toc, wiki-inject-quiz-test, wiki-inject-tags) over the same
+    public/**.html at once, and one would clobber the other's injection. It
+    self-heals on the next build, but it is visible.
+
+    Incremental, not forced: only the edited page's HTML changes, and the
+    :completion-function passes that regenerate tag-index.json and
+    search-index.json run on every publish regardless of how many files were
+    re-exported.
+    """
+    pid_file = os.path.join(ROOT, '.server.pid')
+    try:
+        with open(pid_file) as f:
+            pid = int(f.read().strip())
+        os.kill(pid, 0)
+    except (OSError, ValueError):
+        pass
+    else:
+        return 'dev server is running — it will rebuild'
+    build(force=False, quiet=True)
+    return 'rebuilt'
+
+
+def tag_page(path, args):
+    """Add tags to a page. Pass --new to accept a tag no other page uses yet."""
+    allow_new = '--new' in args
+    tags = split_tags(','.join(a for a in args if not a.startswith('--')))
+    if not tags:
+        raise ValueError('at least one tag is required')
+
+    org = resolve_org(path)
+    known = collect_tags()
+    rel = os.path.relpath(org, os.path.join(ROOT, 'content'))
+    print('content/' + rel)
+    if not check_new_tags(tags, known, allow_new):
+        return {'ok': False, 'reason': 'unvetted new tags'}
+
+    before = read_tags(org)
+    after = sorted(set(before) | set(tags))
+    added = [t for t in after if t not in before]
+    write_tags(org, after)
+
+    print('  ' + ('+ ' + '  + '.join(added) if added else '(no change)'))
+    print('  now: ' + (', '.join(after) or '(none)'))
+    if added:
+        print('  ' + rebuild_for_tags())
+    return {'ok': True, 'path': rel, 'tags': after}
+
+
+def untag_page(path, args):
+    """Remove tags from a page."""
+    tags = split_tags(','.join(a for a in args if not a.startswith('--')))
+    if not tags:
+        raise ValueError('at least one tag is required')
+
+    org = resolve_org(path)
+    before = read_tags(org)
+    after = [t for t in before if t not in tags]
+    removed = [t for t in before if t in tags]
+    missing = [t for t in tags if t not in before]
+    write_tags(org, after)
+
+    rel = os.path.relpath(org, os.path.join(ROOT, 'content'))
+    print('content/' + rel)
+    if removed:
+        print('  - ' + '  - '.join(removed))
+    for tag in missing:
+        print('  note: "%s" was not on this page' % tag)
+    print('  now: ' + (', '.join(after) or '(none)'))
+    if removed:
+        print('  ' + rebuild_for_tags())
+    return {'ok': True, 'path': rel, 'tags': after}
+
+
+def list_tags(args):
+    """Print the wiki's tag vocabulary, one page's tags, or what is untagged."""
+    if '--untagged' in args:
+        untagged = [page_label(rel) for rel, full in content_pages()
+                    if not read_tags(full)]
+        for label in untagged:
+            print(label or '(home)')
+        print('\n%d untagged page%s' % (len(untagged), '' if len(untagged) == 1 else 's'))
+        return {'ok': True, 'untagged': untagged}
+
+    path = next((a for a in args if not a.startswith('--')), None)
+    if path:
+        org = resolve_org(path)
+        tags = read_tags(org)
+        print(', '.join(tags) if tags else '(no tags)')
+        return {'ok': True, 'tags': tags}
+
+    index = collect_tags()
+    if not index:
+        print('No pages are tagged yet.')
+        print('Add some with: just tag-page <path> <tag>...')
+        return {'ok': True, 'tags': {}}
+    # Most-used first, then alphabetical — same order the /tags/ page uses.
+    width = max(len(t) for t in index)
+    for tag in sorted(index, key=lambda t: (-len(index[t]), t)):
+        print('%-*s  %d' % (width, tag, len(index[tag])))
+    print('\n%d tags across %d pages'
+          % (len(index), len({p for ps in index.values() for p in ps})))
+    return {'ok': True, 'tags': {t: len(p) for t, p in index.items()}}
 
 
 def path_to_href(path):
@@ -215,7 +572,7 @@ def page_visibility_tab(href, visibility):
     return {'ok': True, 'href': href, 'visibility': visibility}
 
 
-def create_tab(label, parent_href):
+def create_tab(label, parent_href, tags=''):
     label = (label or '').strip()
     if not label:
         raise ValueError('a name is required')
@@ -244,7 +601,12 @@ def create_tab(label, parent_href):
     os.makedirs(abs_dir)
     with open(os.path.join(abs_dir, 'index.org'), 'w') as f:
         today = datetime.date.today().isoformat()
-        f.write(GENERIC_ORG.replace('{{TITLE}}', label).replace('{{DATE}}', today))
+        page_tags = split_tags(tags)
+        tags_line = '#+TAGS: ' + ', '.join(page_tags) + '\n' if page_tags else ''
+        f.write(GENERIC_ORG
+                .replace('{{TITLE}}', label)
+                .replace('{{DATE}}', today)
+                .replace('{{TAGS}}', tags_line))
 
     entry = {'label': label, 'href': href}
     if parent is not None:
@@ -550,15 +912,44 @@ def main():
     import sys
 
     if len(sys.argv) > 1 and sys.argv[1] == 'new-page':
-        # Scaffolds the page, updates nav.json, and rebuilds the site.
+        # Scaffolds the page, updates nav.json, and rebuilds the site. The
+        # optional third arg is a comma/space separated tag list.
         label = sys.argv[2] if len(sys.argv) > 2 else ''
         parent = sys.argv[3] if len(sys.argv) > 3 else ''
+        tags = sys.argv[4] if len(sys.argv) > 4 else ''
         try:
-            result = create_tab(label, path_to_href(parent))
+            result = create_tab(label, path_to_href(parent), tags)
         except Exception as e:
             print('error: ' + str(e), file=sys.stderr)
             sys.exit(1)
         print('created ' + result['href'])
+        return
+
+    if len(sys.argv) > 1 and sys.argv[1] in ('tag-page', 'untag-page'):
+        # Add or remove a page's #+TAGS:. Takes a content/ path — either a page
+        # directory ("ai/machine-learning") or a standalone snippet page
+        # ("algorithms/fibonacci") — then one or more tags. tag-page warns about
+        # a tag no other page uses yet; --new applies it anyway.
+        path = sys.argv[2] if len(sys.argv) > 2 else ''
+        rest = sys.argv[3:]
+        fn = tag_page if sys.argv[1] == 'tag-page' else untag_page
+        try:
+            result = fn(path, rest)
+        except Exception as e:
+            print('error: ' + str(e), file=sys.stderr)
+            sys.exit(1)
+        if not result.get('ok'):
+            sys.exit(1)
+        return
+
+    if len(sys.argv) > 1 and sys.argv[1] == 'list-tags':
+        # No args: the whole tag vocabulary with page counts. A content/ path:
+        # just that page's tags. --untagged: every page with no tags yet.
+        try:
+            list_tags(sys.argv[2:])
+        except Exception as e:
+            print('error: ' + str(e), file=sys.stderr)
+            sys.exit(1)
         return
 
     if len(sys.argv) > 1 and sys.argv[1] == 'delete-page':

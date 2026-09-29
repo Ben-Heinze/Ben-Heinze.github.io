@@ -1,0 +1,636 @@
+#+TITLE: Practice Quiz — Memory & Virtual Memory
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-24
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+A variation of the original [[file:../][Quiz 1]] plus extra questions covering virtual memory,
+page tables and the TLB. Answers are hidden — click *Learn* (top-right) to test
+yourself. Material lives on the [[file:../../test-1/][Test 1]] study guide.
+
+* Fragmentation & Partitioning
+
+** The wasted space inside a partition when a process is smaller than the partition it occupies is called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: internal fragmentation
+:END:
+
+Fill in the blank.
+
+** The many small unusable holes left between allocations in dynamic partitioning are called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: external fragmentation
+:END:
+
+Fill in the blank.
+
+** Dynamic partitioning eliminates internal fragmentation but introduces external fragmentation.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: True
+:END:
+
+True / False.
+
+** The placement algorithm that chooses the free block closest in size to the request is __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Best-fit
+:END:
+
+- Best-fit
+- First-fit
+- Next-fit
+- Worst-fit
+
+** Which placement algorithm scans from the beginning of memory and takes the first hole large enough?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: First-fit
+:END:
+
+- Best-fit
+- First-fit
+- Next-fit
+- Last-fit
+
+** The scheme described as a combination of fixed and dynamic partitioning is the __________ system.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: buddy
+:END:
+
+Fill in the blank.
+
+** Under dynamic partitioning, relocation is only sometimes required.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: False — under dynamic partitioning relocation is always required (swap-in and compaction move processes).
+:END:
+
+True / False.
+
+* Addresses & Requirements
+
+** A reference to a memory location that is independent of the current assignment of data to memory is a __________ address.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: logical
+:END:
+
+Fill in the blank.
+
+** The actual location of a word in main memory is called the __________ (or absolute) address.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: physical
+:END:
+
+Fill in the blank.
+
+** Which two registers translate relative addresses to physical addresses and enforce bounds at run time?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: The base register (start address) and the bounds register (ending location).
+:END:
+
+Short answer.
+
+** Memory protection must be enforced by the operating system software rather than the processor hardware.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: False — it must be enforced by the processor (hardware), because the OS cannot anticipate every memory reference.
+:END:
+
+True / False.
+
+** Which memory-management requirement is most readily satisfied by segmentation?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Logical organization (handling programs as modules).
+:END:
+
+- Relocation
+- Logical organization
+- Physical organization
+- Protection
+
+** Name the five memory-management requirements.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Relocation, protection, sharing, logical organization, physical organization.
+:END:
+
+Short answer.
+
+* Paging & Segmentation
+
+** Equal, fixed-size chunks of main memory are called __________, and the same-size chunks of a process are called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: frames; pages
+:END:
+
+Fill in the blanks.
+
+** Paging requires a process's pages to be placed in contiguous frames.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: False — pages need not be contiguous; that is what lets paging eliminate external fragmentation.
+:END:
+
+True / False.
+
+** In paging, the only wasted space is internal fragmentation amounting to at most a fraction of the process's __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: last page
+:END:
+
+Fill in the blank.
+
+** Why must page (and frame) size always be a power of 2?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: So the logical address equals the relative address and the physical address can be formed by appending the frame number to the offset — making logical-to-physical translation easy.
+:END:
+
+Short answer.
+
+** Segmentation is visible to the programmer, whereas paging is invisible.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: True
+:END:
+
+True / False.
+
+** In combined paging and segmentation, address translation requires how many table lookups per reference?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Two — the segment table (to find the segment's page table), then the page table (to find the frame).
+:END:
+
+Short answer.
+
+** A segment table entry stores which two pieces of information about a segment?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: The starting (base) address and the length of the segment.
+:END:
+
+Short answer.
+
+* Virtual Memory
+
+** The portion of a process that is actually in main memory at a given time is called the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: resident set
+:END:
+
+Fill in the blank.
+
+** When the OS spends most of its time swapping pieces in and out rather than executing, this is called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: thrashing
+:END:
+
+Fill in the blank.
+
+** The observation that a process's memory references tend to cluster over a short period is the principle of __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: locality
+:END:
+
+Fill in the blank.
+
+** With virtual memory, all pages of a process must be in main memory before it can run.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: False — not all pages need be resident; nonresident pages are brought in on demand when faulted.
+:END:
+
+True / False.
+
+** What event occurs when the processor references a page whose present bit is not set?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: A page fault (a memory-access fault interrupt), after which the OS reads the needed page in from disk.
+:END:
+
+Short answer.
+
+** Give two benefits of virtual memory over loading whole processes.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: More processes can be kept in main memory (higher multiprogramming / better CPU use), and a process may be larger than all of physical main memory.
+:END:
+
+Short answer.
+
+* Page Tables & TLB
+
+** How large can a page table be? (32-bit address, byte addressing, 4 KB pages, 4-byte entries) — give the full working.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Step 1: max virtual address space = 2 to the 32nd = 4 GB. Step 2: pages per process = 2 to the 32nd / 2 to the 12th = 2 to the 20th pages. Step 3: page table = 2 to the 20th entries times 4 bytes = 2 to the 22nd bytes = 4 MB. So one process needs a 4 MB page table.
+:END:
+
+Flagged as a test question in the lecture notes. Short answer — show the three steps.
+
+** With the 4 KB-page example, what is the maximum virtual address space of a process?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: 2 to the 32nd bytes = 4 GB (a 32-bit address with byte-level addressing).
+:END:
+
+Short answer.
+
+** With the 4 KB-page example, how many pages can a single process have?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: 2 to the 32nd / 2 to the 12th = 2 to the 20th pages.
+:END:
+
+Short answer.
+
+** If 100 processes each need a 4 MB page table, how much memory do the page tables alone consume, and why is that a problem?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: 100 × 4 MB = 400 MB. That is far too much main memory to dedicate to page tables, which is why modern OSes page the page tables themselves (multi-level) or use inverted page tables.
+:END:
+
+Short answer.
+
+** How do modern operating systems reduce the memory required for page tables?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Store page tables in virtual memory and use multi-level (e.g. two-level) page tables so only the root plus needed portions stay resident, or use an inverted page table (one entry per frame, sized by physical memory).
+:END:
+
+Short answer.
+
+** The high-speed cache of recently used page-table entries is the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: translation lookaside buffer (TLB)
+:END:
+
+Fill in the blank.
+
+** A page-table structure with one entry per real frame (rather than one per virtual page), indexed via a hash, is called a(n) __________ page table.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: inverted
+:END:
+
+Fill in the blank.
+
+** Why is a two-level page table used?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Because a single flat page table can be too large to keep in main memory; the page table is itself paged, with a small root/directory table resident and other portions kept in virtual memory.
+:END:
+
+Short answer.
+
+** The page-table entry bit that indicates whether a page has been altered since it was loaded is the __________ bit.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: modify (M)
+:END:
+
+Fill in the blank.
+
+* Computer Systems Overview
+
+** A computer's four basic elements are the processor, main memory, I/O modules, and the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: system bus
+:END:
+
+Fill in the blank.
+
+** Which CPU register holds the address of the next instruction to be fetched?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: The program counter (PC).
+:END:
+
+- Instruction register (IR)
+- Program counter (PC)
+- Memory address register (MAR)
+- Memory buffer register (MBR)
+
+** The fetched instruction is placed into which register?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: The instruction register (IR).
+:END:
+
+- PC
+- IR
+- MAR
+- MBR
+
+** Processing required for a single instruction (fetch + execute) is called an __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: instruction cycle
+:END:
+
+Fill in the blank.
+
+** What is the main purpose of interrupts?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: To improve processor utilization by letting the CPU do other work instead of idling while slow I/O devices operate.
+:END:
+
+Short answer.
+
+** Name the four types of interrupt.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Program, timer, I/O, and hardware failure.
+:END:
+
+Short answer.
+
+** An arithmetic overflow or divide-by-zero generates which type of interrupt?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: A program interrupt.
+:END:
+
+- Program
+- Timer
+- I/O
+- Hardware failure
+
+** The word that holds the running process's status, including the interrupt-enable and kernel/user-mode bits, is the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: program status word (PSW)
+:END:
+
+Fill in the blank.
+
+** In a simple batch system, the always-resident program that sequences jobs is the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: monitor (resident monitor)
+:END:
+
+Fill in the blank.
+
+** Batch multiprogramming's main objective is to maximize processor use; time sharing's main objective is to maximize __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: response time
+:END:
+
+Fill in the blank.
+
+** Going down the memory hierarchy (registers -> cache -> main memory -> disk -> tape), what happens to cost per bit, capacity, and access time?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Cost per bit decreases, capacity increases, and access time increases (and frequency of processor access decreases).
+:END:
+
+Short answer.
+
+** Increasing cache block size initially improves the hit ratio because it exploits __________ locality.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: spatial
+:END:
+
+Fill in the blank.
+
+** Name the three cache mapping functions.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Direct mapping, fully associative mapping, and set associative mapping.
+:END:
+
+Short answer.
+
+** Which cache mapping lets a memory block go anywhere in the cache?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Fully associative mapping.
+:END:
+
+- Direct mapping
+- Fully associative mapping
+- Set associative mapping
+- Write-back mapping
+
+** A write policy that writes to main memory only when a block is replaced (fewer writes, but memory is temporarily stale) is called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: write back
+:END:
+
+Fill in the blank.
+
+* Process Management
+
+** A passive set of instructions on disk is a program; a program brought to life and executing is a __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: process
+:END:
+
+Fill in the blank.
+
+** The data structure where the OS stores all information about a process is the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: process control block (PCB)
+:END:
+
+Fill in the blank.
+
+** Name the four parts of a process image.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: User program, user data, stack, and process control block (PCB).
+:END:
+
+Short answer.
+
+** The listing of the sequence of instructions a single process executes is called a __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: trace
+:END:
+
+Fill in the blank.
+
+** The small program that switches the processor from one process to another is the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: dispatcher
+:END:
+
+Fill in the blank.
+
+** Name the five states in the five-state process model.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: New, Ready, Running, Blocked, Exit.
+:END:
+
+Short answer.
+
+** Which transition happens when a running process issues an I/O request?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Running -> Blocked.
+:END:
+
+- Running -> Ready
+- Running -> Blocked
+- Ready -> Running
+- Blocked -> Ready
+
+** Which transition happens when a running process's time slice expires?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Running -> Ready (timeout / preemption).
+:END:
+
+- Running -> Ready
+- Running -> Blocked
+- Running -> Exit
+- Blocked -> Ready
+
+** The two-state model is inadequate because the "Not Running" state actually hides which two situations?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Processes that are ready to run versus processes that are blocked waiting for an event.
+:END:
+
+Short answer.
+
+** Moving part or all of a process from main memory out to secondary storage is called __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: swapping
+:END:
+
+Fill in the blank.
+
+** When a process is swapped out, the two suspend states it may enter are __________ and __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Ready/Suspend and Blocked/Suspend.
+:END:
+
+Fill in the blanks.
+
+** List the five steps the OS takes to create a process.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Assign a unique PID; allocate space; initialize the PCB; set linkages; create/expand other data structures.
+:END:
+
+Short answer.
+
+** When a process creates another process, the two are called the __________ and the __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: parent and child (process spawning).
+:END:
+
+Fill in the blanks.
+
+** Distinguish interrupt, trap, and supervisor call.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Interrupt: external to the current instruction (asynchronous event, e.g. clock/I/O/memory fault). Trap: associated with the current instruction (an error/exception in the running process). Supervisor call: an explicit request to an OS function.
+:END:
+
+Short answer.
+
+** The more-privileged mode that runs the kernel and can execute privileged instructions is __________ mode.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: kernel (system / control) mode
+:END:
+
+Fill in the blank.
+
+** The three categories of information in a PCB are process identification, processor state information, and __________.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: process control information
+:END:
+
+Fill in the blank.
+
+** Name the four groups of OS control tables.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Memory tables, I/O tables, file tables, and the process table.
+:END:
+
+Short answer.
+
+* Cache / Memory-Access / TLB Calculations
+
+** Cache access = 10 ns, main memory = 100 ns, hit ratio H = 0.9. Give the average access time (miss re-pays cache time).
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: T = H*T1 + (1-H)*(T1+T2) = 0.9*10 + 0.1*(10+100) = 9 + 11 = 20 ns.
+:END:
+
+Calculation. (Standard formula; your notes marked hit-ratio/AMAT COME BACK LATER.)
+
+** Define hit ratio H.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: H = number of hits / total number of memory accesses; the miss ratio is 1 - H.
+:END:
+
+Short answer.
+
+** TLB access = 20 ns, memory access = 100 ns, single-level page table, TLB hit ratio = 0.8. Give the effective access time.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: EAT = 0.8*(20+100) + 0.2*(20+2*100) = 0.8*120 + 0.2*220 = 96 + 44 = 140 ns. (On a TLB miss you access memory twice: page table then data.)
+:END:
+
+Calculation. (Standard formula; not in your notes.)
+
+** For a two-level memory, write the average-cost-per-bit formula Cs and say what we want it to approach.
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Cs = (C1*S1 + C2*S2)/(S1 + S2); we want Cs to approach C2 (the cheaper, larger level) while access time stays near the fast level.
+:END:
+
+Short answer. (From your notes.)
+
+** A single job reads a record (15 us), executes 100 instructions (1 us), writes a record (15 us). What is the CPU utilization?
+:PROPERTIES:
+:LEARN_TYPE: flashcard
+:LEARN_A: Only the 1 us of execution uses the CPU out of 31 us total: 1/31 = 0.032 = 3.2%.
+:END:
+
+Calculation. (From your notes.)

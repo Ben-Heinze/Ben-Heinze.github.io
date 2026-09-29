@@ -1,4 +1,5 @@
 #+TITLE: Earliest Deadline First (Client Scheduling)
+#+TAGS: greedy, scheduling
 #+OPTIONS: toc:nil num:nil
 
 *Setup.* You are a plumber with a list of clients. Each client has a

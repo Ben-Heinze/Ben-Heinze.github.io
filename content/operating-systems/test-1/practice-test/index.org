@@ -1,0 +1,31 @@
+#+TITLE: Practice Test — Test 1
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-28
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: ov,mem,proc
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+A full, repeatable practice test spanning everything on Test 1 — *Computer Systems
+Overview*, *Memory Management*, and *Process Management* — mixing conceptual
+questions with freshly-randomized calculations. Choose a unit and length, start the
+timer, *Submit* to auto-grade, and *New test* for a different shuffled set with new
+numbers. Study it as many times as you like.
+
+This test is generated automatically from the [[file:../question-bank/][Question Bank]]
+(=#+QUIZ_TEST: ov,mem,proc= — the study tags, excluding the verbatim exam set), so
+any question added there shows up here. See also the [[file:../][Test 1]] study guide,
+[[file:../calculations/][Calculation Practice]], and [[file:../../quiz-1/answer-key/][Answer Key]]. Concepts come from the lecture notes;
+hit-ratio / AMAT / TLB formulas are the standard textbook forms (your notes marked
+these =COME BACK LATER=).
+
+# The interactive test UI is injected here (a <div data-quiz-test="all">) by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.

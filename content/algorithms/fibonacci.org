@@ -1,4 +1,5 @@
 #+TITLE: Recursive Fibonacci
+#+TAGS: dynamic-programming, memoization, recursion
 #+OPTIONS: toc:nil num:nil
 
 * Recursive Fibonacci

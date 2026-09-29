@@ -1,6 +1,7 @@
 #+TITLE: Likelihood
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-08-17
+#+TAGS: likelihood, probability, statistics
 #+STARTUP: noindent
 #+OPTIONS: toc:nil
 

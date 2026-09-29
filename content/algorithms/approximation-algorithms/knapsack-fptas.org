@@ -1,4 +1,5 @@
 #+TITLE: Knapsack — FPTAS
+#+TAGS: approximation, dynamic-programming
 #+OPTIONS: toc:nil num:nil
 
 *Knapsack.* Given a set of $n$ items with values $v_1, \ldots, v_n$

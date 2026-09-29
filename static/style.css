@@ -239,9 +239,10 @@ nav .nav-tree .nav-tree a {
 nav .nav-tree .nav-tree a:hover { color: var(--nav-hover-text); }
 nav .nav-tree .nav-tree a.active { color: var(--accent); }
 
-/* Home and Search are pinned at the top of the column; a divider under the
-   second one sets that pair apart from the alphabetical sections below. */
-nav > .nav-tree > li:nth-child(2) {
+/* Home, Search and Tags are pinned at the top of the column (see wiki-nav-less);
+   a divider under the last of them sets that group apart from the alphabetical
+   sections below. Keep this nth-child in step with how many entries are pinned. */
+nav > .nav-tree > li:nth-child(3) {
   margin-bottom: 0.5rem;
   padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--border-strong);
@@ -1176,4 +1177,269 @@ body.learn-open { overflow: hidden; }
   .quiz-widget .qz-c-bad { color: #ff7b72; }
   .quiz-widget .qz-q.is-correct { border-color: #3fb950; }
   .quiz-widget .qz-q.is-incorrect { border-color: #ff7b72; }
+}
+
+/* ── Page tags ──
+   The chip row wiki-inject-tags splices in after the page's <h1>, plus the
+   /tags/ browse page that the chips link to. Typography follows the small
+   metadata idiom already used by .search-crumb and .qz-tag, and every colour
+   is a theme variable so light and dark both work with no override. */
+
+/* h1 owns a bottom rule (see "Headings" above), which would otherwise cut
+   between the title and its tags and leave them looking like page content.
+   Hand the rule to the chip row instead, so title + tags read as one block.
+   :has() is only used here; where it is unsupported the whole rule is dropped
+   and the layout falls back to the plain underlined h1. */
+h1.title:has(+ .page-tags) {
+  border-bottom: 0;
+  padding-bottom: 0;
+  margin-bottom: 0.45rem;
+}
+
+.page-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border-heading);
+  padding-bottom: 0.7rem;
+  margin-bottom: 1.4rem;
+}
+
+.page-tag {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+a.page-tag:visited { color: var(--muted); }
+a.page-tag:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ── /tags/ browse page ── */
+
+.tag-note {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.9rem;
+}
+
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.tag-cloud-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  color: var(--text);
+  text-decoration: none;
+}
+.tag-cloud-item:visited { color: var(--text); }
+.tag-cloud-item:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.tag-cloud-name { font-size: 0.95rem; }
+.tag-cloud-count { color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.tag-cloud-item:hover .tag-cloud-count { color: var(--accent); }
+
+.tag-back {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+.tag-back:visited { color: var(--muted); }
+.tag-back:hover { color: var(--accent); }
+
+.tag-view-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-top: 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.2rem;
+}
+.tag-view-count {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tag-pages { display: flex; flex-direction: column; gap: 0.2rem; }
+
+.tag-page {
+  display: block;
+  padding: 0.55rem 0.7rem;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  color: var(--text);
+  text-decoration: none;
+}
+.tag-page:visited { color: var(--text); }
+.tag-page:hover {
+  background: var(--nav-hover-bg);
+  border-left-color: var(--accent);
+  text-decoration: none;
+}
+.tag-page-crumb {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.1rem;
+}
+.tag-page-title { color: var(--heading); font-size: 1rem; }
+.tag-page-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem; }
+
+/* View switcher (All tags / Graph) */
+.tag-views {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.1rem;
+}
+.tag-view-link {
+  padding: 0.3rem 0.1rem 0.5rem;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.tag-view-link:visited { color: var(--muted); }
+.tag-view-link:hover { color: var(--accent); text-decoration: none; }
+.tag-view-link.is-active { color: var(--heading); border-bottom-color: var(--accent); }
+
+/* ── Subject graph ──
+   Pages are vertices, shared tags are edges. The canvas is painted by
+   static/tags.js, which reads the theme variables above so it repaints itself
+   on a light/dark switch; everything here is the chrome around it. */
+
+/* Capped at roughly two rows: a wiki with 40+ tags would otherwise push the
+   canvas itself below the fold. */
+.graph-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-height: 4.4rem;
+  overflow-y: auto;
+  margin-bottom: 0.8rem;
+}
+.graph-tag {
+  padding: 0.14rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--panel-bg);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.graph-tag:hover { border-color: var(--accent); color: var(--accent); }
+.graph-tag.is-on {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.graph-stage {
+  position: relative;
+  height: min(68vh, 620px);
+  min-height: 340px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--toc-bg);
+  overflow: hidden;
+}
+.graph-canvas { display: block; cursor: grab; touch-action: none; }
+
+.graph-tip {
+  position: absolute;
+  z-index: 2;
+  max-width: 17rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  box-shadow: 0 2px 10px var(--shadow);
+  pointer-events: none;
+}
+.graph-tip-title { color: var(--heading); font-size: 0.9rem; }
+.graph-tip-crumb {
+  margin-top: 0.1rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.graph-tip-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.4rem; }
+.graph-tip-more { align-self: center; color: var(--muted); font-size: 0.72rem; }
+
+/* Zoom controls: a small stacked +/− in the corner of the stage, over the
+   canvas. Map-control convention — + on top zooms in (more detail), − below
+   folds pages back into sections, the readout between shows depth of maxDepth.
+   Sits above the tooltip so the buttons stay clickable. */
+.graph-zoom {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  box-shadow: 0 2px 10px var(--shadow);
+  overflow: hidden;
+}
+.graph-zoom-btn {
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.graph-zoom-btn:hover:not(:disabled) { background: var(--nav-hover-bg); color: var(--accent); }
+.graph-zoom-btn:disabled { opacity: 0.32; cursor: default; }
+.graph-zoom-level {
+  padding: 0.15rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.graph-hint {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 768px) {
+  .graph-stage { height: 58vh; }
+  /* Pointer affordances that don't exist on touch. */
+  .graph-hint { font-size: 0.72rem; }
+  /* Roomier tap targets on touch. */
+  .graph-zoom-btn { width: 2.4rem; height: 2.4rem; }
 }

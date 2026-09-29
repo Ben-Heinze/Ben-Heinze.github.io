@@ -1,4 +1,5 @@
 #+TITLE: Room Minimization
+#+TAGS: greedy, scheduling
 #+OPTIONS: toc:nil num:nil
 
 *Goal.* Compatibly schedule every course using the minimum number of

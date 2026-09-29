@@ -1,4 +1,5 @@
 #+TITLE: Max 3-SAT
+#+TAGS: approximation, randomized
 #+OPTIONS: toc:nil num:nil
 
 * Background: SAT and 3-SAT

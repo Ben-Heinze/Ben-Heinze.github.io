@@ -1,4 +1,5 @@
 #+TITLE: Vertex Cover on a Tree (DP)
+#+TAGS: dynamic-programming, graphs, vertex-cover
 #+OPTIONS: toc:nil num:nil
 
 *Vertex Cover.* Given a graph, find the smallest subset of vertices

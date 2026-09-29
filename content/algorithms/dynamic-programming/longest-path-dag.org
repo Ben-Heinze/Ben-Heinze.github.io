@@ -1,4 +1,5 @@
 #+TITLE: Longest Path in a DAG
+#+TAGS: dynamic-programming, graphs
 #+OPTIONS: toc:nil num:nil
 
 *Goal.* Given a directed acyclic graph, find the longest path between

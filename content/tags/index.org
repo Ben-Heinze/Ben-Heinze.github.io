@@ -1,0 +1,21 @@
+#+TITLE: Tags
+#+AUTHOR: Ben Heinze
+#+STARTUP: noindent
+#+OPTIONS: toc:nil num:nil ^:nil
+
+The sidebar is a tree, so each page sits in exactly one place. Tags are the other
+way through the wiki: a page lists the subjects it touches, and any two pages
+sharing a subject are linked no matter which sections they live in.
+
+Pick a tag to see every page carrying it, or open the *Graph* to see the whole
+wiki laid out by subject: every tagged page is a point, and two pages are joined
+when they share a tag — the more tags in common, the stronger the pull between
+them. Drag things around; click a page to go to it.
+
+A page's own tags are the chips under its title, and you can filter search with
+=tag:name= from anywhere — press ~Ctrl~/~Cmd~ + ~K~ and try =tag:probability=.
+
+#+begin_export html
+<div id="tags-app">Loading tags&#8230;</div>
+<script src="/tags.js?v=5" defer></script>
+#+end_export

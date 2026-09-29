@@ -1,0 +1,49 @@
+#+TITLE: Calculation Practice
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-24
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: type:calc
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Repeatable practice for the calculation-based questions on Test 1 — page-table size,
+average memory access time, TLB effective access time, hit ratio, and CPU
+utilization. *Submit* to auto-grade (worked steps appear on reveal); *New test*
+regenerates every problem with fresh numbers, so you can drill as many times as you
+like.
+
+These are rendered by the shared quiz engine from the calc questions in the
+[[file:../question-bank/][Question Bank]] (=#+QUIZ_TEST: type:calc=). Formulas for hit ratio / AMAT / TLB are the
+standard textbook forms (your notes marked these =COME BACK LATER=); page-table and
+CPU-utilization calcs follow your notes. See the [[file:../][Test 1]] study guide for the concepts.
+
+* Formulas
+
+The five formulas the drills use (each also appears in the worked steps on reveal):
+
+- *Page-table size*: offset bits $= \log_2(\text{page size})$; page-number bits
+  $= \text{address bits} - \text{offset bits}$; table size
+  $= 2^{\text{page bits}} \times \text{entry size}$.
+- *Average memory access time* (two-level):
+  \[ T_{avg} = H\,T_1 + (1-H)\,(T_1+T_2) \]
+  where $H$ = hit ratio, $T_1$ = cache time, $T_2$ = main-memory time.
+- *TLB effective access time*:
+  \[ EAT = h\,(t_t+t_m) + (1-h)\,(t_t+2t_m) \]
+  where $h$ = TLB hit ratio, $t_t$ = TLB lookup time, $t_m$ = memory access time.
+- *Hit ratio*: $H = \dfrac{\text{hits}}{\text{total accesses}}$; miss ratio $= 1-H$.
+- *CPU utilization*: $\dfrac{\text{execution}}{\text{run} + \text{execution} + \text{wait}}$.
+
+The hit-ratio and AMAT forms are the standard textbook versions — some texts use
+$T_{avg} = H T_1 + (1-H) T_2$ (miss doesn't re-pay $T_1$); check which convention
+your slides use.
+
+# The interactive calc UI (a <div data-quiz-test="type:calc">) is injected here by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.
