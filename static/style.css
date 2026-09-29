@@ -704,6 +704,53 @@ hr {
 .hl-blue   { color: #0000FF; font-weight: bold; }
 .hl-purple { color: #8B00FF; font-weight: bold; }
 
+/* ── Desktop sidebar collapse ──
+   On wide screens the sidebar can fold to a slim strip, mirroring the outline
+   rail on the right. The collapsed flag lives on <html> (not body) so the
+   inline head script in publish.el can restore it before first paint — the
+   body doesn't exist yet when that script runs, and applying it later would
+   flash the expanded sidebar on every navigation. Below 1024px the off-canvas
+   drawer takes over and this button is hidden, so the two never overlap. The
+   button is appended to <body> by new-page.js for the same transform reason
+   as the hamburger (see the mobile block below). */
+
+.nav-collapse-btn { display: none; }
+
+@media (min-width: 1024px) {
+  .nav-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 1.4rem;
+    left: calc(220px - 2.3rem); /* button's right edge ends 0.9rem short of the
+                                   sidebar edge, matching its side padding */
+    z-index: 11; /* above the sidebar (10) */
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: var(--nav-toggle);
+    cursor: pointer;
+    transition: color 0.12s ease, background 0.12s ease;
+  }
+  .nav-collapse-btn::before { content: "\2039"; font-size: 1rem; line-height: 1; } /* ‹ */
+  html.nav-collapsed .nav-collapse-btn::before { content: "\203a"; }               /* › */
+  .nav-collapse-btn:hover { color: var(--nav-link); background: var(--nav-hover-bg); }
+  /* Centered in the collapsed strip: (2.5rem − 1.4rem) / 2. */
+  html.nav-collapsed .nav-collapse-btn { left: 0.55rem; }
+
+  html.nav-collapsed body { padding-left: 2.5rem; }
+  html.nav-collapsed #preamble {
+    width: 2.5rem;
+    padding: 0;
+    overflow: hidden;
+  }
+  html.nav-collapsed #preamble > * { display: none; }
+}
+
 /* ── Medium screens & phones ──
    The desktop layout is a fixed 220px sidebar with the body padded to clear it.
    That eats a big share of any shrunken window, so below 1024px the sidebar

@@ -168,8 +168,9 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 
 ;; The inline theme script runs before the body paints so the stored (or
 ;; system-preferred) light/dark theme is applied with no flash of the wrong
-;; palette. It only sets the data-theme attribute the CSS keys off of; the
-;; toggle button's click handler lives in new-page.js.
+;; palette. It only sets the data-theme attribute (and the desktop
+;; nav-collapsed class) the CSS keys off of; the toggle buttons' click
+;; handlers live in new-page.js.
 ;; Mermaid diagrams: pages emit their graph as a <pre class="mermaid"> block
 ;; (see the `mermaid' export helper / raw export blocks in content). Mermaid
 ;; isn't bundled — this bootstrap dynamically imports it from the CDN only on
@@ -178,8 +179,8 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 ;; typeset like the rest of the page's math. It waits for MathJax's own startup
 ;; promise first so the retypeset can't race the async MathJax bootstrap.
 (defvar wiki-html-head
-  "<link rel=\"stylesheet\" href=\"/style.css?v=15\" />
-<script>(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  "<link rel=\"stylesheet\" href=\"/style.css?v=16\" />
+<script>(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('sidebarCollapsed')==='1'){document.documentElement.classList.add('nav-collapsed');}}catch(e){}})();</script>
 <script>document.addEventListener('DOMContentLoaded',function(){if(!document.querySelector('.mermaid'))return;var s=document.createElement('script');s.type='module';s.textContent=\"import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';import elk from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@1.0.0/dist/mermaid-layout-elk.esm.min.mjs';mermaid.registerLayoutLoaders(elk);var dark=document.documentElement.getAttribute('data-theme')==='dark';mermaid.initialize({startOnLoad:false,securityLevel:'loose',theme:dark?'dark':'neutral',layout:'elk',flowchart:{curve:'linear',nodeSpacing:55,rankSpacing:75}});await mermaid.run({querySelector:'.mermaid'});if(window.MathJax&&window.MathJax.startup&&window.MathJax.typesetPromise){await window.MathJax.startup.promise;await window.MathJax.typesetPromise(Array.from(document.querySelectorAll('.mermaid')));}\";document.head.appendChild(s);});</script>")
 
 ;; ── Navigation ──────────────────────────────────────────────────────────
@@ -337,7 +338,7 @@ alphabetical."
      "</button>\n"
      ;; Sidebar behavior lives in static/new-page.js (copied to public/ by the
      ;; wiki-static component). `defer` waits for the preamble DOM to parse.
-     "<script src=\"/new-page.js?v=6\" defer></script>\n"
+     "<script src=\"/new-page.js?v=7\" defer></script>\n"
      ;; Site-wide search: the Ctrl/Cmd-K overlay and the /search/ page both live
      ;; in static/search.js (copied to public/ by the wiki-static component).
      "<script src=\"/search.js?v=1\" defer></script>\n"

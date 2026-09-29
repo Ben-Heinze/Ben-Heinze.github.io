@@ -303,6 +303,31 @@
     setNavOpen(!body.classList.contains('nav-open'));
   });
   navBackdrop.addEventListener('click', function () { setNavOpen(false); });
+
+  // ── Desktop sidebar collapse ──
+  // On wide screens (≥1024px, where the drawer above is inactive) a chevron
+  // folds the sidebar to a slim strip, mirroring the outline rail. The class
+  // lives on <html> so the inline head script in publish.el can restore the
+  // stored state before first paint; here we only wire up the button. Also
+  // appended to <body>, not #preamble, for the transform reason above.
+  var SIDEBAR_KEY = 'sidebarCollapsed';
+  var root = document.documentElement;
+  var collapseBtn = document.createElement('button');
+  collapseBtn.type = 'button';
+  collapseBtn.className = 'nav-collapse-btn';
+  body.appendChild(collapseBtn);
+
+  function setSidebarCollapsed(collapsed) {
+    root.classList.toggle('nav-collapsed', collapsed);
+    collapseBtn.setAttribute('aria-expanded', String(!collapsed));
+    collapseBtn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+  }
+  setSidebarCollapsed(root.classList.contains('nav-collapsed'));
+  collapseBtn.addEventListener('click', function () {
+    var collapsed = !root.classList.contains('nav-collapsed');
+    setSidebarCollapsed(collapsed);
+    try { localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0'); } catch (e) {}
+  });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') setNavOpen(false);
   });
