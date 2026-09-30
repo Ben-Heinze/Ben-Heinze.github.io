@@ -1134,7 +1134,11 @@ body.learn-open { overflow: hidden; }
 }
 
 /* ── Generic interactive quiz (static/quiz.js, [data-quiz-test] mounts) ─────── */
-.quiz-widget { max-width: 52rem; margin: 1.5rem 0; }
+/* The [data-quiz-test] mount is injected as a sibling of #content, right
+   before </body> (see wiki-inject-quiz-test in publish.el), so it doesn't
+   inherit #content's centering/padding — give it the same max-width, auto
+   margin and horizontal padding here so it lines up with the article above. */
+.quiz-widget { max-width: 860px; margin: 1.5rem auto; padding: 0 2.5rem; }
 .quiz-widget .qz-setup { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center;
   margin: 0.6rem 0 1rem; padding: 0.8rem 1rem; border: 1px solid rgba(128,128,128,0.35); border-radius: 8px; }
 .quiz-widget .qz-setup label { display: inline-flex; align-items: center; gap: 0.35rem; }
