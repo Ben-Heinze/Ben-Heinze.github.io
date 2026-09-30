@@ -285,5 +285,39 @@
         "href": "/nisl/2-a-theory-of-inferred-causation/index.html"
       }
     ]
+  },
+  {
+    "label": "Recipes",
+    "href": "/recipes/index.html",
+    "children": [
+      {
+        "label": "Chicken Alfredo with Roasted Broccoli and Carrots",
+        "href": "/recipes/chicken-alfredo-with-roasted-broccoli-and-carrots/index.html"
+      },
+      {
+        "label": "Chipotle Bowl",
+        "href": "/recipes/chipotle-bowl/index.html"
+      },
+      {
+        "label": "Fajita Mix",
+        "href": "/recipes/fajita-mix/index.html"
+      },
+      {
+        "label": "House Vinaigrette",
+        "href": "/recipes/house-vinaigrette/index.html"
+      },
+      {
+        "label": "Korean Chicken and Rice Bowl",
+        "href": "/recipes/korean-chicken-and-rice-bowl/index.html"
+      },
+      {
+        "label": "Mexican Shredded Chicken",
+        "href": "/recipes/mexican-shredded-chicken/index.html"
+      },
+      {
+        "label": "Pico de Gallo",
+        "href": "/recipes/pico-de-gallo/index.html"
+      }
+    ]
   }
 ]

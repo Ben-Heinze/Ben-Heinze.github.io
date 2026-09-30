@@ -1,0 +1,48 @@
+#+TITLE: Fajita Mix
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-29
+#+STARTUP: noindent
+#+OPTIONS: toc:nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Peppers and onions for fajitas. The garlic goes in off the heat at the end so
+it doesn't burn.
+
+* Ingredients
+
+| Amount   | Ingredient              |
+|----------+-------------------------|
+| 1        | large sweet onion       |
+| 1        | large red bell pepper   |
+| 1        | large green bell pepper |
+| 3 Tbsp   | vegetable oil           |
+| a pinch  | kosher salt             |
+| 3 cloves | minced garlic           |
+
+* Prep
+
+1. Cut the top and bottom off the onion, then slice thinly for a crescent-moon
+   shape.
+2. Slice the red and green bell peppers into batons/sticks.
+3. Mix the vegetables together.
+
+* Cook
+
+1. Heat a large skillet over medium-high heat.
+2. Add 3 Tbsp of vegetable oil and wait for it to get hot.
+3. Add the mixed vegetables to the skillet for 1–2 minutes to sear.
+4. Season with kosher salt.
+5. Toss every so often.
+6. Wait for caramelization. The texture should be soft but still have a little
+   bite to it.
+7. Turn off the heat.
+8. Add 3 cloves of minced garlic and stir.
+9. Adjust the salt as needed.

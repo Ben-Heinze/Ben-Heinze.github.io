@@ -1,0 +1,92 @@
+#+TITLE: Korean Chicken and Rice Bowl
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-29
+#+STARTUP: noindent
+#+OPTIONS: toc:nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Fried seasoned chicken over rice with a soy-gochujang sauce. The seasoning mix
+makes more than you need for one batch — keep the excess in a container for
+next time.
+
+* Ingredients
+
+** Seasoning
+
+| Amount         | Ingredient    |
+|----------------+---------------|
+| large spoonful | black pepper  |
+| large spoonful | paprika       |
+| large spoonful | garlic powder |
+| large spoonful | corn starch   |
+| a fair amount  | salt          |
+
+** Misc
+
+- A coat of vegetable oil
+- ~2 lbs chicken
+- 3/4–1 cup rice
+
+** Sauce
+
+| Amount             | Ingredient                               |
+|--------------------+------------------------------------------|
+| 1 cup              | soy sauce (can be watered down a little) |
+| ~1/2 cup           | honey                                    |
+| med-large spoonful | gochujang paste                          |
+
+#+ATTR_HTML: :width 400
+[[file:../recipes_img/gochujang.jpg]]
+
+* Chicken Directions
+
+1. Mix large spoonfuls of black pepper, paprika, garlic powder, and corn starch
+   together. Add more of whichever seasonings you prefer, to taste.
+
+   #+ATTR_HTML: :width 400
+   [[file:../recipes_img/seasoning.jpg]]
+
+   The picture only illustrates the color, not the amount.
+
+2. Cut the chicken into small chunks, preferably nickel-to-quarter sized.
+3. Heat a large skillet to medium-high (6 on my electric stove).
+4. Put a thin layer of the mixed seasoning on the bottom of the mixing bowl,
+   then add the diced chicken.
+5. Apply a hefty coating of seasoning onto the chicken, salt to taste, then mix
+   until the chicken is well seasoned.
+6. Add vegetable oil to the hot skillet and place the diced chicken in.
+7. Set a timer for 8 minutes and let the chicken cook, flipping halfway
+   through.
+
+This takes adjusting to your stove. Have a meat thermometer on hand to make
+sure the chicken reaches 165 °F, and try not to char it.
+
+* Sauce Directions
+
+1. Add 1 cup of soy sauce to a small sauce pan (watered down if you'd like).
+2. Put the sauce pan over medium-low heat.
+3. Add one spoonful of gochujang paste.
+4. Add honey to taste.
+5. Stir. If it's too spicy, add more honey; if it's too sweet, add more soy
+   sauce or gochujang paste.
+
+   The heat is only there to make the ingredients less viscous.
+
+6. Add the sauce to the cooked chicken, reserving some in a separate container
+   if you want.
+
+* Serve
+
+Cook 3/4–1 cup of rice on the stove and combine it with the chicken and sauce.
+
+If you're feeling fancy, slice a zucchini in half and cut it into half-inch
+slices. Put them on an oiled skillet, salt and pepper them, and cook on both
+sides. Add to the bowl for vegetables.

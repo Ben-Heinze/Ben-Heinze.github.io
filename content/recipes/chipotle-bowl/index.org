@@ -1,0 +1,103 @@
+#+TITLE: Chipotle Bowl
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-09-29
+#+STARTUP: noindent
+#+OPTIONS: toc:nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Homemade Chipotle bowl. Each component is cooked separately, then combined as
+needed in a bowl or a tortilla.
+
+* Total Ingredients
+
+** Produce
+
+- 1 red onion
+- 1 sweet onion
+- 3 garlic cloves
+- 2 bunches cilantro
+- 1 lime
+- 1 head romaine lettuce
+- 1–2 tomatoes
+- 2 jalapeños
+
+** Seasonings
+
+- 2 Tbs ancho chile powder (this needs a lot)
+- Ground cumin
+- Dried oregano
+- Salt
+- Black pepper
+
+** Other
+
+- 1 bag frozen sweet corn
+- Olive oil
+- 1 can chipotle in adobo sauce
+- Chicken thighs
+
+* Chicken
+
+- 1/2 red onion, coarsely chopped
+- 3 garlic cloves, coarsely chopped
+- 2 Tbs adobo sauce from a can of chipotle in adobo sauce
+- 2 Tbs olive oil
+- 2 Tbs ancho chile powder
+- 1 tsp ground cumin
+- 1 tsp dried oregano
+- 1 Tbs salt
+- 1/2 tsp black pepper
+- 1 cup water, or as needed
+- Chicken thighs (I use 2–3 packets of Costco chicken)
+
+Add all of the ingredients except the chicken to a blender. Use a fork to poke
+holes in the chicken thighs, marinate them in the marinade, then cook the
+chicken.
+
+* Cilantro Lime Rice
+
+- 1 c long grain rice
+- Chopped cilantro
+- Lime juice
+- Salt
+
+Cook the rice, then add some cilantro, some lime juice, and salt to taste.
+
+* Corn Salsa
+
+- 1 bag frozen sweet corn, thawed
+- 1 jalapeño, deseeded
+- 1/3 C red onion
+- 1/3 C chopped cilantro
+- Juice of half a lime
+- Salt to taste
+
+* Pico de Gallo
+
+Halve the amounts below — the full recipe makes a lot. See the
+[[file:../pico-de-gallo/index.org][Pico de Gallo]] page for the standalone version.
+
+- 1 lb tomatoes (3–4 medium), diced
+- 1 cup chopped onions
+- 1 jalapeño pepper, deseeded and finely minced
+- 1/2 cup cilantro, chopped
+- 2 Tbsp lime juice
+- 1/2 tsp salt, or to taste
+- 1/8 tsp black pepper
+
+1. In a medium bowl, combine the diced tomatoes, onion, jalapeño pepper and
+   chopped cilantro.
+2. Stir in the lime juice and lightly season with the salt and black pepper, or
+   season to taste. Enjoy right away, or cover and refrigerate overnight.
+
+* Romaine Lettuce
+
+Chop up the romaine lettuce.
