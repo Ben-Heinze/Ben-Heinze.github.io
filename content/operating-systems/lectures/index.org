@@ -16,6 +16,6 @@
 | Date            | Topic                                                          |
 | Week 1 (Aug 26) | 0 Computer System Overview                                     |
 | Week 2 (Aug 31) | 1 Memory Management                                            |
-| Week 3 (Sep 9)  | Memory Hierarchy --- at the bottom of 0 Computer System Overview |
+| Week 3 (Sep 9)  | Memory Hierarchy --- at the bottom of 1 Memory Management      |
 | Week 3 (Sep 11) | Virtual Memory --- at the bottom of 1 Memory Management        |
 | Week 5 (Sep 21) | 2 Process Management                                           |

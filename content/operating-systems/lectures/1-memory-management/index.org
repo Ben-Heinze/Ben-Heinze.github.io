@@ -13,7 +13,7 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-Slides: [[file:Memory Management.pdf][Memory Management (PDF)]] — Adiesha Liyana Ralalage
+Slides: [[file:Memory Management.pdf][Memory Management (PDF)]] · [[file:Memory Hierarchy.pdf][Memory Hierarchy (PDF)]] · [[file:Virtual Memory.pdf][Virtual Memory (PDF)]] — Adiesha Liyana Ralalage
 
 * Uniprogramming
 Early memory management systems
@@ -307,65 +307,617 @@ Another consequence of unequal size segments is that there is no simple relation
 3. compare offset, express rightmost /m/ bits. If offset $\geq$ segment length, it is invalid
 4. The desired physical address is the sum of the starting physical address of the segment plus the offset
 
+
+* Memory Hierarchy
+
+These are from the (2026-09-09) lecture — the /Memory Hierarchy/ deck, not the
+memory management deck above.
+
+** Design constraints
+
+What are the design constraints on a computer's memory
+- How much?
+  - If the capacity is there, applications will likely be developed to use it
+- How fast?
+  - Memory must be able to keep up with the processor
+- How expensive?
+  - Cost of memory must be reasonable in relationship to the other components
+
+There is a trade-off between these things:
+
+/Faster access time = greater cost per bit/ $\to$ /Greater capacity = smaller cost per bit/ $\to$ /Greater capacity = slower access speed/
+
+What is the solution?
+- A memory hierarchy
+
+** The hierarchy
+
+Going down the hierarchy
+- A. Decreasing cost per bit
+- B. Increasing capacity
+- C. Increasing access time
+- D. Decreasing frequency of access to the memory by the processor
+
+#+ATTR_HTML: :alt Figure 1.14 The Memory Hierarchy
+[[file:fig-1-14-memory-hierarchy.png]]
+
+- You might think having this kind of hierarchy may not improve the access time.
+- Let's look at a calculation.
+
+** Hit Ratio (H) and Average Access Time (A)
+
+Hypothetical memory system
+- Two levels
+- Level 01: 1000 Bytes: $0.1 \mu s$ access time.
+- Level 02: 100000 Bytes: $1 \mu s$ access time.
+- $H = fraction\ of\ memory\ accesses\ that\ are\ found\ in\ fastest\ memory$
+
+What is average access time as a function of the above parameters?
+
+\[
+A = H \cdot 0.1 \mu s + (1 - H) \cdot (1 \mu s + 0.1 \mu s)
+\]
+
+If $H = 0.95$, then
+
+\[
+A = 0.15 \mu s = 0.95 \cdot 0.1 \mu s + 0.05 \cdot (1 \mu s + 0.1 \mu s)
+\]
+
+#+ATTR_HTML: :alt Figure 1.15 Performance of a Simple Two-Level Memory
+[[file:fig-1-15-two-level-memory-performance.png]]
+
+- As long as the conditions A–D that we looked earlier holds, the average access time is closer to the fastest memory access time.
+- Condition D is generally valid.
+
+** Principle of Locality
+
+- Memory reference by the processor tend to cluster.
+- Data is organized so that the percentage of accesses to each successively lower level is substantially less than that of the levels above.
+- Can be applied across more than two levels of memory
+- Program execution is mostly sequential.
+- For short periods of time, references to instructions tends to be localized.
+- Many programs involves processing data structures such as arrays or sequential records which tends to cluster together.
+
+** Secondary memory/Auxiliary memory
+
+- Nonvolatile.
+- External.
+- Used to store program and data.
+- Less expensive.
+
+** Cache Memory
+
+- Largely invisible to the OS
+- Interacts with other memory management hardware
+- Processor must access memory at least once per instruction cycle
+- Processor execution is limited by memory cycle time
+- Exploit the principle of locality with a small, fast memory
+
+#+ATTR_HTML: :alt Figure 1.16 Cache and Main Memory
+[[file:fig-1-16-cache-and-main-memory.png]]
+
+#+ATTR_HTML: :alt Figure 1.17 Cache/Main-Memory Structure
+[[file:fig-1-17-cache-main-memory-structure.png]]
+
+{{{hl(blue,Animation slide — =cache-memory-structure.html=. The animation itself is not in the PDF.)}}}
+
+#+ATTR_HTML: :alt Figure 1.18 Cache Read Operation
+[[file:fig-1-18-cache-read-operation.png]]
+
+{{{hl(blue,Animation slide — =cache-read-operation.html=. The animation itself is not in the PDF.)}}}
+
+** Cache Design
+
+Main categories are:
+- Cache size
+- Block size
+- Mapping function
+- Replacement algorithm
+- Write policy
+- Number of cache levels
+
+*** Cache size and Block size
+
+| Term       | Meaning                                                  |
+| Cache Size | Small caches have significant impact on performance      |
+| Block Size | The unit of data exchanged between cache and main memory |
+
+- Increasing block size initially improves the hit ratio because each transfer brings in more nearby data.
+- This exploits spatial locality: nearby data are likely to be accessed soon.
+- If the block becomes too large, the hit ratio decreases because much of the newly fetched data may not be used.
+- Large blocks also evict useful data from the limited cache, reducing the chance of future cache hits.
+- Therefore, there is a "sweet spot" for block size that provides a good balance between exploiting locality and avoiding unnecessary data transfers and evictions.
+
+*** Mapping function
+
+Determines which cache location the block will occupy.
+
+Two constraints affect design:
+- When one block is read in, another may have to be replaced
+- The more flexible the mapping function, the more complex is the circuitry required to search the cache
+
+1. *Direct Mapping*
+   - Each memory block has exactly one possible cache location.
+   - Ex: $Cache\ location = Memory\ block\ number \bmod 10$
+   - $37 \bmod 10 = 7$
+2. *Fully Associative Mapping*
+   - A memory block can go anywhere in the cache.
+   - Ex: Block 37 can fit into any slot
+   - Advantage: Very flexible; fewer conflicts.
+   - Disadvantage: The cache has to search/compare against many entries to determine whether the requested block is present, making the hardware more complex.
+3. *Set Associative Mapping*
+   - This is a compromise between the two.
+   - Divide the cache into sets. A memory block is assigned to one particular set, but it can go into any slot within that set.
+   - For example, suppose we have 10 cache slots organized into 5 sets, with 2 slots per set:
+     - Block #37 might be assigned to Set 2.
+
+*** Replacement algorithm
+
+- Least Recently Used (LRU) Algorithm
+  - Effective strategy is to replace a block that has been in the cache the longest with no references to it
+  - Hardware mechanisms are needed to identify the least recently used block
+    - Chooses which block to replace when a new block is to be loaded into the cache
+
+*** Write Policy
+
+Dictates when the memory write operation takes place
+
+- Can occur every time the block is updated
+- Can occur when the block is replaced
+  - Minimizes write operations
+  - Leaves main memory in an obsolete state
+
+Could there a scenario where updating main memory after each update in the cache is beneficial?
+- Multiple processors may share main memory and write-through ensures all processors see consistent data without needing complex coherence protocols.
+
+** Analysis of Two-level memory
+
+- Level 1 ($M_{1}$): faster, expensive, smaller
+  - $T_{1}$: access time for $M_{1}$
+  - $C_{1}$: average cost per bit for $M_{1}$
+  - $S_{1}$: size of $M_{1}$
+- Level 2 ($M_{2}$): slower, cheaper, larger
+  - $T_{2}$: access time for $M_{2}$
+  - $C_{2}$: average cost per bit for $M_{2}$
+  - $S_{2}$: size of $M_{2}$
+
+\[
+T_{s} = H \times T_{1} + (1 - H) \times (T_{1} + T_{2}) = T_{1} + (1 - H) \times T_{2}
+\]
+
+*** Average cost per bit
+
+$C_{s} = Average\ cost\ per\ bit\ for\ the\ combined\ two\ level\ memory$
+
+\[
+C_{s} = \frac{C_{1}S_{1} + C_{2}S_{2}}{S_{1} + S_{2}}
+\]
+
+- We would like $C_{s} \approx C_{2}$
+  - Given that $C_{1} \ggg C_{2}$, this requires $S_{1} \lll S_{2}$
+
+#+ATTR_HTML: :alt Figure 1.22 Relationship of Average Memory Cost to Relative Memory Size for a Two-Level Memory
+[[file:fig-1-22-average-cost-vs-relative-size.png]]
+
+*** Access time ($T_{s}$)
+
+- For a two-level memory to provide a significant performance improvement, we need $T_{s}$ approximately equal to $T_{1}$.
+
+\[
+\frac{T_{1}}{T_{s}} = \frac{1}{1 + (1 - H) \cdot \frac{T_{2}}{T_{1}}}
+\]
+
+- $\frac{T_{1}}{T_{s}}$ is called *Access efficiency*
+- Let $r = \frac{T_{2}}{T_{1}}$ (ratio of access time of memory level 2 to level 1)
+
+#+ATTR_HTML: :alt Figure 1.23 Access Efficiency as a Function of Hit Ratio (r = T2/T1)
+[[file:fig-1-23-access-efficiency.png]]
+
 * Virtual Memory
 
-These are from the later (2026-09-11) lecture, not the memory management deck above.
+These are from the (2026-09-11) lecture — the /Virtual Memory/ deck.
 
-Virtual memory: using secondary storage js if it were main memory (RAM). Virtual memory is provides the illusion that you have more than the available main memory.
+** Terminology
 
-/Resident set/: portion of the process in main memory
+| Term                  | Definition                                                                                                                                                                                                                                              |
+| Virtual memory        | Uses secondary storage (e.g., disk) as if it were main memory (RAM). Programs use their own addresses, which the system automatically translates to real physical locations. Its size is capped by the system's addressing scheme and available secondary storage — not by the actual amount of RAM. |
+| Virtual address       | An address in virtual memory, used as if it pointed to main memory.                                                                                                                                                                                     |
+| Virtual address space | The virtual memory assigned to a single process.                                                                                                                                                                                                        |
+| Address space         | The full range of addresses a process can use.                                                                                                                                                                                                          |
+| Real address          | The address of an actual location in main memory (RAM).                                                                                                                                                                                                 |
 
+** Hardware and Control structures
 
-The OS can have a problem where once a process is needed in main memory when the main memory is full, it will have to swap out a process to make room for the new process. If this happens frequently, this can become a bottleneck for the processor since it spends more time swapping in/out processes rather than executing them. It's called /thrashing/ when an OS swaps instead of executes. To avoid this, you can try to predict which processes are least likely to be used in the near future.
+- There are two fundamental breakthroughs that emerged through paging and segmentation.
+  1. All memory references are logical addresses that are dynamically translated into physical addresses at run time.
+  2. A process may be broken up into a number of pieces that don't need to be contiguously located in main memory during execution.
+- If these two characteristics are present:
+  - It is not necessary that all the pages or segments to be in the main memory during the execution of the program.
 
+** Execution of a process
 
-** To make VM work:
-  1. Hardware support for paging or segmentation
-  2. OS must have software for managing movement of pages/segments between secondary memory and main memory
+- Operating system brings into main memory a few pieces of the program
+  - /Resident set/
+    - Portion of process that is in main memory
+- An interrupt is generated when an address is needed that is not in main memory. (when paging is used, this is called /page fault/).
+- Operating system places the process in a blocking state.
 
+- Piece of process that contains the logical address is brought into main memory
+  - Operating system issues a disk I/O Read request
+  - Another process is dispatched to run while the disk I/O takes place
+  - An interrupt is issued when disk I/O is complete, which causes the operating system to place the affected process in the Ready state.
 
-** Control Structure For Virtual Memory
+** What are the implications of this strategy?
 
-Each process has its own page table
+- More processes may be maintained in main memory.
+  - Only parts of processes are loaded into the memory, therefore more room for new processes.
+  - More ready state processes can be stored in the main memory.
+- Processes that are larger than the main memory can be run.
+  - Previously, programmer had to write overlays to load only part of the program to the main memory.
+  - But now, with virtual memory based on paging or segmentation, this task is left to the OS and the hardware.
 
-- Each /page table entry/ (PTE) contains the frame number of the corresponding page in main memory.
-- Page table is needed for virtual memory with little bit more info on it
+** Real vs Virtual Memory
 
+| Real memory    | Main memory, the actual RAM                                                                                             |
+| Virtual memory | Memory perceived by the process. Allows for effective multiprogramming and relieves the user of tight constraints of main memory |
 
-Page tables cannot be modified by its processees, only by the management software or else pointers will be inaccurate.
+#+ATTR_HTML: :alt Paging vs Segmentation — how memory is divided and addressed, and where virtual memory fits (slide image)
+[[file:paging-vs-segmentation.png]]
 
+** When Memory Is Almost Full
 
-** How large can a page table be
+Consider the following scenario:
+1. Main memory is almost full.
+2. A process needs a page that is not currently in main memory.
+3. The OS must:
+   - Swap out a page from main memory to secondary storage.
+   - Bring in the requested page.
+4. Suppose the page that was just swapped out is needed almost immediately.
+5. The OS must:
+   - Bring that page back into main memory.
+   - Swap out another page to make room.
+6. If this happens repeatedly, the OS spends most of its time swapping pages in and out rather than executing processes.
+
+/Too much time managing memory $\to$ too little time executing processes/
+
+{{{hl(blue,Animation slide — =thrashing.html=. The animation itself is not in the PDF.)}}}
+
+** Thrashing
+
+A state in which the system spends most of its time swapping process pieces rather than executing instructions.
+
+To avoid this, the operating system tries to guess, based on recent history, which pieces are least likely to be used in the near future.
+
+*** How Can We Avoid Thrashing?
+
+- Use the principle of locality.
+  - A program's memory references tend to cluster in a relatively small number of pages during a given period of time.
+  - Therefore, during a short period, a process typically needs only a small subset of its pages.
+  - The OS can use this behavior to make better decisions about which pages to keep in memory and which pages to evict.
+  - If the pages that a process is actively using remain in memory, the number of page faults and page swaps can be reduced.
+  - This helps prevent the system from spending most of its time paging instead of executing processes.
+
+** What do we need for virtual memory scheme to work?
+
+For virtual memory scheme to be practical, we need:
+1. Hardware support for paging or segmentation or both.
+2. Operating system must include software for managing the movement of pages and/or segments between secondary memory and main memory
+
+** Control structures necessary for virtual memory
+
+- Now, we will look at necessary control structures that are created and maintained by the OS but are used by the memory management hardware.
+- Usually, when we talk about virtual memory, they are associated with systems that use paging.
+  - However, you can use segmentation or combination of paging with segmentation for virtual memory.
+- Each process has its own page table—This is the control structure.
+  - Each page table entry (PTE) contains the frame number of the corresponding page in main memory. (we already talked about this when we looked at simple paging)
+  - The page table is needed for virtual memory with little bit more information on it.
+  - We looked at the page table in the last lecture, let's try to analyze the structure of the page table bit more.
+
+#+ATTR_HTML: :alt Figure 8.1 Typical Memory Management Formats
+[[file:fig-8-1-memory-management-formats.png]]
+
+#+ATTR_HTML: :alt Figure 8.2 Address Translation in a Paging System
+[[file:fig-8-2-paging-address-translation.png]]
+
+*** Question
+
+Suppose Process A wants to change the page table entry for one of its virtual pages so that the page maps to a different physical frame. Can Process A simply modify the page table entry itself? Explain why or why not.
+
+- No. Process A cannot directly modify its page table entry. The page table is managed by the operating system and is protected from user processes. If a process needs to change its memory mapping, it must request the operating system to do so through a system call. The OS then validates the request and, if permitted, modifies the page table.
+
+{{{hl(blue,Animation slide — =paging-address-translation.html=. The animation itself is not in the PDF.)}}}
+
+** How large can a page table be?
+
 {{{hl(red,TEST)}}}
 
-Assume
+Let's work through an example.
+
+Assume:
 - Address size = 32 bits
 - Byte-level addressing (1 byte per addressable unit)
-- Page seize  = 4kb = $2^{12}$ bytes
-- Each page table entry = 4 bytes
+- Page size = 4 KB = $2^{12}$ bytes
+- Each page-table entry (PTE) = 4 bytes
 
-Step 1: What is the max virtual address space?
-- A 32-bit address can represent $2^{32}$ different addresses
+Step 1: What is the maximum virtual address space?
+- A 32-bit address can represent $2^{32}$ different addresses.
 - Since we have byte-level addressing:
-  - $2^{32}$ bytes = *4GB*. Max virtual address space is 4gb.
+  - $\mathbf{2^{32}\ bytes = 4GB}$
+- Therefore, the maximum virtual address space is 4 GB.
 
-- Step 2: How many pages can a process have?
-  - Each page contains $2^{12}$ bytes
-  - $\frac{2^{32} \text{bytes}}{2^{12}\text{bytes/page}} = 2^{20}$ pages
-  - A process can have at most $2^{20}$ pages
+Step 2: How many pages can a process have?
+- Each page contains $\mathbf{2^{12}\ bytes}$
+- $\mathbf{\frac{2^{32}\ bytes}{2^{12}\ bytes/page} = 2^{20}\ pages}$
+- A process can have at most $\mathbf{2^{20}\ pages}$.
 
-- Step 3: How large can a page table be?
-  - There is only one PTE for each page
-  - Each entry is 4 bytes
-    - $2^{20}$ entries $ \times 4$ bytes per entry = $2^{22}$ bytes = $4$ mb.
-    - Therefore, tha max PTE size for one process is 4mb.
+Step 3: How large can a page table be?
+- There is one page-table entry for each page.
+- Each entry is 4 bytes.
+  - $2^{20}\ entries \times 4\ bytes\ per\ entry = 2^{22}\ bytes = 4\ MB$
+- Therefore, the maximum page-table size for one process is 4MB
 
 Now consider a system with many processes:
-- if 1-- processes are runniing, and each has a 4mb page table:
-  - $100b \times 4mb = 400mb$
+- If 100 processes are running, and each has a 4 MB page table:
+  - $100\ MB \times 4MB = 400\ MB$
 
-In this example, every process needs a page table of 4mb.
+{{{hl(blue,Transcribed as written on the slide — the first factor is the process count, so it should read 100 × 4 MB = 400 MB.)}}}
 
-*Can we afford to dedicate this much memory to page tables?*
+- In this example, every process needs a page table of 4MB.
+- *Can we afford to dedicate this much memory to page tables?*
+- *How can modern operating systems reduce the memory required for page tables?*
 
-*How can modern OS's reduce memory required for page tables?*
+** Paging — hierarchical page tables
+
+- Large chunk of memory is devoted to page tables.
+- What can we do to improve this?
+  - What if we keep the page tables in the virtual memory as well?
+- How can we keep track of the paging of the page tables?
+  - Hierarchical page table structure
+
+#+ATTR_HTML: :alt Figure 8.3 A Two-Level Hierarchical Page Table
+[[file:fig-8-3-two-level-hierarchical-page-table.png]]
+
+- Remember root page table always exists in the main memory.
+
+#+ATTR_HTML: :alt Figure 8.4 Address Translation in a Two-Level Paging System
+[[file:fig-8-4-two-level-paging-address-translation.png]]
+
+- Modern chips have the ability to keep 4-5 levels of page table hierarchy.
+
+** Inverted Page Table
+
+- A key drawback of the conventional page tables discussed so far is that their size is proportional to the virtual address space — and is paid per process — regardless of how much memory the process actually uses.
+- An alternative approach is the Inverted Page Table.
+- Instead of keeping one entry per virtual page per process, it keeps a single system-wide table with one entry per physical frame, recording which page of which process currently occupies that frame. Its size is therefore bounded by physical memory, not by the virtual address space.
+- Since the table is organized by frame rather than by virtual page number, we can no longer index it directly.
+  - A hash function on the (process ID, virtual page number) pair locates the matching entry.
+
+#+ATTR_HTML: :alt Figure 8.5 Inverted Page Table Structure
+[[file:fig-8-5-inverted-page-table-structure.png]]
+
+What are the implication?
+- Fixed proportion of real memory is required for the tables regardless of the number of processes or virtual pages supported.
+- One page table for all processes since the entries are keeping track of frames instead of pages of a process.
+- Is this better?
+
+Structure is called inverted because it indexes page table entries by frame number rather than by virtual page number.
+
+{{{hl(blue,Animation slide — =inverted-page-table.html=. The animation itself is not in the PDF.)}}}
+
+Each entry in the page table contains the following information:
+
+| Field              | Meaning                                                 |
+| Page number        |                                                         |
+| Process identifier | The process that owns this page                         |
+| Control bits       | Includes flags and protection and locking information   |
+| Chain pointer      | The index value of the next entry in the chain          |
+
+- Modern systems uses multi-level page tables instead of inverted page tables.
+- Yet, they're the historically interesting alternative more than the common one today.
+
+** Translation Lookaside Buffer (TLB)
+
+Question:
+- How many memory accesses are needed to access a particular memory address using this paging scheme in the best case?
+  - You first need to access the page table to locate the frame address, then use it to form the physical address, which allows access to the intended memory location.
+  - If there is page fault, then we need to bring the data from the secondary storage as well.
+  - Basically, this paging scheme has the effect of doubling the memory access time.
+- Due to this reason, most virtual memory access schemes uses a special high-speed cache for page tables called Translation Lookaside Buffer.
+
+#+ATTR_HTML: :alt Figure 8.6 Use of a Translation Lookaside Buffer
+[[file:fig-8-6-translation-lookaside-buffer.png]]
+
+- Each entry in the TLB contains page number as well as the complete page table entry.
+  - Some CPU architectures allow pages of multiple processes to be in the TLB at the same time—in fact most modern CPUs allow this. (ASID is needed)
+  - In older systems, TLB only contains page entries of the currently running process, and after each context switch the TLB is flushed and loaded with new pages of the currently running process.
+- Regardless, CPU still needs to go through the entries of the TLB to find an entry, but this is still costly, even the access time is low.
+  - Thus, what hardware manufacturers did was to introduce circuitry to search all the TLB entries at once.
+  - This is called /associative mapping/.
+  - This introduce complexity to the circuitry and becomes more expensive to build—but we keep size of the TLB small reducing the overall cost.
+
+#+ATTR_HTML: :alt Figure 8.7 Operation of Paging and Translation Lookaside Buffer (TLB) [FURH87]
+[[file:fig-8-7-paging-and-tlb-operation.png]]
+
+#+ATTR_HTML: :alt Figure 8.9 Translation Lookaside Buffer and Cache Operation
+[[file:fig-8-9-tlb-and-cache-operation.png]]
+
+{{{hl(blue,Animation slides — =tlb-operation.html= and =tlb-cache-operation.html=. The animations themselves are not in the PDF.)}}}
+
+** Page size
+
+There are two major factors to consider.
+
+1. Internal fragmentation
+   - Smaller page sizes will lead to less internal fragmentation.
+   - But will result in larger page table size.
+     - Could occur double page faults.
+       - First to bring in the needed portion of the page table, and second to bring in the process page.
+2. Physical characteristics of the secondary storage.
+   - Larger page sizes are better for secondary storages which are rotational as it would result in much efficient data transfer.
+3. Size of the main memory and program size
+   - Object oriented techniques may decrease the locality of references as it encourage to use a lot of smaller programs that is scattered across the memory.
+
+*** Paging behavior
+
+#+ATTR_HTML: :alt Figure 8.10 Typical Paging Behavior of a Program
+[[file:fig-8-10-typical-paging-behavior.png]]
+
+- $P$ = size of entire process
+- $W$ = working set size
+- $N$ = total number of pages in process
+
+** Segmentation
+
+Implications:
+- Segmentation allows the programmer to view memory as consisting of multiple address spaces or segments
+  - Instead of treating memory as a single, continuous block, segmentation splits it into smaller, logically distinct regions (segments). Each segment has its own starting address and size, and the programmer or operating system can treat these segments independently
+
+Advantages:
+- Simplifies handling of growing data structures
+- Allows programs to be altered and recompiled independently
+- Lends itself to sharing data among processes
+- Lends itself to protection
+
+*** Segment table
+
+- Each segment table entry contains the starting address of the corresponding segment in main memory and the length of the segment
+- A bit is needed to determine if the segment is already in main memory
+- Another bit is needed to determine if the segment has been modified since it was loaded in main memory
+
+#+ATTR_HTML: :alt Figure 8.11 Address Translation in a Segmentation System
+[[file:fig-8-11-segmentation-address-translation.png]]
+
+** Paging + Segmentation
+
+In a combined paging/segmentation system a user's address space is broken up into a number of segments. Each segment is broken up into a number of fixed-sized pages which are equal in length to a main memory frame.
+- Segmentation is visible to the programmer
+- Paging is transparent to the programmer
+
+#+ATTR_HTML: :alt Figure 8.12 Address Translation in a Segmentation/Paging System
+[[file:fig-8-12-segmentation-paging-address-translation.png]]
+
+The combined address and table formats are panel (c) of Figure 8.1 above —
+virtual address = /Segment Number/ + /Page Number/ + /Offset/; the segment table
+entry holds /Control Bits/ + /Length/ + /Segment Base/; the page table entry
+holds /P/ (present bit), /M/ (modified bit), other control bits and the
+/Frame Number/.
+
+** Operating system software
+
+The design of the memory management portion of an operating system depends on three fundamental areas of choice:
+1. Whether or not to use virtual memory techniques
+2. The use of paging or segmentation or both
+3. The algorithms employed for various aspects of memory management
+
+The policy summary from the deck — left column:
+- *Fetch Policy*
+  - Demand paging
+  - Prepaging
+- *Placement Policy*
+- *Replacement Policy*
+  - Basic Algorithms
+    - Optimal
+    - Least recently used (LRU)
+    - First-in-first-out (FIFO)
+    - Clock
+  - Page Buffering
+
+Right column:
+- *Resident Set Management*
+  - Resident set size
+    - Fixed
+    - Variable
+  - Replacement Scope
+    - Global
+    - Local
+- *Cleaning Policy*
+  - Demand
+  - Precleaning
+- *Load Control*
+  - Degree of multiprogramming
+
+*** Fetch Policy
+
+Determines when a page should be brought into memory. Two main types: /Demand Paging/ and /Prepaging/.
+
+- Demand Paging
+  - Only brings pages into main memory when a reference is made to a location on the page
+  - Many page faults when process is first started
+  - Principle of locality suggests that as more and more pages are brought in, most future references will be to pages that have recently been brought in, and page faults should drop to a very low level
+- Prepaging
+  - Pages other than the one demanded by a page fault are brought in
+  - Exploits the characteristics of most secondary memory devices
+  - If pages of a process are stored contiguously in secondary memory it is more efficient to bring in a number of pages at one time
+  - Ineffective if extra pages are not referenced
+  - Should not be confused with "swapping"
+
+*** Placement Policy
+
+- Determines where in real memory a process piece is to reside
+- Important design issue in a segmentation system
+- Paging or combined paging with segmentation placing is irrelevant because hardware performs functions with equal efficiency.
+
+*** Replacement Policy
+
+- Deals with the selection of a page in main memory to be replaced when a new page must be brought in
+  - Objective is that the page that is removed be the page least likely to be referenced in the near future
+- The more elaborate the replacement policy the greater the hardware and software overhead to implement it
+
+**** Frame Locking
+
+- When a frame is locked the page currently stored in that frame may not be replaced
+  - Kernel of the OS as well as key control structures are held in locked frames
+  - I/O buffers and time-critical areas may be locked into main memory frames
+  - Locking is achieved by associating a lock bit with each frame
+
+**** Basic Algorithms
+
+Algorithms used for the selection of a page to replace:
+- Optimal
+- Least recently used (LRU)
+- First-in-first-out (FIFO)
+- Clock
+
+#+ATTR_HTML: :alt Figure 8.14 Behavior of Four Page-Replacement Algorithms
+[[file:fig-8-14-page-replacement-algorithms.png]]
+
+F = page fault occurring after the frame allocation is initially filled
+
+{{{hl(blue,Animation slide — =page_replacement (2).html=. The animation itself is not in the PDF.)}}}
+
+*** Resident Set Management
+
+The OS must decide how many pages to bring into main memory
+- The smaller the amount of memory allocated to each process, the more processes can reside in memory
+- Small number of pages loaded increases page faults
+- Beyond a certain size, further allocations of pages will not affect the page fault rate
+
+**** Resident Set Size
+
+- Fixed Allocation
+  - Gives a process a fixed number of frames in main memory within which to execute
+    - When a page fault occurs, one of the pages of that process must be replaced
+- Variable Allocation
+  - Allows the number of page frames allocated to a process to be varied over the lifetime of the process
+  - Appears to be more powerful.
+  - Requires the operating system to assess the behavior of active processes.
+
+**** Replacement Scope
+
+The scope of a replacement strategy can be categorized as global or local
+- Both types are activated by a page fault when there are no free page frames
+
+| Scope  | Description                                                                 |
+| Local  | Chooses only among the resident pages of the process that generated the page fault |
+| Global | Considers all unlocked pages in main memory                                 |
+
+** Why paging won against segmentation?
+
+1. Simpler memory management
+2. Better support for virtual memory
+   - as segments have variable sizes, making swapping and memory protection trickier.
+3. Improved memory protection.
+   - While segments can have access controls, the variable sizes and logical boundaries make protection less granular and harder to enforce consistently, especially in complex programs.
+4. Compatibility with modern hardware
+   - Paging aligns better with the design of modern hardware, making it faster and more efficient to implement.
