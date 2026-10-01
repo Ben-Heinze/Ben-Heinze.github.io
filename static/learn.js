@@ -4,15 +4,15 @@
 // lazily on first use.
 //
 // Each card renders as one of three formats:
-//   • flashcard — the heading is the prompt, reveal the body, self-grade;
-//   • cloze     — the body with its /italic/ terms blanked out to fill in;
-//   • mc        — the heading, pick the right body among sampled distractors.
+//   • flashcard: the heading is the prompt, reveal the body, self-grade;
+//   • cloze: the body with its /italic/ terms blanked out to fill in;
+//   • mc: the heading, pick the right body among sampled distractors.
 // A card whose :LEARN_TYPE: pins a format always uses it; an "auto" card picks
 // one deterministically from what its content supports.
 //
 // Progress is scheduled with SM-2 and stored in localStorage (key `learnState`),
 // so missed cards resurface sooner and the review queue persists across visits.
-// No backend — everything here runs in the browser, like search.js.
+// No backend: everything here runs in the browser, like search.js.
 (function () {
   'use strict';
 
@@ -72,7 +72,7 @@
   // Drop review state for cards no longer in the deck (e.g. a heading whose text
   // was edited, minting a fresh id and orphaning the old one).
   function pruneOrphans(state) {
-    // Never prune against an empty deck — a failed fetch would wipe all history.
+    // Never prune against an empty deck; a failed fetch would wipe all history.
     if (!DECK.length) return;
     var live = {}, changed = false;
     DECK.forEach(function (c) { live[c.id] = 1; });
@@ -370,7 +370,7 @@
 
       if (!queue.length) {
         o.content.appendChild(note('learn-empty',
-          'You’re all caught up on this page — come back later.'));
+          'You’re all caught up on this page. Come back later.'));
         return;
       }
 
@@ -378,7 +378,7 @@
         o.progress.textContent = '';
         o.content.innerHTML = '';
         o.content.appendChild(note('learn-empty',
-          'Done — reviewed ' + n + (n === 1 ? ' card.' : ' cards.')));
+          'Done: reviewed ' + n + (n === 1 ? ' card.' : ' cards.')));
       });
       // Give the session a way to draw itself into the shell.
       session.mount = function (card, cardBody) {

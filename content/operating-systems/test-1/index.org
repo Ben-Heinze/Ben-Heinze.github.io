@@ -12,35 +12,39 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-One readable page compiling everything for Test 1 — *Computer Systems Overview*,
+One readable page compiling everything for Test 1: *Computer Systems Overview*,
 *Memory Management*, and *Process Management*. Terms in /italic/ are the ones to
 memorise; the *Learn* button (top-right) turns them into flashcards. Self-test on
 the [[file:../quiz-1/][Quiz 1]] / [[file:../quiz-1/practice-quiz/][Practice Quiz]] or the [[file:practice-test/][Practice Test]], drill numbers on
 [[file:calculations/][Calculation Practice]], and check the [[file:../quiz-1/answer-key/][Answer Key]].
 
+*To print*: [[file:cheat-sheet.pdf][Cheat Sheet (PDF)]]: this whole page compressed onto one
+letter sheet, front and back, for the exam. (Source: =cheat-sheet.html= in this
+folder; re-print it from a browser after editing.)
+
 * Test logistics
 
 - *Time*: 50 minutes.
 - *Cheat sheet*: one letter-sized sheet, both sides, written or printed.
-- *Coverage*: all material through *September 30, 2026* — Computer Systems
+- *Coverage*: all material through *September 30, 2026*: Computer Systems
   Overview, Memory Management, Process Management.
 - *Question types*: (1) short-to-medium conceptual questions (explain / reason /
   apply, not just define) and (2) calculation-based questions.
 - *Calculations to expect*: page-table calculations, cache calculations (hit
-  ratio, average memory access time/cost), memory access time, TLB. See
-  [[file:calculations/][Calculation Practice]].
+  ratio, average memory access time/cost, access efficiency), memory access time,
+  TLB, page-replacement fault counts. See [[file:calculations/][Calculation Practice]].
 
-* PART I — Computer Systems Overview
+* PART I: Computer Systems Overview
 
 ** Basic elements
 
-A computer is /processor/ (CPU — controls operation, does data processing),
+A computer is /processor/ (CPU: controls operation, does data processing),
 /main memory/ (stores data + programs; /volatile/; a.k.a. real/primary memory),
 /I/O modules/ (move data to/from the outside), and a /system bus/ connecting them.
 In RAM, one row is a /frame/ and the frame's length is a /word/.
 
-CPU registers seen in the top-level view: /PC/ (program counter — address of the
-next instruction), /IR/ (instruction register — the fetched instruction), /MAR/
+CPU registers seen in the top-level view: /PC/ (program counter: address of the
+next instruction), /IR/ (instruction register: the fetched instruction), /MAR/
 (memory address register), /MBR/ (memory buffer register), and the I/O address /
 buffer registers.
 
@@ -58,14 +62,14 @@ instruction.
 An /interrupt/ lets other modules (I/O, memory, timer) break the processor's
 normal sequencing, to improve utilization (I/O is slow; the CPU shouldn't idle).
 On an interrupt the user program is suspended, the /interrupt handler/ (part of
-the OS) runs, then the suspended process resumes at the same point — the user
+the OS) runs, then the suspended process resumes at the same point, and the user
 program needs no special code for this.
 
 Four /types of interrupt/:
-- /Program/: a condition from executing an instruction — overflow, divide by
+- /Program/: a condition from executing an instruction: overflow, divide by
   zero, illegal instruction, or a reference outside allowed memory.
 - /Timer/: from a processor timer; lets the OS act at regular intervals.
-- /I/O/: from an I/O controller — completion or error.
+- /I/O/: from an I/O controller: completion or error.
 - /Hardware failure/: e.g. power failure or memory parity error.
 
 To handle them an /interrupt stage/ is added to the cycle (fetch → execute →
@@ -112,33 +116,42 @@ speed is limited by memory cycle time; cache hides that latency.
 /Cache design/ dimensions: cache size, /block size/, /mapping function/,
 /replacement algorithm/, /write policy/, number of levels.
 - /Block size/: larger blocks first raise the hit ratio (spatial /locality/) but
-  too-large blocks evict useful data and hurt it — there is an optimal size.
+  too-large blocks evict useful data and hurt it; there is an optimal size.
 - /Mapping function/ (where a block may sit): /direct/ (one fixed slot per block),
-  /fully associative/ (any slot — flexible, fewer conflicts, but costly to
-  search), /set associative/ (block maps to one set, any slot within it — the
+  /fully associative/ (any slot: flexible, fewer conflicts, but costly to
+  search), /set associative/ (block maps to one set, any slot within it: the
   middle ground).
 - /Replacement/: e.g. /LRU/ (least recently used).
 - /Write policy/: write on every update, or /write back/ on replacement
   (fewer writes, but main memory is temporarily stale).
 
-*** Hit ratio and average access time (standard formulas — not in your notes)
+*** Hit ratio and average access time
 
-Your notes marked these =COME BACK LATER=; these are the standard textbook forms:
-- /Hit ratio/ $H = \dfrac{\text{hits}}{\text{total accesses}}$; miss ratio $=1-H$.
-- /Average (two-level) access time/, paying the fast level first and the slow
-  level only on a miss:
-  \[ T_{avg} = H\,T_{1} + (1-H)\,(T_{1}+T_{2}) = T_{1} + (1-H)\,T_{2} \]
+- /Hit ratio/ $H$ = fraction of accesses found in the fast level; miss ratio $=1-H$.
+- /Average (two-level) access time/. A miss pays the fast level /and then/ the slow
+  one: this is the convention the slides use:
+  \[ T_{s} = H\,T_{1} + (1-H)\,(T_{1}+T_{2}) = T_{1} + (1-H)\,T_{2} \]
   where $T_1$ = fast-level (cache) time, $T_2$ = slow-level (main memory) time.
-  (Some texts write $T_{avg}=H T_1+(1-H)T_2$ if a miss does not re-pay $T_1$ —
-  check which convention your slides use.)
+- The worked example from the slides: $T_1 = 0.1\,\mu s$, $T_2 = 1\,\mu s$, $H=0.95$
+  $\to T_s = 0.95(0.1) + 0.05(1.1) = 0.15\,\mu s$, close to the /fast/ level's time.
 
-** Principle of locality (standard — not in your notes)
+*** Access efficiency
 
-Programs tend to reuse data and instructions near recent references — /temporal/
-locality (same location again soon) and /spatial/ locality (nearby locations
-soon). Locality is why caching and paging work.
+How close $T_s$ gets to $T_1$, with $r = T_2/T_1$:
+\[ \frac{T_{1}}{T_{s}} = \frac{1}{1 + (1-H)\,\frac{T_{2}}{T_{1}}} = \frac{1}{1+(1-H)r} \]
+A two-level memory only pays off when this is near 1, i.e. when $(1-H)r \ll 1$, so a
+big $r$ demands a hit ratio close to 1.
 
-* PART II — Memory Management
+** Principle of locality
+
+Memory references by the processor /cluster/: program execution is mostly
+sequential, references to instructions stay localized over short periods, and data
+structures like arrays are processed element by element. So references are reused
+near recent ones: /temporal/ locality (same location again soon) and /spatial/
+locality (nearby locations soon). Locality is why caching and paging work, and why
+each level of the hierarchy is accessed far less often than the one above it.
+
+* PART II: Memory Management
 
 ** Uniprogramming vs. multiprogramming
 
@@ -161,7 +174,7 @@ translates addresses at run time.
 
 /Protection/: a process's memory can't be touched by others without permission.
 Since location is unpredictable, references are checked at /run time/, and this
-must be done by the /processor (hardware)/ — the OS can't anticipate every
+must be done by the /processor (hardware)/: the OS can't anticipate every
 reference. Mechanisms that support relocation also support protection.
 
 *** Sharing
@@ -215,10 +228,38 @@ processes).
 - /Next-fit/: the next hole that fits, scanning from the last placement (wraps
   around).
 
+With $N$ free blocks all equally likely to be the one that fits, first-fit searches
+$\frac{N+1}{2}$ blocks on average.
+
+*** Buddy system
+
+/Buddy system/: a compromise between fixed and dynamic partitioning; blocks are
+always of size $2^{K}$, between a smallest $2^{L}$ and the whole space $2^{U}$.
+- A request of size $s$ gets a block of size $2^{K}$ with $2^{K-1} < s \le 2^{K}$.
+- If none is free, /split/ the smallest larger free block in half repeatedly until a
+  $2^{K}$ block appears; the two halves of a split are /buddies/.
+- On release, if a block's /buddy/ is also free, /merge/ them, and keep merging
+  upward while each new buddy is free.
+- Example: 1 MB, request 100 KB → 1 MB splits to 512 K, 256 K, 128 K, and a 128 KB
+  block is allocated (28 KB internal fragmentation).
+- Holes coalesce predictably (less external fragmentation than dynamic partitioning)
+  and sizes adapt (less internal fragmentation than fixed), but rounding every
+  request up to a power of two still wastes space.
+
+*** Relocation: fixed vs. dynamic
+
+- /Dynamic/ partitioning: relocation is *always* required: swap-in lands a process
+  in a different hole, and compaction shifts resident processes.
+- /Fixed/ partitioning: relocation is required *only if* a process can be reassigned
+  to a /different/ partition (a single queue over unequal partitions). If a process
+  always returns to its own partition, its load address never changes.
+- Either way the addresses a process references are not fixed, so they must be
+  resolved at run time via the base and bounds registers.
+
 ** Paging
 
 /Paging/: memory in equal fixed-size /frames/, a process in equal /pages/ of the
-same size; pages load into any free frames — /need not be contiguous/, which kills
+same size; pages load into any free frames and /need not be contiguous/, which kills
 external fragmentation. Waste is only internal fragmentation, at most a fraction
 of the /last page/. Paging is /transparent/ to the programmer; with a power-of-2
 page size the logical address equals the relative address, and the physical
@@ -252,8 +293,8 @@ in. Benefits: more processes resident (better CPU use), and a process may be
 
 *** Thrashing and locality
 
-/Thrashing/: the OS spends most of its time swapping instead of executing —
-happens when it evicts a piece just before it is needed. Avoided by guessing, from
+/Thrashing/: the OS spends most of its time swapping instead of executing;
+it happens when it evicts a piece just before it is needed. Avoided by guessing, from
 recent history, which pieces are /least/ likely to be used soon. This works
 because of the /principle of locality/ (references cluster over short periods).
 
@@ -267,7 +308,7 @@ approach the whole process, and when one page spans it there are no faults.
 ** Page tables at scale
 
 A flat page table's size grows with the address space. Example: 32-bit address,
-byte addressing, 4 KB = $2^{12}$-byte pages, 4-byte entries → $2^{32}/2^{12} =
+byte addressing, 4 KB = \(2^{12}\)-byte pages, 4-byte entries → $2^{32}/2^{12} =
 2^{20}$ pages → $2^{20}\times4 = 4$ MB per process (400 MB for 100 processes).
 Solutions:
 - /Two-level page table/: page the page table; a small /root/ table stays resident
@@ -277,12 +318,68 @@ Solutions:
 - /TLB/ (translation lookaside buffer): a fast cache of recent page-table entries;
   on a /TLB hit/ the frame number is read directly, avoiding a page-table walk.
 
-* PART III — Process Management
+** Memory-management policies
+
+The design choices the OS makes around a paging system.
+
+*** Fetch policy: when to bring a page in
+
+- /Demand paging/: bring a page in only when it is referenced. Many faults when a
+  process starts, then locality drives the rate down.
+- /Prepaging/: bring in neighbouring pages too, since contiguous reads from disk are
+  cheaper per page. Wasted if those pages are never referenced. Not the same thing
+  as swapping.
+
+*** Placement policy: where to put it
+
+Matters for /segmentation/ (which hole?); irrelevant for paging, where every frame
+is equivalent to the hardware.
+
+*** Replacement policy: which page to evict
+
+Goal: evict the page /least likely to be referenced soon/. The more elaborate the
+policy, the more hardware/software overhead it costs.
+
+/Frame locking/: a locked frame may not be replaced; used for the kernel, key
+control structures, I/O buffers and time-critical code. Implemented with a lock bit
+per frame.
+
+Four basic algorithms, on reference string =2 3 2 1 5 2 4 5 3 2 5 2= in /3 frames/:
+
+| Algorithm | Evicts                                           | Faults after fill | Total |
+| /Optimal/   | the page referenced /furthest in the future/        | 3                 | 6     |
+| /LRU/       | the page /unreferenced the longest/                 | 4                 | 7     |
+| /FIFO/      | the page /resident the longest/, used or not        | 6                 | 9     |
+| /Clock/     | FIFO but skipping (and clearing) /use bit/ = 1      | 5                 | 8     |
+
+- /Optimal/ needs the future, so it can't be implemented; it is the lower bound the
+  others are judged against.
+- /Clock/ approximates LRU cheaply: frames in a circular buffer with a pointer; a
+  referenced page gets use bit 1; the pointer advances, resetting 1s to 0, and
+  replaces the first page already at 0.
+- The first references into empty frames are faults too; check whether a question
+  wants /total/ faults or only those /after the frames first fill/.
+
+*** Resident set management
+
+- /Resident set size/: /fixed/ allocation (a process gets a set number of frames, so a
+  fault replaces one of its own pages) vs. /variable/ (the count changes over the
+  process's life: more powerful, but the OS must watch process behaviour).
+- /Replacement scope/: /local/ picks only among the faulting process's resident pages;
+  /global/ considers all unlocked frames in memory, so it can take a page from
+  another process.
+- Trade-off: fewer frames per process means more processes resident but more faults;
+  past a point, extra frames stop helping the fault rate.
+- Also: /cleaning policy/ (demand vs. precleaning: when to write a modified page
+  back) and /load control/ (the degree of multiprogramming, i.e. how many processes
+  are resident at all: too many and the system thrashes).
+
+* PART III: Process Management
 
 ** Program vs. process
 
 A /program/ is passive (a file, instructions); a /process/ is a program brought to
-life — an instance running (user view), an entity schedulable on a processor
+life: an instance running (user view), an entity schedulable on a processor
 (scheduler view), or a unit of activity with instructions + current state +
 resources (implementer view).
 
@@ -313,11 +410,30 @@ A /trace/ is the sequence of instructions a single process executes. The
 processor's behaviour is the /interleaving/ of process traces. The /dispatcher/ is
 a small program that switches the processor from one process to another.
 
+Worked example: A at 5000, B at 8000, C at 12000, dispatcher at 100 taking 6
+instructions, timeout after 6 instructions, and B issuing I/O after 4:
+
+| Instructions | Running    | Why it stopped            |
+| 5000–5005    | A          | timeout                   |
+| 100–105      | dispatcher |                           |
+| 8000–8003    | B          | I/O request → Blocked     |
+| 100–105      | dispatcher |                           |
+| 12000–12005  | C          | timeout                   |
+| 100–105      | dispatcher |                           |
+| 5006–5011    | A          | timeout                   |
+| 100–105      | dispatcher |                           |
+| 12006–12011  | C          | ...                       |
+
+Reading it: B stops after 4 instructions, not 6, because a /blocking event/ took it
+off the processor rather than the timer, and it isn't dispatched again until its
+I/O completes. The dispatcher's instructions belong to the processor's trace but to
+/no process's/ trace: that is switching overhead.
+
 ** Two-state model
 
 Simplest model: a process is /Running/ or /Not Running/; a queue feeds the
-dispatcher. Limitation: "Not Running" hides two cases — /ready/ vs. /blocked/
-(waiting on an event) — so with one queue the dispatcher may have to search for a
+dispatcher. Limitation: "Not Running" hides two cases: /ready/ vs. /blocked/
+(waiting on an event), so with one queue the dispatcher may have to search for a
 runnable process. Hence a richer model is needed.
 
 ** Five-state model
@@ -352,11 +468,38 @@ occurs. The refinement: a /ready queue/ plus /one blocked queue per event/.
 ** Suspended processes and swapping
 
 /Swapping/ moves part or all of a process out to disk (a /suspend queue/) when no
-resident process is Ready. This adds /suspend/ states — split into /Ready/Suspend/
+resident process is Ready. This adds /suspend/ states: split into /Ready/Suspend/
 and /Blocked/Suspend/ (a suspended process may or may not still be waiting on an
 event). A suspended process is not available to run until the agent (itself, a
 parent, or the OS) explicitly releases it. Reasons to suspend: swapping, other OS
 need, interactive user request, timing, parent request.
+
+#+begin_export html
+<pre class="mermaid">
+flowchart LR
+    start(( )) -->|new process| New
+    New -->|admit| Ready
+    New -->|admit| RS["Ready/Suspend"]
+    Ready -->|dispatch| Running
+    Running -->|timeout| Ready
+    Running -->|event wait| Blocked
+    Blocked -->|event occurs| Ready
+    Running -->|release| Exit
+    Ready -->|suspend| RS
+    RS -->|activate| Ready
+    Blocked -->|suspend| BS["Blocked/Suspend"]
+    BS -->|activate| Blocked
+    BS -->|event occurs| RS
+    Running -->|suspend| RS
+</pre>
+#+end_export
+
+The transitions that exist only because of the split:
+- /Blocked/Suspend → Ready/Suspend/: the awaited event occurred while the process was
+  out on disk: runnable now, but still not resident.
+- /Ready/Suspend → Ready/ (/activate/): the OS swaps it back in, typically because no
+  resident process is Ready. The OS prefers activating a Ready/Suspend process over a
+  Blocked/Suspend one, which would still have to wait for its event.
 
 ** OS control tables
 
@@ -368,7 +511,7 @@ cross-reference one another.
 ** Modes of execution and the kernel
 
 /User mode/ (less privileged, for user programs) vs. /system/kernel mode/ (more
-privileged, runs the /kernel/ — the core of the OS — with privileged
+privileged, runs the /kernel/ (the core of the OS) with privileged
 instructions). This protects OS tables (PCBs, page tables). The PSW's mode bit
 flips to kernel mode on a system call or interrupt, and back (via an interrupt
 return, IRT) on return. x86 has 4 rings: ring 0 = kernel, ring 3 = user.
@@ -391,7 +534,7 @@ service, or /spawned/ by an existing process (giving a /parent/ and /child/).
   (clock, I/O, memory fault).
 - /Trap/: /associated/ with the current instruction; an error/exception in the
   running process (the OS decides if it is fatal).
-- /Supervisor call/: an /explicit/ request — a call to an OS function.
+- /Supervisor call/: an /explicit/ request: a call to an OS function.
 
 A /time slice/ is the max time a process runs before being interrupted.
 

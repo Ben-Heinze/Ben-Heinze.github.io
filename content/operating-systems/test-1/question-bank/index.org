@@ -18,7 +18,7 @@ The authored source of quiz questions for Test 1 (=#+QUIZ: t=). Each heading bel
 is one question; its type/options/answer live in a hidden property drawer, so this
 page reads as a plain question list while the [[file:../practice-test/][Practice Test]] renders it as an
 interactive, gradeable, repeatable test. Add a question by adding a heading with a
-=:Q_TYPE:= drawer — it appears in the test automatically. Tags: =ov= (Overview),
+=:Q_TYPE:= drawer: it appears in the test automatically. Tags: =ov= (Overview),
 =mem= (Memory), =proc= (Process).
 
 * Computer Systems Overview
@@ -128,6 +128,67 @@ interactive, gradeable, repeatable test. Add a question by adding a heading with
 :Q_TYPE: tf
 :Q_ANSWER: False
 :Q_EXPLAIN: Main memory is volatile; secondary memory is non-volatile.
+:Q_UNIT: ov
+:END:
+
+** Why does a two-level memory bring the average access time close to the /fast/ level rather than the slow one?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Because of locality the hit ratio H is near 1, so the (1-H)*T2 term is small: Ts = T1 + (1-H)*T2 approaches T1. It only works while the processor's accesses to each lower level are much rarer than to the level above.
+:Q_UNIT: ov
+:END:
+
+** A cache has T1 = 10 ns, main memory T2 = 100 ns, hit ratio H = 0.9. Give the average access time (a miss re-pays the cache).
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 20 ns
+:Q_ACCEPT: 20 | 20ns
+:Q_UNIT: ov
+:END:
+
+** Access efficiency is T1/Ts. Write it in terms of H and r = T2/T1, and say when it is near 1.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: T1/Ts = 1 / (1 + (1-H)r). It is near 1 only when (1-H)r is small, so a large r demands a hit ratio very close to 1.
+:Q_UNIT: ov
+:END:
+
+** For a two-level memory, which level's cost should the average cost per bit Cs approach, and what does that require?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Cs = (C1*S1 + C2*S2)/(S1+S2); we want Cs to approach C2, the cheaper level. Since C1 >> C2 that requires S1 << S2: the fast level must be small.
+:Q_UNIT: ov
+:END:
+
+** Which is NOT one of the four hardware features a resident monitor needs?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Virtual memory | Memory protection | A timer | Privileged instructions
+:Q_ANSWER: Virtual memory
+:Q_EXPLAIN: The monitor needs memory protection, a timer, privileged instructions and interrupts.
+:Q_UNIT: ov
+:END:
+
+** Why is the interrupt check a separate stage of the instruction cycle rather than part of execute?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The processor must finish the current instruction before servicing an interrupt, so the check comes after execute, and it must be skippable, since interrupts can be disabled. As its own stage the cycle runs fetch-execute with interrupts off and fetch-execute-interrupt with them on.
+:Q_UNIT: ov
+:END:
+
+** A program references a location outside its allowed memory. Which type of interrupt is generated?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Program | I/O | Timer | Hardware failure
+:Q_ANSWER: Program
+:Q_EXPLAIN: Program interrupts come from executing an instruction, overflow, divide by zero, illegal instruction, out-of-bounds reference.
+:Q_UNIT: ov
+:END:
+
+** Why is cache "largely invisible to the operating system"?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Cache placement, replacement and write-back are done entirely in hardware on physical addresses; the OS neither allocates cache lines nor is told about hits and misses. It only shows up as faster memory. Contrast paging, where the OS maintains the page tables.
 :Q_UNIT: ov
 :END:
 
@@ -243,6 +304,195 @@ interactive, gradeable, repeatable test. Add a question by adding a heading with
 :Q_UNIT: mem
 :END:
 
+** The scheme that splits memory into power-of-two blocks, halving on allocation and merging on release, is the __________ system.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: buddy
+:Q_UNIT: mem
+:END:
+
+** Name the four basic page-replacement algorithms.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Optimal, least recently used (LRU), first-in-first-out (FIFO), and Clock.
+:Q_UNIT: mem
+:END:
+
+** Which replacement algorithm cannot be implemented in a real OS, and why is it still used?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Optimal: it needs the future reference string, which the OS does not have. It is the lower bound on faults, used as a yardstick for the implementable algorithms.
+:Q_UNIT: mem
+:END:
+
+** Bringing in pages only when they are referenced is __________; bringing in neighbouring pages too is __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: demand paging, prepaging
+:Q_ACCEPT: demand paging / prepaging | demand paging and prepaging
+:Q_UNIT: mem
+:END:
+
+** A replacement policy that may evict a page belonging to another process has __________ scope.
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Global | Local | Fixed | Variable
+:Q_ANSWER: Global
+:Q_EXPLAIN: Global considers all unlocked frames; local only the faulting process's resident pages.
+:Q_UNIT: mem
+:END:
+
+** Why does hardware, not the OS, have to check every memory reference for protection?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The OS cannot anticipate every address a program will generate, and the process's location is not predictable in advance. References must be validated at run time, which only the processor can do at instruction speed.
+:Q_UNIT: mem
+:END:
+
+** Logical address 15 bits, 5 of them the page number, 1-byte words. Give the max process address space, max pages per process, and page size.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Address space 2^15 = 32 KB; 2^5 = 32 pages per process; page size 2^10 = 1 KB.
+:Q_UNIT: mem
+:END:
+
+** With N free blocks all equally likely to be the one that fits, how many blocks does first-fit search on average?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: (N+1)/2
+:Q_ACCEPT: (n+1)/2 | (N + 1) / 2 | N+1/2
+:Q_UNIT: mem
+:END:
+
+** Which fragmentation does each suffer: fixed partitioning, dynamic partitioning, paging, segmentation?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Fixed partitioning: internal. Dynamic partitioning: external. Paging: internal only, at most part of the last page. Segmentation: external.
+:Q_UNIT: mem
+:END:
+
+** Why is the page size always a power of two?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Then the logical address splits into page number and offset by bit position with no arithmetic: the offset is the low bits, and the physical address is formed by appending the offset to the frame number. It also keeps paging transparent to the programmer, since the relative address equals the logical address.
+:Q_UNIT: mem
+:END:
+
+** 32-bit address space, 4 KB pages, 4-byte entries: how big is one process's page table, and what are the three fixes?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: 2^32/2^12 = 2^20 pages times 4 bytes = 4 MB per process. Fixes: two-level (hierarchical) page tables with only the root resident; an inverted page table sized by physical memory; and a TLB so most references skip the walk.
+:Q_UNIT: mem
+:END:
+
+** How many memory accesses does single-level paging need per reference, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Two: one to read the page-table entry, one for the data, so paging doubles the memory access time. A TLB hit removes the page-table access; a page fault adds secondary-storage I/O on top.
+:Q_UNIT: mem
+:END:
+
+** An inverted page table has one entry per __________, so its size is bounded by __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: frame, physical memory
+:Q_ACCEPT: frame / physical memory | frame, real memory | real frame, physical memory
+:Q_UNIT: mem
+:END:
+
+** Why must an inverted page table be searched by hashing rather than indexed directly?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It is organized by frame number, not by virtual page number, so the virtual page number is not an index into it. A hash of (process id, virtual page number) locates a candidate entry, with a chain pointer for collisions.
+:Q_UNIT: mem
+:END:
+
+** Why does the TLB compare all its entries at once instead of scanning them?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A sequential scan would cost more than the page-table access it is meant to avoid. The TLB is therefore associative, circuitry compares every entry in parallel, which is expensive, so the TLB is kept small.
+:Q_UNIT: mem
+:END:
+
+** Explain why the page-fault rate first rises and then falls as page size grows.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With very small pages many pages fit in memory, so most of the active locality is resident and faults are few. As pages grow each one holds locations further from the recent references, so the resident set dilutes the locality and faults rise. Past the peak a page approaches the size of the whole process; when one page holds it all, there are no faults.
+:Q_UNIT: mem
+:END:
+
+** A smaller page size reduces internal fragmentation. What does it cost?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A larger page table, which may itself have to be paged, so one reference can cause a double page fault (one to fetch the page-table page, one for the data page). Rotational secondary storage also transfers large pages more efficiently.
+:Q_UNIT: mem
+:END:
+
+** What does virtual memory need from the hardware, and what from the OS?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Hardware support for paging and/or segmentation, dynamic run-time address translation, and process pieces that need not be contiguous. OS software to manage the movement of pages/segments between main and secondary memory.
+:Q_UNIT: mem
+:END:
+
+** A process tries to modify its own page-table entry to remap a page. Can it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No. Page tables are OS control structures in protected memory, so a user-mode process cannot write them. It must request the change through a system call, and the OS validates it before modifying the entry.
+:Q_UNIT: mem
+:END:
+
+** On a page fault, which state does the faulting process go to, and what does the OS do next?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Blocked. The OS issues a disk read for the missing page and dispatches another process; when the I/O-completion interrupt arrives it moves the faulting process back to Ready.
+:Q_UNIT: mem
+:END:
+
+** Which page-replacement algorithm gives the fewest faults for a given reference string?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Optimal | LRU | FIFO | Clock
+:Q_ANSWER: Optimal
+:Q_EXPLAIN: Optimal is the lower bound, but it needs the future reference string, so it cannot be implemented.
+:Q_UNIT: mem
+:END:
+
+** How does Clock approximate LRU?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Frames sit in a circular buffer with a pointer, and each referenced page gets its use bit set to 1. On a fault the pointer advances, clearing 1s to 0 as it passes, and replaces the first frame already at 0, so a recently-used page survives one pass. It costs one bit per frame instead of full recency ordering.
+:Q_UNIT: mem
+:END:
+
+** Give the trade-off in how many frames the OS allocates to each process.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Fewer frames each means more processes fit in memory (better CPU utilization) but each faults more often. More frames cut faults, but only up to a point, past a certain resident set size extra frames barely change the fault rate, and fewer processes stay resident.
+:Q_UNIT: mem
+:END:
+
+** A locked frame may not be replaced. Name two things kept in locked frames.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The OS kernel and its key control structures; also I/O buffers and time-critical code. Locking is implemented with a lock bit per frame.
+:Q_UNIT: mem
+:END:
+
+** Thrashing is a symptom. Which load-control knob causes it, and how is it cured?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The degree of multiprogramming: how many processes are resident. Too many means too few frames each, so fault rates climb until the OS spends its time swapping rather than executing. Reducing the degree of multiprogramming (suspending a process) cures it.
+:Q_UNIT: mem
+:END:
+
+** Compaction removes external fragmentation. Why is it expensive, and what does it require?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It copies every resident process to squeeze the holes into one block, so it costs time proportional to the memory in use and halts useful work. Because it changes processes' load addresses it requires run-time relocation via base/bounds registers.
+:Q_UNIT: mem
+:END:
+
 ** With dynamic partitioning, which of the five requirements are met and why?
 :PROPERTIES:
 :Q_TYPE: short
@@ -351,6 +601,132 @@ interactive, gradeable, repeatable test. Add a question by adding a heading with
 :Q_UNIT: proc
 :END:
 
+** Why does the suspend state split into Ready/Suspend and Blocked/Suspend?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A swapped-out process may or may not still be waiting on an event. Ready/Suspend is runnable once swapped back in; Blocked/Suspend still needs its event. Without the split the OS would have to swap a process in only to find it still blocked.
+:Q_UNIT: proc
+:END:
+
+** A process's trace is interleaved with other traces by the __________, whose own instructions also appear in the processor's trace.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: dispatcher
+:Q_UNIT: proc
+:END:
+
+** Give three views of what a process is.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A program in execution: an instance of a running program (user view); an entity that can be assigned to and executed on a processor (scheduler view); a unit of activity characterized by a single thread of execution, a current state, and an associated set of system resources (implementer view).
+:Q_UNIT: proc
+:END:
+
+** Name the eight process elements the OS tracks.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Identifier, state, priority, program counter, memory pointers, context data, I/O status information, accounting information.
+:Q_UNIT: proc
+:END:
+
+** The PCB is read and modified by nearly every OS module. What does that imply?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It effectively defines the OS's internal state, so it must be protected: a bug or a user-mode write that corrupts a PCB can destroy a process or the OS itself. Hence PCBs live in kernel memory, reachable only in kernel mode, and are usually touched through handler routines rather than directly.
+:Q_UNIT: proc
+:END:
+
+** Why isn't the two-state model enough?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: "Not Running" hides two different situations, ready to run, and blocked waiting on an event. With one queue the dispatcher can't just take the next entry; it may have to search for one that is actually runnable. The model can't express the difference, so it can't manage it.
+:Q_UNIT: proc
+:END:
+
+** One blocked queue for everything is simple. What's the cost, and what's the fix?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: When an event occurs the OS must scan the whole blocked queue for the processes waiting on that event, and there can be thousands. The fix is a ready queue plus one blocked queue per event, so an event release touches only its own queue.
+:Q_UNIT: proc
+:END:
+
+** Name the four characteristics of a suspended process.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It is not immediately available for execution; it may or may not be waiting on an event; it was put there by an agent (itself, a parent, or the OS) to prevent its execution; and it stays there until that agent explicitly releases it.
+:Q_UNIT: proc
+:END:
+
+** Name the five reasons a process gets suspended.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Swapping (the OS needs memory for a ready process); another OS reason (a background or suspect process); an interactive user request (debugging); timing (a periodic process waiting for its next interval); and a parent process's request.
+:Q_UNIT: proc
+:END:
+
+** Given a choice, does the OS activate a Ready/Suspend or a Blocked/Suspend process? Why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Ready/Suspend: it can run as soon as it is resident. Swapping in a Blocked/Suspend process would consume memory for something that still has to wait for its event.
+:Q_UNIT: proc
+:END:
+
+** A running process's time slice expires. Which transition, and who causes it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Running to Ready, caused by a timer interrupt. The process is still runnable, it has just used its maximum allowed time, so the dispatcher preempts it and picks another.
+:Q_UNIT: proc
+:END:
+
+** Why does a mode switch cost less than a process switch?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A mode switch only saves enough context to resume the same process (PC and PSW) and flips the mode bit. A process switch additionally updates the old PCB and its state, moves it to a queue, runs the scheduler, updates the new PCB, and updates the memory-management structures, and it destroys cache/TLB locality.
+:Q_UNIT: proc
+:END:
+
+** A mode switch does not always mean a process switch. Explain.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An interrupt flips the processor to kernel mode to run the handler; if the handler finishes and the same process is still the best one to run, the OS restores its context and returns to it, so the running process never changed. Only if the OS decides to run a different process does a process switch follow.
+:Q_UNIT: proc
+:END:
+
+** List the seven steps of a process switch, in order.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: (1) Save the processor context. (2) Update the PCB of the process currently Running. (3) Move that PCB to the appropriate queue. (4) Select another process to run. (5) Update the selected process's PCB. (6) Update the memory-management data structures. (7) Restore the processor context to that process's saved context.
+:Q_UNIT: proc
+:END:
+
+** Which four groups do the OS control tables fall into, and why must they cross-reference?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Memory tables, I/O tables, file tables, and process tables. They cross-reference because the OS needs to reach a process's resources from its PCB and the owning process from a resource, e.g. memory tables record which process holds which region, and an I/O operation ties a device to the process waiting on it.
+:Q_UNIT: proc
+:END:
+
+** Which four kernel-mode functions make up process management?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Process creation and termination; scheduling and dispatching; process switching; and process synchronization / IPC support, including PCB management.
+:Q_UNIT: proc
+:END:
+
+** Given a trace, how do you tell a timeout from a blocking event?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A timeout always stops the process after the full time slice and leaves it Ready, so it is dispatched again in turn. A blocking event stops it early, part-way through the slice, and it goes to Blocked, so it is NOT dispatched again until its event occurs.
+:Q_UNIT: proc
+:END:
+
+** Why do the dispatcher's instructions appear in the processor's trace but in no process's trace?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The dispatcher is OS code that runs between processes, so the processor executes it, but it belongs to none of the traced processes. Those instructions are the overhead of switching.
+:Q_UNIT: proc
+:END:
+
 ** Name the three categories of information in a PCB.
 :PROPERTIES:
 :Q_TYPE: short
@@ -393,6 +769,13 @@ interactive, gradeable, repeatable test. Add a question by adding a heading with
 :Q_TYPE: calc
 :Q_GEN: hit
 :Q_UNIT: ov
+:END:
+
+** Page replacement faults (randomized)
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: replace
+:Q_UNIT: mem
 :END:
 
 ** CPU utilization (randomized)

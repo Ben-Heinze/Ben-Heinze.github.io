@@ -13,7 +13,7 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-Slides: [[file:Memory Management.pdf][Memory Management (PDF)]] · [[file:Memory Hierarchy.pdf][Memory Hierarchy (PDF)]] · [[file:Virtual Memory.pdf][Virtual Memory (PDF)]] — Adiesha Liyana Ralalage
+Slides: [[file:Memory Management.pdf][Memory Management (PDF)]] · [[file:Memory Hierarchy.pdf][Memory Hierarchy (PDF)]] · [[file:Virtual Memory.pdf][Virtual Memory (PDF)]]: Adiesha Liyana Ralalage
 
 * Uniprogramming
 Early memory management systems
@@ -35,7 +35,7 @@ In a /multiprogramming/ system, the user portion of memory must be divided to ac
 - OS dynamically manages this division of memory (aka memory management)
 - /Memory management/ (MM) determines how memory is allocated and used by different processes.
 
-Some of the memory-management techniques we will study are relatively old and may not be used directly in modern systems. They still matter because they provide the fundamental concepts behind modern memory-management systems, and they help explain why modern operating systems use more sophisticated mechanisms. The underlying ideas are still valuable — learning them builds techniques and ways of thinking that apply to other problems.
+Some of the memory-management techniques we will study are relatively old and may not be used directly in modern systems. They still matter because they provide the fundamental concepts behind modern memory-management systems, and they help explain why modern operating systems use more sophisticated mechanisms. The underlying ideas are still valuable, learning them builds techniques and ways of thinking that apply to other problems.
 
 * Memory Management Requirements
 
@@ -50,7 +50,7 @@ Some of the memory-management techniques we will study are relatively old and ma
 This memory management requirement raises a lot of technical problems
 - How can the programmer access memory without having to worry about relocation?
 
-He shows figure 7.1: addressing requirements for a process — the process image laid out at increasing address values as process control information, then the program (with its entry point and a branch instruction), then data (with a reference to data), then the stack with its current top.
+He shows figure 7.1: addressing requirements for a process, the process image laid out at increasing address values as process control information, then the program (with its entry point and a branch instruction), then data (with a reference to data), then the stack with its current top.
 
 ** Protection
 
@@ -83,7 +83,7 @@ he skipped over the deep dive for this one
 
 From the slides:
 - Main memory and secondary memory are usually organized as a linear or one-dimensional address space
-- Programs are typically not like this — programs have modules
+- Programs are typically not like this, programs have modules
   - Some parts of programs are unmodifiable
   - Some parts can be modified
 - The OS needs to deal effectively with the linearity of hardware and the modularity of programs
@@ -95,10 +95,10 @@ From the slides:
 
 Filling that in from the slides:
 - Computer memory is organized in at least two levels: /main memory/ (fast, volatile, limited in size) and /secondary memory/ (slower, cheaper, much larger, non-volatile)
-- Speed and cost trade off directly against each other: faster access means higher cost per byte — so fast memory is kept small and slow memory is made large
+- Speed and cost trade off directly against each other: faster access means higher cost per byte, so fast memory is kept small and slow memory is made large
 - The OS can exploit this by keeping programs in secondary memory when they aren't executing or are blocked on long I/O waits, freeing main memory for active work
 - When the main memory available to a program is too small to hold it all at once, its code and data must be moved in and out during execution
-  - In early systems this was the programmer's job — a technique called /overlaying/, where different program sections are loaded into the same memory region as they're needed
+  - In early systems this was the programmer's job, using a technique called /overlaying/, where different program sections are loaded into the same memory region as they're needed
 - Overlaying is impractical, and /relocation/ makes it worse: the programmer can't know ahead of time where in main memory the program will be placed, or how much space will be available (especially with multiprogramming)
 - Therefore, moving information between the two memory levels must be the OS's responsibility, not the programmer's
 
@@ -122,7 +122,7 @@ He shows figure 7.2: example of fixed partitioning of a 64-Mbyte memory. One blo
 - program could be larger than the partition: programmer must use overlays to handle this problem
 - Regardless of the size of the program, the entire partition is used by a particular process
 - /internal fragmentation/: if you have a lot of small programs running, space is not utilized properly
-  - Internal fragmentation occurs when a process is smaller than the partition it's allocated to — the leftover space inside the partition is wasted and can't be used by any other process
+  - Internal fragmentation occurs when a process is smaller than the partition it's allocated to; the leftover space inside the partition is wasted and can't be used by any other process
 
 ** Unequal sized partitioning
 - Larger programs can be handled properly
@@ -137,7 +137,7 @@ For unequal sized partitioning, assign the new process to the smallest available
 - Use a scheduling queue for each partition, where each corresponding process will wait in the queue for the partition
 - efficient in terms of low fragmentation, but (check notes later)
 
-Finishing that thought from the slides: per-partition queues are efficient in terms of low fragmentation, because we always put the process into the best possible partition that minimizes internal fragmentation — but this is *not optimum from the point of view of the system*. Disadvantages:
+Finishing that thought from the slides: per-partition queues are efficient in terms of low fragmentation, because we always put the process into the best possible partition that minimizes internal fragmentation, but this is *not optimum from the point of view of the system*. Disadvantages:
 - Wait time might be higher
 - May need to swap processes to free up space
 
@@ -188,6 +188,23 @@ For example, if there is more than one free block, which one should the OS use f
 - Combination of fixed and dynamic partitioning schemes.
 - {{{hl(orange,Read about this scheme in the book, will be on quiz)}}}
 
+From the book: memory blocks are always of size $2^{K}$, with $L \le K \le U$
+($2^{L}$ the smallest block allocated, $2^{U}$ the whole space).
+- A request of size $s$ takes a block of size $2^{K}$ where $2^{K-1} < s \le 2^{K}$
+- If no such block is free, /split/ the smallest available larger block in half,
+  repeatedly, until a $2^{K}$ block appears. The two halves of a split are /buddies/
+- On release, if the released block's buddy is also free, /merge/ the pair back into
+  one block of twice the size, then keep merging upward while the new buddy is free
+
+Example, 1 MB of memory, request 100 KB: split 1 MB $\to$ two 512 KB $\to$ two
+256 KB $\to$ two 128 KB, and allocate one 128 KB block (28 KB internal
+fragmentation).
+
+- Compromise: less external fragmentation than dynamic partitioning (free blocks
+  coalesce predictably) and less internal fragmentation than fixed partitioning
+  (block sizes adapt), but rounding every request up to a power of two still wastes
+  space.
+
 
 * Memory Deallocation
 
@@ -221,7 +238,7 @@ Need to combine the free areas
   - Process always returns to its own partition, so its load address never changes $\to$ no relocation
 - Consequence: The addresses a process references are *not fixed*
   - They change each time the process is swapped in or shifted
-  - So addresses must be resolved at run time — via base (and bounds) registers
+  - So addresses must be resolved at run time, via base (and bounds) registers
 
 * Types of Addresses
 
@@ -310,7 +327,7 @@ Another consequence of unequal size segments is that there is no simple relation
 
 * Memory Hierarchy
 
-These are from the (2026-09-09) lecture — the /Memory Hierarchy/ deck, not the
+These are from the (2026-09-09) lecture: the /Memory Hierarchy/ deck, not the
 memory management deck above.
 
 ** Design constraints
@@ -400,12 +417,12 @@ A = 0.15 \mu s = 0.95 \cdot 0.1 \mu s + 0.05 \cdot (1 \mu s + 0.1 \mu s)
 #+ATTR_HTML: :alt Figure 1.17 Cache/Main-Memory Structure
 [[file:fig-1-17-cache-main-memory-structure.png]]
 
-{{{hl(blue,Animation slide — =cache-memory-structure.html=. The animation itself is not in the PDF.)}}}
+{{{hl(blue,Animation slide: =cache-memory-structure.html=. The animation itself is not in the PDF.)}}}
 
 #+ATTR_HTML: :alt Figure 1.18 Cache Read Operation
 [[file:fig-1-18-cache-read-operation.png]]
 
-{{{hl(blue,Animation slide — =cache-read-operation.html=. The animation itself is not in the PDF.)}}}
+{{{hl(blue,Animation slide: =cache-read-operation.html=. The animation itself is not in the PDF.)}}}
 
 ** Cache Design
 
@@ -516,12 +533,12 @@ C_{s} = \frac{C_{1}S_{1} + C_{2}S_{2}}{S_{1} + S_{2}}
 
 * Virtual Memory
 
-These are from the (2026-09-11) lecture — the /Virtual Memory/ deck.
+These are from the (2026-09-11) lecture: the /Virtual Memory/ deck.
 
 ** Terminology
 
 | Term                  | Definition                                                                                                                                                                                                                                              |
-| Virtual memory        | Uses secondary storage (e.g., disk) as if it were main memory (RAM). Programs use their own addresses, which the system automatically translates to real physical locations. Its size is capped by the system's addressing scheme and available secondary storage — not by the actual amount of RAM. |
+| Virtual memory        | Uses secondary storage (e.g., disk) as if it were main memory (RAM). Programs use their own addresses, which the system automatically translates to real physical locations. Its size is capped by the system's addressing scheme and available secondary storage, not by the actual amount of RAM. |
 | Virtual address       | An address in virtual memory, used as if it pointed to main memory.                                                                                                                                                                                     |
 | Virtual address space | The virtual memory assigned to a single process.                                                                                                                                                                                                        |
 | Address space         | The full range of addresses a process can use.                                                                                                                                                                                                          |
@@ -562,7 +579,7 @@ These are from the (2026-09-11) lecture — the /Virtual Memory/ deck.
 | Real memory    | Main memory, the actual RAM                                                                                             |
 | Virtual memory | Memory perceived by the process. Allows for effective multiprogramming and relieves the user of tight constraints of main memory |
 
-#+ATTR_HTML: :alt Paging vs Segmentation — how memory is divided and addressed, and where virtual memory fits (slide image)
+#+ATTR_HTML: :alt Paging vs Segmentation: how memory is divided and addressed, and where virtual memory fits (slide image)
 [[file:paging-vs-segmentation.png]]
 
 ** When Memory Is Almost Full
@@ -581,7 +598,7 @@ Consider the following scenario:
 
 /Too much time managing memory $\to$ too little time executing processes/
 
-{{{hl(blue,Animation slide — =thrashing.html=. The animation itself is not in the PDF.)}}}
+{{{hl(blue,Animation slide: =thrashing.html=. The animation itself is not in the PDF.)}}}
 
 ** Thrashing
 
@@ -609,7 +626,7 @@ For virtual memory scheme to be practical, we need:
 - Now, we will look at necessary control structures that are created and maintained by the OS but are used by the memory management hardware.
 - Usually, when we talk about virtual memory, they are associated with systems that use paging.
   - However, you can use segmentation or combination of paging with segmentation for virtual memory.
-- Each process has its own page table—This is the control structure.
+- Each process has its own page table; This is the control structure.
   - Each page table entry (PTE) contains the frame number of the corresponding page in main memory. (we already talked about this when we looked at simple paging)
   - The page table is needed for virtual memory with little bit more information on it.
   - We looked at the page table in the last lecture, let's try to analyze the structure of the page table bit more.
@@ -626,7 +643,7 @@ Suppose Process A wants to change the page table entry for one of its virtual pa
 
 - No. Process A cannot directly modify its page table entry. The page table is managed by the operating system and is protected from user processes. If a process needs to change its memory mapping, it must request the operating system to do so through a system call. The OS then validates the request and, if permitted, modifies the page table.
 
-{{{hl(blue,Animation slide — =paging-address-translation.html=. The animation itself is not in the PDF.)}}}
+{{{hl(blue,Animation slide: =paging-address-translation.html=. The animation itself is not in the PDF.)}}}
 
 ** How large can a page table be?
 
@@ -661,13 +678,13 @@ Now consider a system with many processes:
 - If 100 processes are running, and each has a 4 MB page table:
   - $100\ MB \times 4MB = 400\ MB$
 
-{{{hl(blue,Transcribed as written on the slide — the first factor is the process count, so it should read 100 × 4 MB = 400 MB.)}}}
+{{{hl(blue,Transcribed as written on the slide: the first factor is the process count, so it should read 100 × 4 MB = 400 MB.)}}}
 
 - In this example, every process needs a page table of 4MB.
 - *Can we afford to dedicate this much memory to page tables?*
 - *How can modern operating systems reduce the memory required for page tables?*
 
-** Paging — hierarchical page tables
+** Paging: hierarchical page tables
 
 - Large chunk of memory is devoted to page tables.
 - What can we do to improve this?
@@ -687,7 +704,7 @@ Now consider a system with many processes:
 
 ** Inverted Page Table
 
-- A key drawback of the conventional page tables discussed so far is that their size is proportional to the virtual address space — and is paid per process — regardless of how much memory the process actually uses.
+- A key drawback of the conventional page tables discussed so far is that their size is proportional to the virtual address space, and is paid per process, regardless of how much memory the process actually uses.
 - An alternative approach is the Inverted Page Table.
 - Instead of keeping one entry per virtual page per process, it keeps a single system-wide table with one entry per physical frame, recording which page of which process currently occupies that frame. Its size is therefore bounded by physical memory, not by the virtual address space.
 - Since the table is organized by frame rather than by virtual page number, we can no longer index it directly.
@@ -703,7 +720,7 @@ What are the implication?
 
 Structure is called inverted because it indexes page table entries by frame number rather than by virtual page number.
 
-{{{hl(blue,Animation slide — =inverted-page-table.html=. The animation itself is not in the PDF.)}}}
+{{{hl(blue,Animation slide: =inverted-page-table.html=. The animation itself is not in the PDF.)}}}
 
 Each entry in the page table contains the following information:
 
@@ -729,12 +746,12 @@ Question:
 [[file:fig-8-6-translation-lookaside-buffer.png]]
 
 - Each entry in the TLB contains page number as well as the complete page table entry.
-  - Some CPU architectures allow pages of multiple processes to be in the TLB at the same time—in fact most modern CPUs allow this. (ASID is needed)
+  - Some CPU architectures allow pages of multiple processes to be in the TLB at the same time, in fact most modern CPUs allow this. (ASID is needed)
   - In older systems, TLB only contains page entries of the currently running process, and after each context switch the TLB is flushed and loaded with new pages of the currently running process.
 - Regardless, CPU still needs to go through the entries of the TLB to find an entry, but this is still costly, even the access time is low.
   - Thus, what hardware manufacturers did was to introduce circuitry to search all the TLB entries at once.
   - This is called /associative mapping/.
-  - This introduce complexity to the circuitry and becomes more expensive to build—but we keep size of the TLB small reducing the overall cost.
+  - This introduce complexity to the circuitry and becomes more expensive to build, but we keep size of the TLB small reducing the overall cost.
 
 #+ATTR_HTML: :alt Figure 8.7 Operation of Paging and Translation Lookaside Buffer (TLB) [FURH87]
 [[file:fig-8-7-paging-and-tlb-operation.png]]
@@ -742,7 +759,7 @@ Question:
 #+ATTR_HTML: :alt Figure 8.9 Translation Lookaside Buffer and Cache Operation
 [[file:fig-8-9-tlb-and-cache-operation.png]]
 
-{{{hl(blue,Animation slides — =tlb-operation.html= and =tlb-cache-operation.html=. The animations themselves are not in the PDF.)}}}
+{{{hl(blue,Animation slides: =tlb-operation.html= and =tlb-cache-operation.html=. The animations themselves are not in the PDF.)}}}
 
 ** Page size
 
@@ -797,7 +814,7 @@ In a combined paging/segmentation system a user's address space is broken up int
 #+ATTR_HTML: :alt Figure 8.12 Address Translation in a Segmentation/Paging System
 [[file:fig-8-12-segmentation-paging-address-translation.png]]
 
-The combined address and table formats are panel (c) of Figure 8.1 above —
+The combined address and table formats are panel (c) of Figure 8.1 above:
 virtual address = /Segment Number/ + /Page Number/ + /Offset/; the segment table
 entry holds /Control Bits/ + /Length/ + /Segment Base/; the page table entry
 holds /P/ (present bit), /M/ (modified bit), other control bits and the
@@ -810,7 +827,7 @@ The design of the memory management portion of an operating system depends on th
 2. The use of paging or segmentation or both
 3. The algorithms employed for various aspects of memory management
 
-The policy summary from the deck — left column:
+The policy summary from the deck, left column:
 - *Fetch Policy*
   - Demand paging
   - Prepaging
@@ -884,7 +901,26 @@ Algorithms used for the selection of a page to replace:
 
 F = page fault occurring after the frame allocation is initially filled
 
-{{{hl(blue,Animation slide — =page_replacement (2).html=. The animation itself is not in the PDF.)}}}
+The figure's example worked out, reference string =2 3 2 1 5 2 4 5 3 2 5 2= in
+*3 frames*:
+
+| Algorithm | Replaces                                       | Faults after fill | Total faults |
+| Optimal   | the resident page referenced /furthest in the future/ | 3                 | 6            |
+| LRU       | the page /unreferenced the longest/                 | 4                 | 7            |
+| FIFO      | the page /resident the longest/, regardless of use   | 6                 | 9            |
+| Clock     | FIFO, but skip (and clear) pages whose /use bit/ is 1 | 5                 | 8            |
+
+- /Optimal/ needs the future, so it cannot be implemented; it is the lower bound
+  the others are measured against.
+- /Clock/ is the practical approximation of LRU: frames sit in a circular buffer
+  with a pointer; a referenced page gets its use bit set to 1. The pointer advances
+  over the buffer, clearing 1s to 0 as it goes, and replaces the first page it finds
+  already at 0.
+- The first references into empty frames are faults too, note whether a question
+  wants /total/ faults or only the ones /after the frames first fill/ (Figure 8.14
+  marks only the latter).
+
+{{{hl(blue,Animation slide: =page_replacement (2).html=. The animation itself is not in the PDF.)}}}
 
 *** Resident Set Management
 

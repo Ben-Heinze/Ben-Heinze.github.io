@@ -1,4 +1,4 @@
-#+TITLE: Practice Quiz — Memory & Virtual Memory
+#+TITLE: Practice Quiz: Memory & Virtual Memory
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-09-24
 #+STARTUP: noindent
@@ -13,7 +13,7 @@
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
 A variation of the original [[file:../][Quiz 1]] plus extra questions covering virtual memory,
-page tables and the TLB. Answers are hidden — click *Learn* (top-right) to test
+page tables and the TLB. Answers are hidden: click *Learn* (top-right) to test
 yourself. Material lives on the [[file:../../test-1/][Test 1]] study guide.
 
 * Fragmentation & Partitioning
@@ -75,7 +75,7 @@ Fill in the blank.
 ** Under dynamic partitioning, relocation is only sometimes required.
 :PROPERTIES:
 :LEARN_TYPE: flashcard
-:LEARN_A: False — under dynamic partitioning relocation is always required (swap-in and compaction move processes).
+:LEARN_A: False. Under dynamic partitioning relocation is always required (swap-in and compaction move processes).
 :END:
 
 True / False.
@@ -109,7 +109,7 @@ Short answer.
 ** Memory protection must be enforced by the operating system software rather than the processor hardware.
 :PROPERTIES:
 :LEARN_TYPE: flashcard
-:LEARN_A: False — it must be enforced by the processor (hardware), because the OS cannot anticipate every memory reference.
+:LEARN_A: False. It must be enforced by the processor (hardware), because the OS cannot anticipate every memory reference.
 :END:
 
 True / False.
@@ -146,7 +146,7 @@ Fill in the blanks.
 ** Paging requires a process's pages to be placed in contiguous frames.
 :PROPERTIES:
 :LEARN_TYPE: flashcard
-:LEARN_A: False — pages need not be contiguous; that is what lets paging eliminate external fragmentation.
+:LEARN_A: False. Pages need not be contiguous; that is what lets paging eliminate external fragmentation.
 :END:
 
 True / False.
@@ -162,7 +162,7 @@ Fill in the blank.
 ** Why must page (and frame) size always be a power of 2?
 :PROPERTIES:
 :LEARN_TYPE: flashcard
-:LEARN_A: So the logical address equals the relative address and the physical address can be formed by appending the frame number to the offset — making logical-to-physical translation easy.
+:LEARN_A: So the logical address equals the relative address and the physical address can be formed by appending the frame number to the offset, making logical-to-physical translation easy.
 :END:
 
 Short answer.
@@ -178,7 +178,7 @@ True / False.
 ** In combined paging and segmentation, address translation requires how many table lookups per reference?
 :PROPERTIES:
 :LEARN_TYPE: flashcard
-:LEARN_A: Two — the segment table (to find the segment's page table), then the page table (to find the frame).
+:LEARN_A: Two: the segment table (to find the segment's page table), then the page table (to find the frame).
 :END:
 
 Short answer.
@@ -220,7 +220,7 @@ Fill in the blank.
 ** With virtual memory, all pages of a process must be in main memory before it can run.
 :PROPERTIES:
 :LEARN_TYPE: flashcard
-:LEARN_A: False — not all pages need be resident; nonresident pages are brought in on demand when faulted.
+:LEARN_A: False. Not all pages need be resident; nonresident pages are brought in on demand when faulted.
 :END:
 
 True / False.
@@ -243,13 +243,13 @@ Short answer.
 
 * Page Tables & TLB
 
-** How large can a page table be? (32-bit address, byte addressing, 4 KB pages, 4-byte entries) — give the full working.
+** How large can a page table be? (32-bit address, byte addressing, 4 KB pages, 4-byte entries), give the full working.
 :PROPERTIES:
 :LEARN_TYPE: flashcard
 :LEARN_A: Step 1: max virtual address space = 2 to the 32nd = 4 GB. Step 2: pages per process = 2 to the 32nd / 2 to the 12th = 2 to the 20th pages. Step 3: page table = 2 to the 20th entries times 4 bytes = 2 to the 22nd bytes = 4 MB. So one process needs a 4 MB page table.
 :END:
 
-Flagged as a test question in the lecture notes. Short answer — show the three steps.
+Flagged as a test question in the lecture notes. Short answer: show the three steps.
 
 ** With the 4 KB-page example, what is the maximum virtual address space of a process?
 :PROPERTIES:
@@ -601,7 +601,7 @@ Short answer.
 :LEARN_A: T = H*T1 + (1-H)*(T1+T2) = 0.9*10 + 0.1*(10+100) = 9 + 11 = 20 ns.
 :END:
 
-Calculation. (Standard formula; your notes marked hit-ratio/AMAT COME BACK LATER.)
+Calculation. (The convention the slides use: a miss pays $T_1$ and then $T_2$.)
 
 ** Define hit ratio H.
 :PROPERTIES:
@@ -617,7 +617,8 @@ Short answer.
 :LEARN_A: EAT = 0.8*(20+100) + 0.2*(20+2*100) = 0.8*120 + 0.2*220 = 96 + 44 = 140 ns. (On a TLB miss you access memory twice: page table then data.)
 :END:
 
-Calculation. (Standard formula; not in your notes.)
+Calculation. (Standard formula: the notes only say paging doubles the access time
+and the TLB avoids the page-table walk.)
 
 ** For a two-level memory, write the average-cost-per-bit formula Cs and say what we want it to approach.
 :PROPERTIES:

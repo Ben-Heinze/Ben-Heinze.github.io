@@ -9,7 +9,7 @@
 //
 // Question types: mc (multiple choice), tf (true/false), fill (text, matched
 // against :Q_ANSWER:/:Q_ACCEPT:), short (self-assessed against a model answer),
-// and calc (randomized numeric — the :Q_GEN: name selects a generator below, so
+// and calc (randomized numeric: the :Q_GEN: name selects a generator below, so
 // every "New test" produces fresh numbers with worked steps).
 //
 // No backend: everything runs in the browser, like search.js and learn.js.
@@ -35,6 +35,37 @@
   }
   function el(tag, cls) { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
   function unitLabel(u) { return UNIT_LABEL[u] || (u ? u.toUpperCase() : ''); }
+
+  // Page-replacement simulation, shared by the `replace` generator's screening
+  // pass and its step trace. Returns the fault count and the per-reference log.
+  function simulate(ref, frames, algo) {
+    var mem = [], age = [], faults = 0, trace = [];
+    for (var t = 0; t < ref.length; t++) {
+      var pg = ref[t], hit = mem.indexOf(pg) >= 0, out = '';
+      if (hit) { if (algo === 'LRU') age[mem.indexOf(pg)] = t; }
+      else {
+        faults++;
+        if (mem.length < frames) { mem.push(pg); age.push(t); }
+        else {
+          var victim = 0;
+          if (algo === 'Optimal') {
+            // Evict the resident page used furthest in the future (never = infinity).
+            var far = -1;
+            for (var j = 0; j < mem.length; j++) {
+              var nxt = ref.indexOf(mem[j], t + 1); if (nxt < 0) nxt = Infinity;
+              if (nxt > far) { far = nxt; victim = j; }
+            }
+          } else {
+            // FIFO ages by load time, LRU by last reference, same scan, different age[].
+            for (var k = 1; k < mem.length; k++) if (age[k] < age[victim]) victim = k;
+          }
+          out = mem[victim]; mem[victim] = pg; age[victim] = t;
+        }
+      }
+      trace.push('  ' + pg + ' -> ' + (hit ? 'hit  ' : 'FAULT') + ' [' + mem.join(',') + ']' + (out !== '' ? ' evict ' + out : ''));
+    }
+    return { faults: faults, trace: trace, filled: mem.length };
+  }
 
   // ── randomized calculation generators (keyed by :Q_GEN:) ─────────────────────
   var GEN = {
@@ -65,6 +96,21 @@
       return { q: 'Hit ratio: ' + acc.toLocaleString() + ' accesses, ' + miss + ' misses. Hit ratio H (decimal)?', a: round(H, 4), unit: '(decimal)', tol: 0.0005,
         steps: 'hits = ' + acc + ' - ' + miss + ' = ' + (acc - miss) + '\nH = ' + (acc - miss) + ' / ' + acc + ' = ' + round(H, 4) };
     },
+    replace: function () {
+      var algo = pick(['FIFO', 'LRU', 'Optimal']), frames = pick([3, 4]);
+      var pages = frames + pick([2, 3]), ref;
+      // Regenerate until the string actually exercises replacement: at least
+      // three faults once the frames are full, or the drill is trivial.
+      for (var attempt = 0; attempt < 50; attempt++) {
+        ref = [];
+        for (var i = 0; i < 12; i++) ref.push(randint(0, pages - 1));
+        if (simulate(ref, frames, algo).faults - frames >= 3) break;
+      }
+      var sim = simulate(ref, frames, algo), faults = sim.faults;
+      return { q: algo + ' replacement: ' + frames + ' frames, all initially empty, reference string ' + ref.join(', ') + '. Total page faults (counting the initial fills)?', a: faults, unit: 'faults', tol: 0,
+        steps: algo + ', ' + frames + ' frames (frame contents after each reference):\n' + sim.trace.join('\n') +
+          '\ntotal faults = ' + faults + ' (' + (faults - sim.filled) + ' after the frames first fill, the way Figure 8.14 marks them)' };
+    },
     cpu: function () {
       var r = pick([10, 12, 15, 20]), e = pick([1, 2, 3, 5]), w = pick([10, 12, 15, 20]), tot = r + e + w, val = e / tot * 100;
       return { q: 'CPU utilization: read ' + r + ' us, execute ' + e + ' us, write ' + w + ' us. Utilization (%)?', a: round(val, 2), unit: '%', tol: 0.1,
@@ -93,14 +139,31 @@
       '</select>';
     host.innerHTML =
       '<div class="qz-setup">' +
+        '<label>Mode: <select class="qz-mode">' +
+          '<option value="test">Test</option>' +
+          '<option value="cards">Flashcards</option>' +
+        '</select></label>' +
         (units.length > 1 ? '<label>Unit: <select class="qz-unit">' + unitSel + '</select></label>' : '') +
-        (concept.length ? '<label>Questions: ' + countSel + '</label>' : '') +
+        (concept.length ? '<label class="qz-only-test">Questions: ' + countSel + '</label>' : '') +
         (calc.length ? '<label><input type="checkbox" class="qz-calc" checked> +calculations</label>' : '') +
         '<button type="button" class="qz-btn primary qz-new">New test</button>' +
-        '<button type="button" class="qz-btn qz-timer">Start timer</button>' +
-        '<span class="qz-sw">00:00</span>' +
+        '<button type="button" class="qz-btn qz-timer qz-only-test">Start timer</button>' +
+        '<span class="qz-sw qz-only-test">00:00</span>' +
       '</div>' +
       '<div class="qz-questions"></div>' +
+      '<div class="qz-cards" hidden>' +
+        '<div class="qz-card">' +
+          '<div class="qz-card-tag"></div>' +
+          '<div class="qz-card-face"></div>' +
+          '<div class="qz-card-hint"></div>' +
+        '</div>' +
+        '<div class="qz-card-nav">' +
+          '<button type="button" class="qz-btn qz-prev">\u2190 Prev</button>' +
+          '<span class="qz-card-count"></span>' +
+          '<button type="button" class="qz-btn qz-next">Next \u2192</button>' +
+          '<button type="button" class="qz-btn qz-flip primary">Flip</button>' +
+        '</div>' +
+      '</div>' +
       '<div class="qz-actions">' +
         '<button type="button" class="qz-btn primary qz-submit">Submit &amp; grade</button>' +
         '<button type="button" class="qz-btn qz-reveal">Show answers</button>' +
@@ -124,6 +187,7 @@
       var count = q('.qz-count') ? parseInt(q('.qz-count').value, 10) : 0;
       var withCalc = q('.qz-calc') ? q('.qz-calc').checked : false;
       var cpool = concept.filter(function (r) { return unitVal === 'all' || r.unit === unitVal; });
+      if (mode() === 'cards') count = cpool.length;   // a deck is the whole pool
       var chosen = shuffle(cpool).slice(0, Math.min(count, cpool.length)).map(toConceptItem);
       var calcItems = [];
       if (withCalc) {
@@ -134,6 +198,7 @@
       render();
       var box = q('.qz-score'); box.className = 'qz-score'; box.innerHTML = '';
       swReset();
+      applyMode();
       host.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -168,6 +233,10 @@
           inp.placeholder = item.type === 'calc' ? ('Answer' + (item.dispUnit ? ' (' + item.dispUnit + ')' : '')) : 'Type your answer';
           card.appendChild(inp); get = function () { return inp.value; };
         }
+        var one = el('button', 'qz-btn qz-reveal-one'); one.type = 'button';
+        one.textContent = 'Reveal answer';
+        one.addEventListener('click', function () { showCard(idx, true); });
+        card.appendChild(one);
         var fb = el('div', 'qz-feedback'); card.appendChild(fb);
         qroot.appendChild(card);
         nodes[idx] = { el: card, feedback: fb, get: get, item: item };
@@ -181,33 +250,43 @@
       return null; // short
     }
 
+    // Show one question's answer. `showOnly` reveals it without judging what was
+    // typed (the per-question Reveal button and Show answers); otherwise the
+    // answer is compared and the card marked. Returns true if it was correct.
+    function showCard(idx, showOnly) {
+      var node = nodes[idx], item = node.item, user = node.get(), fb = node.feedback;
+      node.el.classList.remove('is-correct', 'is-incorrect');
+      fb.className = 'qz-feedback show';
+      if (item.type === 'short') {
+        fb.classList.add('info');
+        fb.innerHTML = '<strong>Model answer (self-assess):</strong> ' + esc(item.a);
+        return null;
+      }
+      var ok = correct(item, user);
+      var steps = (item.type === 'calc' && item.steps) ? '<div class="qz-steps">' + esc(item.steps) + '</div>' : '';
+      var ans = esc(String(item.a)) + (item.dispUnit ? ' ' + esc(item.dispUnit) : '');
+      if (showOnly) {
+        fb.classList.add('info');
+        fb.innerHTML = '<strong>Answer:</strong> <span class="qz-c-ok">' + ans + '</span>' + (item.e ? ': ' + esc(item.e) : '') + steps;
+      } else if (ok) {
+        node.el.classList.add('is-correct'); fb.classList.add('ok');
+        fb.innerHTML = '<span class="qz-c-ok"><strong>Correct.</strong></span> ' + (item.e ? esc(item.e) : ('Answer: ' + ans)) + steps;
+      } else {
+        node.el.classList.add('is-incorrect'); fb.classList.add('bad');
+        var yours = (user == null || user === '') ? '(blank)' : esc(user);
+        fb.innerHTML = '<span class="qz-c-bad"><strong>Incorrect.</strong></span> Your answer: ' + yours +
+          '<br><strong>Correct:</strong> <span class="qz-c-ok">' + ans + '</span>' + (item.e ? ': ' + esc(item.e) : '') + steps;
+      }
+      return ok;
+    }
+
     function grade(showOnly) {
       var got = 0, objective = 0;
       items.forEach(function (item, idx) {
-        var node = nodes[idx], user = node.get(), fb = node.feedback;
-        node.el.classList.remove('is-correct', 'is-incorrect');
-        fb.className = 'qz-feedback show';
-        if (item.type === 'short') {
-          fb.classList.add('info');
-          fb.innerHTML = '<strong>Model answer (self-assess):</strong> ' + esc(item.a);
-          return;
-        }
+        var ok = showCard(idx, showOnly);
+        if (ok === null) return;        // short answer: self-assessed, not scored
         objective++;
-        var ok = correct(item, user);
-        var steps = (item.type === 'calc' && item.steps) ? '<div class="qz-steps">' + esc(item.steps) + '</div>' : '';
-        var ans = esc(String(item.a)) + (item.dispUnit ? ' ' + esc(item.dispUnit) : '');
-        if (!showOnly && ok) {
-          got++; node.el.classList.add('is-correct'); fb.classList.add('ok');
-          fb.innerHTML = '<span class="qz-c-ok"><strong>Correct.</strong></span> ' + (item.e ? esc(item.e) : ('Answer: ' + ans)) + steps;
-        } else if (showOnly) {
-          fb.classList.add('info');
-          fb.innerHTML = '<strong>Answer:</strong> <span class="qz-c-ok">' + ans + '</span>' + (item.e ? ' &mdash; ' + esc(item.e) : '') + steps;
-        } else {
-          node.el.classList.add('is-incorrect'); fb.classList.add('bad');
-          var yours = (user == null || user === '') ? '(blank)' : esc(user);
-          fb.innerHTML = '<span class="qz-c-bad"><strong>Incorrect.</strong></span> Your answer: ' + yours +
-            '<br><strong>Correct:</strong> <span class="qz-c-ok">' + ans + '</span>' + (item.e ? ' &mdash; ' + esc(item.e) : '') + steps;
-        }
+        if (ok && !showOnly) got++;
       });
       var shortN = items.filter(function (i) { return i.type === 'short'; }).length;
       var box = q('.qz-score'); box.className = 'qz-score show';
@@ -221,6 +300,88 @@
       box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
+    // ── flashcards ─────────────────────────────────────────────────────────────
+    // The same items the test draws, shown one at a time as a flip card: the
+    // prompt on the front, the answer (plus any worked steps) on the back.
+    var cardIdx = 0, cardFlipped = false;
+    // Phones have no Space bar and no hover; word the prompts for the device.
+    // The media query is the first guess, but a real touch is the proof, so the
+    // wording upgrades itself the first time the card is touched.
+    var touch = !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
+    var HINT_FRONT, HINT_BACK;
+    function setHints() {
+      HINT_FRONT = touch ? 'Tap the card to flip' : 'Click the card (or press Space) to flip';
+      HINT_BACK = touch ? 'Answer. Tap for the next card, or swipe' : 'Answer. Click or press Space for the next card';
+    }
+    setHints();
+
+    function cardBack(item) {
+      var parts = [String(item.a) + (item.dispUnit ? ' ' + item.dispUnit : '')];
+      if (item.e) parts.push(item.e);
+      if (item.steps) parts.push(item.steps);
+      return parts.join('\n\n');
+    }
+
+    function drawCard() {
+      if (!items.length) return;
+      if (cardIdx >= items.length) cardIdx = 0;
+      if (cardIdx < 0) cardIdx = items.length - 1;
+      var item = items[cardIdx];
+      var face = q('.qz-card-face');
+      face.textContent = cardFlipped ? cardBack(item) : item.q;
+      face.className = 'qz-card-face' + (cardFlipped ? ' is-back' : '');
+      var tagTxt = (item.type === 'calc' ? 'calc' : item.type) +
+        (item.unit ? ' \u00b7 ' + unitLabel(item.unit) : '');
+      q('.qz-card-tag').textContent = tagTxt;
+      q('.qz-card-count').textContent = (cardIdx + 1) + ' / ' + items.length;
+      q('.qz-card-hint').textContent = cardFlipped ? HINT_BACK : HINT_FRONT;
+    }
+    function flipCard() { cardFlipped = !cardFlipped; drawCard(); }
+    function stepCard(n) { cardIdx += n; cardFlipped = false; drawCard(); }
+
+    // Space flips, then advances; arrows move without flipping.
+    host.addEventListener('keydown', function (e) {
+      if (mode() !== 'cards') return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); cardFlipped ? stepCard(1) : flipCard(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); stepCard(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); stepCard(-1); }
+    });
+    var swipeX = 0, swipeY = 0, swiped = false;
+    var cardEl = q('.qz-card');
+    cardEl.addEventListener('touchstart', function (e) {
+      var t = e.changedTouches[0]; swipeX = t.clientX; swipeY = t.clientY; swiped = false;
+      if (!touch) { touch = true; setHints(); drawCard(); }
+    }, { passive: true });
+    cardEl.addEventListener('touchend', function (e) {
+      var t = e.changedTouches[0], dx = t.clientX - swipeX, dy = t.clientY - swipeY;
+      // Horizontal, far enough, and not really a scroll.
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        swiped = true; stepCard(dx < 0 ? 1 : -1);
+      }
+    }, { passive: true });
+    cardEl.addEventListener('click', function () {
+      if (swiped) { swiped = false; return; }
+      cardFlipped ? stepCard(1) : flipCard();
+    });
+    q('.qz-flip').addEventListener('click', flipCard);
+    q('.qz-next').addEventListener('click', function () { stepCard(1); });
+    q('.qz-prev').addEventListener('click', function () { stepCard(-1); });
+
+    function mode() { return q('.qz-mode') ? q('.qz-mode').value : 'test'; }
+
+    function applyMode() {
+      var cards = mode() === 'cards';
+      q('.qz-questions').hidden = cards;
+      q('.qz-cards').hidden = !cards;
+      q('.qz-actions').hidden = cards;
+      host.classList.toggle('is-cards', cards);
+      q('.qz-new').textContent = cards ? 'Shuffle deck' : 'New test';
+      if (cards) { swPause(); cardIdx = 0; cardFlipped = false; drawCard(); }
+      var box = q('.qz-score'); box.className = 'qz-score'; box.innerHTML = '';
+      host.setAttribute('tabindex', '-1');
+    }
+
     // ── stopwatch ──────────────────────────────────────────────────────────────
     var swEl = q('.qz-sw'), swBtn = q('.qz-timer');
     var swRun = false, swStart = 0, swAcc = 0, swInt = null;
@@ -231,6 +392,7 @@
     function swReset() { swRun = false; clearInterval(swInt); swAcc = 0; swEl.classList.remove('running'); swBtn.textContent = 'Start timer'; swEl.textContent = '00:00'; }
 
     q('.qz-new').addEventListener('click', buildTest);
+    q('.qz-mode').addEventListener('change', buildTest);
     q('.qz-submit').addEventListener('click', function () { grade(false); });
     q('.qz-reveal').addEventListener('click', function () { grade(true); });
     swBtn.addEventListener('click', function () { swRun ? swPause() : swStartFn(); });

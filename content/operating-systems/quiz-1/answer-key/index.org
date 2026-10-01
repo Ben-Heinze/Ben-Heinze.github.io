@@ -1,4 +1,4 @@
-#+TITLE: Answer Key — Memory Management Quiz
+#+TITLE: Answer Key: Memory Management Quiz
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-09-24
 #+STARTUP: noindent
@@ -38,10 +38,10 @@ page out of Learn mode so the answers don't leak into the flashcard decks.)
 *Answer:* True
 
 * 8. In a uniprogramming system main memory is divided into two parts.
-*Answer:* True — one part for the OS, one for the single user program.
+*Answer:* True. One part for the OS, one for the single user program.
 
 * 9. A physical address is the location of a word relative to the beginning of the program, and the processor translates that into a logical address.
-*Answer:* False — that is a relative (logical) address; the processor translates relative → physical, not the reverse.
+*Answer:* False. That is a relative (logical) address; the processor translates relative → physical, not the reverse.
 
 * 10. A hardware mechanism is needed for translating relative addresses to physical addresses at the time of execution.
 *Answer:* True
@@ -53,7 +53,7 @@ page out of Learn mode so the answers don't leak into the flashcard decks.)
 *Answer:* a number of segments which need not be of equal size
 
 * 13. In a multiprogramming system the available main memory is NOT generally shared among processes.
-*Answer:* False — main memory IS shared among several processes.
+*Answer:* False. Main memory IS shared among several processes.
 
 * 14. The page table for each process maintains __________.
 *Answer:* The frame location for each page of the process
@@ -62,10 +62,10 @@ page out of Learn mode so the answers don't leak into the flashcard decks.)
 *Answer:* External fragmentation
 
 * 16. Segmentation does not eliminate internal fragmentation.
-*Answer:* False — segmentation DOES eliminate internal fragmentation (it suffers external fragmentation).
+*Answer:* False. Segmentation DOES eliminate internal fragmentation (it suffers external fragmentation).
 
 * 17. With dynamic partitioning, which of the five requirements are met and why?
-*Answer:* Relocation — yes (processes are swapped and compacted). Protection — yes (a contiguous block bounded by base/bounds registers). Sharing — no (separate contiguous blocks make sharing awkward without copying). Logical organization — no (one flat block, not module/segmented). Physical organization — partially (OS handles swapping, but the whole process must fit in main memory).
+*Answer:* Relocation: yes (processes are swapped and compacted). Protection: yes (a contiguous block bounded by base/bounds registers). Sharing: no (separate contiguous blocks make sharing awkward without copying). Logical organization: no (one flat block, not module/segmented). Physical organization: partially (OS handles swapping, but the whole process must fit in main memory).
 
 * 18. Available chunks of memory are known as __________.
 *Answer:* Frames
@@ -74,13 +74,13 @@ page out of Learn mode so the answers don't leak into the flashcard decks.)
 *Answer:* page table
 
 * 20. Secondary memory provides fast access at relatively high cost.
-*Answer:* False — that is main memory; secondary memory is slower and cheaper (but non-volatile).
+*Answer:* False. That is main memory; secondary memory is slower and cheaper (but non-volatile).
 
 * 21. All segments of all programs must be of the same length.
-*Answer:* False — segments vary in length (only a maximum length exists).
+*Answer:* False. Segments vary in length (only a maximum length exists).
 
 * 22. In a multiprogramming environment the programmer knows at coding time how much space is available and where.
-*Answer:* False — the programmer does not know this in advance.
+*Answer:* False. The programmer does not know this in advance.
 
 * 23. The chunks of a process are known as __________.
 *Answer:* Pages

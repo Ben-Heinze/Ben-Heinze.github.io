@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OS Test 1: Cheat Sheet</title>
+<style>
+  @page { size: letter; margin: 0.3in 0.28in; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font: 6.3pt/1.145 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #000; background: #fff; margin: 0;
+    column-count: 3; column-gap: 0.17in; column-fill: auto;
+    orphans: 2; widows: 2;
+    hyphens: auto; -webkit-hyphens: auto;
+  }
+  h1 { font-size: 10pt; margin: 0 0 2pt; letter-spacing: -0.2pt; }
+  h1 + .sub { font-size: 6pt; margin: 0 0 4pt; color: #444; }
+  h2 {
+    font-size: 6.9pt; margin: 5pt 0 2pt; padding: 1pt 3pt;
+    background: #000; color: #fff; letter-spacing: 0.2pt;
+    text-transform: uppercase; break-after: avoid;
+  }
+  h3 {
+    font-size: 6.5pt; margin: 3pt 0 1pt; padding-bottom: 0.5pt;
+    border-bottom: 0.5pt solid #000; break-after: avoid;
+  }
+  p, ul, ol, table { margin: 1pt 0; }
+  ul, ol { padding-left: 7.5pt; }
+  li { margin: 0.3pt 0; }
+  b, strong { font-weight: 700; }
+  i, em { font-style: italic; }
+  .t { font-weight: 700; }                       /* a term being defined */
+  table { width: 100%; border-collapse: collapse; font-size: 5.95pt; }
+  td, th { border: 0.4pt solid #999; padding: 0.6pt 1.6pt; vertical-align: top; text-align: left; }
+  th { background: #e8e8e8; font-weight: 700; }
+  .box { border: 0.6pt solid #000; padding: 2pt 3pt; margin: 2.5pt 0; break-inside: avoid; }
+  .box.key { background: #f0f0f0; }
+  .box h3 { margin-top: 0; border: 0; font-size: 6.5pt; }
+  .f { font-family: "Courier New", monospace; font-size: 6pt; }
+  .m { font-family: Georgia, "Times New Roman", serif; font-style: italic; }
+  code { font-family: "Courier New", monospace; font-size: 6.3pt; }
+  .tight li { margin: 0; }
+  .no-break { break-inside: avoid; }
+  .box.flow-ok { break-inside: auto; }
+  .arrow::before { content: "\2192"; }
+  .flow { font-size: 6pt; line-height: 1.35; }
+  .cols2 { column-count: 2; column-gap: 6pt; }
+</style>
+</head>
+<body>
+
+<h1>Operating Systems: Test 1</h1>
+<p class="sub">Computer Systems Overview · Memory Management · Process Management. 50 min, one letter sheet both sides.</p>
+
+<div class="box key no-break">
+<h3>Every formula</h3>
+<table>
+<tr><th>Quantity</th><th>Formula</th></tr>
+<tr><td>Hit ratio</td><td class="f">H = hits / total accesses; miss = 1−H</td></tr>
+<tr><td>Avg access time<br>(2-level)</td><td class="f">Ts = H·T1 + (1−H)(T1+T2)<br>&nbsp;&nbsp;&nbsp;= T1 + (1−H)·T2</td></tr>
+<tr><td>Access efficiency</td><td class="f">T1/Ts = 1 / (1 + (1−H)·r), r = T2/T1</td></tr>
+<tr><td>Avg cost per bit</td><td class="f">Cs = (C1·S1 + C2·S2)/(S1+S2)<br>want Cs≈C2 ⟹ need S1≪S2</td></tr>
+<tr><td>TLB effective<br>access time</td><td class="f">EAT = h(t<sub>t</sub>+t<sub>m</sub>) + (1−h)(t<sub>t</sub>+2t<sub>m</sub>)</td></tr>
+<tr><td>Page table size</td><td class="f">offset bits = log2(page size)<br>page bits = addr bits − offset bits<br>size = 2<sup>page bits</sup> × entry size</td></tr>
+<tr><td>Address space</td><td class="f">2<sup>addr bits</sup>; #pages = 2<sup>addr</sup>/2<sup>offset</sup></td></tr>
+<tr><td>CPU utilization</td><td class="f">execute / (read + execute + write)</td></tr>
+<tr><td>First-fit searches</td><td class="f">(N+1)/2 for N equally-likely blocks</td></tr>
+</table>
+</div>
+
+<div class="box no-break">
+<h3>Worked numbers</h3>
+<p><b>Page table.</b> 32-bit addr, byte addressing, 4 KB=2<sup>12</sup> pages, 4 B entries: 2<sup>32</sup>/2<sup>12</sup> = 2<sup>20</sup> pages; 2<sup>20</sup>×4 B = <b>4 MB</b>/process. 100 processes = 400 MB.</p>
+<p><b>AMAT.</b> T1=0.1 µs, T2=1 µs, H=0.95: 0.95(0.1)+0.05(1.1) = <b>0.15 µs</b>, near the fast level.</p>
+<p><b>TLB.</b> t<sub>t</sub>=20, t<sub>m</sub>=100 ns, h=0.8: 0.8(120)+0.2(220) = <b>140 ns</b>. (Miss = page table <i>then</i> data.)</p>
+<p><b>CPU util.</b> read 15 µs + exec 1 + write 15 = 31; 1/31 = <b>3.2%</b> (why multiprogramming exists).</p>
+<p><b>Paging bits.</b> 15-bit logical addr, 5 page bits: space 2<sup>15</sup>=32 KB, 2<sup>5</sup>=32 pages, page = 2<sup>10</sup>=1 KB.</p>
+</div>
+
+<h2>I · Computer Systems Overview</h2>
+
+<h3>Basic elements</h3>
+<ul class="tight">
+<li><span class="t">Processor</span> (CPU) controls operation + processes data. <span class="t">Main memory</span> stores data+programs, <b>volatile</b> (= real/primary memory). <span class="t">I/O modules</span> move data in/out. <span class="t">System bus</span> connects all three.</li>
+<li>In RAM one row = <span class="t">frame</span>; its length = <span class="t">word</span>.</li>
+<li>Registers: <span class="t">PC</span> (addr of next instr), <span class="t">IR</span> (fetched instr), <span class="t">MAR</span> / <span class="t">MBR</span> (memory addr/buffer), I/O AR + I/O BR.</li>
+<li>Variants: <b>microprocessor</b> (CPU on one chip, now multi-core), <b>GPU</b> (SIMD arrays), <b>DSP</b> (streaming signals, codecs), <b>SoC</b> (CPU+cache+GPU+DSP+controllers on one chip).</li>
+</ul>
+
+<h3>Instruction cycle</h3>
+<p class="flow"><b>fetch <span class="arrow"></span> execute <span class="arrow"></span> (interrupt check)</b>. Fetch instr at PC, PC increments, instr lands in IR, processor interprets and acts. <span class="t">opcode</span> = binary code identifying an instruction.</p>
+<p>Four action categories: processor↔memory, processor↔I/O, <b>data processing</b> (arith/logic), <b>control</b> (branch).</p>
+
+<h3>Interrupts</h3>
+<ul class="tight">
+<li><b>Why:</b> I/O is far slower than the CPU; without interrupts the CPU idles waiting. Interrupts improve processor utilization.</li>
+<li><b>How:</b> user program suspended <span class="arrow"></span> <span class="t">interrupt handler</span> (part of the OS) runs <span class="arrow"></span> process resumes <i>at the same point</i>. The user program contains <b>no special code</b>: processor + OS do it all.</li>
+<li>An <span class="t">interrupt stage</span> is added to the cycle; skipped if interrupts are disabled. The check comes <i>after</i> execute because the current instruction must finish.</li>
+</ul>
+<table>
+<tr><th>Type</th><th>Source</th></tr>
+<tr><td>Program</td><td>from executing an instruction: overflow, divide by zero, illegal instruction, reference outside allowed memory</td></tr>
+<tr><td>Timer</td><td>processor timer: lets the OS act at regular intervals</td></tr>
+<tr><td>I/O</td><td>I/O controller: completion or error</td></tr>
+<tr><td>Hardware failure</td><td>power failure, memory parity error</td></tr>
+</table>
+
+<h3>PSW &amp; modes</h3>
+<p><span class="t">PSW</span> (program status word) = status of the running process: condition codes, memory info, <b>interrupt enable/disable bit</b>, <b>kernel/user-mode bit</b>.</p>
+<table>
+<tr><th>User mode</th><th>Kernel mode</th></tr>
+<tr><td>user programs run here; some memory protected, some instructions forbidden</td><td>monitor/kernel runs here; <b>privileged instructions</b> allowed, protected memory accessible</td></tr>
+</table>
+
+<h3>Evolution of OSs</h3>
+<p class="flow"><b>serial processing</b> (no OS, direct hardware, awful scheduling + setup) <span class="arrow"></span> <b>simple batch</b> (resident <span class="t">monitor</span> sequences jobs; job returns control to monitor) <span class="arrow"></span> <b>multiprogrammed batch</b> (run another job during I/O waits) <span class="arrow"></span> <b>time sharing</b> (many terminals; OS interleaves short bursts = <span class="t">quanta</span>).</p>
+<p><b>Monitor needs 4 hardware features:</b> memory protection (user can't touch the monitor), timer (no job monopolizes), privileged instructions (monitor only), interrupts (flexibility).</p>
+<table>
+<tr><th></th><th>Batch multiprog.</th><th>Time sharing</th></tr>
+<tr><td>Objective</td><td>maximize <b>processor use</b></td><td>maximize <b>response time</b></td></tr>
+<tr><td>Directives</td><td>job control language with the job</td><td>commands typed at terminals</td></tr>
+</table>
+<p><b>OS managers:</b> memory, processor, device, file, network.</p>
+<p><b>Generations:</b> 1940–50 no OS · 1950–60 mainframes, batch, multiprogramming · 1960–70 multiprogramming + timesharing · 1970–80 personal computing, GUI · 1980–2000 <b>microkernels</b> · 2000– mobile, cloud/virtualization, distributed, real-time/embedded.</p>
+<p><b>Uniprogramming cost:</b> read 15 µs, execute 100 instrs = 1 µs, write 15 µs <span class="arrow"></span> 31 µs total, CPU busy 1/31 = <b>3.2%</b>. Multiprogramming runs another process during the waits.</p>
+
+<h3>Memory hierarchy</h3>
+<p>Trade-off: faster = higher cost/bit; bigger = lower cost/bit but slower. Layers: <b>inboard</b> (registers, cache, main memory) <span class="arrow"></span> <b>outboard</b> (disk, optical) <span class="arrow"></span> <b>offline</b> (tape).</p>
+<p><b>Going down</b> (A–D): <b>A</b> cost/bit ↓, <b>B</b> capacity ↑, <b>C</b> access time ↑, <b>D</b> frequency of processor access ↓. <b>D is what makes it work</b>, with D, average access time sits near the <i>fast</i> level while average cost sits near the <i>cheap</i> level.</p>
+<p><span class="t">Principle of locality</span>: references <b>cluster</b>: execution is mostly sequential, instruction references stay localized over short periods, and arrays/records are processed element by element. <b>Temporal</b> = same location again soon; <b>spatial</b> = nearby locations soon. Locality is why caching <i>and</i> paging work.</p>
+<p><b>Secondary memory:</b> non-volatile, external, cheaper, stores programs + data.</p>
+
+<h3>Cache</h3>
+<ul class="tight">
+<li>Sits between CPU and main memory; <b>largely invisible to the OS</b> (all in hardware). CPU accesses memory ≥ once per instruction cycle, so execution is limited by memory cycle time, cache hides that.</li>
+<li><b>Design dimensions:</b> cache size, block size, mapping function, replacement algorithm, write policy, number of levels.</li>
+<li><span class="t">Block</span> = unit exchanged with main memory. Bigger blocks <i>first raise</i> the hit ratio (spatial locality), then <i>lower</i> it (much of the fetch is unused, and big blocks evict useful data) <span class="arrow"></span> there is a sweet spot.</li>
+</ul>
+<table>
+<tr><th>Mapping</th><th>Where a block may go</th></tr>
+<tr><td>Direct</td><td>exactly one slot, e.g. <code>block mod 10</code>. Simplest, most conflicts.</td></tr>
+<tr><td>Fully associative</td><td>any slot. Flexible, fewest conflicts, but must search/compare many entries; costly circuitry.</td></tr>
+<tr><td>Set associative</td><td>one set, any slot in it. The compromise (e.g. 10 slots as 5 sets of 2).</td></tr>
+</table>
+<p><b>Replacement:</b> LRU: replace the block resident longest with no references. <b>Write policy:</b> write on every update, <i>or</i> write back on replacement (fewer writes, but main memory temporarily obsolete). Write-through helps when <b>multiple processors share memory</b>: all see consistent data without coherence protocols.</p>
+
+<h2>II · Memory Management</h2>
+
+<h3>Uni- vs multiprogramming</h3>
+<p><b>Uni:</b> one program, whole thing loaded contiguously, memory = OS + one user program. Wasteful: size capped by memory, unused allocation wasted, CPU idle on I/O. <b>Multi:</b> divide user memory among processes so the CPU switches to another on a wait. <span class="t">Memory management</span> decides how memory is allocated to and used by processes.</p>
+
+<h3>Five requirements</h3>
+<table>
+<tr><td><b>Relocation</b></td><td>Load a program into <i>any</i> free part of memory and still address it correctly. Needed because the programmer can't know the load address, and a swapped-out process may return to a <i>different</i> region. Translation happens at run time.</td></tr>
+<tr><td><b>Protection</b></td><td>Other processes can't touch this process's memory without permission. Location is unpredictable ⟹ check references at <b>run time</b>, and it must be <b>hardware</b>, the OS can't anticipate every reference. Schemes supporting relocation also support protection.</td></tr>
+<tr><td><b>Sharing</b></td><td>Several processes access the same memory in a controlled way (one copy of a shared library) without breaking protection.</td></tr>
+<tr><td><b>Logical org.</b></td><td>Programs are <b>modules</b> (some modifiable, some not); hardware is a flat 1-D address space. Modules allow independent compilation, per-module protection, module sharing. <b>Segmentation</b> supports this best.</td></tr>
+<tr><td><b>Physical org.</b></td><td>Manage the two-level memory and the flow between levels. Must be the <b>system's</b> job, not the programmer's: main memory may be too small, and the programmer can't know available space (<span class="t">overlays</span> were the old manual answer).</td></tr>
+</table>
+
+<h3>Types of address</h3>
+<table>
+<tr><td><b>Physical</b> (absolute)</td><td>actual location in main memory</td></tr>
+<tr><td><b>Logical</b></td><td>a reference <i>independent</i> of the current assignment of data to memory</td></tr>
+<tr><td><b>Relative</b></td><td>a logical address expressed relative to a known point (the program origin)</td></tr>
+</table>
+<p>Hardware translates relative <span class="arrow"></span> physical with <span class="t">base register</span> (start address) and <span class="t">bounds register</span> (end address: also enforces protection).</p>
+
+<h3>Fixed partitioning</h3>
+<p>Static partitions set at system-generation time; a process loads into a partition ≥ its size.</p>
+<ul class="tight">
+<li><b>Equal-size:</b> placement trivial (any free partition). <b>Unequal-size:</b> assign to the <b>smallest partition that fits</b>; one queue per partition, or a single queue (better utilization, needs relocation).</li>
+<li>Program bigger than a partition <span class="arrow"></span> <span class="t">overlays</span>.</li>
+<li><b>Problems:</b> <span class="t">internal fragmentation</span> (unused space inside the partition is wasted), inefficient memory use, and a hard cap on the number of active processes.</li>
+<li><b>Deallocation:</b> just reset the partition's free/busy bit.</li>
+</ul>
+
+<h3>Dynamic partitioning</h3>
+<p>Variable number and length of partitions; each process gets <i>exactly</i> what it needs. OS tracks partition boundaries.</p>
+<ul class="tight">
+<li>Kills internal fragmentation, creates <span class="t">external fragmentation</span>: many small unusable holes between processes.</li>
+<li><span class="t">Compaction</span> shifts processes together into one contiguous free block. Expensive (copies all resident processes, halts work) and <b>requires run-time relocation</b>.</li>
+<li><b>Deallocation:</b> must <b>coalesce</b> adjacent free areas.</li>
+</ul>
+<table>
+<tr><th>Placement</th><th>Rule / note</th></tr>
+<tr><td>Best-fit</td><td>block closest in size to the request. O(n).</td></tr>
+<tr><td>First-fit</td><td>first hole from the start that fits. <b>Worst</b>: leaves small holes near the front, forcing compaction sooner.</td></tr>
+<tr><td>Next-fit</td><td>next hole that fits, scanning <i>from the last placement</i>, wrapping around. <b>Best of the three.</b></td></tr>
+</table>
+<p><b>Buddy system</b>: combination of fixed + dynamic. Blocks are always 2<sup>K</sup>, L ≤ K ≤ U. Request <i>s</i> takes 2<sup>K</sup> where 2<sup>K−1</sup> &lt; s ≤ 2<sup>K</sup>; if none free, <b>split</b> the smallest larger block in half repeatedly (the halves are <b>buddies</b>). On release, <b>merge</b> with the buddy if it is free, repeatedly upward. <i>1 MB, request 100 KB:</i> 1M→512K→256K→128K, allocate 128 KB (28 KB internal frag). Less external frag than dynamic, less internal than fixed, but rounds every request up to a power of 2.</p>
+
+<h3>Relocation: fixed vs dynamic</h3>
+<ul class="tight">
+<li><b>Dynamic <span class="arrow"></span> always</b> required (swap-in lands in a different hole; compaction shifts processes).</li>
+<li><b>Fixed <span class="arrow"></span> only if</b> a process may be reassigned to a <i>different</i> partition (single queue over unequal partitions). Always returns to its own partition ⟹ load address never changes ⟹ no relocation.</li>
+<li>Either way the referenced addresses are <b>not fixed</b> ⟹ resolve at run time via base/bounds.</li>
+</ul>
+
+<h3>Paging</h3>
+<ul class="tight">
+<li>Memory in equal fixed-size <span class="t">frames</span>; process in equal <span class="t">pages</span> of the same size. Pages go into any free frames, <b>need not be contiguous</b> ⟹ <b>no external fragmentation</b>.</li>
+<li>Waste = internal fragmentation only, at most a fraction of the <b>last page</b>.</li>
+<li><b>Transparent to the programmer.</b> With a power-of-2 page size the logical address = the relative address, and the physical address is formed by <b>appending the offset to the frame number</b> (no arithmetic).</li>
+<li>OS keeps one <span class="t">page table</span> per process: <b>page number <span class="arrow"></span> frame number</b>. Terms: free chunks = <b>holes</b>/frames; chunks of a process = <b>pages</b>.</li>
+<li><b>Cost:</b> 2 memory accesses per reference (page table, then data), so paging <b>doubles</b> access time. A page fault adds disk I/O.</li>
+</ul>
+
+<h3>Segmentation</h3>
+<p>Process split into <span class="t">segments</span> of <i>varying</i> length (up to a max), matching logical modules. Address = (segment #, offset); <span class="t">segment table</span> holds each segment's <b>base + length</b>.</p>
+<ul class="tight">
+<li><b>Visible</b> to the programmer. <b>Eliminates internal</b> fragmentation; suffers <b>external</b> fragmentation. Segments need <i>not</i> be the same length.</li>
+<li>Advantages: handles growing data structures; modules recompiled independently; natural sharing and protection per module.</li>
+</ul>
+
+<h3>Paging + segmentation</h3>
+<p>Split the space into segments, then each segment into pages. Translation is two-level: segment table <span class="arrow"></span> that segment's page table <span class="arrow"></span> frame. Gets paging's efficiency plus segmentation's modularity/sharing/protection, at the cost of two tables and two lookups.</p>
+<p><b>Why paging won:</b> (1) simpler memory management; (2) better fit for virtual memory, since variable-size segments make swapping and protection trickier; (3) more granular, more consistently enforceable protection; (4) better match to modern hardware.</p>
+
+<h3>Virtual memory</h3>
+<table>
+<tr><td>Virtual memory</td><td>uses secondary storage as if it were RAM; size capped by the <b>addressing scheme + available disk</b>, not by RAM</td></tr>
+<tr><td>Virtual / real address</td><td>address in virtual memory / actual location in main memory</td></tr>
+<tr><td>Virtual address space</td><td>the virtual memory assigned to one process</td></tr>
+<tr><td>Resident set</td><td>the portion of a process that <i>is</i> in main memory</td></tr>
+</table>
+<p><b>Two breakthroughs make it possible:</b> (1) all references are logical addresses translated dynamically at run time; (2) a process can be broken into pieces that need not be contiguous. Given both, <i>not all</i> pieces need be resident.</p>
+<p><b>On a reference to a non-resident page:</b> <span class="t">page fault</span> interrupt <span class="arrow"></span> OS puts the process in <b>Blocked</b> <span class="arrow"></span> issues a disk read <span class="arrow"></span> <b>dispatches another process</b> <span class="arrow"></span> I/O-completion interrupt <span class="arrow"></span> process back to <b>Ready</b>.</p>
+<p><b>Implications:</b> more processes resident (only parts loaded) ⟹ more Ready processes ⟹ better CPU use; and a process may be <b>larger than all of main memory</b> (no programmer overlays).</p>
+<p><b>Requires:</b> hardware support for paging/segmentation, <i>and</i> OS software to move pieces between the levels.</p>
+<p><span class="t">Thrashing</span>: the system spends most of its time swapping pieces rather than executing. Caused by evicting a piece just before it is needed; the OS <b>guesses from recent history</b> which pieces are least likely to be used soon. Works because of <b>locality</b>: over a short period a process needs only a small subset of its pages. Load control (degree of multiprogramming) is the knob: too many resident processes ⟹ too few frames each ⟹ thrash.</p>
+
+<h3>Page tables at scale</h3>
+<p>A flat table grows with the <i>address space</i> and is paid <i>per process</i>, no matter how little memory is used (4 MB each; 400 MB for 100 processes). Three fixes:</p>
+<ul class="tight">
+<li><b>Two-level / hierarchical:</b> page the page table; only the <b>root table is always resident</b>, the rest lives in virtual memory. Modern chips do 4–5 levels.</li>
+<li><b>Inverted page table:</b> one entry per <b>real frame</b> ⟹ size bounded by <b>physical</b> memory, one table system-wide. Indexed by frame, so a virtual page number can't index it; a <b>hash of (process id, page #)</b> locates the entry. Entry = page #, process id, control bits, <b>chain pointer</b> (collisions). "Inverted" = indexed by frame, not by page.</li>
+<li><b>TLB</b> (translation lookaside buffer): high-speed cache of recent page-table entries (page # + the full entry). <b>TLB hit</b> <span class="arrow"></span> frame number directly, no page-table access. All entries are compared <b>at once</b> (<b>associative mapping</b>); a scan would cost more than it saves, so the TLB is small. Older CPUs flush it on a context switch; modern ones tag entries (ASID) and keep several processes' pages.</li>
+</ul>
+
+<h3>Page size</h3>
+<ul class="tight">
+<li><b>Smaller:</b> less internal fragmentation, but a <i>bigger</i> page table, which may itself be paged ⟹ possible <b>double page fault</b> (page-table page, then the data page).</li>
+<li><b>Larger:</b> better transfers from rotational secondary storage.</li>
+<li>Also: main memory size and program size; OO code can <i>reduce</i> locality (many small scattered routines).</li>
+<li><b>Fault rate vs page size:</b> tiny pages keep much of the locality resident (few faults) <span class="arrow"></span> growing pages hold locations further from recent references, diluting locality (faults <b>rise</b> to a max) <span class="arrow"></span> very large pages approach the whole process, and when one page spans it, faults <span class="arrow"></span> <b>0</b>. <i>(P = process size, W = working set, N = total pages.)</i></li>
+</ul>
+
+<h3>OS policies</h3>
+<table>
+<tr><td><b>Fetch</b></td><td><b>Demand paging</b>: bring a page in only when referenced (many faults at startup, then locality drops the rate). <b>Prepaging</b>: bring in neighbours too, since contiguous disk reads are cheaper per page; wasted if unreferenced. <i>Not</i> swapping.</td></tr>
+<tr><td><b>Placement</b></td><td>Matters for segmentation (which hole?); irrelevant for paging: hardware treats every frame equally.</td></tr>
+<tr><td><b>Replacement</b></td><td>Pick the page <b>least likely to be referenced soon</b>. More elaborate policy = more overhead. <b>Frame locking</b>: a locked frame can't be replaced: kernel, key control structures, I/O buffers, time-critical code; one lock bit per frame.</td></tr>
+<tr><td><b>Resident set size</b></td><td><b>Fixed</b> allocation (a fault replaces one of the process's own pages) vs <b>variable</b> (count changes over its life, more powerful, but the OS must assess behaviour).</td></tr>
+<tr><td><b>Replacement scope</b></td><td><b>Local</b>: only the faulting process's resident pages. <b>Global</b>: all unlocked frames in memory (can take another process's page). Both triggered by a fault with no free frames.</td></tr>
+<tr><td><b>Cleaning</b></td><td>Demand vs precleaning (when to write a modified page back).</td></tr>
+<tr><td><b>Load control</b></td><td>The degree of multiprogramming.</td></tr>
+</table>
+<p><b>Resident set trade-off:</b> fewer frames per process ⟹ more processes resident but more faults each; past a certain size, extra frames barely change the fault rate.</p>
+
+<h3>Replacement algorithms</h3>
+<p>Reference string <code>2 3 2 1 5 2 4 5 3 2 5 2</code>, <b>3 frames</b>:</p>
+<table>
+<tr><th>Algorithm</th><th>Evicts</th><th>After fill</th><th>Total</th></tr>
+<tr><td><b>Optimal</b></td><td>page referenced <b>furthest in the future</b></td><td>3</td><td>6</td></tr>
+<tr><td><b>LRU</b></td><td>page <b>unreferenced the longest</b></td><td>4</td><td>7</td></tr>
+<tr><td><b>FIFO</b></td><td>page <b>resident the longest</b>, used or not</td><td>6</td><td>9</td></tr>
+<tr><td><b>Clock</b></td><td>FIFO but <b>skipping use bit = 1</b> (clearing it)</td><td>5</td><td>8</td></tr>
+</table>
+<p><b>Optimal</b> needs the future ⟹ not implementable; it is the lower bound others are judged against. <b>Clock</b> = cheap LRU: frames in a circular buffer with a pointer; a reference sets the use bit to 1; on a fault the pointer advances, resetting 1s to 0, and replaces the first frame already at 0. <b>Watch the convention:</b> faults that fill the empty frames count in the total but are <i>not</i> marked F in Fig. 8.14.</p>
+
+<h2>III · Process Management</h2>
+
+<h3>Program vs process</h3>
+<p>A <b>program</b> is passive (instructions in a file). A <span class="t">process</span> is a program brought to life: an <i>instance running</i> (user view); an <i>entity schedulable on a processor</i> (scheduler view); a <i>unit of activity</i> = instructions + current state + resources (implementer view).</p>
+<p><b>Elements the OS tracks (8):</b> identifier, state, priority, program counter, memory pointers, context data, I/O status, accounting info.</p>
+
+<h3>PCB and process image</h3>
+<p>All of the above lives in the <span class="t">process control block</span>. On an interrupt: PC + registers (the <b>context</b>) are saved to the PCB, the state changes, another process runs. Because nearly every OS module reads/writes PCBs, they effectively <b>define the OS's state</b> and must be protected (kernel memory, kernel mode).</p>
+<table>
+<tr><th>PCB category</th><th>Contents</th></tr>
+<tr><td>Process identification</td><td>this PID, parent PID, user id</td></tr>
+<tr><td>Processor state info</td><td>user-visible registers, control/status registers, <b>PSW</b>, stack pointers</td></tr>
+<tr><td>Process control info</td><td>state, priority, scheduling info, the <b>event awaited</b>, memory pointers, privileges, resources, linkage to other PCBs</td></tr>
+</table>
+<p><span class="t">Process image</span> = <b>user program + user data + stack + PCB</b>. (Stack is LIFO, for call parameters and return addresses.) Under simple schemes it is a contiguous block that must be <b>fully</b> resident; under virtual memory only part need be.</p>
+
+<h3>Trace and dispatcher</h3>
+<p><span class="t">Trace</span> = the sequence of instructions one process executes. The <b>processor's</b> behaviour = those traces <b>interleaved</b>. <span class="t">Dispatcher</span> = the small program that switches the processor between processes.</p>
+<p><i>A at 5000, B at 8000, C at 12000, dispatcher at 100 (6 instrs), timeout after 6, B does I/O after 4:</i></p>
+<table>
+<tr><th>Instrs</th><th>Running</th><th>Stopped by</th></tr>
+<tr><td>5000–5005</td><td>A</td><td>timeout</td></tr>
+<tr><td>100–105</td><td>dispatcher</td><td></td></tr>
+<tr><td>8000–8003</td><td>B</td><td>I/O <span class="arrow"></span> Blocked</td></tr>
+<tr><td>100–105</td><td>dispatcher</td><td></td></tr>
+<tr><td>12000–12005</td><td>C</td><td>timeout</td></tr>
+<tr><td>100–105</td><td>dispatcher</td><td></td></tr>
+<tr><td>5006–5011</td><td>A</td><td>timeout</td></tr>
+</table>
+<p><b>Reading a trace:</b> a <b>timeout</b> uses the whole slice and leaves the process <b>Ready</b> (dispatched again in turn); a <b>blocking event</b> stops it <b>early</b> and sends it to <b>Blocked</b> (not dispatched until the event occurs). The dispatcher's instructions are in the <i>processor's</i> trace but in <b>no process's</b> trace; that is switching overhead.</p>
+
+<h3>State models</h3>
+<p><b>Two-state:</b> Running / Not Running, with a queue feeding the dispatcher. <b>Limitation:</b> "Not Running" hides <b>ready</b> vs <b>blocked</b>, so with one queue the dispatcher may have to <i>search</i> for a runnable process, the model can't express the difference, so it can't manage it.</p>
+<p><b>Five-state:</b> New, Ready, Running, Blocked, Exit.</p>
+<table>
+<tr><th>Transition</th><th>When</th></tr>
+<tr><td>Null <span class="arrow"></span> New</td><td>a process is created for a program</td></tr>
+<tr><td>New <span class="arrow"></span> Ready</td><td>OS <b>admits</b> it (limits exist on process count / committed virtual memory)</td></tr>
+<tr><td>Ready <span class="arrow"></span> Running</td><td><b>dispatch</b>: the dispatcher selects it</td></tr>
+<tr><td>Running <span class="arrow"></span> Ready</td><td><b>timeout</b> (max time reached) or priority preemption</td></tr>
+<tr><td>Running <span class="arrow"></span> Blocked</td><td>waits on I/O, a system call, or IPC</td></tr>
+<tr><td>Blocked <span class="arrow"></span> Ready</td><td>the awaited <b>event occurs</b></td></tr>
+<tr><td>Running <span class="arrow"></span> Exit</td><td>completes or aborts</td></tr>
+<tr><td>Ready/Blocked <span class="arrow"></span> Exit</td><td>a parent terminates it (or the parent itself terminates)</td></tr>
+</table>
+<p><b>Queuing model:</b> one blocked queue is simple, but on an event the OS must <b>scan the whole queue</b> for waiters (there may be thousands). Fix: a <b>ready queue + one blocked queue per event</b>.</p>
+
+<h3>Swapping and suspend states</h3>
+<p><span class="t">Swapping</span> moves part or all of a process to secondary storage (a <b>suspend queue</b>) when <b>no resident process is Ready</b>. Suspension splits in two because <b>a suspended process may or may not still be waiting on an event</b>:</p>
+<p class="flow"><b>Ready <span class="arrow"></span> Ready/Suspend</b> (suspend) · <b>Ready/Suspend <span class="arrow"></span> Ready</b> (<b>activate</b>) · <b>Blocked <span class="arrow"></span> Blocked/Suspend</b> (suspend) · <b>Blocked/Suspend <span class="arrow"></span> Blocked</b> (activate) · <b>Blocked/Suspend <span class="arrow"></span> Ready/Suspend</b> (event occurred while out on disk, runnable but not resident) · <b>Running <span class="arrow"></span> Ready/Suspend</b> · <b>New <span class="arrow"></span> Ready/Suspend</b>.</p>
+<p>Given a choice the OS <b>activates Ready/Suspend</b>, not Blocked/Suspend, the latter would occupy memory and still have to wait.</p>
+<p><b>A suspended process (4):</b> not immediately available to run; may or may not be waiting on an event; was placed there by an <b>agent</b> (itself, a parent, or the OS) to prevent execution; stays until that agent explicitly releases it.</p>
+<p><b>Reasons to suspend (5):</b> swapping (free memory for a ready process); other OS reason (background/suspect process); interactive user request (debugging); timing (periodic process between intervals); parent process request.</p>
+
+<h3>OS control tables</h3>
+<p>Four cross-referencing groups: <b>memory tables</b> (real + virtual allocation, protection attributes, VM info), <b>I/O tables</b> (device status, buffers), <b>file tables</b> (existence, location, status), <b>process table</b> (the PCBs). They must cross-reference: the OS reaches a process's resources from its PCB and the owner from a resource.</p>
+
+<h3>Modes and the kernel</h3>
+<p><b>User mode</b> (less privileged) vs <b>system/kernel mode</b> (more privileged; privileged instructions; runs the <span class="t">kernel</span> = the core of the OS). This protects the OS and its tables (PCBs, page tables). The PSW's <b>mode bit</b> flips to kernel on a system call or interrupt and back on return (IRT). x86 has 4 rings: <b>ring 0 = kernel, ring 3 = user</b>.</p>
+<p><b>Kernel functions:</b> <i>process management</i> (creation/termination, scheduling, dispatching, switching, synchronization + IPC, PCB management); <i>memory management</i>; <i>I/O management</i>; <i>support</i> (interrupt handling, accounting, monitoring).</p>
+
+<h3>Process creation and termination</h3>
+<p><b>Five steps:</b> (1) assign a unique <b>PID</b>; (2) allocate space for the process; (3) initialise the <b>PCB</b>; (4) set the right <b>linkages</b> (e.g. into a queue); (5) create or expand other data structures (e.g. accounting).</p>
+<p><b>Causes:</b> new batch job; interactive log-on; created by the OS to provide a service (e.g. printing, so the user needn't wait); <b>spawned</b> by an existing process (modularity/parallelism) <span class="arrow"></span> <b>parent</b> and <b>child</b>.</p>
+<p><b>Termination:</b> halt instruction or an OS service call (generates an interrupt); log-off / terminal shutdown; quitting an application; an error or fault condition.</p>
+
+<h3>Interrupting a process</h3>
+<table>
+<tr><th>Mechanism</th><th>Cause</th><th>Use</th></tr>
+<tr><td><b>Interrupt</b></td><td><b>external</b> to the current instruction</td><td>asynchronous external event: clock, I/O, memory fault</td></tr>
+<tr><td><b>Trap</b></td><td><b>associated with</b> the current instruction</td><td>error/exception inside the running process; the OS decides if it is fatal (fatal <span class="arrow"></span> Exit + process switch)</td></tr>
+<tr><td><b>Supervisor call</b></td><td><b>explicit request</b></td><td>a call to an OS function</td></tr>
+</table>
+<p><span class="t">Time slice</span> = the max time a process may execute before being interrupted.</p>
+
+<h3>Mode switch vs process switch</h3>
+<p><b>Mode switch</b> is cheaper: if an interrupt is pending the processor sets the PC to the handler's address and switches user <span class="arrow"></span> kernel mode; if the same process is still best, its context is restored and <b>the running process never changed</b>. (No interrupt pending ⟹ just fetch the next instruction.)</p>
+<p><b>Process switch: 7 steps:</b> (1) save the processor context; (2) update the PCB of the process now leaving Running; (3) move that PCB to the appropriate queue (Ready / Blocked / Ready-Suspend); (4) select another process; (5) update <i>its</i> PCB; (6) update memory-management data structures; (7) restore the processor context to that process's saved context.</p>
+
+<div class="box key flow-ok">
+<h3>Traps &amp; distinctions</h3>
+<ul class="tight">
+<li><b>Internal vs external frag.</b> Internal = waste <i>inside</i> an allocation (fixed partitioning, last page). External = unusable holes <i>between</i> allocations (dynamic partitioning, segmentation).</li>
+<li><b>Logical vs relative vs physical.</b> Relative is a <i>kind of</i> logical address (relative to the program origin). The processor translates relative <span class="arrow"></span> physical, not the other way round.</li>
+<li><b>Paging vs segmentation.</b> Paging: equal fixed sizes, invisible to the programmer, internal frag. Segmentation: variable sizes, visible, external frag. Segments are <i>not</i> all the same length.</li>
+<li><b>Page vs frame.</b> Pages are chunks of a <i>process</i>; frames are chunks of <i>memory</i>. Pages need not land in contiguous frames.</li>
+<li><b>Swapping vs prepaging.</b> Swapping moves a process out to disk; prepaging brings extra pages <i>in</i>. Not the same thing.</li>
+<li><b>Interrupt vs trap.</b> External to the instruction vs caused by it.</li>
+<li><b>Mode switch vs process switch.</b> A mode switch need not change the running process.</li>
+<li><b>Blocked vs Ready.</b> Blocked is waiting for an <i>event</i>; Ready is waiting only for the <i>processor</i>. A timeout leaves a process Ready, not Blocked.</li>
+<li><b>Main vs secondary memory.</b> Main is volatile, fast, expensive. Secondary is non-volatile, slow, cheap, <i>not</i> "fast access at relatively high cost".</li>
+<li><b>Relocation under fixed partitioning</b> is required only <i>sometimes</i>; under dynamic partitioning, <i>always</i>.</li>
+</ul>
+</div>
+
+</body>
+</html>

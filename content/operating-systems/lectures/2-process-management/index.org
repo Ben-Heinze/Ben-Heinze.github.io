@@ -62,7 +62,7 @@ The process elements *allow the OS to treat each process as a distinct, manageab
 
 * Process Control Block (PCB)
 
-The OS stores these elements for each process in a dedicated data structure: the /Process Control Block/ (PCB). Figure 3.1 shows a simplified PCB — identifier, state, priority, program counter, memory pointers, context data, I/O status information, accounting information.
+The OS stores these elements for each process in a dedicated data structure: the /Process Control Block/ (PCB). Figure 3.1 shows a simplified PCB, identifier, state, priority, program counter, memory pointers, context data, I/O status information, accounting information.
 
 ** What Happens When a Process Is Interrupted?
 - The current values of the program counter and the processor registers (context data) are saved in the appropriate fields in the PCB
@@ -82,21 +82,53 @@ The OS stores these elements for each process in a dedicated data structure: the
 
 The behavior of the processor can be characterized by showing how the traces of the various processes are interleaved. The slides walk the same example twice: first from each of the processes' point of view, then from the processor's point of view (Figure 3.2, Snapshot of Example Execution, with three processes at addresses 5000, 8000 and 12000 and a dispatcher at 100, and Figure 3.7, Process States for the Trace of Figure 3.4).
 
+Worked the way the slides do it. Three processes loaded at 5000 (A), 8000 (B) and
+12000 (C); the dispatcher lives at 100 and takes 6 instructions; the timeout fires
+after 6 instructions of a process; B issues an I/O request after 4 instructions.
+
+Each process's own trace is just its instructions in order:
+
+| Process | Trace                  |
+| A       | 5000, 5001, ... 5011    |
+| B       | 8000, 8001, 8002, 8003 (then I/O) |
+| C       | 12000, 12001, ... 12011 |
+
+The processor's trace is those three /interleaved/, with the dispatcher's own
+instructions between them:
+
+| Instructions | Running   | Why it stopped          |
+| 5000–5005    | A         | timeout                 |
+| 100–105      | dispatcher |                        |
+| 8000–8003    | B         | I/O request $\to$ Blocked |
+| 100–105      | dispatcher |                        |
+| 12000–12005  | C         | timeout                 |
+| 100–105      | dispatcher |                        |
+| 5006–5011    | A         | timeout                 |
+| 100–105      | dispatcher |                        |
+| 12006–12011  | C         | ...                     |
+
+Two things to read off a trace like this:
+- B stops /early/ (4 instructions, not 6) because a blocking event, not the timer,
+  took it off the processor, and B is not given the processor again until its I/O
+  completes.
+- The dispatcher's instructions are part of the processor's trace but part of /no
+  process's/ trace: that is the overhead of switching.
+
 Animation: [[https://www.cs.montana.edu/adiesha/animations/assets/os/process-trace.html][process trace]]
 
 ** Two-State Process Model
-- The OS's main job is controlling process execution — deciding the interleaving pattern and allocating resources
+- The OS's main job is controlling process execution, deciding the interleaving pattern and allocating resources
 - To manage that, we need a simple way to describe what a process is doing at any moment
 - The simplest model: a process is either *Running* (currently on the processor) or *Not Running* (everything else)
 
 Figure 3.5 (Two-State Process Model) shows the dispatch/pause transitions between them, with a queue feeding the dispatcher.
 
-- The PCB can be used to keep track of the process information — where the process is in memory, and the current state of the process
+- The PCB can be used to keep track of the process information, where the process is in memory, and the current state of the process
 - When a process is not being executed it will stay in the queue, waiting for its turn
 
 ** Creating and Terminating Processes
 
-- When a new process is added to those currently being managed, the OS builds the necessary data structure to handle them — namely the PCB
+- When a new process is added to those currently being managed, the OS builds the necessary data structure to handle them: the PCB
 - In a batch environment, a process is created in response to the submission of a job
 - In an interactive environment, a process is created when a new user attempts to log on
 - The OS is responsible for creation of a new process
@@ -118,9 +150,9 @@ Figure 3.5 (Two-State Process Model) shows the dispatch/pause transitions betwee
 - A process may terminate on errors or fault conditions
 
 ** Limitations of the Two-State Model
-- Not all processes are ready to execute — a process that has issued an I/O request must wait for it to finish before it can run again
+- Not all processes are ready to execute; a process that has issued an I/O request must wait for it to finish before it can run again
 - So the "Not Running" state actually hides two different situations: processes that are *ready* to execute, and processes that are *blocked* waiting for an event
-- With a single queue for all not-running processes, the dispatcher can't just take the next one — it may have to search the queue for a process that is actually ready to run
+- With a single queue for all not-running processes, the dispatcher can't just take the next one; it may have to search the queue for a process that is actually ready to run
 - The two-state model can't express this difference, so it can't manage it. We need a better model
 
 ** Five-State Process Model
@@ -187,6 +219,33 @@ We can improve this further:
 - But even with VM, the OS may have to swap the whole process
 
 This is why Figure 3.9 (Process State Transition Diagram with Suspend States) splits suspension into Blocked/Suspend and Ready/Suspend.
+
+#+begin_export html
+<pre class="mermaid">
+flowchart LR
+    start(( )) -->|new process| New
+    New -->|admit| Ready
+    New -->|admit| RS["Ready/Suspend"]
+    Ready -->|dispatch| Running
+    Running -->|timeout| Ready
+    Running -->|event wait| Blocked
+    Blocked -->|event occurs| Ready
+    Running -->|release| Exit
+    Ready -->|suspend| RS
+    RS -->|activate| Ready
+    Blocked -->|suspend| BS["Blocked/Suspend"]
+    BS -->|activate| Blocked
+    BS -->|event occurs| RS
+    Running -->|suspend| RS
+</pre>
+#+end_export
+
+The two transitions that only exist because of the split:
+- /Blocked/Suspend $\to$ Ready/Suspend/: the awaited event occurred while the
+  process was out on disk, so it is now runnable, but still not resident.
+- /Ready/Suspend $\to$ Ready/: /activate/: the OS swaps it back in, usually because
+  no resident process is Ready. (The OS prefers activating a Ready/Suspend process
+  over a Blocked/Suspend one, which would still have to wait.)
 
 *** Characteristics of a Suspended Process
 - The process is not immediately available for execution
@@ -322,7 +381,7 @@ The /program status word/ (PSW) contains condition codes plus other status infor
 
 The additional information needed by the OS to control and coordinate the various active processes.
 
-- Scheduling and State Information — information needed by the OS to perform its scheduling function. Typical items include:
+- Scheduling and State Information: information needed by the OS to perform its scheduling function. Typical items include:
   - Process state
   - Priority
   - Scheduling related information: depends on the scheduling algorithm used by the OS
@@ -351,7 +410,7 @@ Figure 3.14 (Process List Structures) shows the PCBs chained onto Running, Ready
 
 * Process Control
 
-Modes of execution — a quick recap; we looked at this concept in the overview.
+Modes of execution: a quick recap; we looked at this concept in the overview.
 
 ** Modes of Execution
 

@@ -106,7 +106,7 @@ opcode is the unique binary combo that corresponds to an instruction
   - Processor must pause to wait for the device
   - Wasteful use of the processor
 - When an interrupt occurs the user program is suspended and the interrupt handler code is executed; once the handler finishes, execution of the suspended process resumes
-- The user program does not have to contain any special code to accommodate interrupts — the processor and the OS are responsible for suspending the user program, then resuming it at the same point
+- The user program does not have to contain any special code to accommodate interrupts; the processor and the OS are responsible for suspending the user program, then resuming it at the same point
 - The interrupt-handler routine is generally part of the OS
 
 The CPU checks for any interrupts. It changes the instruction cycle slightly, but it is useful. Sometimes, you need to disable interrupts
@@ -220,7 +220,7 @@ Percent of CPU utilization $= \frac{1}{31} = 0.032 = 3.2\%$.
 ** Time-Sharing Systems
 - In multiprogramming batch systems users did not interact with the computer directly
 - People needed computers to handle interactive jobs
-- For this to happen a new type of OS was introduced — /time sharing systems/
+- For this to happen a new type of OS was introduced: /time sharing systems/
 - Multiple users can simultaneously access the computer through terminals
 - OS interleaves execution of each user program in short bursts, or /quanta/, of computation
 
