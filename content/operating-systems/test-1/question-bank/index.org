@@ -493,6 +493,27 @@ interactive, gradeable, repeatable test. Add a question by adding a heading with
 :Q_UNIT: mem
 :END:
 
+** A segmented address is (segment 2, offset 300); segment 2 has base 4300 and length 400. Give the physical address, and say what happens if the offset were 500.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: 300 < 400 so the reference is legal: physical = base + offset = 4300 + 300 = 4600. With offset 500 the offset exceeds the segment length, so the hardware raises a trap instead of translating.
+:Q_UNIT: mem
+:END:
+
+** Why must address translation be done in hardware rather than software? (Protection aside.)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Translation happens on every single memory reference, so doing it in software would add extra memory accesses to each one and cripple performance. Only hardware can translate and bounds-check at instruction speed.
+:Q_UNIT: mem
+:END:
+
+** 32-bit addresses with 4 KB pages, paged in two levels. How do the address bits split?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: 4 KB = 2^12 so 12 offset bits, leaving 20 page bits, split 10 and 10. The root table has 2^10 entries, each pointing at a second-level table of 2^10 entries.
+:Q_UNIT: mem
+:END:
+
 ** With dynamic partitioning, which of the five requirements are met and why?
 :PROPERTIES:
 :Q_TYPE: short
@@ -775,6 +796,27 @@ interactive, gradeable, repeatable test. Add a question by adding a heading with
 :PROPERTIES:
 :Q_TYPE: calc
 :Q_GEN: replace
+:Q_UNIT: mem
+:END:
+
+** Paging address translation (randomized)
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: translate
+:Q_UNIT: mem
+:END:
+
+** Placement algorithm choice (randomized)
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: placement
+:Q_UNIT: mem
+:END:
+
+** Internal fragmentation (randomized)
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: intfrag
 :Q_UNIT: mem
 :END:
 

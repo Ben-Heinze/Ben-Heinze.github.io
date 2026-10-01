@@ -17,8 +17,8 @@
 A full, repeatable practice test spanning everything on Test 1, *Computer Systems
 Overview*, *Memory Management*, and *Process Management*, mixing conceptual
 questions with freshly-randomized calculations. Choose a unit and length, start the
-timer, *Submit* to auto-grade, and *New test* for a different shuffled set with new
-numbers. Study it as many times as you like.
+timer, *Reveal answer* to check yourself question by question, and *New test* for a
+different shuffled set with new numbers. Study it as many times as you like.
 
 This test is generated automatically from the [[file:../question-bank/][Question Bank]]
 (=#+QUIZ_TEST: ov,mem,proc=: the study tags, excluding the verbatim exam set), so

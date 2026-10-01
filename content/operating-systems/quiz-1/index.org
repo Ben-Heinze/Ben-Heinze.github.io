@@ -15,9 +15,9 @@
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
 The original 27-question memory-management quiz, rendered interactively. Pick your
-answers, start the timer, and *Submit* to auto-grade; *Show answers* reveals the
-correct ones (the three essays show a model answer to self-assess), and *New test*
-shuffles for another run.
+answers, start the timer, then hit *Reveal answer* on a question to check yourself
+against it. *Show all answers* reveals the lot at once, and *New test* shuffles for
+another run. Grading is yours to do: the engine only shows you the answer.
 
 The questions are authored in the [[file:../test-1/question-bank/][Question Bank]] (tag =exam=) and rendered here by
 the shared quiz engine (=#+QUIZ_TEST: exam=). See also the [[file:answer-key/][Answer Key]],

@@ -16,9 +16,9 @@
 
 Repeatable practice for the calculation-based questions on Test 1, page-table size,
 average memory access time, TLB effective access time, hit ratio, page-replacement
-fault counts, and CPU utilization. *Submit* to auto-grade (worked steps appear on
-reveal); *New test* regenerates every problem with fresh numbers, so you can drill as
-many times as you like.
+fault counts, and CPU utilization. *Reveal answer* on a question shows the result
+with its worked steps; *New test* regenerates every problem with fresh numbers, so you
+can drill as many times as you like.
 
 These are rendered by the shared quiz engine from the calc questions in the
 [[file:../question-bank/][Question Bank]] (=#+QUIZ_TEST: type:calc=). Page-table, AMAT, hit-ratio and

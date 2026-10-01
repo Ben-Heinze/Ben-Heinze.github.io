@@ -27,7 +27,6 @@
     for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
     return a;
   }
-  function norm(s) { return (s || '').trim().toLowerCase().replace(/\s+/g, ' ').replace(/[.]$/, '').trim(); }
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -111,6 +110,48 @@
         steps: algo + ', ' + frames + ' frames (frame contents after each reference):\n' + sim.trace.join('\n') +
           '\ntotal faults = ' + faults + ' (' + (faults - sim.filled) + ' after the frames first fill, the way Figure 8.14 marks them)' };
     },
+    translate: function () {
+      var pageKB = pick([1, 2, 4, 8]), bytes = pageKB * 1024;
+      var page = randint(2, 9), off = randint(100, bytes - 100), frame = randint(3, 15);
+      var addr = page * bytes + off, phys = frame * bytes + off;
+      return { q: 'Address translation: ' + pageKB + ' KB pages, logical address ' + addr + ', and that page is held in frame ' + frame + '. Physical address?', a: phys, unit: '', tol: 0,
+        steps: 'page  = ' + addr + ' div ' + bytes + ' = ' + page +
+          '\noffset = ' + addr + ' mod ' + bytes + ' = ' + off +
+          '\nphysical = frame x page size + offset = ' + frame + ' x ' + bytes + ' + ' + off + ' = ' + phys };
+    },
+    placement: function () {
+      var algo = pick(['First-fit', 'Best-fit', 'Next-fit']);
+      var sizes = shuffle([100, 150, 200, 250, 300, 400, 500, 600, 700]).slice(0, 5);
+      var req = pick([120, 180, 220, 280, 330]);
+      var fits = sizes.filter(function (h) { return h >= req; });
+      if (fits.length < 2) { sizes[0] = req + 50; sizes[1] = req + 250; fits = sizes.filter(function (h) { return h >= req; }); }
+      var resume = randint(0, sizes.length - 2), ans, i;
+      if (algo === 'First-fit') { for (i = 0; i < sizes.length; i++) if (sizes[i] >= req) { ans = sizes[i]; break; } }
+      else if (algo === 'Best-fit') { ans = Math.min.apply(null, fits); }
+      else { // Next-fit: scan forward from just after the resume point, wrapping
+        for (i = 1; i <= sizes.length; i++) {
+          var j = (resume + i) % sizes.length;
+          if (sizes[j] >= req) { ans = sizes[j]; break; }
+        }
+      }
+      var tail = algo === 'Next-fit' ? ', scanning resumes just after the ' + sizes[resume] + 'K hole' : '';
+      return { q: algo + ': holes in address order ' + sizes.map(function (h) { return h + 'K'; }).join(', ') + '; request ' + req + 'K' + tail + '. Which hole is chosen (in K)?', a: ans, unit: 'K', tol: 0,
+        steps: algo + ' with request ' + req + 'K\nholes: ' + sizes.join('K, ') + 'K\nthose that fit: ' + fits.join('K, ') + 'K\n' +
+          (algo === 'First-fit' ? 'first one from the start that fits' :
+           algo === 'Best-fit' ? 'smallest one that fits' :
+           'first one that fits scanning on from the ' + sizes[resume] + 'K hole, wrapping at the end') +
+          ' = ' + ans + 'K' };
+    },
+    intfrag: function () {
+      var pageKB = pick([1, 2, 4]), pages = randint(3, 9);
+      var procKB = (pages - 1) * pageKB + randint(1, pageKB * 1024 - 1) / 1024;
+      procKB = Math.round(procKB * 1024) / 1024;
+      var usedLast = procKB - (pages - 1) * pageKB, waste = Math.round((pageKB - usedLast) * 1024);
+      return { q: 'Internal fragmentation: a ' + Math.round(procKB * 1024) + ' B process with ' + pageKB + ' KB pages. Bytes wasted in the last page?', a: waste, unit: 'bytes', tol: 0,
+        steps: 'pages needed = ceil(' + Math.round(procKB * 1024) + ' / ' + (pageKB * 1024) + ') = ' + pages +
+          '\nlast page holds ' + Math.round(usedLast * 1024) + ' B of ' + (pageKB * 1024) + ' B' +
+          '\nwasted = ' + (pageKB * 1024) + ' - ' + Math.round(usedLast * 1024) + ' = ' + waste + ' B' };
+    },
     cpu: function () {
       var r = pick([10, 12, 15, 20]), e = pick([1, 2, 3, 5]), w = pick([10, 12, 15, 20]), tot = r + e + w, val = e / tot * 100;
       return { q: 'CPU utilization: read ' + r + ' us, execute ' + e + ' us, write ' + w + ' us. Utilization (%)?', a: round(val, 2), unit: '%', tol: 0.1,
@@ -165,8 +206,7 @@
         '</div>' +
       '</div>' +
       '<div class="qz-actions">' +
-        '<button type="button" class="qz-btn primary qz-submit">Submit &amp; grade</button>' +
-        '<button type="button" class="qz-btn qz-reveal">Show answers</button>' +
+        '<button type="button" class="qz-btn primary qz-reveal">Show all answers</button>' +
       '</div>' +
       '<div class="qz-score"></div>';
 
@@ -226,7 +266,7 @@
           card.appendChild(ul);
           get = function () { var s = card.querySelector('input[type=radio]:checked'); return s ? s.value : null; };
         } else if (item.type === 'short') {
-          var ta = el('textarea'); ta.placeholder = 'Recall your answer, then Submit to self-assess against the model answer.';
+          var ta = el('textarea'); ta.placeholder = 'Recall your answer, then Reveal to check it against the model answer.';
           card.appendChild(ta); get = function () { return ta.value; };
         } else {
           var inp = el('input'); inp.type = 'text'; inp.autocomplete = 'off'; inp.spellcheck = false;
@@ -235,7 +275,7 @@
         }
         var one = el('button', 'qz-btn qz-reveal-one'); one.type = 'button';
         one.textContent = 'Reveal answer';
-        one.addEventListener('click', function () { showCard(idx, true); });
+        one.addEventListener('click', function () { showCard(idx); });
         card.appendChild(one);
         var fb = el('div', 'qz-feedback'); card.appendChild(fb);
         qroot.appendChild(card);
@@ -243,62 +283,28 @@
       });
     }
 
-    function correct(item, user) {
-      if (item.type === 'mc' || item.type === 'tf') return user === item.a;
-      if (item.type === 'fill') { var u = norm(user); return (item.accept.concat([item.a])).some(function (x) { return norm(x) === u; }); }
-      if (item.type === 'calc') { var v = parseFloat(String(user).replace(/,/g, '')); if (isNaN(v)) return false; return Math.abs(v - item.a) <= Math.max(item.tol, Math.abs(item.a) * 1e-9); }
-      return null; // short
-    }
-
-    // Show one question's answer. `showOnly` reveals it without judging what was
-    // typed (the per-question Reveal button and Show answers); otherwise the
-    // answer is compared and the card marked. Returns true if it was correct.
-    function showCard(idx, showOnly) {
-      var node = nodes[idx], item = node.item, user = node.get(), fb = node.feedback;
-      node.el.classList.remove('is-correct', 'is-incorrect');
-      fb.className = 'qz-feedback show';
+    // Reveal one question's answer. Everything is self-assessed: the engine
+    // shows the answer (and the worked steps for a calc) and you mark your own.
+    function showCard(idx) {
+      var node = nodes[idx], item = node.item, fb = node.feedback;
+      fb.className = 'qz-feedback show info';
       if (item.type === 'short') {
-        fb.classList.add('info');
-        fb.innerHTML = '<strong>Model answer (self-assess):</strong> ' + esc(item.a);
-        return null;
+        fb.innerHTML = '<strong>Model answer:</strong> ' + esc(item.a);
+        return;
       }
-      var ok = correct(item, user);
       var steps = (item.type === 'calc' && item.steps) ? '<div class="qz-steps">' + esc(item.steps) + '</div>' : '';
       var ans = esc(String(item.a)) + (item.dispUnit ? ' ' + esc(item.dispUnit) : '');
-      if (showOnly) {
-        fb.classList.add('info');
-        fb.innerHTML = '<strong>Answer:</strong> <span class="qz-c-ok">' + ans + '</span>' + (item.e ? ': ' + esc(item.e) : '') + steps;
-      } else if (ok) {
-        node.el.classList.add('is-correct'); fb.classList.add('ok');
-        fb.innerHTML = '<span class="qz-c-ok"><strong>Correct.</strong></span> ' + (item.e ? esc(item.e) : ('Answer: ' + ans)) + steps;
-      } else {
-        node.el.classList.add('is-incorrect'); fb.classList.add('bad');
-        var yours = (user == null || user === '') ? '(blank)' : esc(user);
-        fb.innerHTML = '<span class="qz-c-bad"><strong>Incorrect.</strong></span> Your answer: ' + yours +
-          '<br><strong>Correct:</strong> <span class="qz-c-ok">' + ans + '</span>' + (item.e ? ': ' + esc(item.e) : '') + steps;
-      }
-      return ok;
+      fb.innerHTML = '<strong>Answer:</strong> <span class="qz-c-ok">' + ans + '</span>' +
+        (item.e ? ': ' + esc(item.e) : '') + steps;
     }
 
-    function grade(showOnly) {
-      var got = 0, objective = 0;
-      items.forEach(function (item, idx) {
-        var ok = showCard(idx, showOnly);
-        if (ok === null) return;        // short answer: self-assessed, not scored
-        objective++;
-        if (ok && !showOnly) got++;
-      });
-      var shortN = items.filter(function (i) { return i.type === 'short'; }).length;
+    function revealAll() {
+      items.forEach(function (item, idx) { showCard(idx); });
       var box = q('.qz-score'); box.className = 'qz-score show';
-      if (showOnly) {
-        box.innerHTML = 'Answers revealed. ' + objective + ' auto-graded question(s)' + (shortN ? ' + ' + shortN + ' short-answer to self-assess.' : '.');
-      } else {
-        var pct = objective ? Math.round(got / objective * 100) : 0;
-        box.innerHTML = 'Score: <span class="qz-c-ok">' + got + ' / ' + objective + '</span> auto-graded correct (' + pct + '%)' +
-          (shortN ? '. ' + shortN + ' short-answer question(s) self-assessed below.' : '.');
-      }
+      box.innerHTML = 'All ' + items.length + ' answers revealed. Mark your own.';
       box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+
 
     // ── flashcards ─────────────────────────────────────────────────────────────
     // The same items the test draws, shown one at a time as a flip card: the
@@ -393,8 +399,7 @@
 
     q('.qz-new').addEventListener('click', buildTest);
     q('.qz-mode').addEventListener('change', buildTest);
-    q('.qz-submit').addEventListener('click', function () { grade(false); });
-    q('.qz-reveal').addEventListener('click', function () { grade(true); });
+    q('.qz-reveal').addEventListener('click', revealAll);
     swBtn.addEventListener('click', function () { swRun ? swPause() : swStartFn(); });
 
     buildTest();
