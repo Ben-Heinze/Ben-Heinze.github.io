@@ -179,7 +179,7 @@ key so `wiki-cite-export-citation' links can jump straight to it."
 ;; typeset like the rest of the page's math. It waits for MathJax's own startup
 ;; promise first so the retypeset can't race the async MathJax bootstrap.
 (defvar wiki-html-head
-  "<link rel=\"stylesheet\" href=\"/style.css?v=23\" />
+  "<link rel=\"stylesheet\" href=\"/style.css?v=24\" />
 <script>(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('sidebarCollapsed')==='1'){document.documentElement.classList.add('nav-collapsed');}}catch(e){}})();</script>
 <script>document.addEventListener('DOMContentLoaded',function(){if(!document.querySelector('.mermaid'))return;var s=document.createElement('script');s.type='module';s.textContent=\"import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';import elk from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@1.0.0/dist/mermaid-layout-elk.esm.min.mjs';mermaid.registerLayoutLoaders(elk);var dark=document.documentElement.getAttribute('data-theme')==='dark';mermaid.initialize({startOnLoad:false,securityLevel:'loose',theme:dark?'dark':'neutral',layout:'elk',flowchart:{curve:'linear',nodeSpacing:55,rankSpacing:75}});await mermaid.run({querySelector:'.mermaid'});if(window.MathJax&&window.MathJax.startup&&window.MathJax.typesetPromise){await window.MathJax.startup.promise;await window.MathJax.typesetPromise(Array.from(document.querySelectorAll('.mermaid')));}\";document.head.appendChild(s);});</script>")
 

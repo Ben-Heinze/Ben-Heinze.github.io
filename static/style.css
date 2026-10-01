@@ -1188,7 +1188,10 @@ body.learn-open { overflow: hidden; }
 .quiz-widget .qz-card-face { font-size: 1.1rem; line-height: 1.45; white-space: pre-wrap; }
 .quiz-widget .qz-card-face.is-back { font-size: 1rem; font-family: var(--mono, ui-monospace, monospace); }
 .quiz-widget .qz-card-hint { font-size: 0.78em; opacity: 0.55; }
-.quiz-widget .qz-card-nav { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+.quiz-widget .qz-card-nav { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap;
+  /* The widget ends the page, so leave room under the controls rather than
+     letting them sit against the bottom edge. */
+  margin-bottom: 3rem; }
 .quiz-widget .qz-card-count { font-variant-numeric: tabular-nums; opacity: 0.7; }
 /* On a phone: Prev / count / Next share a row, Flip gets its own full-width
    one, so the main action is a big target instead of a stray button. */
