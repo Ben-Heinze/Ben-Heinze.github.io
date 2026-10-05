@@ -12,6 +12,28 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
+The two assignment specs. Both are drilled on mechanism and pseudocode in the
+[[file:../midterm/project-walkthroughs/][Project Walkthroughs practice test]] --
+the syllabus lists "specific questions on the programming assignments" as one of
+the three parts of the midterm.
+
+* Project 1: k-Nearest Neighbor
+
+Assigned August 26, 2026. Null models, k-NN classification and regression over
+six UCI datasets, edited and condensed k-NN, an RBF kernel for regression, all
+under 5x2 cross-validation.
+
 #+begin_export html
 <embed src="ML-Project1.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+* Project 2: Decision Trees
+
+Assigned September 21, 2026. Univariate (axis-parallel) classification and
+regression trees -- gain ratio and MSE splitting criteria -- comparing trees
+grown to completion against reduced error pruning, with 20% of the data held out
+for pruning and the remaining 80% used for 5x2 cross-validation.
+
+#+begin_export html
+<embed src="ML-Project2.pdf" width="100%" height="800px" type="application/pdf">
 #+end_export

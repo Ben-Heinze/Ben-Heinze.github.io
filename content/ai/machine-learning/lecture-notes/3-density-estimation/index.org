@@ -176,7 +176,7 @@ Now consider the /covariance/ between pairs of features $f_{i}$ and $f_{j}$:
 Apply SVD to the covariance matrix and solve for the eigenvalue matrix,
 $D = W^{T} \text{Cov}\, W$, where
 - the off-diagonal entries of $D$ are all zero
-- the diagonal entries of $D$ are the square roots of the eigenvalues of $\text{Cov}$, which are the variances of the transformed data along the principal axes (components)
+- the diagonal entries of $D$ are the eigenvalues of $\text{Cov}$, which are the variances of the transformed data along the principal axes (components) — their square roots are the standard deviations along those axes
 - the row vectors of $W$ are the eigenvectors of $\text{Cov}$, and are called the /principal components/
 
 ** Fisher's Linear Discriminant Analysis

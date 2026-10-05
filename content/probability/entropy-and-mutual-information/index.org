@@ -58,7 +58,7 @@ average surprise of a random event. This can be expanded to include the
 conditional probabilities:
 \begin{align*}
 H_P(X|Y) &= H_P(X,Y) - H_P(Y) \\
-&= -\sum_{x\in X} P(x) \sum_{y \in Y} P(y|x) \log(P(y|x)).
+&= -\sum_{y\in Y} P(y) \sum_{x \in X} P(x|y) \log(P(x|y)).
 \end{align*}
 
 Finally, we can derive mutual information gain based on the difference of an

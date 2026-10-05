@@ -1,0 +1,71 @@
+#+TITLE: Question Bank
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm
+#+STARTUP: noindent
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Every midterm question lives on one of the six pages below, authored in Org with
+the answer in a property drawer. The drawers are stripped on export, so each page
+reads as a plain list of questions you can work straight down -- and the same
+questions feed the shuffled, timed
+[[file:../practice-test/][Practice Test]] and the six topic tests.
+
+| Bank                                                                           | Units                        | Sourced from                                                      |
+| [[file:foundations-and-theory/][Foundations and Theory]]                        | =found=, =linreg=, =theory=  | Week 1, Week 4, linear regression notes, Alpaydin ch. 1           |
+| [[file:nonparametric-methods/][Nonparametric Methods]]                          | =nonpar=                     | Week 2, Alpaydin ch. 8, the k-nearest-neighbor notes              |
+| [[file:clustering-and-dimensionality/][Clustering and Dimensionality]]           | =clust=, =dimred=            | Week 3, clustering half of Week 4, Alpaydin ch. 7                 |
+| [[file:trees-and-rules/][Trees and Rules]]                                      | =trees=, =logic=             | Week 5, Week 6 rule pruning                                       |
+| [[file:experiments-and-evaluation/][Experiments and Evaluation]]                 | =eval=                       | Week 2 experimental method, Alpaydin ch. 20                       |
+| [[file:projects/][Projects]]                                                    | =proj1=, =proj2=             | The two assignment PDFs                                           |
+
+* How the questions are built
+
+Most are *free response*: you recall the answer, then *Reveal answer* shows the
+model answer and you mark yourself. A thinner layer of multiple-choice,
+true/false and fill-in questions covers the definitions worth knowing cold --
+the metric axioms, the VC-dimension table, the linkage types, which loss suits
+which output.
+
+*Pseudocode questions* reveal a monospace outline under the model answer. In
+those outlines, *leading dots mark indentation depth*, since the single-line Org
+property that carries them cannot hold real indentation. They cover the
+algorithms worth being able to write from memory: Winnow-2, k-NN classification
+and regression, edited and condensed NN, KD-tree build and query, LOF, hill
+climbing, simulated annealing, genetic algorithms, PCA, Fisher's LDA, k-means,
+k-means++, EM, fuzzy c-means, agglomerative clustering, silhouette, candidate
+elimination, ID3, regression trees, numeric split selection, reduced error
+pruning, resolution, sequential covering, K-fold and 5x2 cross-validation, and
+both project pipelines end to end.
+
+*Calculation questions* are generated fresh on every =New test=, so the numbers
+change but the method does not. They cover entropy and information gain, gain
+ratio, precision/recall/F-beta, micro versus macro averaging, the Haussler and
+PAC and VC sample-complexity bounds, the silhouette coefficient, pseudo-F, LOF,
+Minkowski distance, VDM, a Winnow-2 weight update, a Gaussian KDE, the k-NN
+posterior, the bootstrap percentages, and a regression-tree leaf MSE. Each one
+reveals its worked steps so you can check your arithmetic against the method.
+
+* Adding to the bank
+
+Add a level-2 heading on the relevant page with a =:Q_TYPE:= drawer and it shows
+up on every test that includes its =:Q_UNIT:=, with no other edits needed:
+
+#+begin_example
+,** Write the gain ratio and explain what it guards against.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: gainRatio(f) = gain(f) / IV(f) ...
+:Q_STEPS: STEP-ONE(...): | .  pipe-separated lines render as a monospace block
+:Q_UNIT: trees
+:END:
+#+end_example

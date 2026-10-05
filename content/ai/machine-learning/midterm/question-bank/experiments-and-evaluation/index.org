@@ -1,0 +1,439 @@
+#+TITLE: Experiments and Evaluation
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm
+#+STARTUP: noindent
+#+QUIZ: t
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Designing an experiment, measuring a classifier honestly, and searching for
+hyperparameters. Unit =eval=. In the pseudocode answers, leading dots mark
+indentation depth.
+
+* Why Experiments Are Hard
+
+** What are the two questions experimental evaluation is trying to answer?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: What error should I expect from this algorithm on this problem, and is one algorithm genuinely better than another here?
+:Q_UNIT: eval
+:END:
+
+** Explain why training error cannot be used to compare two algorithms.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The more flexible model almost always fits training data better regardless of which generalizes. Training error measures capacity, not quality.
+:Q_UNIT: eval
+:END:
+
+** You have a validation set and one measurement from it. Explain why that is still not enough.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A small or noisy split can mislead, and many algorithms depend on random factors. One number has no error bar, so you cannot tell signal from luck.
+:Q_UNIT: eval
+:END:
+
+** Explain the distinction between a learning algorithm and a learner, and which one you are evaluating.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An algorithm applied to data produces a learner. You want to evaluate the algorithm, but can only test learners -- so you test many and judge the distribution.
+:Q_UNIT: eval
+:END:
+
+** Explain the roles of the training, validation and test sets.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Training fits the parameters. Validation chooses hyperparameters. Test is never used for any fitting or tuning and exists only to produce the number you report.
+:Q_UNIT: eval
+:END:
+
+** Why is it legitimate to retrain on all the data once cross-validation is finished?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The splitting was only a device for estimating error and picking hyperparameters. Once those are settled, holding data back only costs accuracy.
+:Q_UNIT: eval
+:END:
+
+** Beyond error rate, name criteria that matter when choosing a learning algorithm in practice.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Risk under an asymmetric loss, training and testing time and space, interpretability, and how hard it is to implement and maintain.
+:Q_UNIT: eval
+:END:
+
+** Explain what makes a hypothesis testable, and why a vague one is useless.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It names a specific measure, a direction, and a magnitude, so an experiment can contradict it. "X is better than Y" names no measure, so no result can refute it.
+:Q_UNIT: eval
+:END:
+
+** Turn "my algorithm is better than the baseline" into a testable hypothesis.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Name measure, magnitude and scope: "condensed k-NN keeps classification accuracy within one standard deviation of full k-NN while storing under half the exemplars."
+:Q_UNIT: eval
+:END:
+
+* Resampling
+
+** Explain K-fold cross-validation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Split the data into \(K\) folds. Each fold serves once as the test set while the other \(K-1\) train, giving \(K\) error measurements.
+:Q_UNIT: eval
+:END:
+
+** What is leave-one-out cross-validation, and when would you use it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: K-fold with \(K = N\), so each example is tested alone. Used when data is very scarce, at the cost of \(N\) model fits and highly correlated measurements.
+:Q_UNIT: eval
+:END:
+
+** State the statistical weakness of K-fold cross-validation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The training sets overlap heavily, so the \(K\) errors are not independent. Treating them as independent samples overstates your confidence.
+:Q_UNIT: eval
+:END:
+
+** Explain 5x2 cross-validation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Split the data in half, train on each half and test on the other for two scores, then repeat the whole thing five times with fresh random splits -- ten scores.
+:Q_UNIT: eval
+:END:
+
+** Compare 5x2 cross-validation with 10-fold. Both give ten numbers, so why prefer 5x2?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: In 10-fold the training sets share most of their data, so the errors are correlated. In 5x2 the two folds are disjoint and the five splits independent, which supports a real significance test.
+:Q_UNIT: eval
+:END:
+
+** What does 5x2 give up in exchange for that independence?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each model trains on only half the data, so every individual estimate is pessimistic relative to a model trained on the full set.
+:Q_UNIT: eval
+:END:
+
+** Write pseudocode for 5x2 cross-validation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Five times, shuffle and halve; train on each half and test on the other.
+:Q_STEPS: FIVE-BY-TWO-CV(D, algorithm A): | scores <- empty list | for rep = 1..5: | .  shuffle D | .  split into disjoint halves P and Q | .  train on P, test on Q, record the score | .  train on Q, test on P, record the score | return scores
+:Q_EXPLAIN: Stratify the halves by class when classifying, so each keeps the overall class proportions.
+:Q_UNIT: eval
+:END:
+
+** Explain bootstrapping and the two percentages associated with it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sample \(N\) instances with replacement to build a training set. About 63.2% of the data appears; the 36.8% left out serves as the validation set.
+:Q_UNIT: eval
+:END:
+
+** Derive the 36.8% figure.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: One instance is missed on a single draw with probability \(1-\frac{1}{N}\), so missed by all \(N\) draws with probability \((1-\frac{1}{N})^{N}\), which tends to \(e^{-1}\).
+:Q_UNIT: eval
+:END:
+
+** Bootstrap inclusion and exclusion
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: bootstrap
+:Q_UNIT: eval
+:END:
+
+** State the trade-off every resampling method has to negotiate.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Training sets should be large and the measurements independent, but with fixed data larger sets necessarily overlap more. You cannot have both.
+:Q_UNIT: eval
+:END:
+
+* Measuring a Classifier
+
+** Explain what each cell of a two-class confusion matrix counts.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: True positives and true negatives are correct predictions of each class. False positives are negatives called positive; false negatives are positives called negative.
+:Q_UNIT: eval
+:END:
+
+** Explain precision in plain terms.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Of everything the model called positive, the share that really was. It answers "when it says yes, can I trust it?"
+:Q_UNIT: eval
+:END:
+
+** Explain recall in plain terms.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Of everything that really was positive, the share the model found. It answers "of what is out there, how much did it catch?"
+:Q_UNIT: eval
+:END:
+
+** Describe a situation where you would care far more about recall than precision, and one where the reverse holds.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Screening for a serious disease -- missing a case is far worse than a false alarm. Flagging accounts for automatic suspension -- a false accusation is worse than a miss.
+:Q_UNIT: eval
+:END:
+
+** Explain the F-measure and what its parameter controls.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A single score combining precision and recall. Its parameter weights recall against precision -- above 1 favours recall, below 1 favours precision, 1 balances them.
+:Q_UNIT: eval
+:END:
+
+** Explain why the F-measure uses a harmonic rather than an arithmetic mean.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The harmonic mean is dominated by the smaller value, so it refuses to reward an extreme. Always predicting positive gives recall 1 and precision near 0 -- arithmetic says 0.5, harmonic says near 0.
+:Q_UNIT: eval
+:END:
+
+** Precision, recall and F-beta
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: prf
+:Q_UNIT: eval
+:END:
+
+** Explain how to read true positives, false positives and false negatives for one class out of a multi-class confusion matrix.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The diagonal entry is its true positives. The rest of its predicted row is false positives; the rest of its actual column is false negatives; everything else is true negatives.
+:Q_UNIT: eval
+:END:
+
+** Explain micro-averaging and what it emphasizes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Pool the counts across all classes, then compute the measure once. Large classes contribute more counts, so they dominate the result.
+:Q_UNIT: eval
+:END:
+
+** Explain macro-averaging and what it emphasizes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Compute the measure per class, then average the scores. Every class counts equally, so a small class handled badly visibly drags the score down.
+:Q_UNIT: eval
+:END:
+
+** You have one class with 10000 examples and one with 50. Which averaging would you report, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Macro, if performance on the rare class matters -- micro would let the large class hide complete failure on the small one. Report both if you want the full picture.
+:Q_UNIT: eval
+:END:
+
+** Micro vs macro averaged precision
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: micromacro
+:Q_UNIT: eval
+:END:
+
+** Explain why accuracy is misleading on unbalanced data, with a concrete example.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The majority class dominates the count. At 99% negative, always predicting negative gives 99% accuracy and zero recall -- a useless model that looks excellent.
+:Q_UNIT: eval
+:END:
+
+** Explain what an ROC curve shows.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: How true and false positive rates trade off as you sweep the decision threshold. Each point is one operating point the same model could be run at.
+:Q_UNIT: eval
+:END:
+
+** Explain what AUC measures that a single precision-recall pair does not.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A pair describes one threshold. AUC summarizes the whole curve, measuring how well the model RANKS positives above negatives regardless of where you cut.
+:Q_UNIT: eval
+:END:
+
+** When would you report AUC rather than accuracy?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: When the operating threshold is not yet fixed, or the classes are unbalanced so accuracy is dominated by the majority. AUC scores the ranking across every threshold at once.
+:Q_UNIT: eval
+:END:
+
+* Designing the Experiment
+
+** Distinguish controllable from uncontrollable factors in an experiment.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Controllable factors you set deliberately -- the algorithm, the hyperparameters. Uncontrollable ones you cannot, such as the particular random split or initialization.
+:Q_UNIT: eval
+:END:
+
+** Explain the "one factor at a time" strategy and the assumption it makes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Fix a baseline and vary a single factor at a time. It assumes the factors do not interact -- that each one's best value is independent of the others.
+:Q_UNIT: eval
+:END:
+
+** Explain factorial design and the problem it solves.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Vary the factors together rather than one at a time, so interactions become visible. It finds joint optima that one-at-a-time searching cannot reach.
+:Q_UNIT: eval
+:END:
+
+** Explain response surface design.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Treat the response as a surface over numeric factors, estimate the local gradient, and step toward the optimum -- rather than testing every combination.
+:Q_UNIT: eval
+:END:
+
+** Explain randomization and what it protects against.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Running trials in random order, so an uncontrolled factor that drifts over time does not line up with your conditions and masquerade as an effect.
+:Q_UNIT: eval
+:END:
+
+** Explain replication and what it buys you.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Repeating each run so you can average out randomness and estimate variability. Without it you have a point estimate and no idea how much it would move.
+:Q_UNIT: eval
+:END:
+
+** Explain blocking and give an example from model evaluation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Hold a nuisance factor constant within each group of runs. Using identical cross-validation folds for every algorithm you compare is the standard example.
+:Q_UNIT: eval
+:END:
+
+** Why does reusing the same folds across algorithms make the comparison stronger?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The split is a nuisance factor -- an easy split flatters everything. Holding it fixed means the measured difference is attributable to the algorithms, not to split luck.
+:Q_UNIT: eval
+:END:
+
+** Explain what a confidence interval adds over a point estimate of error.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A range the true error plausibly falls in, with a stated probability. It makes the uncertainty explicit and lets you tell a real difference from noise.
+:Q_UNIT: eval
+:END:
+
+* Tuning Hyperparameters
+
+** Explain why hyperparameter tuning is itself an optimization problem, and what makes it expensive.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: You are minimizing validation loss over hyperparameter settings. Each evaluation requires training and scoring a model, so the objective is costly and has no gradient.
+:Q_UNIT: eval
+:END:
+
+** Explain grid search and give its cost.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Discretize each hyperparameter into levels and try every combination -- \(k^{d}\) of them for \(d\) parameters at \(k\) levels. Expensive, but trivially parallel.
+:Q_UNIT: eval
+:END:
+
+** Explain random search.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sample hyperparameter vectors at random from their ranges and keep the best found. No discretization, and equally parallel.
+:Q_UNIT: eval
+:END:
+
+** Compare grid and random search for the same evaluation budget. Why does random usually win?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Loss usually depends strongly on only a few parameters. A grid tries just \(k\) distinct values of the important one; random search tries a fresh value of every parameter each time.
+:Q_UNIT: eval
+:END:
+
+** Explain hill climbing over hyperparameters.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Start somewhere, sample a nearby setting, and move there only if the loss improves. Elitist, cheap, and prone to sticking in a local optimum.
+:Q_UNIT: eval
+:END:
+
+** Write pseudocode for random-search hill climbing over hyperparameters.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sample a neighbor from a surrounding hypersphere, keep it only if the loss drops.
+:Q_STEPS: HILL-CLIMB-HYPER(F): | lambda <- a random hyperparameter vector | while not terminated: | .  lambda' <- a sample from a hypersphere around lambda | .  if F(lambda') < F(lambda): lambda <- lambda' | return lambda
+:Q_UNIT: eval
+:END:
+
+** Explain the idea behind Bayesian optimization.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Build a probabilistic model of the loss surface from the evaluations so far, and use it to choose where to sample next -- spending expensive evaluations where they are most informative.
+:Q_UNIT: eval
+:END:
+
+** Explain what an acquisition function does, and the trade-off it has to balance.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It scores candidate settings by how worthwhile evaluating them would be, balancing exploitation -- a high predicted score -- against exploration -- high uncertainty.
+:Q_UNIT: eval
+:END:
+
+** Explain how expected improvement balances exploration and exploitation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It has two terms: one rewarding a high predicted mean, the other rewarding high predicted variance. A tuning constant shifts the weight between them.
+:Q_UNIT: eval
+:END:
+
+** Compare Bayesian optimization with random search. When is the extra machinery worth it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Worth it when each evaluation is very expensive, since it needs far fewer. Not worth it when training is cheap -- optimizing the acquisition function then costs more than it saves.
+:Q_UNIT: eval
+:END:
+
+** Explain meta-evolution and the obvious problem with it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Use an evolutionary algorithm to search for hyperparameters. It has hyperparameters of its own, so you give it defaults -- otherwise it is turtles all the way down.
+:Q_UNIT: eval
+:END:
+
+** You tune k by picking the value with the lowest error on your test fold. Explain what is wrong and give the fix.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: That makes the test fold a validation set, so the reported error is optimistically biased. Nest the tuning: split the training portion again and choose \(k\) there.
+:Q_UNIT: eval
+:END:
+
+** With four hyperparameters at five levels each, how many models does grid search fit under 5x2 cross-validation?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(5^{4} = 625\) configurations times 10 folds, so 6250 fits. Which is why grid search is only viable for very few hyperparameters.
+:Q_UNIT: eval
+:END:

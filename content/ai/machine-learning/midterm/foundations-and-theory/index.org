@@ -1,0 +1,35 @@
+#+TITLE: Foundations and Theory
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm, practice-test
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: found,linreg,theory
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+*Week 1* and *Week 4*, plus the univariate linear regression notes: what machine
+learning is, the types of ML, Winnow-2, inductive bias and No Free Lunch, true
+versus sample error, risk and loss functions, the bias-variance decomposition,
+the normal equations, version spaces and candidate elimination, sample
+complexity and the Haussler bound, PAC and agnostic learning, VC dimension and
+shattering, and Bayes-optimal decisions under a loss matrix.
+
+Choose a unit and a length, press *Start timer*, and use *Reveal answer* to check
+yourself question by question; *New test* gives a different shuffled set with new
+numbers on the calculations. Everything is self-assessed -- the engine reveals,
+you mark.
+
+Drawn from
+[[file:../question-bank/foundations-and-theory/][Question Bank: Foundations and Theory]]
+(=#+QUIZ_TEST: found,linreg,theory=).
+
+# The interactive test UI is injected here (a <div data-quiz-test="...">) by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.

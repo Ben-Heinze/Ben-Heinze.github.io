@@ -1,0 +1,33 @@
+#+TITLE: Nonparametric Methods
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm, practice-test
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: nonpar
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+*Week 2* and *Alpaydin ch. 8*: classification as density estimation, Parzen
+windows, the metric axioms and the Minkowski family, the Value Difference
+Metric, histogram / naive / kernel / k-NN density estimators, the
+Parzen-versus-k-NN duality, edited and condensed nearest neighbor, KD-trees and
+branch-and-bound pruning, the three regression smoothers, and outlier detection
+with the Local Outlier Factor.
+
+Press *Start timer*, then *Reveal answer* to check yourself; *New test*
+reshuffles with fresh numbers on the calculations. Self-assessed throughout.
+
+Drawn from
+[[file:../question-bank/nonparametric-methods/][Question Bank: Nonparametric Methods]]
+(=#+QUIZ_TEST: nonpar=).
+
+# The interactive test UI is injected here (a <div data-quiz-test="...">) by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.

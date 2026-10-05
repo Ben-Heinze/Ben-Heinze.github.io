@@ -1,0 +1,658 @@
+#+TITLE: Clustering and Dimensionality
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm
+#+STARTUP: noindent
+#+QUIZ: t
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Reducing dimensions, searching for feature subsets, and finding structure
+without labels. Units =dimred= and =clust=. In the pseudocode answers, leading
+dots mark indentation depth.
+
+* Reducing Dimensions
+
+** Compare feature selection with feature extraction.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Selection keeps a subset of the original features, so the result stays interpretable. Extraction builds new features by transforming all of them, which is more powerful but harder to read.
+:Q_UNIT: dimred
+:END:
+
+** Explain why reducing dimensionality helps at all, rather than just discarding information.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Irrelevant features add variance and, for distance-based methods, actively corrupt the metric. Fewer, better features lower variance more than the lost signal raises bias.
+:Q_UNIT: dimred
+:END:
+
+** Explain what manifold learning assumes about the data.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: That the data really lives on a lower-dimensional surface embedded in the high-dimensional space. Learn that surface and you can work in its natural coordinates.
+:Q_UNIT: dimred
+:END:
+
+** Compare the filter and wrapper models of feature selection.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A filter scores subsets independently of the learner, in one pass. A wrapper loops, judging each subset by the learner's actual performance -- more faithful, far more expensive.
+:Q_UNIT: dimred
+:END:
+
+** Explain stepwise forward selection and its cost.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Start with no features and repeatedly add whichever single feature most improves performance. It is a wrapper method and exponential in the worst case.
+:Q_UNIT: dimred
+:END:
+
+** Explain stepwise backward selection and its cost.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Start with every feature and repeatedly drop the one whose removal hurts least, keeping the smallest good subset. A wrapper method with quadratic runtime.
+:Q_UNIT: dimred
+:END:
+
+** Compare forward and backward stepwise selection. When would each fail?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Forward misses features useful only in combination, since neither looks good alone. Backward catches those but is far more expensive and unusable with very many features.
+:Q_UNIT: dimred
+:END:
+
+** Both stepwise methods are the same kind of search. Which, and what weakness do they inherit?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Both are hill climbers. They stick in local optima and can never undo an earlier greedy choice, which is what motivates annealing or a genetic algorithm instead.
+:Q_UNIT: dimred
+:END:
+
+* Searching the Space of Feature Subsets
+
+** How is a candidate feature subset represented so that a local search can operate on it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: As a binary vector with one bit per feature, 1 meaning selected. A move is a bit flip, and a state is scored by training a model on the selected features.
+:Q_UNIT: dimred
+:END:
+
+** Compare simple and stochastic hill climbing.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Simple examines every single-bit neighbor and takes the best. Stochastic flips one bit at random and keeps it only if better -- cheaper per step, noisier.
+:Q_UNIT: dimred
+:END:
+
+** Explain simulated annealing and the role the temperature plays.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Hill climbing that sometimes accepts a worse move, with probability falling as the temperature cools. Early on it escapes local optima; late on it behaves like plain hill climbing.
+:Q_UNIT: dimred
+:END:
+
+** Compare simulated annealing with plain hill climbing. What problem does annealing solve?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Hill climbing cannot leave a local optimum because it never accepts a worse state. Annealing can, early in the run, so it explores before committing.
+:Q_UNIT: dimred
+:END:
+
+** Write pseudocode for simulated annealing over feature subsets.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Propose a random bit flip; always take an improvement, and take a worsening with a probability that falls as the temperature drops.
+:Q_STEPS: SIMULATED-ANNEALING(F0, T0, cooling rate r): | F <- F0;  T <- T0;  best <- F | while T > T_min: | .  F' <- F with one random bit flipped | .  dE <- fitness(F') - fitness(F) | .  if dE > 0: F <- F' | .  else: accept F' with probability exp( dE / T ) | .  if fitness(F) > fitness(best): best <- F | .  T <- r * T | return best
+:Q_UNIT: dimred
+:END:
+
+** Write pseudocode for simple hill climbing over feature subsets.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Examine every single-bit neighbor, move to the best, stop when none improves.
+:Q_STEPS: HILL-CLIMB(F0): | F <- F0 | repeat: | .  best_n <- null | .  for i = 1..d: | .  .  F' <- F with bit i flipped | .  .  if fitness(F') beats both fitness(F) and best_n: best_n <- F' | .  if best_n is null: return F | .  F <- best_n | until forever
+:Q_UNIT: dimred
+:END:
+
+** Explain how a genetic algorithm represents a candidate solution to feature selection.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: As a bit string -- the genome -- with one bit per feature. A population of such strings evolves, with fitness being the performance of a model on that subset.
+:Q_UNIT: dimred
+:END:
+
+** Explain fitness-proportionate selection.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An individual's chance of being chosen as a parent is its share of the population's total fitness. Better solutions reproduce more without the worse ones being eliminated outright.
+:Q_UNIT: dimred
+:END:
+
+** Explain steady-state replacement and why you would prefer it to replacing the whole population.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Only a few individuals are replaced each generation, so good solutions survive. Replacing everything can discard the best solution found so far.
+:Q_UNIT: dimred
+:END:
+
+** Explain crossover and what it contributes to the search.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Two parents are spliced at a cut point to make two offspring. It exploits -- recombining good partial solutions that different individuals have already found.
+:Q_UNIT: dimred
+:END:
+
+** Explain mutation and what it contributes that crossover cannot.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It flips a bit at random, introducing material not present anywhere in the population. It is the only operator that can recover a bit value the population has lost entirely.
+:Q_UNIT: dimred
+:END:
+
+** What happens to a genetic algorithm if you remove crossover? If you remove mutation?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Without crossover it degenerates into parallel random hill climbing with no sharing between individuals. Without mutation it converges and stalls, unable to recover lost values.
+:Q_UNIT: dimred
+:END:
+
+** Write pseudocode for a genetic algorithm doing feature selection.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Select parents by fitness, recombine and mutate, and replace a small slice of the population each generation.
+:Q_STEPS: GENETIC-ALGORITHM(n, p_cross, p_mut): | P <- n random bit strings of length d | evaluate fitness of each | repeat until termination: | .  pick parents A, B with probability proportional to fitness | .  if random() < p_cross: splice A and B at a random cut into C1, C2 | .  else: C1 <- A;  C2 <- B | .  for each child and each bit: flip it with probability p_mut | .  evaluate the children | .  replace the worst few members of P with them | return the fittest individual ever seen
+:Q_UNIT: dimred
+:END:
+
+* Principal Component Analysis
+
+** Explain what PCA is looking for.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An orthogonal set of directions ordered by how much of the data's variance each explains, so that keeping the first few retains most of the spread.
+:Q_UNIT: dimred
+:END:
+
+** Walk through the steps of PCA.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Centre the data, build the covariance matrix, take its eigenvectors and eigenvalues, keep the top few by variance explained, and project onto them.
+:Q_UNIT: dimred
+:END:
+
+** After decomposing the covariance matrix, what do the eigenvectors and the eigenvalues each tell you?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The eigenvectors are the principal components -- the new axes. The eigenvalues are the variances along them, so they rank the axes by importance.
+:Q_UNIT: dimred
+:END:
+
+** Explain how you decide how many components to keep.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: By proportion of variance: take enough components to reach a target share of the total. A scree plot shows where additional components stop contributing.
+:Q_UNIT: dimred
+:END:
+
+** Why must the data be centered before PCA, and what goes wrong if you skip it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Covariance is defined about the mean. Uncentered, the first component points at where the data sits rather than how it is shaped, wasting a component.
+:Q_UNIT: dimred
+:END:
+
+** Why are the principal components guaranteed to be uncorrelated?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The decomposition diagonalizes the covariance matrix, and zero off-diagonal entries mean zero covariance between the transformed features by construction.
+:Q_UNIT: dimred
+:END:
+
+** Write pseudocode for PCA.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Centre, decompose the covariance, keep enough eigenvectors to hit the variance target, project.
+:Q_STEPS: PCA(D, target proportion pv): | m <- mean of the rows of D | X <- D with m subtracted from every row | C <- (1/N) * transpose(X) * X | (eigenvalues L, eigenvectors W) <- decompose C | sort the pairs descending by eigenvalue | k <- smallest k with ( sum of first k eigenvalues ) / total >= pv | W_k <- the first k eigenvectors as rows | return X * transpose(W_k)
+:Q_UNIT: dimred
+:END:
+
+* Fisher's Linear Discriminant
+
+** Explain what Fisher's linear discriminant is looking for, and how that differs from PCA.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A direction that separates two classes when projected onto it. PCA looks for spread and ignores labels entirely; LDA uses the labels directly.
+:Q_UNIT: dimred
+:END:
+
+** State the two competing things Fisher's criterion balances.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The projected class means should be far apart, and each class's projected scatter should be small. The criterion is their ratio, so both matter at once.
+:Q_UNIT: dimred
+:END:
+
+** Explain what the between-class and within-class scatter matrices each capture.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Between-class scatter captures how far apart the class means are. Within-class scatter captures how spread out each class is internally.
+:Q_UNIT: dimred
+:END:
+
+** Write the solution for the Fisher discriminant direction, and interpret it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(w = S_W^{-1}(m_1 - m_2)\). Start by pointing at the difference of the means, then warp that direction to discount axes the classes are already spread along.
+:Q_UNIT: dimred
+:END:
+
+** Write pseudocode for Fisher's LDA on two classes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Build the within-class scatter from the two class means, then solve in closed form.
+:Q_STEPS: FISHER-LDA(X1, X2): | m1 <- mean of X1;  m2 <- mean of X2 | S1 <- sum over x in X1 of (x - m1) * transpose(x - m1) | S2 <- sum over x in X2 of (x - m2) * transpose(x - m2) | S_W <- S1 + S2 | w <- inverse(S_W) * (m1 - m2) | return w / norm(w)
+:Q_EXPLAIN: A singular within-class scatter -- more dimensions than examples -- must be regularized, or reduced with PCA first.
+:Q_UNIT: dimred
+:END:
+
+* What Clustering Is Doing
+
+** Explain what a mixture density model says about how the data was generated.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each point was produced by first picking a component with some probability, then drawing from that component's density. The overall density is the weighted sum.
+:Q_UNIT: clust
+:END:
+
+** Explain semi-parametric density estimation and the situation it handles.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Model the data as a mixture of a few parametric pieces. It handles one category containing several distinct groups -- a digit with multiple writing styles.
+:Q_UNIT: clust
+:END:
+
+** Explain vector quantization and give a concrete use.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Mapping a continuous space onto a small set of representative vectors. Reducing 24-bit colour to a 256-entry palette is the standard example; it also gives compression.
+:Q_UNIT: clust
+:END:
+
+** Explain what reconstruction error measures in a quantization or clustering setting.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The total squared distance from each point to the representative vector it was assigned. It is what you lose by replacing a point with its code word.
+:Q_UNIT: clust
+:END:
+
+* k-Means and Its Variants
+
+** Walk through how k-means works.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Initialize \(k\) means. Alternate assigning each point to its nearest mean with recomputing each mean from its assigned points, until the means stop moving.
+:Q_UNIT: clust
+:END:
+
+** Explain why the k-means update sets each centre to the mean of its points.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The objective is squared distance to the centre, and the mean is exactly what minimizes that. The update is the solution of setting the derivative to zero.
+:Q_UNIT: clust
+:END:
+
+** Write pseudocode for k-means.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Alternate assignment and update until convergence.
+:Q_STEPS: K-MEANS(X, k): | initialize m[1..k], e.g. to k random points | repeat: | .  for each point x: assign x to the nearest m[i] | .  for each i: m[i] <- mean of the points assigned to it | until the means stop moving | return m and the assignments
+:Q_EXPLAIN: Guard the empty-cluster case -- a centre with no points assigned has no mean, so drop it or re-seed it.
+:Q_UNIT: clust
+:END:
+
+** State k-means' main weakness and explain where it comes from.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The result depends heavily on the initial centres. It descends to a local optimum of a non-convex objective, so a bad start gives a bad answer and stays there.
+:Q_UNIT: clust
+:END:
+
+** Give three ways to choose initial centres for k-means.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Three options, in increasing sophistication.
+:Q_STEPS: 1. Take k randomly selected data points as the initial means. | 2. Add small random vectors to the overall mean of the data. | 3. Split the principal component into k equal intervals and use each group's mean.
+:Q_UNIT: clust
+:END:
+
+** Explain what k-means++ changes, and why that one change matters so much.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Only the initialization: later centres are drawn with probability proportional to squared distance from the nearest chosen centre. Since the weakness is entirely in the start, fixing it bounds the result.
+:Q_UNIT: clust
+:END:
+
+** Why does k-means++ use squared distance rather than plain distance when choosing a seed?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Squaring sharpens the preference for distant points, so seeds spread out. Keeping it probabilistic rather than always taking the furthest avoids seeding on an outlier.
+:Q_UNIT: clust
+:END:
+
+** State what k-means++ guarantees.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Its expected potential is within \(8(\ln k + 2)\) of optimal -- it is \(O(\log k)\)-competitive. Plain k-means has no such bound at all.
+:Q_UNIT: clust
+:END:
+
+** Write pseudocode for k-means++ initialization.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: First centre uniform; each later one weighted by squared distance from the nearest already chosen.
+:Q_STEPS: K-MEANS-PLUS-PLUS-INIT(X, k): | C <- { a point chosen uniformly at random } | repeat until size(C) == k: | .  for each x not in C: | .  .  Dist(x) <- distance from x to the nearest centre in C | .  choose the next centre with probability proportional to Dist(x)^2 | return C      // then run ordinary k-means from C
+:Q_UNIT: clust
+:END:
+
+** Explain what a medoid is and how it differs from a centroid.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A medoid must be an actual data point; a centroid is an average and usually is not. A medoid behaves like a median, so outliers pull it far less.
+:Q_UNIT: clust
+:END:
+
+** Give two situations where k-medoids works and k-means cannot.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Categorical data, where averaging coordinates is meaningless; and a precomputed distance matrix with no coordinates at all. k-medoids only ever needs pairwise distances.
+:Q_UNIT: clust
+:END:
+
+** Describe how partitioning around medoids proceeds.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Pick medoids at random, assign each point to the nearest, then test swapping a medoid for a non-medoid and keep the swap if total distortion falls.
+:Q_UNIT: clust
+:END:
+
+** Explain what makes fuzzy c-means "fuzzy", and what the fuzzification parameter controls.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each point has a degree of membership in every cluster rather than belonging to one. The parameter controls how spread those memberships are -- near 1 crisp, large very fuzzy.
+:Q_UNIT: clust
+:END:
+
+** Write pseudocode for fuzzy c-means.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Alternate recomputing memberships from distances with recomputing centroids as membership-weighted means.
+:Q_STEPS: FUZZY-C-MEANS(X, k, f): | initialize c[1..k] at random | repeat: | .  for each point j and cluster i: | .  .  w[j][i] <- 1 / sum over l of | .  .              ( norm(x[j]-c[i]) / norm(x[j]-c[l]) ) ^ (2/(f-1)) | .  for each cluster i: | .  .  c[i] <- weighted mean of the x[j], weights w[j][i]^f | until the centroids converge | return c, w
+:Q_UNIT: clust
+:END:
+
+** Compare k-means and fuzzy c-means. What does the soft assignment buy?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Soft membership lets a point between two clusters influence both, rather than being forced into one. It also exposes how confident each assignment is.
+:Q_UNIT: clust
+:END:
+
+** Explain leader clustering and what problem it solves that k-means does not.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It adapts the number of clusters instead of requiring \(k\) up front, creating one when a point is too far from all existing clusters.
+:Q_UNIT: clust
+:END:
+
+** Give the three mechanisms by which leader clustering adjusts its cluster count.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It grows, splits and prunes.
+:Q_STEPS: 1. A point further than a threshold from every cluster creates a new one. | 2. A cluster exceeding a size threshold is duplicated, perturbed and split. | 3. A cluster falling below a second threshold is eliminated.
+:Q_UNIT: clust
+:END:
+
+* Expectation Maximization
+
+** Explain the problem EM is designed to solve.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Maximizing a likelihood when some variables are never observed. You cannot optimize directly, so you alternate between estimating the hidden values and the parameters.
+:Q_UNIT: clust
+:END:
+
+** Walk through one full iteration of EM for clustering.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: E step: given current means, compute each point's probability of having come from each cluster. M step: recompute each mean as a weighted average using those probabilities.
+:Q_UNIT: clust
+:END:
+
+** What is the latent variable in EM clustering, and why is it never observed?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Which cluster generated each point. That assignment is exactly what you are trying to infer, so it is never given in the data.
+:Q_UNIT: clust
+:END:
+
+** Explain precisely what makes the EM assignment "soft".
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A point gets a responsibility between 0 and 1 for every cluster, summing to 1, rather than one hard membership. It contributes to every mean in proportion.
+:Q_UNIT: clust
+:END:
+
+** State the exact relationship between EM and k-means.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: k-means is EM with hard assignment. Replace the soft responsibility by a 0/1 indicator for the nearest cluster and the two algorithms become identical.
+:Q_UNIT: clust
+:END:
+
+** Write pseudocode for EM clustering.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Guess the means, then alternate responsibilities with weighted means.
+:Q_STEPS: EM-CLUSTER(X, k, sigma): | guess mu[1..k] at random | repeat: | .  // E step | .  for each point i and cluster j: | .  .  Ez[i][j] <- exp( -(x[i]-mu[j])^2 / (2 sigma^2) ) | .  .               normalized over all clusters | .  // M step | .  for each cluster j: | .  .  mu[j] <- weighted mean of the x[i], weights Ez[i][j] | until the means converge | return mu, Ez
+:Q_UNIT: clust
+:END:
+
+* Hierarchical and Spectral Clustering
+
+** Compare agglomerative and divisive hierarchical clustering.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Agglomerative starts from singletons and merges upward; divisive starts from one group and splits downward. Agglomerative is far more common because merging is cheaper to decide.
+:Q_UNIT: clust
+:END:
+
+** Explain single-link, complete-link and average-link, and how the choice changes the clusters.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Single-link uses the smallest distance between any pair across the two clusters, complete-link the largest, and average-link the distance between the two clusters' averages.
+:Q_UNIT: clust
+:END:
+
+** Explain what a dendrogram gives you that a flat clustering does not.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Every number of clusters at once. Cut it at a chosen height and you get that many clusters, so \(k\) is decided after the algorithm has run.
+:Q_UNIT: clust
+:END:
+
+** Write pseudocode for agglomerative clustering.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Start from singletons and repeatedly merge the closest pair, recording each merge height.
+:Q_STEPS: AGGLOMERATIVE(X, linkage): | clusters <- one singleton per point | tree <- empty list | while more than one cluster remains: | .  (A, B) <- the pair minimizing linkage(A, B) | .  record (A, B, their linkage distance) in tree | .  replace A and B by their union | return tree      // cut at a height to get a flat clustering
+:Q_UNIT: clust
+:END:
+
+** Explain spectral clustering and why it can find structure k-means misses.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Reduce dimensionality first so the clusters become separable, then cluster there. It can find groups that are not spherical in the original space.
+:Q_UNIT: clust
+:END:
+
+** For spectral clustering, why preserve only neighbor similarities rather than all pairwise distances?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Cluster membership is decided locally, so only nearby relationships carry information. Forcing distant pairs to keep their distances wastes the embedding on irrelevant structure.
+:Q_UNIT: clust
+:END:
+
+* Evaluating a Clustering
+
+** Explain why you cannot evaluate a clustering with classification metrics.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: There is no ground truth to score against, and the cluster labels are arbitrary -- permuting them changes nothing. You must judge the geometry instead.
+:Q_UNIT: clust
+:END:
+
+** Explain cohesion and separation, and how they combine into a quality measure.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Cohesion is how tightly a cluster's points sit around its centre; separation is how far apart the clusters are. Dividing total cohesion by total separation gives a score to minimize.
+:Q_UNIT: clust
+:END:
+
+** Explain what within-group and between-group sums of squares measure.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Within-group is total squared distance from points to their own centre -- cohesion. Between-group weights each centre's distance from the overall mean by cluster size -- separation.
+:Q_UNIT: clust
+:END:
+
+** Explain the pseudo-F measure and which direction is better.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An ANOVA-style ratio of between-group to within-group variation, each divided by its degrees of freedom. Higher is better, so maximize it over \(k\).
+:Q_UNIT: clust
+:END:
+
+** Why does pseudo-F divide by degrees of freedom rather than comparing the two sums directly?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Within-group error falls monotonically with \(k\), hitting zero when every point is its own cluster. The divisors charge for each extra cluster, so the ratio can peak in between.
+:Q_UNIT: clust
+:END:
+
+** Pseudo-F / Calinski-Harabasz
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: pseudof
+:Q_UNIT: clust
+:END:
+
+** Explain how the silhouette coefficient scores a single point.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Compare its average distance to its own cluster against its average distance to the nearest other cluster, normalized by the larger. Range \([-1, +1]\), and \(+1\) is ideal.
+:Q_UNIT: clust
+:END:
+
+** What does a negative silhouette value tell you, and what makes that useful?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The point is closer on average to another cluster than its own -- it is misassigned. Useful because it localizes the problem to a specific point, not just the clustering.
+:Q_UNIT: clust
+:END:
+
+** Silhouette coefficient
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: silhouette
+:Q_UNIT: clust
+:END:
+
+** Write pseudocode for computing the overall silhouette coefficient.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: For each point, compare its own-cluster mean distance against the nearest other cluster's, then average.
+:Q_STEPS: SILHOUETTE(X, clustering C): | total <- 0 | for each x in X: | .  a <- mean distance from x to the other points of its own cluster | .  b <- minimum, over other clusters K, of the mean distance from x to K | .  s <- (b - a) / max(a, b)      // define s = 0 for a singleton | .  total <- total + s | return total / size(X)
+:Q_UNIT: clust
+:END:
+
+** Explain the Dunn index and what kind of measure it is.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The smallest distance between any two clusters, over the largest cluster diameter. It is worst-case: one close pair or one sprawling cluster ruins the score.
+:Q_UNIT: clust
+:END:
+
+** Compare pseudo-F and the Dunn index. How do they fail differently?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Pseudo-F averages sums of squares, so it tolerates a few bad points but misses one badly placed cluster. Dunn catches that, but a single outlier destroys its score.
+:Q_UNIT: clust
+:END:
+
+** Explain what the Rand Index compares, and why it counts pairs rather than labels.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It compares two clusterings by asking, for each pair of points, whether both agree on grouping them. Pairs sidestep the fact that cluster labels are arbitrary.
+:Q_UNIT: clust
+:END:
+
+** What does the Adjusted Rand Index correct for?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Agreement that would occur by chance. Two random clusterings already agree on many pairs, so the raw index is misleadingly high.
+:Q_UNIT: clust
+:END:
+
+** Distinguish internal from external cluster-validity measures, and classify the ones you know.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Internal measures use only the data's geometry -- silhouette, Dunn, pseudo-F. External measures need a second clustering or labels -- Rand and Adjusted Rand.
+:Q_UNIT: clust
+:END:
+
+** You have one clustering and no labels. Which validity measures can you still compute?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The internal ones: silhouette, Dunn, pseudo-F, cohesion over separation. Rand and Adjusted Rand are unavailable -- they need something to compare against.
+:Q_UNIT: clust
+:END:
+
+* Choosing the Number of Clusters
+
+** Explain why you cannot pick k by minimizing reconstruction error.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It falls monotonically and reaches zero when every point is its own cluster. Minimizing it always selects the degenerate answer.
+:Q_UNIT: clust
+:END:
+
+** Explain the elbow heuristic and what it is really looking for.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Plot error against \(k\) and find where the curve stops dropping steeply. The bend marks where extra clusters stop explaining structure and start splitting noise.
+:Q_UNIT: clust
+:END:
+
+** Give three approaches to choosing k other than the elbow.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Three practical routes.
+:Q_STEPS: 1. The application fixes it -- a 256-colour palette needs k = 256. | 2. Plot the data in two dimensions and look for structure. | 3. Maximize a validity index such as pseudo-F or Dunn over k. | 4. Set a maximum allowed distance, which fixes a maximum reconstruction error.
+:Q_UNIT: clust
+:END:
+
+** Explain the two purposes clustering can serve in a larger pipeline.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Exploring the data to see what structure exists, and preprocessing -- mapping into a new space where supervised learning is easier.
+:Q_UNIT: clust
+:END:

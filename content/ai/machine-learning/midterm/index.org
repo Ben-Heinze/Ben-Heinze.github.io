@@ -1,0 +1,136 @@
+#+TITLE: Midterm
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm, practice-test
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Study hub for the *CSCI 447 midterm, October 16 2026*. Closed book, no aids. The
+syllabus says the exam has three parts:
+
+1. Objective-style questions
+2. {{{hl(blue,Specific questions on the programming assignments)}}}
+3. Open-ended short answer
+
+The practice material below is shaped to match that: mostly free-response with a
+reveal-the-model-answer self-grade, a layer of objective questions for sharp
+recall, randomized numeric drills for the calculations, and a whole section of
+project questions on mechanism and pseudocode.
+
+The one explicit instruction from the course so far is on the
+[[file:../][Machine Learning]] index page: *what to study: the Winnow
+algorithm*. There are twelve Winnow questions in the foundations bank,
+including both update rules, the worked weight trace, the representation bias,
+pseudocode and a randomized weight-update drill.
+
+* Where to start
+
+- [[file:practice-test/][Practice Test]] -- the whole midterm, every unit. Pick a
+  length, start the timer, work down the page. This is the one to use for a full
+  sitting.
+- The six topic tests below for a focused session.
+- [[file:question-bank/][Question Bank]] to read the questions as a plain list
+  rather than take them shuffled.
+
+Everything is *self-assessed*. Nothing is auto-graded, including the
+calculations: the engine shows the model answer and the worked steps, and you
+mark your own. Every test also has a *Flashcards* mode that runs the same pool
+one card at a time.
+
+* Practice tests by topic
+
+| Test                                                                                     | Covers                                                                             |
+| [[file:foundations-and-theory/][Foundations and Theory]]                                  | Weeks 1 and 4, linear regression                                                   |
+| [[file:nonparametric-methods/][Nonparametric Methods]]                                    | Week 2, Alpaydin ch. 8                                                             |
+| [[file:clustering-and-dimensionality/][Clustering and Dimensionality]]                     | Week 3, clustering half of Week 4, Alpaydin ch. 7                                  |
+| [[file:trees-and-rules/][Trees and Rules]]                                                | Week 5, plus Week 6 rule pruning                                                   |
+| [[file:experiments-and-evaluation/][Experiments and Evaluation]]                           | Week 2 experimental method, Alpaydin ch. 20                                        |
+| [[file:project-walkthroughs/][Project Walkthroughs]]                                       | Projects 1 and 2                                                                   |
+
+* Topic checklist
+
+Work through this and look up anything you cannot state from memory. Each line
+links to the notes it comes from.
+
+** [[file:../lecture-notes/1-intro-to-ml/][Week 1: Intro to ML]]
+- Mitchell's and Alpaydin's definitions of learning
+- Supervised (critic / learner / actor), unsupervised, reinforcement, semi-supervised; online vs offline vs active
+- *Winnow-2*: model, threshold rule, promotion, demotion, the weight trace, linear representation bias
+- Inductive bias: the formal definition, representation vs preference bias, the unbiased-learner theorem
+- No Free Lunch; the Inductive Learning Hypothesis
+- True error vs sample error
+- The risk function and its seven symbols; the five loss functions
+- The bias-variance decomposition, both steps; what \(\lambda\) controls
+
+** [[file:../lecture-notes/2-nonparametric-learning/][Week 2: Nonparametric Learning]]
+- Classification as density estimation
+- Parzen windows; the Parzen-versus-k-NN duality; Voronoi diagrams
+- The four metric axioms; Minkowski with \(p = 1, 2, \infty\); VDM
+- Histogram, naive, weighted, kernel and k-NN density estimators; the binomial derivation
+- The three kernel properties; the feature map
+- The k-NN posterior \(k_i / k\)
+- Edited NN v1 and v2, condensed NN, KD-trees and the pruning test
+- Regressogram, running mean and kernel smoothers; null models
+
+** [[file:../lecture-notes/3-density-estimation/][Week 3: Density Estimation]]
+- LOF and one-class classification; the four sources of NN error
+- Filter vs wrapper; stepwise forward and backward selection
+- Hill climbing (simple and stochastic), simulated annealing, genetic algorithms
+- PCA: centering, covariance, SVD, what \(W\) and \(D\) hold, proportion of variance
+- Fisher's LDA: \(J(w)\), \(S_B\), \(S_W\), and \(w = S_W^{-1}(m_1 - m_2)\)
+- EM for clustering: the E step and the M step; k-means; k-means++ and its theorem
+
+** [[file:../lecture-notes/4-learning-theory/][Week 4: Learning Theory]]
+- k-medoids, PAM, fuzzy c-means, leader clustering
+- Cohesion and separation; SSE and SSB; pseudo-F; silhouette; Rand and ARI; Dunn
+- Version spaces, the \(S\)/\(G\) representation, candidate elimination, the EnjoySport trace
+- Sample complexity; active learning and \(\lg|\mathcal{H}|\); the \(n+1\) result
+- The Haussler bound and its proof; \(m \geq \frac{1}{\epsilon}(\ln|\mathcal{H}| + \ln\frac{1}{\delta})\)
+- Conjunctions of literals (\(|\mathcal{H}| = 3^{n}\)); agnostic learning; the unbiased learner
+- PAC learning; efficiently PAC-learnable
+- VC dimension, shattering, the VC table, both sample-complexity bounds, the triple tradeoff
+- Risk minimization, 0/1 loss, \(h_{MAP}\) and \(h_{ML}\)
+
+** [[file:../lecture-notes/5-tree-learning/][Week 5: Tree Learning]]
+- ID3, entropy, expected entropy, information gain; the Quinlan weather numbers
+- Gain ratio and intrinsic value; why unique identifiers break plain gain
+- Continuous attributes: binary splits, midpoints, quantiles, equal-width vs equal-frequency
+- Regression trees: the MSE criterion, leaf means, MLE implies least squares, small disjuncts
+- Overfitting (formally); reduced error pruning; early stopping and Quinlan's chi-square
+- Preference vs representation bias; oblique trees and OC1
+- Propositional logic, the nine inference rules, CNF/DNF/Horn
+- FOL, quantifiers, unification, Skolem constants; resolution theorem proving
+- Sequential covering; FoilGain; rule pruning and IREP
+
+** Textbook
+- [[file:../textbook-notes/1-intro-to-ml/][Ch. 1]] -- association rules, discriminants, predictive vs descriptive models
+- [[file:../textbook-notes/7-clustering/][Ch. 7]] -- mixture densities, vector quantization, spectral and hierarchical clustering, linkage, choosing \(k\)
+- [[file:../textbook-notes/8-nonparametric-methods/][Ch. 8]] -- the parametric/nonparametric contrast, kernel estimators, curse of dimensionality
+- [[file:../textbook-notes/20-designs-and-experiments/][Ch. 20]] -- the four cautions, strategies of experimentation, randomization/replication/blocking, K-fold, 5x2, bootstrap, ROC and AUC
+
+** [[file:../projects/][Projects]]
+- Null models; min-max vs z-score; why normalization precedes the metric
+- VDM; combining numeric with categorical distance; why the \(p\)th root can be dropped
+- \(k = 1\) during editing and condensing, tuned \(k\) at prediction; the RBF kernel and \(\gamma\)
+- Per-dataset traps: ERP on Computer Hardware, cyclic month/day and the log transform on Forest Fires, "?" meaning abstain on Congressional Vote, identifier columns everywhere
+- Gain ratio and MSE splitting criteria; reduced error pruning; the 20% pruning holdout inside 5x2 CV
+
+* Not on this material
+
+Two gaps worth knowing about, so you do not go looking for practice that is not
+here. [[file:../lecture-notes/6-ensembles/][Week 6]] is a stub -- it has the
+rule-pruning and IREP material, which is covered under Trees and Rules, but no
+bagging, boosting, random forests or stacking. And the PAM pseudocode is missing
+from the Week 4 notes, because that slide is an image with no text layer; the
+questions cover the medoid and swap-cost concepts at the level the notes support.
+
+Every question here is traceable to the lecture notes, the textbook notes, or the
+two project PDFs. Nothing was invented from outside the course material.

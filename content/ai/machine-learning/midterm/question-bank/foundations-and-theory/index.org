@@ -1,0 +1,811 @@
+#+TITLE: Foundations and Theory
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm
+#+STARTUP: noindent
+#+QUIZ: t
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+What learning is, what makes it possible, linear regression, and the theory of
+when a learner can be trusted. Units =found=, =linreg= and =theory=. In the
+pseudocode answers, leading dots mark indentation depth.
+
+* What Learning Is
+
+** What does it mean for a program to learn, as opposed to simply being programmed?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It improves at a task with experience, measured against some criterion. Learning needs all three: a task, a performance measure, and experience that moves the measure.
+:Q_UNIT: found
+:END:
+
+** During learning, what is fixed in advance and what is actually adjusted?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The model's form is fixed up to its parameters; only the parameters are optimized from data. Choosing that form is where inductive bias enters.
+:Q_UNIT: found
+:END:
+
+** Explain the difference between a predictive and a descriptive model.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A predictive model forecasts future cases. A descriptive model explains structure already in the data. One model can do both.
+:Q_UNIT: found
+:END:
+
+** What is a discriminant?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A function separating examples of different classes -- the boundary itself. In a threshold rule on income and savings, the two thresholds are the discriminant.
+:Q_UNIT: found
+:END:
+
+** Explain what an association rule captures and what it is used for.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A conditional probability \(P(X \mid Y)\): given that a customer bought \(Y\), how likely is \(X\). Used for store layout and recommendation.
+:Q_UNIT: found
+:END:
+
+** Explain supervised learning in terms of who supplies what.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A critic supplies the correct action, the learner converts it into a rule, and the actor applies that rule. The ground truth comes from outside the learner.
+:Q_UNIT: found
+:END:
+
+** Explain unsupervised learning, and why evaluating it is harder than evaluating a classifier.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Only inputs are given, and the learner finds structure unaided. There is no ground truth to score against, so you must judge the geometry of the result instead.
+:Q_UNIT: found
+:END:
+
+** Explain reinforcement learning and how its feedback differs from supervised learning.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It solves sequential decision problems using a reinforcement signal -- a reward -- rather than the correct answer. It is told how good an action was, never what it should have done.
+:Q_UNIT: found
+:END:
+
+** What is a policy, and what is reinforcement learning actually trying to produce?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A policy is the sequence of actions that reaches the goal. Learning the policy is the whole object of RL.
+:Q_UNIT: found
+:END:
+
+** Explain semi-supervised learning and the situation that motivates it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It mixes a little labeled data with a lot of unlabeled data, using approaches like self-training. It fits when labels are expensive but raw data is cheap.
+:Q_UNIT: found
+:END:
+
+** Compare online and offline learning.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Online, data arrives over time and the model updates as it comes. Offline, the data set is fixed up front and can be trained on at leisure.
+:Q_UNIT: found
+:END:
+
+** Explain active learning, and why it can need far fewer examples than passive learning.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The learner chooses which instances to have labeled. Choosing a query that halves the hypothesis space extracts far more information than a randomly drawn example.
+:Q_UNIT: found
+:END:
+
+** Why is clustering not simply a form of classification?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Clustering finds geometric structure with no labels and no notion of a correct answer. Classification is a separate step layered on top, so classification metrics do not evaluate clusters.
+:Q_UNIT: found
+:END:
+
+** What distinguishes a classification problem from a regression problem?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The output type: discrete class labels versus a continuous value. It changes the loss, the evaluation metric, and often the model.
+:Q_UNIT: found
+:END:
+
+* The Winnow-2 Algorithm
+
+** What kind of problem is Winnow-2 for, and what is the core idea behind how it learns?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Supervised binary classification from Boolean features. It keeps one weight per feature and learns a linear threshold, correcting the weights multiplicatively whenever -- and only when -- it predicts wrongly.
+:Q_EXPLAIN: Everything else follows from that: the two update rules are the correction, \(\alpha\) sets its size, and the linear threshold is what limits it to linearly separable concepts.
+:Q_UNIT: found
+:END:
+
+** Write the Winnow-2 model and its decision rule.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: One weight per Boolean feature. The hypothesis is a linear threshold: predict 1 when \(\sum_i w_i x_i > \theta\), else 0.
+:Q_UNIT: found
+:END:
+
+** Walk through what Winnow-2 does with a single training example.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Score the example, threshold the score to a prediction, compare with the truth, and update only if they differ -- promoting on a false negative, demoting on a false positive.
+:Q_UNIT: found
+:END:
+
+** In Winnow-2, explain promotion: when does it fire, and what does it do to the weights?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It fires when the prediction was 0 but the truth is 1 -- the score was too low. Multiply every weight whose feature is 1 by \(\alpha\), raising the score next time.
+:Q_UNIT: found
+:END:
+
+** In Winnow-2, explain demotion: when does it fire, and what does it do to the weights?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It fires when the prediction was 1 but the truth is 0 -- the score was too high. Divide every weight whose feature is 1 by \(\alpha\), lowering the score next time.
+:Q_UNIT: found
+:END:
+
+** Why does Winnow-2 update only when it makes a mistake?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A correct prediction is evidence the weights already work for that example, so moving them could only break what is right. Mistakes are the only signal that something needs to change.
+:Q_UNIT: found
+:END:
+
+** Why does an update leave the weights of inactive features untouched?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A feature equal to 0 contributes nothing to the score, so it cannot have caused the mistake. Only features that were on share the blame.
+:Q_UNIT: found
+:END:
+
+** Winnow-2's updates are multiplicative rather than additive. What does that buy?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Weights can shrink toward zero or grow quickly across orders of magnitude, so an irrelevant feature is suppressed in a few updates rather than being slowly subtracted away.
+:Q_UNIT: found
+:END:
+
+** Explain why Winnow-2 can learn AND but cannot learn XOR.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Its hypothesis is a single linear threshold, so it can only express linearly separable concepts. AND is separable by a line; XOR has no linear separator at all.
+:Q_UNIT: found
+:END:
+
+** What role does the threshold play in Winnow-2, and what happens if it is set badly?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It sets how large the score must be to predict 1. Badly chosen against \(\alpha\), promotions and demotions undo each other and the mistake count cycles instead of converging.
+:Q_UNIT: found
+:END:
+
+** Write pseudocode for training Winnow-2.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Predict with the threshold rule, and update multiplicatively only on a mistake.
+:Q_STEPS: WINNOW-2-TRAIN(X, alpha, theta): | w[i] <- 1 for i = 1..d | repeat until no mistakes (or one epoch): | .  for each example (x, r) in X: | .  .  f <- sum over i of w[i] * x[i] | .  .  yhat <- 1 if f > theta else 0 | .  .  if yhat == r: continue | .  .  if r == 1 and yhat == 0:            // promotion | .  .  .  for each i with x[i] == 1: w[i] <- alpha * w[i] | .  .  if r == 0 and yhat == 1:            // demotion | .  .  .  for each i with x[i] == 1: w[i] <- w[i] / alpha | return w
+:Q_UNIT: found
+:END:
+
+** Write pseudocode for classifying a point with a trained Winnow-2 model.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Score the active features and compare against the threshold.
+:Q_STEPS: WINNOW-2-CLASSIFY(x, w, theta): | f <- sum over i of w[i] * x[i] | return 1 if f > theta else 0
+:Q_UNIT: found
+:END:
+
+** Winnow-2 weight update
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: winnow
+:Q_UNIT: found
+:END:
+
+* Why Learning Is Possible
+
+** What is inductive bias?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The assumptions a learner adds to the data so that its output follows. It is the minimal set of assertions that, with the training examples, entails the learner's prediction on new instances.
+:Q_UNIT: found
+:END:
+
+** Explain why a learner with no inductive bias cannot generalize, even with unlimited data.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With no assumptions, every labeling of an unseen instance is equally consistent with the training data. The learner has no rational basis for preferring one, so it cannot predict.
+:Q_UNIT: found
+:END:
+
+** Explain representation bias.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The restriction the model's form places on what can be expressed at all -- the shape of the hypothesis space. A linear threshold simply cannot represent XOR.
+:Q_UNIT: found
+:END:
+
+** Explain preference bias.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: How the learner searches the hypothesis space and ranks the hypotheses it can express. Choosing the highest-gain split, or the simplest consistent rule, is preference bias.
+:Q_UNIT: found
+:END:
+
+** Compare representation bias and preference bias, with an example of each.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Representation fixes what is expressible, preference fixes which expressible thing is chosen. Axis-parallel splits are representation; picking the highest-information-gain one is preference.
+:Q_UNIT: found
+:END:
+
+** Explain Occam's Razor as a learning principle, and what it protects against.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Prefer the simplest hypothesis consistent with the data. A simpler model has less capacity to fit noise, so it protects against overfitting.
+:Q_UNIT: found
+:END:
+
+** Explain the No Free Lunch theorem and what it implies about choosing an algorithm.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Averaged over every possible target function, all algorithms perform identically. So no algorithm is universally best -- you must match the algorithm to the problem.
+:Q_UNIT: found
+:END:
+
+** If No Free Lunch holds, what are you actually claiming when you call an algorithm "good"?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Only that its inductive bias happens to match this data. The claim is about the fit between assumption and problem, never about the algorithm alone.
+:Q_UNIT: found
+:END:
+
+** Explain the inductive learning hypothesis and the assumption it rests on.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A hypothesis that fits a large enough training sample will also fit unseen examples. It assumes future data is drawn from the same distribution as the training data.
+:Q_UNIT: found
+:END:
+
+* Measuring Error
+
+** Explain true error, and why you can never measure it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The probability a hypothesis misclassifies an instance drawn from the underlying distribution. You only ever observe a finite sample from that distribution, so it can only be estimated.
+:Q_UNIT: found
+:END:
+
+** Explain sample error, and why it is the one you can actually compute.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The proportion of a given data sample the hypothesis gets wrong. It is a count over data you hold, so it is directly computable -- also called empirical or training error.
+:Q_UNIT: found
+:END:
+
+** Why does the gap between sample error and true error matter?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sample error can be driven to zero by memorizing, while true error stays high. The whole point of learning theory is bounding how far apart the two can be.
+:Q_UNIT: found
+:END:
+
+** A classmate reports 2% training error as evidence their model is good. What is wrong with the claim?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Training error measures capacity, not quality -- a complex enough model drives it to zero by memorizing. Ask for error on data never used in fitting or tuning.
+:Q_UNIT: found
+:END:
+
+* Loss Functions
+
+** Explain 0/1 loss, and give its main drawback as a training objective.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It charges 1 for a wrong prediction and 0 for a right one. It is the natural error count, but it is flat almost everywhere, so gradient methods get no signal from it.
+:Q_UNIT: found
+:END:
+
+** Explain squared loss and what it is sensitive to.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(L^{2}(\hat{y},y) = (\hat{y}-y)^{2}\), the squared residual. Squaring makes it very sensitive to large errors, so a few outliers can dominate the fit.
+:Q_UNIT: found
+:END:
+
+** Explain hinge loss and when it stops charging anything.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(L_{hinge}(\hat{y},y) = \max\{0, 1 - \hat{y}y\}\). The loss falls to zero once \(\hat{y}y\) reaches 1, so being merely correct is not enough -- it must be correct by that much.
+:Q_UNIT: found
+:END:
+
+** Explain absolute error and how it compares with squared loss.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It charges the magnitude of the residual rather than its square. Outliers pull it far less, making it the more robust choice on heavy-tailed data.
+:Q_UNIT: found
+:END:
+
+** Explain log loss, and what the model's output has to look like for it to work.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(-[y\log\hat{y} + (1-y)\log(1-\hat{y})]\), scoring a predicted probability. The output must lie strictly between 0 and 1 -- hence a sigmoid -- since the log diverges at the ends.
+:Q_UNIT: found
+:END:
+
+** Your data has a few extreme outliers. Compare squared loss and absolute error for it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Squared loss squares those residuals, so the fit bends toward the outliers. Absolute error weights them linearly and largely ignores them. Prefer absolute error, or transform the target.
+:Q_UNIT: found
+:END:
+
+** You want to train a classifier whose output is squashed into (0,1) by a sigmoid, using gradient descent. Compare 0/1 loss and log loss for the job.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: 0/1 loss is flat almost everywhere, so gradient descent gets no signal from it, and it discards the output value entirely. Log loss scores that value directly and is differentiable.
+:Q_UNIT: found
+:END:
+
+** Explain the difference between a loss function and a risk function.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Loss scores a single prediction. Risk is the total over the whole data set, plus any regularization penalty. Training minimizes risk.
+:Q_UNIT: found
+:END:
+
+** Write the risk function, and explain what its second term is for.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(\ell(\theta) = \sum_i L(g_\theta(x^{(i)}), r^{(i)}) + \lambda\rho(\theta)\). The second term penalizes large or complex parameters, trading training fit for simplicity.
+:Q_UNIT: found
+:END:
+
+** What does the regularization weight control, and what happens at each extreme?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: How much simplicity is bought at the cost of fit. Large: the model is heavily constrained, high bias and low variance. Near zero: it fits freely, low bias and high variance.
+:Q_UNIT: found
+:END:
+
+* Bias and Variance
+
+** Explain bias as a source of error.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Error from assumptions too simple for the truth -- the average model is systematically off. High bias means underfitting: real structure is missed.
+:Q_UNIT: found
+:END:
+
+** Explain variance as a source of error.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Error from sensitivity to the particular training sample -- redraw the data and the model changes a lot. High variance means overfitting: noise is being learned.
+:Q_UNIT: found
+:END:
+
+** Explain irreducible error, and why no model can remove it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Noise in the response itself, independent of any model. The same input can produce different outputs, so no function of the input can predict it.
+:Q_UNIT: found
+:END:
+
+** Write the decomposition of total error into its three parts.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Total Error = Bias\(^{2}\) + Variance + Irreducible Error. Only the first two are under your control.
+:Q_UNIT: found
+:END:
+
+** Explain the bias-variance trade-off as model complexity increases.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Bias falls as the model can represent more, but variance rises as it starts fitting the sample's noise. Total error dips then climbs, so the best model is intermediate.
+:Q_UNIT: found
+:END:
+
+** Your model has near-zero training error and poor test error. Diagnose it, and give two fixes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: High variance -- it is overfitting. Fix by reducing capacity, raising regularization, adding training data, or pruning or smoothing the model.
+:Q_UNIT: found
+:END:
+
+** Your model has high error on both training and test data. Diagnose it, and give two fixes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: High bias -- it is underfitting, and more data will not help. Fix by increasing model capacity, adding features, or lowering regularization.
+:Q_UNIT: found
+:END:
+
+* Linear Regression
+
+** Explain what univariate linear regression fits and what it minimizes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A straight line \(h_w(x) = w_1x + w_0\) through the data, minimizing the sum of squared vertical residuals \(\sum_j (y_j - h_w(x_j))^{2}\).
+:Q_UNIT: linreg
+:END:
+
+** Explain how the closed-form solution for linear regression is obtained.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The squared-error surface is convex, so its minimum is where both partial derivatives vanish. Setting them to zero gives two linear equations with one solution.
+:Q_UNIT: linreg
+:END:
+
+** Write the closed-form solution for the slope and the intercept of a fitted line.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(w_1 = \frac{N\sum x_jy_j - (\sum x_j)(\sum y_j)}{N\sum x_j^{2} - (\sum x_j)^{2}}\) and \(w_0 = \frac{\sum y_j - w_1\sum x_j}{N}\). Solve for the slope first.
+:Q_UNIT: linreg
+:END:
+
+** Explain what weight space is and why it is a useful way to think about learning.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The space of all possible weight settings, with the loss as a surface over it. It turns learning into navigating that surface toward a minimum.
+:Q_UNIT: linreg
+:END:
+
+** Explain why maximum likelihood estimation under Gaussian noise gives least squares.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The Gaussian likelihood is an exponential of the negative squared residual. Taking logs turns the product into a sum of squared residuals, and the constants drop out of the argmax.
+:Q_UNIT: linreg
+:END:
+
+** What assumption about the noise is being made when you fit by least squares?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: That the residuals are Gaussian with constant variance, independent across examples. Heavy tails or changing variance break the justification.
+:Q_UNIT: linreg
+:END:
+
+** Write pseudocode for fitting a line in closed form.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Accumulate four sums in one pass, then solve for slope and intercept.
+:Q_STEPS: FIT-LINE(points (x[j], y[j]) for j = 1..N): | Sx <- 0; Sy <- 0; Sxy <- 0; Sxx <- 0 | for j = 1..N: | .  Sx  <- Sx  + x[j] | .  Sy  <- Sy  + y[j] | .  Sxy <- Sxy + x[j] * y[j] | .  Sxx <- Sxx + x[j] * x[j] | denom <- N * Sxx - Sx * Sx | if denom == 0: fail      // every x identical | w1 <- (N * Sxy - Sx * Sy) / denom | w0 <- (Sy - w1 * Sx) / N | return (w0, w1)
+:Q_UNIT: linreg
+:END:
+
+** Write pseudocode for fitting weights by gradient descent.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Repeatedly step the weights against the averaged gradient of the squared-error loss.
+:Q_STEPS: GRADIENT-DESCENT(X, y, eta): | w <- small random vector | repeat until converged: | .  grad <- zero vector | .  for i = 1..N: | .  .  resid <- f(x[i], w) - y[i] | .  .  grad  <- grad + resid * x[i] | .  grad <- grad / N | .  w <- w - eta * grad | return w
+:Q_UNIT: linreg
+:END:
+
+** Compare the closed-form solution with gradient descent. When would you need the iterative method?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Closed form is exact and needs no tuning, but requires a solvable system. Use gradient descent for very many features, nonlinear models, or data arriving online.
+:Q_UNIT: linreg
+:END:
+
+* Version Spaces
+
+** What does it mean for a hypothesis to be consistent with the training data?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It agrees with the true label on every training example seen so far. Consistency is all-or-nothing -- one disagreement disqualifies it.
+:Q_UNIT: theory
+:END:
+
+** Explain what a version space is.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The set of every hypothesis in the space that is still consistent with the data. It shrinks as examples arrive, ideally to the target concept.
+:Q_UNIT: theory
+:END:
+
+** Why track only the most specific and most general boundaries rather than the whole version space?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Every consistent hypothesis lies between them under the generality ordering, so the two boundary sets represent the whole space compactly -- often far smaller than enumerating it.
+:Q_UNIT: theory
+:END:
+
+** Explain what a positive example does to the two boundaries, and why.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It generalizes the specific boundary, which must now cover it, and prunes anything in the general boundary that fails to. Positives can only loosen the specific side.
+:Q_UNIT: theory
+:END:
+
+** Explain what a negative example does to the two boundaries, and why.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It specializes the general boundary, which must now exclude it, and prunes anything in the specific boundary that covers it. Negatives can only tighten the general side.
+:Q_UNIT: theory
+:END:
+
+** Why does a single mislabeled example break candidate elimination?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The true concept is inconsistent with the bad label, so it gets eliminated permanently. The algorithm has no way to reinstate it, and the space can collapse to empty.
+:Q_UNIT: theory
+:END:
+
+** Why is candidate elimination said to have no preference bias?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It keeps every consistent hypothesis instead of choosing among them, so it expresses no preference. All of its bias is in the hypothesis language.
+:Q_UNIT: theory
+:END:
+
+** How can a partially converged version space classify a new instance, and when can it not?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Poll its hypotheses: unanimous agreement gives a confident label. A split vote leaves the instance undetermined -- and that is exactly the instance worth querying.
+:Q_UNIT: theory
+:END:
+
+** Write pseudocode for candidate elimination.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Start the boundaries as far apart as the language allows, then generalize on positives and specialize on negatives.
+:Q_STEPS: CANDIDATE-ELIMINATION(D): | G <- the maximally general hypotheses | S <- the maximally specific hypotheses | for each example e in D: | .  if e is POSITIVE: | .  .  drop from G anything inconsistent with e | .  .  replace each inconsistent s in S by its minimal generalizations | .  .  keep only those some g in G is more general than | .  .  prune from S anything more general than another member | .  else: | .  .  drop from S anything inconsistent with e | .  .  replace each inconsistent g in G by its minimal specializations | .  .  keep only those some s in S is more specific than | .  .  prune from G anything more specific than another member | return (S, G)
+:Q_UNIT: theory
+:END:
+
+* How Many Examples Are Enough
+
+** Explain what sample complexity measures.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: How many training examples a learner needs to reach a target accuracy with a target confidence. It depends on the hypothesis space and on how examples are supplied.
+:Q_UNIT: theory
+:END:
+
+** Compare a sufficient and a necessary bound on sample complexity.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A sufficient (upper) bound guarantees success with that many examples. A necessary (lower) bound says no learner can succeed with fewer. The truth lies between them.
+:Q_UNIT: theory
+:END:
+
+** Explain the optimal query strategy for an active learner, and the number of queries it needs.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Always ask about an instance that splits the remaining hypotheses in half -- twenty questions. That needs about \(\lg|\mathcal{H}|\) queries.
+:Q_UNIT: theory
+:END:
+
+** What does it mean for a version space to be epsilon-exhausted, and why is that the useful property?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Every surviving hypothesis has true error below \(\epsilon\). It is useful because you can then return ANY consistent hypothesis without needing to pick cleverly.
+:Q_UNIT: theory
+:END:
+
+** State the Haussler bound and explain what it is bounding.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: For finite \(\mathcal{H}\) and \(m\) independent examples, the probability the version space is NOT \(\epsilon\)-exhausted is at most \(|\mathcal{H}|e^{-\epsilon m}\) -- the chance a bad hypothesis survives.
+:Q_UNIT: theory
+:END:
+
+** Derive the required number of examples from the Haussler bound.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Demand \(|\mathcal{H}|e^{-\epsilon m} \leq \delta\), take logs, and solve: \(m \geq \frac{1}{\epsilon}(\ln|\mathcal{H}| + \ln\frac{1}{\delta})\).
+:Q_UNIT: theory
+:END:
+
+** For conjunctions over n Boolean attributes, explain why the hypothesis space has size 3 to the n.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each attribute appears in one of three ways: required true, required false, or don't care. Those choices are independent across the \(n\) attributes.
+:Q_UNIT: theory
+:END:
+
+** Haussler sample complexity
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: haussler
+:Q_UNIT: theory
+:END:
+
+** PAC bound for conjunctions of Boolean literals
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: pacconj
+:Q_UNIT: theory
+:END:
+
+** Explain agnostic learning and what assumption it gives up.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It drops the assumption that the target concept is in the hypothesis space, seeking instead the hypothesis with fewest training errors.
+:Q_UNIT: theory
+:END:
+
+** Explain why the agnostic bound needs far more examples than the consistent one.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With consistency, each example is a chance to eliminate a bad hypothesis outright. Agnostically you must ESTIMATE every error rate accurately, and concentration costs \(1/\epsilon^{2}\) rather than \(1/\epsilon\).
+:Q_UNIT: theory
+:END:
+
+** Explain why a completely unbiased learner needs exponentially many examples.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Allowing every possible labeling makes \(|\mathcal{H}| = 2^{2^{n}}\), so \(\ln|\mathcal{H}|\) grows as \(2^{n}\). The quantitative form of "an unbiased learner cannot learn".
+:Q_UNIT: theory
+:END:
+
+** Explain what PAC learnability requires.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: For every concept and every input distribution, the learner must output a hypothesis with error at most \(\epsilon\), with probability at least \(1-\delta\).
+:Q_UNIT: theory
+:END:
+
+** In "probably approximately correct", what does each half refer to?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: "Probably" is the confidence \(1-\delta\) -- we may fail outright, rarely. "Approximately correct" is the accuracy \(\epsilon\) -- even on success the hypothesis is not perfect.
+:Q_UNIT: theory
+:END:
+
+** What does efficient PAC-learnability add to plain PAC-learnability?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A runtime requirement: polynomial in \(1/\epsilon\), \(1/\delta\), the instance length, and the size of the concept. Polynomial sample complexity alone is not enough.
+:Q_UNIT: theory
+:END:
+
+* VC Dimension
+
+** Explain what it means for a hypothesis space to shatter a set of points.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: For every one of the \(2^{N}\) ways of labeling those \(N\) points, some hypothesis in the space realizes it. The space can express any labeling of that set.
+:Q_UNIT: theory
+:END:
+
+** Explain what VC dimension measures.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The size of the largest point set the hypothesis space can shatter -- a measure of expressiveness that works for infinite spaces.
+:Q_UNIT: theory
+:END:
+
+** Why is VC dimension needed at all when the size of the hypothesis space already exists?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Many useful spaces are infinite, so counting hypotheses cannot distinguish them. Rectangles and arbitrary convex polygons are both infinite but hugely different in power.
+:Q_UNIT: theory
+:END:
+
+** To establish a VC dimension you must do two different things. What are they?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Exhibit ONE set of size \(N\) that is shattered, and show NO set of size \(N+1\) is. The lower half needs an example, the upper half an argument about all sets.
+:Q_UNIT: theory
+:END:
+
+** Show that intervals on the real line have VC dimension 2.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Two points admit all four labelings using intervals. For three points in order, \((+,-,+)\) is impossible: any interval covering the outer two must cover the middle one.
+:Q_UNIT: theory
+:END:
+
+** Explain why a line in the plane has VC dimension 3.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Three non-collinear points can be split every one of 8 ways, since any one can be cut off from the others. No set of four can be, so the dimension is 3.
+:Q_UNIT: theory
+:END:
+
+** What is the VC dimension of a linear decision surface in d dimensions?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(d+1\). It matches the plane case, where a line in two dimensions shatters three points.
+:Q_UNIT: theory
+:END:
+
+** Explain the relationship between VC dimension and the size of a finite hypothesis space.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(VC(\mathcal{H}) \leq \lg|\mathcal{H}|\). Shattering \(m\) points needs a distinct hypothesis per labeling, so \(|\mathcal{H}|\) must exceed \(2^{m}\).
+:Q_UNIT: theory
+:END:
+
+** Explain how VC dimension relates to the strength of a learner's inductive bias.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A high VC dimension means more labelings are expressible, so fewer are ruled out a priori -- weaker bias. A completely unbiased space shatters everything.
+:Q_UNIT: theory
+:END:
+
+** VC sample complexity bound
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: vcbound
+:Q_UNIT: theory
+:END:
+
+** Explain the three-way trade-off between hypothesis complexity, data size, and generalization error.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: More data lowers error. Rising complexity lowers error until the space outgrows the concept, after which error climbs again. You trade the three against each other.
+:Q_UNIT: theory
+:END:
+
+** Define overfitting and underfitting in terms of hypothesis complexity against the target concept.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Overfitting is a hypothesis space more complex than the concept, so noise gets fitted. Underfitting is a space less complex, so real structure is missed.
+:Q_UNIT: theory
+:END:
+
+** Explain why learning is called an ill-posed problem.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The data does not pick out a unique solution -- many hypotheses fit it equally well. Inductive bias is what supplies the missing constraint.
+:Q_UNIT: theory
+:END:
+
+** Explain what an Occam algorithm guarantees, and why it is surprising.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Given enough examples, ANY consistent hypothesis has low true error. Surprising because no cleverness is needed in choosing which one to return.
+:Q_UNIT: theory
+:END:
+
+* Making Decisions Under Cost
+
+** Explain risk minimization and why a cost matrix is needed at all.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Choose the action minimizing expected loss, \(R(\alpha_i \mid x) = \sum_j \lambda_{ij}P(\omega_j \mid x)\). The matrix is needed because different mistakes rarely cost the same.
+:Q_UNIT: theory
+:END:
+
+** Explain what happens to the decision rule when the cost matrix is 0/1.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: All mistakes cost the same, so minimizing risk collapses to maximizing the posterior -- just pick the most probable class.
+:Q_UNIT: theory
+:END:
+
+** A missed cancer diagnosis costs far more than a false alarm. Explain how that changes the decision boundary.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It shifts toward predicting positive: a smaller posterior probability now justifies it. You accept more false alarms to avoid the expensive misses.
+:Q_UNIT: theory
+:END:
+
+** Explain the maximum a posteriori hypothesis and which factor drops out of it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(h_{MAP} = \arg\max_h P(\mathcal{D} \mid h)P(h)\) -- likelihood times prior. The evidence \(P(\mathcal{D})\) drops because it does not depend on \(h\).
+:Q_UNIT: theory
+:END:
+
+** Compare the MAP hypothesis with the maximum likelihood hypothesis.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: MAP weights the likelihood by a prior over hypotheses; ML ignores the prior. They coincide exactly when all priors are equal.
+:Q_UNIT: theory
+:END:

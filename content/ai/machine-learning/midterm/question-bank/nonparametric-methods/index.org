@@ -1,0 +1,604 @@
+#+TITLE: Nonparametric Methods
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm
+#+STARTUP: noindent
+#+QUIZ: t
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Density estimation, distance metrics, nearest neighbor and the smoothers.
+Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
+
+* Parametric versus Nonparametric
+
+** Explain what a parametric method assumes, and what it buys you.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: That one model form holds over the whole input space -- a line, or a normal density. It reduces the problem to estimating a few parameters.
+:Q_UNIT: nonpar
+:END:
+
+** What is the risk of a parametric assumption, and what are your options when you cannot justify one?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: If the form is wrong you incur large error everywhere, not just locally. The options are a semi-parametric mixture or a fully nonparametric model.
+:Q_UNIT: nonpar
+:END:
+
+** State the assumption every nonparametric method rests on.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Similar inputs have similar outputs. Everything else -- the metric, the kernel, the neighbor count -- is machinery for deciding what "similar" means.
+:Q_UNIT: nonpar
+:END:
+
+** Why are nonparametric methods also called instance-based or memory-based?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: They keep the training examples themselves as the model rather than compressing them into parameters. Prediction looks back at stored instances.
+:Q_UNIT: nonpar
+:END:
+
+** Compare where the computational cost falls in a parametric versus a nonparametric method.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A parametric model is expensive to fit and cheap to query. A nonparametric one is nearly free to fit and expensive at query time, since the work happens then.
+:Q_UNIT: nonpar
+:END:
+
+** Explain how k-nearest neighbor generalizes a simple table lookup.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A table returns a stored value only on an exact match. k-NN returns the value at the closest stored point instead, so it answers queries it has never seen.
+:Q_UNIT: nonpar
+:END:
+
+* Classification as Density Estimation
+
+** Explain why classifying a query point reduces to a density estimation problem.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: You want \(\arg\max_c P(c \mid x_q)\); Bayes rule rewrites that in terms of \(P(x_q \mid c)\) and \(P(c)\). Estimating that class-conditional density is the real task.
+:Q_UNIT: nonpar
+:END:
+
+** Write the Bayes rule expansion used for classification, and say which part is hard.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(P(c \mid x_q) = \frac{P(x_q \mid c)P(c)}{\sum_{c'}P(x_q \mid c')P(c')}\). The prior is easy to count; the class-conditional density is the hard part.
+:Q_UNIT: nonpar
+:END:
+
+** Explain how a Parzen window estimates a density.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Place a box of fixed side \(h\) on the query point and count how many training points fall inside, dividing by the sample size and the box volume.
+:Q_UNIT: nonpar
+:END:
+
+** Explain the duality between Parzen window and k-NN density estimation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Both estimate density as a count over a volume. Parzen fixes the volume and lets the count vary; k-NN fixes the count and lets the volume grow.
+:Q_UNIT: nonpar
+:END:
+
+** Your data has very dense and very sparse regions. Which of Parzen and k-NN adapts better, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: k-NN. Its bin shrinks where points are dense and grows where they are sparse, so the estimate stays stable. A single fixed \(h\) must compromise between the two.
+:Q_UNIT: nonpar
+:END:
+
+** Explain what a Voronoi diagram shows, and what algorithm it is a picture of.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It partitions the space into regions, each the set of points nearest one training example. It is exactly the decision geometry of 1-NN.
+:Q_UNIT: nonpar
+:END:
+
+* Distance
+
+** State the four properties a distance function must have to be a metric.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Non-negativity; \(D(x,y) = 0\) only when \(x = y\); symmetry; and the triangle inequality.
+:Q_UNIT: nonpar
+:END:
+
+** Write the Minkowski distance and explain what its parameter controls.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(D_p(x,y) = (\sum_i |x_i-y_i|^{p})^{1/p}\). The exponent \(p\) controls how heavily large single-coordinate differences are weighted against many small ones.
+:Q_UNIT: nonpar
+:END:
+
+** Explain Manhattan distance and the kind of data it suits.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(p = 1\): sum the raw coordinate differences. It suits features with unrelated units, since each dimension contributes independently rather than being traded geometrically.
+:Q_UNIT: nonpar
+:END:
+
+** Explain Euclidean distance and the kind of data it suits.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(p = 2\): straight-line distance. It suits features measured in comparable units, where trading one dimension against another is geometrically meaningful.
+:Q_UNIT: nonpar
+:END:
+
+** Explain max-coordinate distance and when it would be the right choice.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(p = \infty\): the largest single coordinate difference. Right when two things count as far apart if they differ a lot on ANY one feature.
+:Q_UNIT: nonpar
+:END:
+
+** Compare Manhattan and Euclidean distance on data where one feature has a much larger numeric range.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Euclidean squares that feature's differences, so it dominates the distance entirely. Manhattan is also skewed but far less. Neither is a substitute for normalizing.
+:Q_UNIT: nonpar
+:END:
+
+** Minkowski distance
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: minkowski
+:Q_UNIT: nonpar
+:END:
+
+** Explain why one-hot encoding can be the wrong choice for an ordinal feature.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It makes every pair of categories equally distant, discarding the order. Under one-hot, January is as far from February as from July.
+:Q_UNIT: nonpar
+:END:
+
+** Explain the idea behind the Value Difference Metric.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Two values of a categorical feature are close when they induce the same distribution over classes. Distance is measured through the evidence the value gives, not the label itself.
+:Q_UNIT: nonpar
+:END:
+
+** Write the Value Difference Metric and explain why it cannot be used for regression.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(\delta(v_i,v_j) = \sum_c |\frac{N_{i,c}}{N_i} - \frac{N_{j,c}}{N_j}|^{q}\). Every term needs class counts, and regression has no classes to count over.
+:Q_UNIT: nonpar
+:END:
+
+** You have categorical features in a regression problem. What distance can you use instead of VDM?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: One-hot encode the feature and use Hamming distance. It loses any ordering, but it needs no labels, so it works for regression.
+:Q_UNIT: nonpar
+:END:
+
+** VDM distance between two categorical values
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: vdm
+:Q_UNIT: nonpar
+:END:
+
+** Explain what a kernel function is required to satisfy, and what it is NOT required to satisfy.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Non-negative, symmetric, and integrating to 1. It need not satisfy the triangle inequality -- a kernel measures similarity, not distance.
+:Q_UNIT: nonpar
+:END:
+
+** Explain what it means to say a kernel defines a feature map.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(K(x_i,x_j) = \phi(x_i)^{T}\phi(x_j)\) for some map \(\phi\) -- the kernel is an inner product in a transformed space you never have to construct.
+:Q_UNIT: nonpar
+:END:
+
+* Estimating a Density
+
+** Derive the general form of a nonparametric density estimate.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The count in a region is binomial, so \(k/N\) estimates its probability mass. Mass is density times volume, giving \(\hat{p}(x) \approx \frac{k}{NV}\).
+:Q_UNIT: nonpar
+:END:
+
+** Explain how the general density estimate specializes when the region is a hypercube.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A cube of side \(h\) in \(d\) dimensions has volume \(h^{d}\), so \(\hat{p}(x) \approx \frac{k}{Nh^{d}}\). Every estimator here is a variation on this.
+:Q_UNIT: nonpar
+:END:
+
+** Explain the histogram estimator and the two choices it forces on you.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Divide the space into fixed bins and count. You must choose an origin and a bin width, and both change the result.
+:Q_UNIT: nonpar
+:END:
+
+** Explain the naive estimator and the problem it solves relative to a histogram.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It centres the bin on the query point rather than on a fixed grid, removing the arbitrary origin. The query is always at the middle of its own bin.
+:Q_UNIT: nonpar
+:END:
+
+** Explain what kernel density estimation changes relative to the naive estimator.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It replaces the hard in-or-out indicator with a smooth weight that decays with distance, so the estimate becomes a sum of bumps rather than a step function.
+:Q_UNIT: nonpar
+:END:
+
+** Write the kernel density estimator and explain the role of each of its two choices.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(\hat{p}(x) = \frac{1}{Nh}\sum_t K(\frac{x-x^{t}}{h})\). The kernel \(K\) sets the shape of each point's influence; the bandwidth \(h\) sets its width.
+:Q_UNIT: nonpar
+:END:
+
+** Explain what happens to a kernel density estimate as the bandwidth goes to each extreme.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Very small: a spike at each training point, following noise -- low bias, high variance. Very large: everything blurs to one broad bump -- high bias, low variance.
+:Q_UNIT: nonpar
+:END:
+
+** Gaussian kernel density estimate
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: kde
+:Q_UNIT: nonpar
+:END:
+
+** Explain what changes when a Parzen estimator moves from one dimension to many.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The normalizer becomes \(Nh^{d}\) rather than \(Nh\), since the window's volume is \(h^{d}\). A covariance matrix can replace the single \(h\) for non-spherical windows.
+:Q_UNIT: nonpar
+:END:
+
+** Explain what using a covariance matrix in the kernel buys over a single bandwidth.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It lets the window stretch and tilt with the data rather than staying a sphere, so correlated features are not treated as independent directions.
+:Q_UNIT: nonpar
+:END:
+
+** Write the k-NN density estimator and explain what sets the bin size.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(\hat{p}(x) = \frac{k}{2ND(x,x_{(k)})}\). The distance to the \(k\)th nearest neighbor is the bin width, so the data itself chooses it.
+:Q_UNIT: nonpar
+:END:
+
+** Derive the k-NN posterior, and explain why this justifies the plurality vote.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(\hat{P}(c_i \mid x) = \hat{p}(x,c_i)/\hat{p}(x) = k_i/k\) -- the volume cancels. The vote is not a heuristic but the Bayes rule under this density estimate.
+:Q_UNIT: nonpar
+:END:
+
+** k-NN estimator: posterior and density
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: knnpost
+:Q_UNIT: nonpar
+:END:
+
+** In the class-conditional kernel estimator, explain why the normalizer uses the class count rather than the total.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each class-conditional density must integrate to 1 over its own class. Dividing by \(N\) would scale every class by its own prior twice.
+:Q_UNIT: nonpar
+:END:
+
+** Explain the curse of dimensionality and why it is especially damaging here.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: As dimensions grow, all points become roughly equidistant and "closeness" stops meaning anything. That destroys the one assumption every nonparametric method rests on.
+:Q_UNIT: nonpar
+:END:
+
+* Nearest Neighbor in Practice
+
+** Explain how a k-NN classifier produces a label, and how ties are handled.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Find the \(k\) closest training points and take the most common class among them. Ties are broken at random or by weighting votes with distance.
+:Q_UNIT: nonpar
+:END:
+
+** Explain distance-weighted voting and the problem it addresses.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each neighbor's vote is scaled by closeness, so a near neighbor outweighs a far one. It stops a distant \(k\)th neighbor from counting as much as an adjacent point.
+:Q_UNIT: nonpar
+:END:
+
+** Explain what happens to a k-NN classifier as k goes from 1 to the size of the training set.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: At \(k=1\) the boundary is jagged and follows noise -- high variance. As \(k\) grows it smooths, and at \(k=N\) it always predicts the majority class -- the null model.
+:Q_UNIT: nonpar
+:END:
+
+** Write pseudocode for k-NN classification.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Distance to every stored point, keep the k nearest, return their plurality class.
+:Q_STEPS: KNN-CLASSIFY(E, x_q, k, D): | dists <- empty list | for each (x, c) in E: | .  dists.append( (D(x_q, x), c) ) | sort dists ascending by distance | neighbors <- the first k entries | votes <- empty count map | for each (d, c) in neighbors: votes[c] <- votes[c] + 1 | best <- the classes attaining max votes | return a uniformly random element of best
+:Q_UNIT: nonpar
+:END:
+
+** Write pseudocode for k-NN regression with a kernel weighting.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Same neighbor search, but return a kernel-weighted mean of their responses.
+:Q_STEPS: KNN-REGRESS(E, x_q, k, gamma): | neighbors <- the k entries of E nearest x_q | num <- 0;  den <- 0 | for each (x, r) in neighbors: | .  w <- exp( -gamma * L2(x_q, x) ) | .  num <- num + w * r | .  den <- den + w | if den == 0: return mean of r over neighbors | return num / den
+:Q_UNIT: nonpar
+:END:
+
+** Explain why naive nearest neighbor search is expensive, and give its complexity.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Every query compares against every stored exemplar, each comparison costing \(O(d)\) across the dimensions. That is \(O(d|E|)\) per query, and it grows with the data.
+:Q_UNIT: nonpar
+:END:
+
+** k-NN is too slow at query time. What are your options, and what does each give up?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Delete examples, or build a smaller prototype set -- both lose information. Or index everything with a tree, which loses nothing but stops helping in high dimensions.
+:Q_UNIT: nonpar
+:END:
+
+* Shrinking the Stored Set
+
+** Explain the idea behind edited nearest neighbor.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Test each stored point against its neighbors using leave-one-out 1-NN, and delete points according to whether they agree. Repeat until validation performance drops.
+:Q_UNIT: nonpar
+:END:
+
+** One version of edited NN deletes misclassified points. Explain what that version is trying to achieve.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A point its neighbors disagree with is likely noise or a mislabel. Removing those smooths the decision boundary and leaves the clean interior of each class.
+:Q_UNIT: nonpar
+:END:
+
+** A form of edited nearest neighbor deletes the points its neighbors classify CORRECTLY. Explain what that is trying to achieve.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A point its neighbors already agree with is redundant -- the boundary does not need it. Keeping only the disputed points retains what actually defines the boundary.
+:Q_UNIT: nonpar
+:END:
+
+** Compare the two versions of edited NN: what does each keep, and when would you prefer each?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deleting misclassified points keeps the clean interior, good for noisy data. Deleting correct points keeps the boundary, good for compression when labels are reliable.
+:Q_UNIT: nonpar
+:END:
+
+** Write pseudocode for edited nearest neighbor.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Leave-one-out 1-NN over the whole set, delete everything matching the chosen criterion, and stop when validation performance drops.
+:Q_STEPS: EDITED-NN(X, validation V, version): | repeat: | .  mark <- empty set | .  for each x in X: | .  .  c_hat <- 1-NN classify x using X minus {x} | .  .  agree <- ( c_hat == class(x) ) | .  .  if version 1 and not agree: add x to mark | .  .  if version 2 and     agree: add x to mark | .  X_cand <- X minus mark | .  if X_cand performs worse than X on V: return X | .  X <- X_cand | until X stops changing | return X
+:Q_UNIT: nonpar
+:END:
+
+** Explain the goal of condensed nearest neighbor and how it differs from editing.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Build up the smallest subset that classifies the rest correctly, rather than deleting from the full set. Condensing grows a prototype set; editing prunes an existing one.
+:Q_UNIT: nonpar
+:END:
+
+** Walk through how condensed nearest neighbor builds its subset.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Start empty. Scan the data in random order, and whenever the current subset would misclassify a point, add that point. Repeat until a full pass adds nothing.
+:Q_UNIT: nonpar
+:END:
+
+** Write pseudocode for condensed nearest neighbor.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Admit a point only when the current subset gets it wrong, until the subset stops changing.
+:Q_STEPS: CONDENSED-NN(X): | Z <- empty set | repeat: | .  for all x in X, in random order: | .  .  find x' in Z minimizing norm(x - x') | .  .  if Z is empty or class(x) != class(x'): | .  .  .  add x to Z | until Z does not change | return Z
+:Q_UNIT: nonpar
+:END:
+
+** Why does condensed NN scan the data in random order, and what does that cost?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The first point is admitted unconditionally and shapes every later decision, so a fixed order could systematically produce a bad subset. The cost is a non-deterministic result.
+:Q_UNIT: nonpar
+:END:
+
+** Why is condensed NN called greedy, and what does it not guarantee?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It admits points one at a time and never reconsiders. The smallest sufficient subset is its goal, not its guarantee -- the result depends on the ordering.
+:Q_UNIT: nonpar
+:END:
+
+** How would you adapt edited and condensed nearest neighbor to a regression problem?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Replace "wrong class" with "predicted response differs by more than a threshold". Continuous outputs are never simply unequal, so the threshold defines disagreement.
+:Q_UNIT: nonpar
+:END:
+
+* Indexing with a KD-Tree
+
+** Explain how a KD-tree is built.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Recursively split the points on the median of one coordinate, cycling through the axes with depth, until each leaf holds a single point.
+:Q_UNIT: nonpar
+:END:
+
+** Explain how a KD-tree answers a nearest-neighbor query faster than scanning.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Descend to the leaf containing the query, then unwind. A sibling subtree is visited only if it could contain something closer, so most of the tree is skipped.
+:Q_UNIT: nonpar
+:END:
+
+** State the pruning test that makes a KD-tree query fast, and explain why it is valid.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Skip a subtree when the distance to its splitting plane exceeds the best distance found so far. Nothing beyond the plane can be nearer than the plane itself.
+:Q_UNIT: nonpar
+:END:
+
+** Write pseudocode for a KD-tree nearest-neighbor query.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Descend the likely side first, then check whether the far side could still win.
+:Q_STEPS: KD-NEAREST(node, x_q, best): | if node is null: return best | if node is a leaf: | .  if D(x_q, node.point) < best.dist: best <- that point | .  return best | a <- node.axis | if x_q[a] < node.split: near <- node.left;  far <- node.right | else:                   near <- node.right; far <- node.left | best <- KD-NEAREST(near, x_q, best) | gap <- abs( x_q[a] - node.split ) | if gap < best.dist:                      // the pruning test | .  best <- KD-NEAREST(far, x_q, best) | return best
+:Q_UNIT: nonpar
+:END:
+
+** Explain when a KD-tree stops helping, and why.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: In high dimensions the query sits close to every splitting plane relative to its nearest neighbor, so the pruning test keeps failing and the search degrades to a full scan.
+:Q_UNIT: nonpar
+:END:
+
+* Nonparametric Regression
+
+** Explain what a smoother is and how it differs from a fitted regression function.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A smoother computes the predicted value at query time from nearby training responses. There are no coefficients fitted in advance -- the data defines the shape.
+:Q_UNIT: nonpar
+:END:
+
+** All three smoothers share one structural form. What is it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A weighted average of the training responses, divided by the sum of the weights so it stays a true average. Only the weight function differs between them.
+:Q_UNIT: nonpar
+:END:
+
+** Explain the regressogram smoother.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Divide the input into fixed bins and predict the mean response of the bin the query lands in. It is the regression analogue of a histogram.
+:Q_UNIT: nonpar
+:END:
+
+** Explain the running mean smoother and how it improves on the regressogram.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It averages the responses within one bandwidth of the query, centring the window on the query rather than on a fixed grid. No arbitrary origin.
+:Q_UNIT: nonpar
+:END:
+
+** Explain the kernel smoother and what it achieves that the other two do not.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It weights every response by a smooth decaying kernel instead of a hard in-or-out test, so the prediction is continuous. It is locally weighted regression.
+:Q_UNIT: nonpar
+:END:
+
+** Which of the three smoothers give a discontinuous prediction, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The regressogram and the running mean. Both use a hard indicator, so a point entering or leaving the window makes the prediction jump. Only a smooth kernel avoids it.
+:Q_UNIT: nonpar
+:END:
+
+** Explain what a null model is and the two jobs it does.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The simplest possible predictor -- most frequent class, or mean response. It is the baseline any model must beat, and it exercises the whole pipeline without using a feature.
+:Q_UNIT: nonpar
+:END:
+
+** Your k-NN regressor performs worse than predicting the mean. Give three plausible causes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Features unnormalized so one dominates the distance; a badly tuned \(k\) or bandwidth; or the features genuinely carry no signal for this target. A pipeline bug is the fourth.
+:Q_UNIT: nonpar
+:END:
+
+* Error and Outliers
+
+** Why is a stored training example only an approximation of the concept you want to learn?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Noise, limited measurement precision and human labeling error all corrupt it, and irrelevant attributes distort its position. For a continuous concept it can never be exact.
+:Q_UNIT: nonpar
+:END:
+
+** Explain why irrelevant features hurt nearest neighbor more than they hurt a decision tree.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Every feature enters the distance with equal weight, so an irrelevant one injects noise into the neighbor ordering. A tree can simply decline to split on it.
+:Q_UNIT: nonpar
+:END:
+
+** Define an outlier and explain why detecting outliers is an unsupervised problem.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A point very different from the rest of the data. Outliers are not a labeled class, so there is nothing to train a classifier against.
+:Q_UNIT: nonpar
+:END:
+
+** Explain what one-class classification means and what it is used for.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deciding whether a point belongs to the normal population at all, rather than which class it is. Used to filter anomalies before the real model runs.
+:Q_UNIT: nonpar
+:END:
+
+** Explain how the Local Outlier Factor decides whether a point is an outlier.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It compares a point's own distance to its \(k\)th neighbor against the average such distance among its neighbors. Near 1 means it is as dense as its surroundings.
+:Q_UNIT: nonpar
+:END:
+
+** Why does LOF use a ratio rather than just thresholding a point's distance to its neighbors?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An absolute threshold would flag every point in a genuinely sparse region. The ratio makes the measure local, so sparseness only counts when the neighbors are not also sparse.
+:Q_UNIT: nonpar
+:END:
+
+** Local Outlier Factor
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: lof
+:Q_UNIT: nonpar
+:END:
+
+** Write pseudocode for computing the Local Outlier Factor of every point.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: One pass to get every point's k-distance, a second to score each against its neighbors' average.
+:Q_STEPS: LOF-ALL(X, k): | for each x in X: | .  N[x]     <- the k nearest neighbors of x | .  delta[x] <- distance from x to its kth nearest | for each x in X: | .  avg <- mean of delta[s] over s in N[x] | .  LOF[x] <- delta[x] / avg | return LOF
+:Q_EXPLAIN: Two passes are needed: the second uses the neighbors' k-distances, which only exist once every point has been scored.
+:Q_UNIT: nonpar
+:END:

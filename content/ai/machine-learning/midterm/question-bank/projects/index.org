@@ -1,0 +1,337 @@
+#+TITLE: Projects
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm
+#+STARTUP: noindent
+#+QUIZ: t
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Putting a learner into a working experiment: baselines, preparing features,
+honest evaluation, and the traps in real data. Every question states its own
+scenario. Units =proj1= and =proj2=. In the pseudocode answers, leading dots
+mark indentation depth.
+
+* Baselines
+
+** Before fitting any model, you want a baseline that ignores the features entirely. What should it predict for classification, and for regression?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The most frequent class label, and the mean of the responses. Neither looks at a single feature value.
+:Q_UNIT: proj1
+:END:
+
+** A baseline that ignores every feature seems useless. Give two distinct reasons to build one anyway.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It is the floor any real model must clear. And it exercises the entire pipeline -- loading, splitting, scoring -- without depending on the model being correct.
+:Q_UNIT: proj1
+:END:
+
+** Your k-NN classifier scores no better than a model that always predicts the most common class. What are the possible explanations?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The features carry no signal for this target; the distance is broken by unnormalized or mis-encoded features; the hyperparameters are badly tuned; or the pipeline has a bug.
+:Q_UNIT: proj1
+:END:
+
+* Preparing Features for a Distance
+
+** Explain why features must be normalized before you compute a distance between examples.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The distance sums each feature's contribution, so a feature measured in thousands swamps one measured in tenths. Normalizing gives each comparable influence.
+:Q_UNIT: proj1
+:END:
+
+** Explain min-max normalization and its weakness.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Rescale linearly so the observed range maps onto a fixed interval. One extreme outlier stretches the range and squeezes every other value into a narrow band.
+:Q_UNIT: proj1
+:END:
+
+** Explain z-score normalization and its weakness.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Subtract the mean and divide by the standard deviation, making features comparable in units of spread. The result is unbounded, so extreme values stay extreme.
+:Q_UNIT: proj1
+:END:
+
+** Compare min-max and z-score normalization. When would you choose each?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Min-max suits already-bounded features and puts everything on one scale. Z-score suits skewed or outlier-heavy data, where min-max would compress the bulk of the values.
+:Q_UNIT: proj1
+:END:
+
+** You are running cross-validation. On which portion of the data must the normalization constants be computed, and what goes wrong otherwise?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: On the training portion only, then applied to the test portion. Computing them over everything leaks test information into training and biases your reported error optimistically.
+:Q_UNIT: proj1
+:END:
+
+** Normalization constants must come from the training portion alone. What other quantities in a nearest-neighbor pipeline carry the same leakage risk?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Anything fitted from data: the class counts behind a categorical distance, the tuned hyperparameters, and any reduced exemplar set. All must come from the training portion.
+:Q_UNIT: proj1
+:END:
+
+** Explain the idea behind the Value Difference Metric for measuring distance between categorical values.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Two values are close when the examples carrying them have the same class distribution. Distance is measured through the evidence a value gives about the label.
+:Q_UNIT: proj1
+:END:
+
+** Why can the Value Difference Metric not be used on a regression problem, and what would you use instead?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It is built from class counts, and regression has no classes. Use one-hot encoding with Hamming distance instead, accepting the loss of any ordering.
+:Q_UNIT: proj1
+:END:
+
+** Your data has both numeric and categorical features. Explain how to produce a single distance between two examples.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Compute a numeric distance and a categorical distance separately using the same exponent, omit the final root from both, and add them together.
+:Q_UNIT: proj1
+:END:
+
+** When combining a numeric and a categorical distance, you omit the final pth root from both. Why is that safe?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The root is monotone, so it cannot change which neighbors come out nearest -- and the ordering is all a nearest-neighbor method uses.
+:Q_UNIT: proj1
+:END:
+
+** You combined two distances without taking the pth root. What must you then avoid doing with the resulting numbers?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Treating them as true distances. Anything expecting a real metric -- a kernel assuming Euclidean distance, say -- will be scaled wrongly. Use them only to rank neighbors.
+:Q_UNIT: proj1
+:END:
+
+** A feature encodes the month of the year as the integers 1 through 12. Explain what goes wrong when you use it in an ordinary distance.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: December and January come out 11 apart when they are adjacent. The feature is cyclic, so a linear encoding misrepresents its geometry.
+:Q_UNIT: proj1
+:END:
+
+* Tuning and Reducing a Nearest-Neighbor Model
+
+** Explain how a k-nearest-neighbor regressor turns its neighbors into a single prediction.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A kernel-weighted mean of their responses, so nearer neighbors count more. The bandwidth controls how quickly that weighting decays with distance.
+:Q_UNIT: proj1
+:END:
+
+** Explain what happens to a kernel-weighted k-NN regressor as the bandwidth goes to each extreme.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Very narrow: only the closest neighbor matters, so it becomes 1-NN -- low bias, high variance. Very wide: the weights equalize toward a plain mean -- high bias, low variance.
+:Q_UNIT: proj1
+:END:
+
+** Edited and condensed nearest neighbor both run with k = 1, while prediction uses a separately tuned k. Explain why the two values differ.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Reduction asks whether a single nearest stored point suffices, which is a question about one neighbor. Prediction asks how many neighbors give the best vote -- a different question.
+:Q_UNIT: proj1
+:END:
+
+** You are applying edited or condensed nearest neighbor to a regression problem. What extra hyperparameter do you need, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An error threshold. Both methods test whether a prediction disagrees with the truth, and continuous responses are never simply unequal, so a tolerance has to define disagreement.
+:Q_UNIT: proj1
+:END:
+
+** Describe how to tune k for a nearest-neighbor model without contaminating your final error estimate.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Split the training portion again, sweep \(k\) on that inner validation part, refit on the full training portion with the winner, and score once on the untouched test portion.
+:Q_UNIT: proj1
+:END:
+
+** Describe the end-to-end procedure for evaluating a nearest-neighbor model honestly, from raw data to a reported error.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Every quantity fitted from data is fitted inside the training half; the test half is touched once, at scoring.
+:Q_STEPS: drop identifier features; apply any target transform | for each of 5 repetitions: | .  shuffle and split the data into halves A and B | .  for (train, test) in [ (A,B), (B,A) ]: | .  .  fit normalization on train only, apply to both | .  .  build categorical distance tables from train only | .  .  split train again and sweep hyperparameters on that inner split | .  .  refit on the full train half with the chosen values | .  .  build any reduced exemplar set from train only | .  .  score the baseline and the models on test | report the distribution of the ten scores per model
+:Q_UNIT: proj1
+:END:
+
+* Traps in Real Data
+
+** A column in your dataset holds a unique identifier for each row. What must you do with it, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Discard it. It carries no generalizable information, and a tree will split on it to produce a perfect, useless lookup table.
+:Q_UNIT: proj1
+:END:
+
+** A dataset encodes its two classes as the numbers 2 and 4. What mistake does that invite?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Treating them as quantities. They are labels, so averaging them or measuring the distance between them is meaningless.
+:Q_UNIT: proj1
+:END:
+
+** A voting dataset records some entries as "?", and the documentation says this means the member abstained. Why would imputing those entries be wrong?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An abstention is a real, informative third value, not missing data. Imputing it replaces a genuine signal with a guess about something that was never absent.
+:Q_UNIT: proj1
+:END:
+
+** A dataset's target is an integer count taking 29 distinct values. Explain why treating it as a 29-class classification problem is wrong.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The values are ordered, and regression exploits that -- being off by one is nearly right. Classification treats 5 and 6 as exactly as wrong as 5 and 28.
+:Q_UNIT: proj1
+:END:
+
+** One of your features was produced by someone else fitting a regression to the very target you are predicting. What must you do with it, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Remove it from the feature set. It is a near-perfect predictor derived from the answer, so it leaks the target -- your model would look excellent while learning nothing.
+:Q_UNIT: proj1
+:END:
+
+** You removed a feature because it leaked the target. Is it now worthless, or is there still a use for it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Still useful, as a benchmark. Keep it aside and compare your own predictions against it to see how close you come to that existing method.
+:Q_UNIT: proj1
+:END:
+
+** A regression target is heavily concentrated at zero with a few very large values. Explain the problem this causes and the standard fix.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Squared error is dominated by the few extremes, dragging the model toward them. The fix is a log transform of the target, which compresses the long tail.
+:Q_UNIT: proj1
+:END:
+
+** You are log-transforming a target whose values start at zero. Why add one before taking the logarithm?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: So that zero maps to zero rather than negative infinity. With the data concentrated at zero, that applies to most of it.
+:Q_UNIT: proj1
+:END:
+
+** You log-transformed a regression target before fitting. What must you be careful about when reporting your error?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: State whether the error is in log space or back-transformed. The two are not comparable, and a good log-space error can hide large errors on the original scale.
+:Q_UNIT: proj1
+:END:
+
+* Building and Evaluating a Tree
+
+** When a decision tree splits on a feature, what determines how many children the node gets?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The feature's type. A categorical feature branches once per distinct value; a numeric feature gets a binary split on a threshold.
+:Q_UNIT: proj2
+:END:
+
+** A decision tree handles categorical features without one-hot encoding, while k-nearest neighbor cannot. Explain why.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A tree tests a feature's value directly and never computes a distance, so categories need no numeric form. k-NN must subtract feature values, which forces an encoding.
+:Q_UNIT: proj2
+:END:
+
+** You are choosing a splitting criterion for a classification tree and want to avoid favouring many-valued features. What criterion, and how does it help?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Gain ratio -- information gain divided by intrinsic value. Dividing by the fragmentation cancels the advantage a feature gets purely from having many branches.
+:Q_UNIT: proj2
+:END:
+
+** What splitting criterion does a regression tree use, and what is it minimizing?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Weighted mean squared error: for each candidate split, take each branch's squared deviation from its own mean, weight by branch size, and minimize the total.
+:Q_UNIT: proj2
+:END:
+
+** You want to compare a fully grown decision tree against a pruned version of it. Describe how the data must be divided, and what each portion does.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Three disjoint roles. A portion held out up front decides the pruning; of the rest, each cross-validation fold's training part grows the tree and the held-out fold scores it.
+:Q_UNIT: proj2
+:END:
+
+** Why must the data used to decide pruning be separate from the data the tree was grown on?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: On its own training data a fully grown tree is already optimal, so no prune would ever look acceptable and pruning would have no effect at all.
+:Q_UNIT: proj2
+:END:
+
+** Why must the data used to decide pruning also be separate from the data you finally score on?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Pruning selects between models using that data, so it is a model-selection step. Scoring on it would report a number that had been tuned on the same examples.
+:Q_UNIT: proj2
+:END:
+
+** Describe the end-to-end procedure for comparing a fully grown tree against a pruned one.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Hold out the pruning data once, cross-validate the rest, and score both trees on the same untouched fold.
+:Q_STEPS: eliminate unique-identifier features | hold out a fixed fraction P, once, to decide pruning | for each of 5 repetitions over the remainder: | .  shuffle and split into halves A and B | .  for (train, test) in [ (A,B), (B,A) ]: | .  .  grow a tree on train, to completion | .  .  prune a COPY of it against P | .  .  score both trees on test | compare the two distributions of scores
+:Q_EXPLAIN: Prune a copy -- you need the unpruned tree's score on the same fold for the comparison to mean anything.
+:Q_UNIT: proj2
+:END:
+
+** You compare a fully grown tree against a pruned one. What hypothesis is that comparison testing, and what mechanism would make it true?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: That pruning improves generalization. A full tree has tiny high-variance leaves fitting noise; replacing them raises bias slightly and cuts variance substantially.
+:Q_UNIT: proj2
+:END:
+
+** On what kind of dataset would you expect pruning to help a tree most, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: One with weak features and a noisy target, where a fully grown tree has little real signal and so fits noise deeply. On nearly separable data there is far less to remove.
+:Q_UNIT: proj2
+:END:
+
+* Comparing the Two Approaches
+
+** Compare how k-nearest neighbor and a decision tree each control overfitting, and name the hyperparameter responsible in each.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: k-NN smooths over neighbors, controlled by \(k\) and the kernel bandwidth. A tree prunes, controlled by the acceptance test against held-out data. Both reduce effective parameters.
+:Q_UNIT: proj2
+:END:
+
+** Both a k-NN study and a pruned-tree study can use 5x2 cross-validation, but the tree study needs one extra holdout. Explain why, and where it comes from.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Pruning is a model-selection step needing data separate from both growing and scoring. So a portion is removed before cross-validation begins, giving three roles instead of two.
+:Q_UNIT: proj2
+:END:
+
+** You must describe an algorithm precisely enough that someone could reimplement it, without showing any code. What has to be in that description?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The criterion and its formula, the order of operations, where each hyperparameter enters and what it was tuned against, the stopping and tie-breaking rules, and the choices you made where more than one was valid.
+:Q_UNIT: proj2
+:END:

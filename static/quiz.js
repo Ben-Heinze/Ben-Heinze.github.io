@@ -16,12 +16,63 @@
 (function () {
   'use strict';
 
-  var UNIT_LABEL = { ov: 'Overview', mem: 'Memory', proc: 'Process' };
+  var UNIT_LABEL = {
+    // Operating Systems
+    ov: 'Overview', mem: 'Memory', proc: 'Process',
+    // Machine Learning midterm
+    found: 'Foundations', linreg: 'Linear Regression', nonpar: 'Nonparametric',
+    eval: 'Experiments', dimred: 'Dim. Reduction', clust: 'Clustering',
+    theory: 'Learning Theory', trees: 'Trees', logic: 'Logic & Rules',
+    proj1: 'Project 1 (k-NN)', proj2: 'Project 2 (Trees)'
+  };
 
   // ── tiny helpers ────────────────────────────────────────────────────────────
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
   function randint(lo, hi) { return lo + Math.floor(Math.random() * (hi - lo + 1)); }
   function round(x, d) { var m = Math.pow(10, d); return Math.round(x * m) / m; }
+  function lg(x) { return Math.log(x) / Math.LN2; }
+  // Binary entropy over p positives and n negatives, with Quinlan's 0*lg(0) = 0.
+  function hpn(p, n) {
+    var t = p + n; if (!t) return 0;
+    var a = p / t, b = n / t;
+    return (a ? -a * lg(a) : 0) + (b ? -b * lg(b) : 0);
+  }
+  // Gaussian/RBF kernel K(u) = (1/sqrt(2*pi)) exp(-u^2 / 2).
+  function gauss(u) { return Math.exp(-u * u / 2) / Math.sqrt(2 * Math.PI); }
+  function vec(a) { return '[' + a.join(', ') + ']'; }
+
+  // Org collapses every run of whitespace in a property value, so pseudocode
+  // authored in :Q_STEPS: arrives flat. The convention is to mark depth with
+  // leading "." tokens ("`. . foo`" is two levels deep); restore real
+  // indentation from them so the monospace block reads as a nested block.
+  function undot(line) {
+    var depth = 0;
+    while (line.charAt(0) === '.' && (line.charAt(1) === ' ' || line.length === 1)) {
+      depth++; line = line.slice(2);
+    }
+    return new Array(depth * 3 + 1).join(' ') + line;
+  }
+
+  // Symbol-glossary answers are authored as `TERM :: MEANING' lines. Pad the
+  // terms to a common width so they land in a column -- the two-column table the
+  // notes use for an equation's symbols, rebuilt inside the monospace block.
+  // (Authored spacing can't do this: Org collapses runs of whitespace.)
+  function formatSteps(lines) {
+    var rows = lines.map(undot), widest = 0, i, at;
+    for (i = 0; i < rows.length; i++) {
+      at = rows[i].indexOf(' :: ');
+      if (at > widest) widest = at;
+    }
+    if (widest <= 0) return rows.join('\n');
+    for (i = 0; i < rows.length; i++) {
+      at = rows[i].indexOf(' :: ');
+      if (at < 0) continue;
+      rows[i] = rows[i].slice(0, at) +
+                new Array(widest - at + 1).join(' ') + '   ' +
+                rows[i].slice(at + 4);
+    }
+    return rows.join('\n');
+  }
   function shuffle(a) {
     a = a.slice();
     for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
@@ -33,6 +84,18 @@
     });
   }
   function el(tag, cls) { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
+
+  // Questions may carry LaTeX (\( ... \)) -- wiki-node-text in publish.el keeps
+  // latex-fragment values intact on the way into quiz-index.json. But we inject
+  // them long after MathJax typeset the page, so re-run it over what we drew.
+  // Same shape as the mermaid retypeset in publish.el: wait on MathJax's own
+  // startup promise first so this can't race its async bootstrap.
+  function typeset(node) {
+    var MJ = window.MathJax;
+    if (!node || !MJ || !MJ.typesetPromise) return;
+    var ready = (MJ.startup && MJ.startup.promise) ? MJ.startup.promise : Promise.resolve();
+    ready.then(function () { return MJ.typesetPromise([node]); }).catch(function () {});
+  }
   function unitLabel(u) { return UNIT_LABEL[u] || (u ? u.toUpperCase() : ''); }
 
   // Page-replacement simulation, shared by the `replace` generator's screening
@@ -156,6 +219,291 @@
       var r = pick([10, 12, 15, 20]), e = pick([1, 2, 3, 5]), w = pick([10, 12, 15, 20]), tot = r + e + w, val = e / tot * 100;
       return { q: 'CPU utilization: read ' + r + ' us, execute ' + e + ' us, write ' + w + ' us. Utilization (%)?', a: round(val, 2), unit: '%', tol: 0.1,
         steps: 'total = ' + r + '+' + e + '+' + w + ' = ' + tot + ' us\nutil = ' + e + '/' + tot + ' = ' + round(val, 2) + '%' };
+    },
+
+    // ── Machine Learning ─────────────────────────────────────────────────────
+    // Entropy of a class distribution -- the quantity ID3 maximizes the drop in.
+    entropy: function () {
+      var p = randint(2, 18), n = randint(2, 18), h = hpn(p, n), t = p + n;
+      return { q: 'Entropy: a node holds ' + p + ' positive and ' + n + ' negative examples. H(p,n) in bits?',
+        a: round(h, 4), unit: 'bits', tol: 0.005, steps:
+          'H(p,n) = -(p/(p+n)) lg(p/(p+n)) - (n/(p+n)) lg(n/(p+n))\n' +
+          '       = -(' + p + '/' + t + ') lg(' + p + '/' + t + ') - (' + n + '/' + t + ') lg(' + n + '/' + t + ')\n' +
+          '       = -(' + round(p / t, 4) + ')(' + round(lg(p / t), 4) + ') - (' + round(n / t, 4) + ')(' + round(lg(n / t), 4) + ')\n' +
+          '       = ' + round(h, 4) + ' bits' };
+    },
+    // Information gain over a 2-way split: gain = H(parent) - E(feature).
+    infogain: function () {
+      var p1 = randint(1, 9), n1 = randint(0, 8), p2 = randint(0, 8), n2 = randint(1, 9);
+      var p = p1 + p2, n = n1 + n2, t = p + n, t1 = p1 + n1, t2 = p2 + n2;
+      var h = hpn(p, n), h1 = hpn(p1, n1), h2 = hpn(p2, n2);
+      var e = (t1 / t) * h1 + (t2 / t) * h2, gain = h - e;
+      return { q: 'Information gain: a node of ' + p + ' positive / ' + n + ' negative splits on a binary feature into ' +
+          '(' + p1 + 'P, ' + n1 + 'N) and (' + p2 + 'P, ' + n2 + 'N). gain(f) in bits?',
+        a: round(gain, 4), unit: 'bits', tol: 0.005, steps:
+          'H(' + p + ',' + n + ') = ' + round(h, 4) + '\n' +
+          'H(' + p1 + ',' + n1 + ') = ' + round(h1, 4) + '   H(' + p2 + ',' + n2 + ') = ' + round(h2, 4) + '\n' +
+          'E(f) = sum_j ((p_j+n_j)/(p+n)) H(p_j,n_j)\n' +
+          '     = (' + t1 + '/' + t + ')(' + round(h1, 4) + ') + (' + t2 + '/' + t + ')(' + round(h2, 4) + ') = ' + round(e, 4) + '\n' +
+          'gain = H - E(f) = ' + round(h, 4) + ' - ' + round(e, 4) + ' = ' + round(gain, 4) + ' bits' };
+    },
+    // Gain ratio over a 3-way split -- the criterion Project 2 requires. The
+    // intrinsic value depends only on the partition sizes, not the classes.
+    gainratio: function () {
+      var b = [[randint(1, 7), randint(0, 6)], [randint(0, 6), randint(1, 7)], [randint(1, 6), randint(1, 6)]];
+      var p = 0, n = 0, i;
+      for (i = 0; i < 3; i++) { p += b[i][0]; n += b[i][1]; }
+      var t = p + n, h = hpn(p, n), e = 0, iv = 0, eTerms = [], ivTerms = [];
+      for (i = 0; i < 3; i++) {
+        var tj = b[i][0] + b[i][1], w = tj / t, hj = hpn(b[i][0], b[i][1]);
+        e += w * hj; iv += w ? -w * lg(w) : 0;
+        eTerms.push('(' + tj + '/' + t + ')(' + round(hj, 4) + ')');
+        ivTerms.push('(' + tj + '/' + t + ') lg(' + tj + '/' + t + ')');
+      }
+      var gain = h - e, gr = iv ? gain / iv : 0;
+      return { q: 'Gain ratio: a node of ' + p + ' positive / ' + n + ' negative splits on a 3-valued feature into ' +
+          '(' + b[0][0] + 'P,' + b[0][1] + 'N), (' + b[1][0] + 'P,' + b[1][1] + 'N), (' + b[2][0] + 'P,' + b[2][1] + 'N). gainRatio(f)?',
+        a: round(gr, 4), unit: '', tol: 0.005, steps:
+          'H(' + p + ',' + n + ') = ' + round(h, 4) + '\n' +
+          'E(f) = ' + eTerms.join(' + ') + ' = ' + round(e, 4) + '\n' +
+          'gain = ' + round(h, 4) + ' - ' + round(e, 4) + ' = ' + round(gain, 4) + '\n' +
+          'IV(f) = -[' + ivTerms.join(' + ') + '] = ' + round(iv, 4) + '   (partition sizes only)\n' +
+          'gainRatio = gain / IV = ' + round(gain, 4) + ' / ' + round(iv, 4) + ' = ' + round(gr, 4) };
+    },
+    // Precision / recall / F-beta off a 2x2 confusion matrix.
+    prf: function () {
+      var tp = randint(8, 40), fp = randint(2, 20), fn = randint(2, 20), tn = randint(8, 40);
+      var pr = tp / (tp + fp), rc = tp / (tp + fn);
+      var beta = pick([0.5, 1, 1, 2]), b2 = beta * beta;
+      var f = (1 + b2) * pr * rc / (b2 * pr + rc);
+      return { q: 'Confusion matrix: TP=' + tp + ', FP=' + fp + ', FN=' + fn + ', TN=' + tn + '. F' + beta + ' score?',
+        a: round(f, 4), unit: '', tol: 0.005, steps:
+          'P = TP/(TP+FP) = ' + tp + '/' + (tp + fp) + ' = ' + round(pr, 4) + '\n' +
+          'R = TP/(TP+FN) = ' + tp + '/' + (tp + fn) + ' = ' + round(rc, 4) + '\n' +
+          'F_beta = (1+beta^2) PR / (beta^2 P + R), beta = ' + beta + '\n' +
+          '       = ' + round(1 + b2, 2) + '(' + round(pr, 4) + ')(' + round(rc, 4) + ') / (' + round(b2, 2) + '(' + round(pr, 4) + ') + ' + round(rc, 4) + ')\n' +
+          '       = ' + round(f, 4) + '\n' +
+          'accuracy = ' + (tp + tn) + '/' + (tp + fp + fn + tn) + ' = ' + round((tp + tn) / (tp + fp + fn + tn), 4) + ' (for contrast)' };
+    },
+    // Micro- vs macro-averaged precision over 3 classes -- they disagree
+    // whenever the classes are unbalanced, which is the whole point.
+    micromacro: function () {
+      var c = [[randint(5, 40), randint(1, 15)], [randint(5, 40), randint(1, 15)], [randint(5, 40), randint(1, 15)]];
+      var which = pick(['macro', 'micro']), sTP = 0, sFP = 0, macro = 0, terms = [], i;
+      for (i = 0; i < 3; i++) {
+        sTP += c[i][0]; sFP += c[i][1];
+        macro += (c[i][0] / (c[i][0] + c[i][1])) / 3;
+        terms.push(c[i][0] + '/' + (c[i][0] + c[i][1]) + ' = ' + round(c[i][0] / (c[i][0] + c[i][1]), 4));
+      }
+      var micro = sTP / (sTP + sFP);
+      return { q: 'Per-class counts are TP/FP = ' + c[0][0] + '/' + c[0][1] + ', ' + c[1][0] + '/' + c[1][1] + ', ' + c[2][0] + '/' + c[2][1] +
+          '. The ' + which + '-averaged precision?',
+        a: round(which === 'macro' ? macro : micro, 4), unit: '', tol: 0.005, steps:
+          'per-class precision: ' + terms.join(',  ') + '\n' +
+          'macro = (1/L) sum_i P_i = (1/3)(sum above) = ' + round(macro, 4) + '   (per-class, then average)\n' +
+          'micro = sum TP / sum(TP+FP) = ' + sTP + '/' + (sTP + sFP) + ' = ' + round(micro, 4) + '   (pool counts, then divide)\n' +
+          'asked for ' + which + ' = ' + round(which === 'macro' ? macro : micro, 4) };
+    },
+    // Haussler's bound: how many examples epsilon-exhaust a version space.
+    haussler: function () {
+      var H = pick([64, 128, 256, 729, 1024, 4096]), eps = pick([0.05, 0.1, 0.15, 0.2]), delta = pick([0.01, 0.05, 0.1]);
+      var m = (1 / eps) * (Math.log(H) + Math.log(1 / delta));
+      return { q: 'Sample complexity: |H| = ' + H + ', consistent learner, epsilon = ' + eps + ', delta = ' + delta +
+          '. Minimum examples m (round up)?',
+        a: Math.ceil(m), unit: 'examples', tol: 0, steps:
+          'm >= (1/eps)(ln|H| + ln(1/delta))\n' +
+          '  = (1/' + eps + ')(ln ' + H + ' + ln ' + round(1 / delta, 2) + ')\n' +
+          '  = ' + round(1 / eps, 3) + '(' + round(Math.log(H), 4) + ' + ' + round(Math.log(1 / delta), 4) + ')\n' +
+          '  = ' + round(m, 3) + '  ->  ' + Math.ceil(m) + ' examples' };
+    },
+    // Same bound for conjunctions of n Boolean literals, where |H| = 3^n
+    // (each literal true / false / don't care) -- the EnjoySport setup.
+    pacconj: function () {
+      var nAttr = pick([4, 5, 6, 8, 10]), eps = pick([0.05, 0.1, 0.2]), delta = pick([0.01, 0.05, 0.1]);
+      var m = (1 / eps) * (nAttr * Math.log(3) + Math.log(1 / delta));
+      return { q: 'PAC: conjunctions of ' + nAttr + ' Boolean literals, epsilon = ' + eps + ', 1-delta = ' + round(1 - delta, 2) +
+          ' confidence. Minimum examples m (round up)?',
+        a: Math.ceil(m), unit: 'examples', tol: 0, steps:
+          '|H| = 3^n = 3^' + nAttr + ' = ' + Math.pow(3, nAttr) + '   (true / false / dont-care per literal)\n' +
+          'm >= (1/eps)(n ln3 + ln(1/delta))\n' +
+          '  = (1/' + eps + ')(' + nAttr + '(' + round(Math.log(3), 4) + ') + ' + round(Math.log(1 / delta), 4) + ')\n' +
+          '  = ' + round(m, 3) + '  ->  ' + Math.ceil(m) + ' examples' };
+    },
+    // Blumer et al.'s VC-based sufficient bound, for an infinite H.
+    vcbound: function () {
+      var vc = pick([2, 3, 4, 5, 11]), eps = pick([0.1, 0.15, 0.2]), delta = pick([0.05, 0.1, 0.2]);
+      var m = (1 / eps) * (4 * lg(2 / delta) + 8 * vc * lg(13 / eps));
+      return { q: 'VC sample complexity: VC(H) = ' + vc + ', epsilon = ' + eps + ', delta = ' + delta + '. Sufficient m (round up)?',
+        a: Math.ceil(m), unit: 'examples', tol: 0, steps:
+          'm >= (1/eps)(4 lg(2/delta) + 8 VC(H) lg(13/eps))\n' +
+          '  = (1/' + eps + ')(4 lg(' + round(2 / delta, 2) + ') + 8(' + vc + ') lg(' + round(13 / eps, 2) + '))\n' +
+          '  = ' + round(1 / eps, 3) + '(4(' + round(lg(2 / delta), 4) + ') + ' + (8 * vc) + '(' + round(lg(13 / eps), 4) + '))\n' +
+          '  = ' + round(m, 2) + '  ->  ' + Math.ceil(m) + ' examples' };
+    },
+    // Silhouette coefficient for one instance. Sign alone tells you whether the
+    // point sits in the right cluster.
+    silhouette: function () {
+      var a = round(pick([0.4, 0.8, 1.2, 1.6, 2.0, 2.5]), 2), b = round(pick([0.5, 1.0, 1.5, 2.2, 3.0, 4.0]), 2);
+      var sVal = (b - a) / Math.max(a, b);
+      return { q: 'Silhouette: instance x has mean intra-cluster distance a = ' + a +
+          ' and mean distance to the nearest other cluster b = ' + b + '. s(x)?',
+        a: round(sVal, 4), unit: '', tol: 0.005, steps:
+          's = (b - a) / max(a, b) = (' + b + ' - ' + a + ') / ' + Math.max(a, b) + ' = ' + round(sVal, 4) + '\n' +
+          'range is [-1, +1]; want s -> +1, i.e. a << b' + (sVal < 0 ? '\nnegative: x is closer to another cluster than to its own' : '') };
+    },
+    // Pseudo-F / Calinski-Harabasz, the ANOVA-style way to choose k.
+    pseudof: function () {
+      var k = randint(3, 6), N = randint(60, 300), ssb = randint(200, 900), sse = randint(100, 700);
+      var f = (ssb / (k - 1)) / (sse / (N - k));
+      return { q: 'Pseudo-F: k = ' + k + ' clusters over N = ' + N + ' instances, SSB = ' + ssb + ', SSE = ' + sse + '. F(k)?',
+        a: round(f, 3), unit: '', tol: 0.05, steps:
+          'F(k) = [SSB/(k-1)] / [SSE/(N-k)]\n' +
+          '     = [' + ssb + '/' + (k - 1) + '] / [' + sse + '/' + (N - k) + ']\n' +
+          '     = ' + round(ssb / (k - 1), 4) + ' / ' + round(sse / (N - k), 4) + ' = ' + round(f, 3) + '\n' +
+          'higher is better: pick the k that maximizes F' };
+    },
+    // Local Outlier Factor: a point's k-distance against its neighbours'.
+    lof: function () {
+      var dx = round(pick([0.5, 1.0, 1.5, 2.0, 3.0, 4.5]), 2), ds = [], i;
+      for (i = 0; i < 3; i++) ds.push(round(pick([0.4, 0.6, 0.8, 1.0, 1.2, 1.5]), 2));
+      var mean = (ds[0] + ds[1] + ds[2]) / 3, val = dx / mean;
+      return { q: 'LOF: x has k-distance ' + dx + '; its 3 neighbours have k-distances ' + vec(ds) + '. LOF(x)?',
+        a: round(val, 4), unit: '', tol: 0.005, steps:
+          'LOF(x) = d_k(x) / [ (1/|N(x)|) sum_{s in N(x)} d_k(s) ]\n' +
+          'mean neighbour k-distance = (' + ds.join(' + ') + ')/3 = ' + round(mean, 4) + '\n' +
+          'LOF = ' + dx + ' / ' + round(mean, 4) + ' = ' + round(val, 4) + '\n' +
+          (val > 1.5 ? 'LOF >> 1: x is sparser than its neighbours -- an outlier' : 'LOF near 1: x is as dense as its neighbours -- not an outlier') };
+    },
+    // Minkowski L^p distance -- p=1 Manhattan, p=2 Euclidean, p=inf max-coordinate.
+    minkowski: function () {
+      var d = 4, x = [], y = [], i;
+      for (i = 0; i < d; i++) { x.push(randint(0, 12)); y.push(randint(0, 12)); }
+      var pv = pick([1, 2, 'inf']), diffs = [], sum = 0, mx = 0;
+      for (i = 0; i < d; i++) {
+        var del = Math.abs(x[i] - y[i]); diffs.push(del);
+        if (del > mx) mx = del;
+        sum += (pv === 1) ? del : (pv === 2 ? del * del : 0);
+      }
+      var val = (pv === 'inf') ? mx : (pv === 1 ? sum : Math.sqrt(sum));
+      return { q: 'Minkowski distance with p = ' + pv + ' between x = ' + vec(x) + ' and y = ' + vec(y) + '?',
+        a: round(val, 4), unit: '', tol: 0.005, steps:
+          'D_p(x,y) = (sum_i |x_i - y_i|^p)^(1/p)\n' +
+          '|x_i - y_i| = ' + vec(diffs) + '\n' +
+          (pv === 'inf' ? 'p = inf -> the largest coordinate difference = ' + mx
+            : pv === 1 ? 'p = 1 (Manhattan) -> ' + diffs.join(' + ') + ' = ' + sum
+              : 'p = 2 (Euclidean) -> sqrt(' + diffs.map(function (v) { return v + '^2'; }).join(' + ') + ') = sqrt(' + sum + ') = ' + round(val, 4)) };
+    },
+    // Value Difference Metric between two values of one categorical feature.
+    vdm: function () {
+      var ni = randint(20, 60), nj = randint(20, 60), qp = pick([1, 2]);
+      var fi = [], fj = [], i, rawI = [], rawJ = [], remI = ni, remJ = nj;
+      for (i = 0; i < 2; i++) {
+        var a = randint(1, remI - 1), b = randint(1, remJ - 1);
+        rawI.push(a); rawJ.push(b); remI -= a; remJ -= b;
+      }
+      rawI.push(remI); rawJ.push(remJ);
+      var sum = 0, terms = [];
+      for (i = 0; i < 3; i++) {
+        fi.push(rawI[i] / ni); fj.push(rawJ[i] / nj);
+        var del = Math.abs(fi[i] - fj[i]);
+        sum += Math.pow(del, qp);
+        terms.push('|' + rawI[i] + '/' + ni + ' - ' + rawJ[i] + '/' + nj + '|' + (qp === 2 ? '^2' : '') + ' = ' + round(Math.pow(del, qp), 5));
+      }
+      return { q: 'VDM with q = ' + qp + ': value v_i has class counts ' + vec(rawI) + ' (N_i = ' + ni + '), value v_j has ' +
+          vec(rawJ) + ' (N_j = ' + nj + ') over 3 classes. delta(v_i, v_j)?',
+        a: round(sum, 5), unit: '', tol: 0.0005, steps:
+          'delta(v_i,v_j) = sum_c |N_{i,c}/N_i - N_{j,c}/N_j|^q\n' +
+          terms.join('\n') + '\n' +
+          'delta = ' + round(sum, 5) + '   (class-conditional, so classification only)' };
+    },
+    // One Winnow-2 update, then the score it would now produce.
+    winnow: function () {
+      var alpha = pick([2, 2, 3]), theta = pick([0.5, 1, 2]), d = 4, w = [], x = [], i;
+      for (i = 0; i < d; i++) { w.push(pick([0.5, 1, 1, 2])); x.push(pick([0, 1])); }
+      if (x.indexOf(1) < 0) x[randint(0, d - 1)] = 1;
+      var f = 0;
+      for (i = 0; i < d; i++) f += w[i] * x[i];
+      var pred = f > theta ? 1 : 0, actual = pick([0, 1]), w2 = w.slice(), act;
+      if (pred === actual) { act = 'prediction was correct -- weights unchanged (Winnow-2 only updates on a mistake)'; }
+      else if (actual === 1) {
+        for (i = 0; i < d; i++) if (x[i] === 1) w2[i] = w[i] * alpha;
+        act = 'predicted 0, actual 1 -> PROMOTION: w_i <- alpha*w_i wherever x_i = 1';
+      } else {
+        for (i = 0; i < d; i++) if (x[i] === 1) w2[i] = w[i] / alpha;
+        act = 'predicted 1, actual 0 -> DEMOTION: w_i <- w_i/alpha wherever x_i = 1';
+      }
+      var f2 = 0;
+      for (i = 0; i < d; i++) f2 += w2[i] * x[i];
+      return { q: 'Winnow-2 with alpha = ' + alpha + ', theta = ' + theta + ': weights w = ' + vec(w) + ', example x = ' + vec(x) +
+          ', true label = ' + actual + '. After the update, what is f(x) = sum_i w_i x_i?',
+        a: round(f2, 4), unit: '', tol: 0.005, steps:
+          'f(x) = sum_i w_i x_i = ' + round(f, 4) + (pred ? ' > ' : ' <= ') + theta + ' -> predict ' + pred + '\n' +
+          act + '\n' +
+          'w becomes ' + vec(w2.map(function (v) { return round(v, 4); })) + '   (x_i = 0 weights never move)\n' +
+          'f(x) = ' + round(f2, 4) };
+    },
+    // 1-D Gaussian kernel density estimate at a query point.
+    kde: function () {
+      var h = pick([0.5, 1, 2]), xs = [], i;
+      for (i = 0; i < 4; i++) xs.push(randint(0, 10));
+      var xq = randint(0, 10), N = xs.length, sum = 0, terms = [];
+      for (i = 0; i < N; i++) {
+        var u = (xq - xs[i]) / h, kv = gauss(u);
+        sum += kv;
+        terms.push('K((' + xq + '-' + xs[i] + ')/' + h + ') = K(' + round(u, 3) + ') = ' + round(kv, 5));
+      }
+      var val = sum / (N * h);
+      return { q: 'Gaussian KDE: sample ' + vec(xs) + ', bandwidth h = ' + h + '. Estimate p(x) at x = ' + xq + '?',
+        a: round(val, 5), unit: '', tol: 0.0005, steps:
+          'p(x) = (1/(N h)) sum_t K((x - x^t)/h),  K(u) = (1/sqrt(2 pi)) exp(-u^2/2)\n' +
+          terms.join('\n') + '\n' +
+          'sum of kernels = ' + round(sum, 5) + '\n' +
+          'p(' + xq + ') = ' + round(sum, 5) + ' / (' + N + ' x ' + h + ') = ' + round(val, 5) };
+    },
+    // k-NN estimator: the posterior is just the neighbour vote share, and the
+    // density falls out of the volume the k-th neighbour defines.
+    knnpost: function () {
+      var counts = [randint(1, 6), randint(0, 5), randint(0, 4)], k = counts[0] + counts[1] + counts[2];
+      if (k < 3) { counts[0] += 3; k += 3; }
+      var N = randint(100, 500), dk = round(pick([0.4, 0.75, 1.2, 2.0, 3.5]), 2);
+      var ask = pick(['post', 'dens']);
+      var post = counts[0] / k, dens = k / (2 * N * dk);
+      return { q: 'k-NN estimator: among the k = ' + k + ' nearest neighbours of x_q the class counts are ' + vec(counts) +
+          ', N = ' + N + ' total instances, and the k-th neighbour sits at distance ' + dk + '. ' +
+          (ask === 'post' ? 'Estimate P(c_1 | x_q)?' : 'Estimate p(x_q)? (1-D)'),
+        a: round(ask === 'post' ? post : dens, 5), unit: '', tol: 0.0005, steps:
+          'P(c_i | x) = k_i / k = ' + counts[0] + '/' + k + ' = ' + round(post, 5) + '\n' +
+          'p(x) = k / (2 N d(x, x_(k))) = ' + k + ' / (2 x ' + N + ' x ' + dk + ') = ' + round(dens, 5) + '\n' +
+          'note the volume cancels in the posterior -- which is why k-NN classifies by vote share\n' +
+          'asked for the ' + (ask === 'post' ? 'posterior = ' + round(post, 5) : 'density = ' + round(dens, 5)) };
+    },
+    // Bootstrap: the share of a dataset left out of one resample.
+    bootstrap: function () {
+      var N = pick([10, 25, 50, 100, 500, 1000]), ask = pick(['out', 'in']);
+      var out = Math.pow(1 - 1 / N, N) * 100, inn = 100 - out;
+      return { q: 'Bootstrap: draw ' + N + ' instances with replacement from a set of N = ' + N + '. Percent of the original set ' +
+          (ask === 'out' ? 'left OUT of the resample' : 'appearing IN the resample') + '?',
+        a: round(ask === 'out' ? out : inn, 3), unit: '%', tol: 0.05, steps:
+          'P(a given instance is missed once) = 1 - 1/N = ' + round(1 - 1 / N, 6) + '\n' +
+          'P(missed all N draws) = (1 - 1/N)^N = ' + round(1 - 1 / N, 6) + '^' + N + ' = ' + round(out / 100, 6) + '\n' +
+          'left out = ' + round(out, 3) + '%,  included = ' + round(inn, 3) + '%\n' +
+          'as N -> inf this tends to 1/e = 36.8% out, 63.2% in' };
+    },
+    // A regression tree's leaf predicts the mean; this is the MSE it pays.
+    regleaf: function () {
+      var m = randint(4, 6), ys = [], i;
+      for (i = 0; i < m; i++) ys.push(randint(1, 30));
+      var sum = 0;
+      for (i = 0; i < m; i++) sum += ys[i];
+      var mean = sum / m, se = 0, terms = [];
+      for (i = 0; i < m; i++) { se += (ys[i] - mean) * (ys[i] - mean); terms.push('(' + ys[i] + ' - ' + round(mean, 4) + ')^2'); }
+      var mse = se / m;
+      return { q: 'Regression tree leaf holding responses ' + vec(ys) + '. It predicts the mean -- what MSE does it pay?',
+        a: round(mse, 4), unit: '', tol: 0.005, steps:
+          'g_m = mean = (' + ys.join(' + ') + ')/' + m + ' = ' + round(mean, 4) + '\n' +
+          'SE = ' + terms.join(' + ') + ' = ' + round(se, 4) + '\n' +
+          'MSE = SE / N_m = ' + round(se, 4) + '/' + m + ' = ' + round(mse, 4) + '\n' +
+          'a split is worth taking only if the weighted child MSE beats ' + round(mse, 4) };
     }
   };
 
@@ -215,7 +563,8 @@
     var items = [], nodes = {};
 
     function toConceptItem(r) {
-      return { type: r.type, q: r.q, options: r.options || [], a: r.answer, accept: r.accept || [], e: r.explain, unit: r.unit };
+      return { type: r.type, q: r.q, options: r.options || [], a: r.answer, accept: r.accept || [], e: r.explain, unit: r.unit,
+               steps: (r.steps && r.steps.length) ? formatSteps(r.steps) : '' };
     }
     function toCalcItem(r) {
       var g = GEN[r.gen]();
@@ -281,6 +630,7 @@
         qroot.appendChild(card);
         nodes[idx] = { el: card, feedback: fb, get: get, item: item };
       });
+      typeset(qroot);
     }
 
     // Reveal one question's answer. Everything is self-assessed: the engine
@@ -288,14 +638,18 @@
     function showCard(idx) {
       var node = nodes[idx], item = node.item, fb = node.feedback;
       fb.className = 'qz-feedback show info';
+      // A `short' question's steps hold the pseudocode or derivation it asked
+      // for; a calc's hold its worked arithmetic. Same monospace block either way.
+      var steps = item.steps ? '<div class="qz-steps">' + esc(item.steps) + '</div>' : '';
       if (item.type === 'short') {
-        fb.innerHTML = '<strong>Model answer:</strong> ' + esc(item.a);
+        fb.innerHTML = '<strong>Model answer:</strong> ' + esc(item.a) + steps;
+        typeset(fb);
         return;
       }
-      var steps = (item.type === 'calc' && item.steps) ? '<div class="qz-steps">' + esc(item.steps) + '</div>' : '';
       var ans = esc(String(item.a)) + (item.dispUnit ? ' ' + esc(item.dispUnit) : '');
       fb.innerHTML = '<strong>Answer:</strong> <span class="qz-c-ok">' + ans + '</span>' +
         (item.e ? ': ' + esc(item.e) : '') + steps;
+      typeset(fb);
     }
 
     function revealAll() {
@@ -341,6 +695,7 @@
       q('.qz-card-tag').textContent = tagTxt;
       q('.qz-card-count').textContent = (cardIdx + 1) + ' / ' + items.length;
       q('.qz-card-hint').textContent = cardFlipped ? HINT_BACK : HINT_FRONT;
+      typeset(face);
     }
     function flipCard() { cardFlipped = !cardFlipped; drawCard(); }
     function stepCard(n) { cardIdx += n; cardFlipped = false; drawCard(); }
@@ -408,18 +763,28 @@
   // ── filter tokens for a mount's data-quiz-test value ─────────────────────────
   // Tokens (comma-separated, OR'd): `all`; `self` (questions authored on THIS
   // page); `type:<t>` (mc/tf/fill/short/calc); anything else = a :Q_UNIT: tag.
+  // Within one token, `+` ANDs the parts: `mem+type:calc` is the memory unit's
+  // calculations only. Needed once two subjects both author calc questions --
+  // a bare `type:calc` would pull in every subject's.
   function currentHref() {
     var p = location.pathname;
     if (p.charAt(p.length - 1) === '/') p += 'index.html';
     return p;
   }
+  function matchesPart(r, tk, curHref) {
+    if (tk === 'all') return true;
+    if (tk === 'self') return r.pageHref === curHref;
+    if (tk.indexOf('type:') === 0) return (r.type || '') === tk.slice(5);
+    return (r.unit || '').toLowerCase() === tk;
+  }
   function recordMatches(r, tokens, curHref) {
     for (var i = 0; i < tokens.length; i++) {
-      var tk = tokens[i];
-      if (tk === 'all') return true;
-      if (tk === 'self') { if (r.pageHref === curHref) return true; continue; }
-      if (tk.indexOf('type:') === 0) { if ((r.type || '') === tk.slice(5)) return true; continue; }
-      if ((r.unit || '').toLowerCase() === tk) return true;
+      var parts = tokens[i].split('+'), ok = true;
+      for (var j = 0; j < parts.length; j++) {
+        var part = parts[j].trim();
+        if (part && !matchesPart(r, part, curHref)) { ok = false; break; }
+      }
+      if (ok) return true;
     }
     return false;
   }

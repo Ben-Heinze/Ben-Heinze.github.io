@@ -1,0 +1,43 @@
+#+TITLE: Practice Test
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm, practice-test
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: found,linreg,nonpar,eval,dimred,clust,theory,trees,logic,proj1,proj2
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The whole midterm in one place: every topic from Weeks 1-5, the four Alpaydin
+chapters, and both programming assignments. Pick a unit and a length, press
+*Start timer*, and work down the page. *Reveal answer* checks you against the
+model answer one question at a time -- pseudocode questions reveal a worked
+outline underneath it -- and *New test* reshuffles into a different set with
+freshly randomized numbers on the calculations. Switch *Mode* to *Flashcards* to
+run the same pool one card at a time.
+
+Everything is self-assessed. Nothing is auto-graded, including the calculations:
+the engine shows the answer and the worked steps, and you mark your own. Leave
+*+calculations* checked to mix the randomized numeric drills in with the
+conceptual questions.
+
+The pool is the full [[file:question-bank/][Question Bank]] -- all eleven
+machine-learning units, which is also what keeps the Operating Systems questions
+out. Anything added to a bank page shows up here automatically. For a narrower
+session, use the per-topic tests:
+[[file:foundations-and-theory/][Foundations and Theory]],
+[[file:nonparametric-methods/][Nonparametric Methods]],
+[[file:clustering-and-dimensionality/][Clustering and Dimensionality]],
+[[file:trees-and-rules/][Trees and Rules]],
+[[file:experiments-and-evaluation/][Experiments and Evaluation]], and
+[[file:project-walkthroughs/][Project Walkthroughs]].
+
+# The interactive test UI is injected here (a <div data-quiz-test="...">) by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.

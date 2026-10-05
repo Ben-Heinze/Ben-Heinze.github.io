@@ -1,0 +1,42 @@
+#+TITLE: Project Walkthroughs
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm, practice-test
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: proj1,proj2
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The syllabus says one of the three parts of the exam is *specific questions on
+the programming assignments*. This is that part: *Project 1* (k-NN) and
+*Project 2* (decision trees), on mechanism rather than code.
+
+Null models and what they are actually for, min-max versus z-score and why
+normalization has to come first, the Value Difference Metric, the rule for
+combining numeric with categorical distance and the reason the pth root can be
+dropped, k = 1 during editing and condensing against a tuned k at prediction,
+the RBF kernel and its bandwidth, the per-dataset traps -- ERP on Computer
+Hardware, cyclic month distance and the log transform on Forest Fires, "?"
+meaning abstain on Congressional Vote, the discarded identifier columns -- the
+gain ratio and MSE splitting criteria, reduced error pruning, and the 20%
+pruning holdout nested inside 5x2 cross-validation.
+
+Several questions ask for pseudocode: the two null models, the mixed-type
+distance, cyclic distance, both tree-growing routines, and both complete
+experimental pipelines. *Reveal answer* gives the model answer and then the
+worked outline underneath it. Self-assessed throughout.
+
+Drawn from [[file:../question-bank/projects/][Question Bank: Projects]]
+(=#+QUIZ_TEST: proj1,proj2=). The assignment PDFs are on the
+[[file:../../projects/][Projects]] page.
+
+# The interactive test UI is injected here (a <div data-quiz-test="...">) by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.

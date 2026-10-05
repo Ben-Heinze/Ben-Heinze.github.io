@@ -1,0 +1,534 @@
+#+TITLE: Trees and Rules
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm
+#+STARTUP: noindent
+#+QUIZ: t
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Decision trees for classification and regression, pruning, and the logic and
+rule-induction route to a classifier. Units =trees= and =logic=. In the
+pseudocode answers, leading dots mark indentation depth.
+
+* Growing a Classification Tree
+
+** Describe the structure of a classification tree and how a prediction is made.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Interior nodes test a feature, branches correspond to its values, leaves hold class labels. Predict by following the tests from root to leaf.
+:Q_UNIT: trees
+:END:
+
+** Finding the optimal decision tree is NP-complete. What does that force the learning algorithm to do?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Be greedy. It takes the locally best split at each node and never reconsiders, accepting a suboptimal tree in exchange for tractability.
+:Q_UNIT: trees
+:END:
+
+** Explain what entropy measures at a node.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The uncertainty in that node's class distribution. It is zero when all examples share a class and maximal when they are evenly split.
+:Q_UNIT: trees
+:END:
+
+** Write the entropy of a node holding p positive and n negative examples.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(H(p,n) = -\frac{p}{p+n}\lg\frac{p}{p+n} - \frac{n}{p+n}\lg\frac{n}{p+n}\), measured in bits because the log is base 2.
+:Q_UNIT: trees
+:END:
+
+** Explain what expected entropy measures and why the branches are weighted.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The uncertainty remaining after you learn the feature's value. Each branch is weighted by the fraction of data reaching it, since that is how often you land there.
+:Q_UNIT: trees
+:END:
+
+** Explain information gain and how a tree-growing algorithm uses it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Entropy before the split minus expected entropy after -- the uncertainty the feature removes. The algorithm splits on whichever feature gains the most.
+:Q_UNIT: trees
+:END:
+
+** Walk through what the algorithm computes at a single node when choosing a split.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The node's entropy, then for each candidate feature the weighted entropy of its branches, then the difference. Take the largest difference and recurse on each branch.
+:Q_UNIT: trees
+:END:
+
+** Binary entropy
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: entropy
+:Q_UNIT: trees
+:END:
+
+** Information gain from a binary split
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: infogain
+:Q_UNIT: trees
+:END:
+
+** Explain self-information, and how entropy is built from it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Self-information \(-\log P(x)\) is the surprise of one outcome -- zero if certain, large if unlikely. Entropy is the expected surprise, weighting each outcome by its probability.
+:Q_UNIT: trees
+:END:
+
+** Explain why information gain is a mutual information.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It is the entropy of the class minus its entropy conditioned on the feature -- exactly \(I(X;Y)\). It measures how much knowing the feature tells you about the class.
+:Q_UNIT: trees
+:END:
+
+** When a branch comes out pure, what does the algorithm do and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It becomes a leaf immediately. Entropy is already zero, so no further split can remove uncertainty, and labeling it is both correct and simplest.
+:Q_UNIT: trees
+:END:
+
+** Does greedy tree growing produce a balanced tree? Explain.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No. It optimizes information gain, not shape, so a feature that cleanly carves off a small group leaves a shallow branch beside a deep one.
+:Q_UNIT: trees
+:END:
+
+** Write pseudocode for growing a classification tree by information gain.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Recursively pick the highest-gain feature and branch on its values, stopping at purity or when features run out.
+:Q_STEPS: GROW-TREE(D, F): | if all of D shares one class c: return leaf(c) | if F is empty: return leaf(plurality class of D) | H <- entropy of D | for each feature f in F: | .  E(f) <- weighted entropy of the branches f induces | .  gain(f) <- H - E(f) | f_best <- the f with the largest gain | node <- interior node testing f_best | for each value v of f_best: | .  if the branch is empty: child <- leaf(plurality class of D) | .  else: child <- GROW-TREE(D restricted to v, F minus f_best) | return node
+:Q_UNIT: trees
+:END:
+
+* The Problem with Information Gain
+
+** Suppose you add a column that is a unique row ID. What does an information-gain tree do with it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It splits on it at the root. Every branch holds one example and is pure, so expected entropy is zero and the gain is maximal -- the highest possible.
+:Q_UNIT: trees
+:END:
+
+** A tree has split on a unique row-ID column at its root. Describe the tree that results, and how it performs on new data.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A root with one leaf per training example -- a lookup table. Perfect on training data, and useless on anything new, since no unseen ID matches a branch.
+:Q_UNIT: trees
+:END:
+
+** Explain what intrinsic value measures, and what it deliberately ignores.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: How much a feature fragments the data, computed from branch sizes alone. It ignores the classes entirely -- it measures how much a feature splits, not how well.
+:Q_UNIT: trees
+:END:
+
+** Explain how gain ratio fixes the unique-identifier problem.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Divide gain by intrinsic value. An identifier with \(N\) singleton branches has intrinsic value \(\lg N\), which grows with the fragmentation and cancels the inflated gain.
+:Q_UNIT: trees
+:END:
+
+** Gain ratio over a 3-way split
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: gainratio
+:Q_UNIT: trees
+:END:
+
+** Gain ratio has a failure mode of its own. Describe it and the usual safeguard.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A split sending nearly everything down one branch has intrinsic value near zero, inflating even a tiny gain. Guard by only ranking features whose raw gain is at least average.
+:Q_UNIT: trees
+:END:
+
+** Compare information gain and gain ratio as splitting criteria.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Gain prefers features with many values, which overfits. Gain ratio corrects for that by penalizing fragmentation, but can over-correct on very lopsided splits.
+:Q_UNIT: trees
+:END:
+
+* Continuous Features
+
+** Explain how a decision tree handles a continuous feature.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With a binary split on a threshold: go one way if the value is below it, the other if above. A numeric feature gives two children no matter how many values it has.
+:Q_UNIT: trees
+:END:
+
+** Explain how the threshold for a numeric split is chosen, and what it costs.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sort by the feature and score the midpoint between each adjacent pair of distinct values, keeping the best. That is up to \(N-1\) candidates per feature per node.
+:Q_UNIT: trees
+:END:
+
+** Give two ways to reduce the number of candidate thresholds.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Test quantiles instead of every midpoint, or test only the mean and the mean plus or minus one standard deviation -- three candidates rather than \(N-1\).
+:Q_UNIT: trees
+:END:
+
+** Compare equal-width and equal-frequency binning.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Equal width gives bins spanning the same range, so counts vary wildly on skewed data. Equal frequency gives bins with the same count, so the ranges vary instead.
+:Q_UNIT: trees
+:END:
+
+** Write pseudocode for finding the best binary threshold on a numeric feature.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sort, then score the midpoint between each adjacent pair of distinct values.
+:Q_STEPS: BEST-NUMERIC-SPLIT(D, feature f, criterion): | sort D ascending by f | best_score <- worst possible;  best_thr <- none | for i = 1 .. size(D)-1: | .  if f(D[i]) == f(D[i+1]): continue | .  thr <- midpoint of f(D[i]) and f(D[i+1]) | .  score <- criterion( examples below thr, examples at or above ) | .  if score beats best_score: record thr and score | return (best_thr, best_score)
+:Q_UNIT: trees
+:END:
+
+* Regression Trees
+
+** What changes when you move from a classification tree to a regression tree?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The splitting criterion and the leaf prediction. Entropy is replaced by squared error, and a leaf predicts a number rather than a label.
+:Q_UNIT: trees
+:END:
+
+** Explain what a regression tree predicts at a leaf, and what shape that gives the overall function.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The mean response of the training points reaching that leaf. The function is therefore piecewise constant -- a step surface over the feature space.
+:Q_UNIT: trees
+:END:
+
+** Explain the splitting criterion for a regression tree.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Choose the split minimizing the size-weighted squared deviation of each branch's responses from that branch's mean. Lower means the branches are internally more uniform.
+:Q_UNIT: trees
+:END:
+
+** Regression tree leaf MSE
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: regleaf
+:Q_UNIT: trees
+:END:
+
+** Explain the small disjuncts problem and why it leads to overfitting.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deep leaves hold very few examples, so their means have enormous variance. The tree makes confident predictions in those regions backed by almost no data.
+:Q_UNIT: trees
+:END:
+
+** Write pseudocode for growing a regression tree.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Same recursion, scoring splits by weighted squared error and predicting the mean at each leaf.
+:Q_STEPS: REGRESSION-TREE(D, F): | if D is tiny or F is empty: return leaf( mean response of D ) | best <- none | for each feature f and each candidate split of f: | .  partition D by that split | .  Err <- size-weighted squared deviation of each branch from its own mean | .  if Err beats best: record it | if no split improves on the parent: return leaf( mean response of D ) | node <- interior node testing the best split | recurse on each branch | return node
+:Q_EXPLAIN: A numeric feature can be split again further down at a different threshold; a categorical one is exhausted by a single split.
+:Q_UNIT: trees
+:END:
+
+* Overfitting and Pruning
+
+** Define what it means for a tree to overfit, and explain why the definition is comparative.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A tree overfits if some other tree does worse on training data but better in general. It is comparative because high training accuracy alone is not evidence of anything.
+:Q_UNIT: trees
+:END:
+
+** Explain how a validation set reveals overfitting.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Track training and validation error as the tree grows. They fall together at first; the point where validation error turns upward is where overfitting begins.
+:Q_UNIT: trees
+:END:
+
+** Give two problems with relying on a held-out validation set.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It consumes data you could have trained on, which hurts most when data is scarce. And comparing against a method that uses no validation set is not a fair comparison.
+:Q_UNIT: trees
+:END:
+
+** Explain how reduced error pruning works.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Grow the tree fully, then repeatedly try replacing a subtree with a leaf. Keep the replacement if held-out performance does not get worse; stop when none is acceptable.
+:Q_UNIT: trees
+:END:
+
+** Why does pruning accept a replacement that is merely no worse, rather than requiring improvement?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The pruned tree is simpler, so a tie is a win on Occam's Razor -- same accuracy, fewer parameters, less variance. Demanding improvement would leave useless subtrees standing.
+:Q_UNIT: trees
+:END:
+
+** Why must pruning be evaluated on data the tree was not grown on?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: On its training data a fully grown tree is already optimal, so no prune would ever look acceptable and pruning would do nothing at all.
+:Q_UNIT: trees
+:END:
+
+** Write pseudocode for reduced error pruning.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Try every single subtree replacement, keep the best acceptable one, and repeat until none helps.
+:Q_STEPS: REDUCED-ERROR-PRUNE(tree T, held-out set V): | repeat: | .  base <- performance of T on V | .  best <- null | .  for each interior node v in T: | .  .  T' <- T with the subtree at v replaced by a leaf | .  .  if T' performs at least as well as base: record v if it is the best so far | .  if no acceptable prune was found: return T | .  T <- T with the best prune applied | until forever
+:Q_EXPLAIN: One prune per round, not all acceptable prunes at once -- removing a subtree changes what the remaining candidates are worth.
+:Q_UNIT: trees
+:END:
+
+** Explain early stopping and how it differs from pruning.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Early stopping refuses to split when the split looks unhelpful, so the subtree is never built. Pruning builds everything first and removes afterwards.
+:Q_UNIT: trees
+:END:
+
+** Explain the statistical test used to decide whether a split is worth making.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A chi-square test against the null hypothesis that the feature is independent of the class. Compare observed branch counts with those expected under independence; if you cannot reject, stop.
+:Q_UNIT: trees
+:END:
+
+** Compare early stopping and pruning. Which is cheaper, which is safer, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Early stopping is cheaper -- it never builds what it rejects. Pruning is safer because it is not myopic: a split that looks worthless may have highly informative children.
+:Q_UNIT: trees
+:END:
+
+* How Trees Are Biased
+
+** Explain the preference bias of decision tree learning and what shape of tree it favours.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Greedily taking the split that most reduces impurity, which tends to put the most informative tests near the root and so favours shallow trees.
+:Q_UNIT: trees
+:END:
+
+** Explain the representation bias of a standard decision tree.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each test looks at one feature against a threshold, so every decision boundary is parallel to a feature axis. These are univariate, or axis-parallel, splits.
+:Q_UNIT: trees
+:END:
+
+** A true decision boundary runs diagonally through the feature space. What does an axis-parallel tree do, and what does it cost?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It approximates the diagonal with a staircase of many splits. Each step is fitted from fewer examples, so the tree grows deep, high-variance and prone to overfitting.
+:Q_UNIT: trees
+:END:
+
+** Explain what an oblique tree changes, and the cost of that change.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each node tests a weighted combination of features, so a boundary can run at any angle. The cost is a far larger search per node and much less interpretable tests.
+:Q_UNIT: trees
+:END:
+
+** Compare a decision tree with k-nearest neighbor on a dataset with features on wildly different scales.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The tree is unaffected -- it tests one feature against its own values, so rescaling changes nothing. k-NN is badly distorted, since the large-scale feature dominates the distance.
+:Q_UNIT: trees
+:END:
+
+** Compare a decision tree with k-nearest neighbor on a dataset with many irrelevant features.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The tree can simply never split on them, so they cost little. k-NN cannot opt out -- every feature enters the distance, so the neighbor ordering degrades.
+:Q_UNIT: trees
+:END:
+
+* Logic as a Representation
+
+** Why is a rule-based classifier described as explainable in a way a neural network is not?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A rule can be read directly, and its conditions are exactly the reason for the prediction. There is no separate explanation step, because the model is the explanation.
+:Q_UNIT: logic
+:END:
+
+** Explain what modus ponens and modus tollens each let you conclude.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Modus ponens: from \(\alpha \Rightarrow \beta\) and \(\alpha\), conclude \(\beta\). Modus tollens: from \(\alpha \Rightarrow \beta\) and \(\neg\beta\), conclude \(\neg\alpha\).
+:Q_UNIT: logic
+:END:
+
+** Explain the resolution inference rule.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: From \(\alpha \vee \beta\) and \(\neg\beta \vee \gamma\), conclude \(\alpha \vee \gamma\). The complementary literals cancel and what remains joins into one clause.
+:Q_UNIT: logic
+:END:
+
+** Explain conjunctive normal form and why resolution requires it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A conjunction of clauses, each a disjunction of literals. Resolution operates on clauses, so CNF gives a set of independently assertable ones to apply it to repeatedly.
+:Q_UNIT: logic
+:END:
+
+** Compare conjunctive and disjunctive normal form.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: CNF is an AND of ORs; DNF is an OR of ANDs. CNF suits proof by resolution; DNF reads naturally as a list of alternative sufficient conditions.
+:Q_UNIT: logic
+:END:
+
+** Explain Horn form and the alternative way it is usually written.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A conjunction of Horn clauses, each having at most one positive literal. It is usually written instead as a set of implications -- implicative normal form.
+:Q_UNIT: logic
+:END:
+
+** What does first-order logic add over propositional logic?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Objects and relations: constants, variables, functions, predicates and quantifiers. You can say something about all or some objects, not just about flat propositions.
+:Q_UNIT: logic
+:END:
+
+** Explain why the universal quantifier normally pairs with implication.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It ranges over everything, so it must be restricted first. "All dogs are mammals" is \(\forall x (Dog(x) \Rightarrow Mammal(x))\); using AND would claim everything is a dog.
+:Q_UNIT: logic
+:END:
+
+** Explain why the existential quantifier normally pairs with conjunction.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: You want to assert that something has both properties. Using implication instead would be satisfied vacuously by any object failing the first condition.
+:Q_UNIT: logic
+:END:
+
+** Explain what unification does and why inference needs it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It finds substitutions making two expressions identical, so a general rule can be matched against specific facts. Without it a quantified rule could never fire.
+:Q_UNIT: logic
+:END:
+
+** Explain what a Skolem constant is and why it must be a fresh name.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A name for the witness of an existential claim. It must be fresh because "something satisfies P" says nothing about which thing -- reusing a known name asserts more than you know.
+:Q_UNIT: logic
+:END:
+
+** Explain how resolution theorem proving establishes a theorem.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: By contradiction: negate the goal, add it to the axioms, convert to clauses, and resolve. Deriving the empty clause shows the negation is inconsistent, proving the goal.
+:Q_UNIT: logic
+:END:
+
+** Write pseudocode for resolution theorem proving.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Add the negated goal, clausify, and resolve every compatible pair until the empty clause appears or nothing new is derivable.
+:Q_STEPS: RESOLUTION-PROVE(axioms A, theorem t): | clauses <- CNF of A together with NOT t | repeat: | .  new <- empty set | .  for each pair of clauses and each complementary literal pair: | .  .  unify them and form the resolvent | .  .  if the resolvent is empty: return PROVED | .  .  if it is not already known: add it to new | .  if new is empty: return NOT-PROVED | .  add new to clauses | until forever
+:Q_UNIT: logic
+:END:
+
+* Learning Rules
+
+** Explain what it means for a rule to cover an example.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The rule's conditions match that example, so the rule applies to it and makes a prediction about it.
+:Q_UNIT: logic
+:END:
+
+** Explain how sequential covering learns a rule set.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Learn one good rule, remove the examples it covers, and repeat on what remains. Each later rule only has to explain what earlier ones left behind.
+:Q_UNIT: logic
+:END:
+
+** Why must rules learned by sequential covering be applied in order?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each was learned on the remainder after earlier rules were removed, so it was never tested against the examples they already handle. Out of order it fires where it should not.
+:Q_UNIT: logic
+:END:
+
+** Write pseudocode for sequential covering.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Learn a rule, strip the examples it covers, repeat.
+:Q_STEPS: SEQUENTIAL-COVERING(D, target class c): | rules <- empty list | remaining <- D | repeat: | .  r <- learn one good rule from remaining | .  if r is too weak: break | .  append r to rules | .  remaining <- remaining minus the examples r covers | until no examples of class c remain | sort rules by coverage | return rules plus a default rule
+:Q_UNIT: logic
+:END:
+
+** Explain how a literal is chosen when building up a single rule.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Score each candidate by how much it improves the rule's purity, weighted by how many positive examples survive its addition. Take the best and repeat.
+:Q_UNIT: logic
+:END:
+
+** Why does the rule-building score weight purity by the number of surviving positives?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Without it, a literal that purifies the rule by discarding nearly every positive would score perfectly. The weight penalizes buying purity with coverage.
+:Q_UNIT: logic
+:END:
+
+** Explain the two approaches to pruning a rule set, and which one subsumes the other.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Delete whole rules, or delete individual conditions within rules. Deleting conditions subsumes deleting rules, since stripping every condition removes the rule.
+:Q_UNIT: logic
+:END:
+
+** Explain the relationship between a decision tree and a set of rules.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each root-to-leaf path is a rule: the tests along it are the conditions, the leaf the conclusion. A tree is a rule set that is mutually exclusive and exhaustive.
+:Q_UNIT: logic
+:END:
+
+** Given that a tree converts to rules, why is rule induction still a more general approach?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Induced rules may overlap and need not partition the space, so each can be pruned independently. A tree's rules share structure, so pruning one changes others.
+:Q_UNIT: logic
+:END:

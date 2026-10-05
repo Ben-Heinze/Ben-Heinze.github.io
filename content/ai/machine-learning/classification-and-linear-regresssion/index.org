@@ -15,15 +15,15 @@
 
 * Univariate Linear Regression
 
-The Univariate linear function (a straight line) with the input $x$ and $y$ has the form $y=w_{1}x + w_{0}$, where $w_{0}$ and $w_{1}$ are real-valued coefficients. The $w$ represents /weights/. We define $\mathbb{w}$ to b the vector $<w_{0}, w_{1}>$ and define the linear function with those weights as $h_{w}(x) = w_{1}x+w_{0}$
+The Univariate linear function (a straight line) with the input $x$ and $y$ has the form $y=w_{1}x + w_{0}$, where $w_{0}$ and $w_{1}$ are real-valued coefficients. The $w$ represents /weights/. We define $\mathbb{w}$ to be the vector $\langle w_{0}, w_{1} \rangle$ and define the linear function with those weights as $h_{w}(x) = w_{1}x+w_{0}$
 
 The *Linear Regression* is the task of finding $h_w$ that best fits the data points. It is common to use squared-error loss function $L_{2}:$
 
 \[
-  loss(h_w) = \sum_{j=1}^{N} L_{2}(y_j, h_w(x_j))  = \sum_{j=1}^{N} (y_i - h_w (x_j))^{2} = \sum_{j=1}^{N} (y_i - w_{1} x_{j} +w_{0}))^2
+  loss(h_w) = \sum_{j=1}^{N} L_{2}(y_j, h_w(x_j)) = \sum_{j=1}^{N} \left( y_j - h_w(x_j) \right)^{2} = \sum_{j=1}^{N} \left( y_j - (w_{1}x_{j} + w_{0}) \right)^{2}
 \]
 
-We want to find $\mathbb{w}^* = argmin_w Loss(h_w)$. The sum $\sum_{j=1}^{N} (y_j-(w_{1}x_{j}))^2=0$ is minimized when its partial derivatives with respect to $w_{0}$ and $w_{1}$ are zero:
+We want to find $\mathbb{w}^* = \arg\min_w Loss(h_w)$. That sum is minimized when its partial derivatives with respect to $w_{0}$ and $w_{1}$ are both zero:
 
 \[
 \frac{\partial}{\partial w_0}\sum_{j=1}^{N} (y_{j}-(w_{1}x_{j}+w_{0}))^{2} = 0 \text{ and } \frac{\partial}{\partial w_1}\sum_{j=1}^{N} (y_{j}-(w_{1}x_{j}+w_{0}))^{2} = 0

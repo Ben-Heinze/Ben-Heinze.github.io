@@ -3,7 +3,7 @@
 #+DATE: 2026-09-24
 #+STARTUP: noindent
 #+LEARN: nil
-#+QUIZ_TEST: type:calc
+#+QUIZ_TEST: ov+type:calc,mem+type:calc,proc+type:calc
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
 
@@ -21,7 +21,7 @@ with its worked steps; *New test* regenerates every problem with fresh numbers, 
 can drill as many times as you like.
 
 These are rendered by the shared quiz engine from the calc questions in the
-[[file:../question-bank/][Question Bank]] (=#+QUIZ_TEST: type:calc=). Page-table, AMAT, hit-ratio and
+[[file:../question-bank/][Question Bank]] (=#+QUIZ_TEST: ov+type:calc,mem+type:calc,proc+type:calc=). Page-table, AMAT, hit-ratio and
 CPU-utilization calcs follow your notes; the TLB effective-access-time formula is the
 standard textbook form (the notes only say paging doubles the access time and the TLB
 avoids the page-table walk). See the [[file:../][Test 1]] study guide for the concepts.
@@ -50,5 +50,5 @@ The five formulas the drills use (each also appears in the worked steps on revea
 - *CPU utilization*: $\dfrac{\text{execution}}{\text{run} + \text{execution} + \text{wait}}$.
 
 
-# The interactive calc UI (a <div data-quiz-test="type:calc">) is injected here by
+# The interactive calc UI (a <div data-quiz-test="ov+type:calc,mem+type:calc,proc+type:calc">) is injected here by
 # publish.el and rendered by static/quiz.js from /quiz-index.json.

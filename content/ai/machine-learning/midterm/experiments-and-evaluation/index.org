@@ -1,0 +1,35 @@
+#+TITLE: Experiments and Evaluation
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-05
+#+TAGS: machine-learning, midterm, practice-test
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: eval
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The experimental-method thread: the *Week 2* sections on hypotheses, confusion
+matrices and hyperparameter search, plus *Alpaydin ch. 20* on design of
+experiments. Testable measures, the four axes of a good hypothesis, kinds of
+experiment, precision / recall / F-beta, micro versus macro averaging, ROC and
+AUC, K-fold and 5x2 cross-validation, bootstrapping, randomization /
+replication / blocking, factorial and response-surface design, and the full
+hyperparameter-search menu from grid search to Bayesian optimization and
+meta-evolution.
+
+Press *Start timer*, then *Reveal answer* to check yourself; *New test*
+reshuffles with fresh numbers. Self-assessed throughout.
+
+Drawn from
+[[file:../question-bank/experiments-and-evaluation/][Question Bank: Experiments and Evaluation]]
+(=#+QUIZ_TEST: eval=).
+
+# The interactive test UI is injected here (a <div data-quiz-test="...">) by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.

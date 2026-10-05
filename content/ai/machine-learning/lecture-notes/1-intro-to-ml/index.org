@@ -277,12 +277,16 @@ True error is the expected loss over the entire underlying distribution of possi
 
 \[
   \text{error}_{\mathcal{S}}(h) = \frac{1}{n}\sum_{x \in \mathcal{S}} \delta(f(x),h(x)), \text{where } \delta(f(x),h(x)) = \begin{cases}
-    1 & f(x) = h(x) \\
-    0 & f(x) \neq h(x)
+    1 & f(x) \neq h(x) \\
+    0 & f(x) = h(x)
   \end{cases}
 \]
 
-Sample error (also called empirical or training error) is the average loss measured on the specific dataset you have (the value you can actually compute). 
+Sample error (also called empirical or training error) is the average loss measured on the specific dataset you have (the value you can actually compute).
+
+/Note:/ the slide prints the two cases of $\delta$ the other way round. For the
+sum to count mistakes, $\delta$ has to be 1 when $f(x)$ and $h(x)$ /disagree/ —
+as written above.
 
 
 * Risk and Loss Functions
@@ -320,8 +324,8 @@ Writing $\hat{y}$ for the model output and $y$ for the ground truth, the slides 
 
 \[
   L_{01}(\hat{y},y) = \begin{cases}
-    1 & \hat{y} = y \\
-    0 & \hat{y} \neq y
+    1 & \hat{y} \neq y \\
+    0 & \hat{y} = y
   \end{cases}
 \]
 
@@ -334,10 +338,17 @@ Writing $\hat{y}$ for the model output and $y$ for the ground truth, the slides 
 \]
 
 \[
-  L_{\log}(\hat{y}(x),y) = y \log \hat{y}(x) + (1-y)\log \left( 1-\hat{y}(x) \right)
+  L_{\log}(\hat{y}(x),y) = -\left[ y \log \hat{y}(x) + (1-y)\log \left( 1-\hat{y}(x) \right) \right]
 \]
 
 where $\hat{y}(x)$ for log loss is a logistic sigmoid squashing the model output into $(0,1)$.
+
+/Note:/ two sign conventions to keep straight here. The slide prints $L_{01}$ with
+its cases inverted (1 when the prediction is /correct/), and prints log loss
+without the leading minus — which makes it the log-/likelihood/, a quantity you
+maximize. Both are written above in the form you minimize, which is what the risk
+function $\ell(\theta)$ and the Week 4 cost matrix
+($\lambda_{11}=\lambda_{22}=0$, $\lambda_{12}=\lambda_{21}=1$) both assume.
 
 * Bias-Variance Trade-off
 
