@@ -43,6 +43,24 @@ mark indentation depth.
 :Q_UNIT: proj1
 :END:
 
+** A null model for a classification problem predicts the __________ class for every input.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: majority
+:Q_ACCEPT: most common | most frequent | plurality
+:Q_EXPLAIN: For regression it predicts the mean (or median) of the training targets. Either way it ignores the features entirely.
+:Q_UNIT: proj1
+:END:
+
+** The main reason to build a null model is that it:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: establishes the error any real model must beat | trains quickly | validates the data loader | reduces variance
+:Q_ANSWER: establishes the error any real model must beat
+:Q_EXPLAIN: It also catches pipeline bugs: a real model scoring at or below the null is evidence of a broken feature path, not of a hard problem.
+:Q_UNIT: proj1
+:END:
+
 * Preparing Features for a Distance
 
 ** Explain why features must be normalized before you compute a distance between examples.
@@ -129,6 +147,50 @@ mark indentation depth.
 :Q_UNIT: proj1
 :END:
 
+** Normalization constants must be computed from the __________ portion of the data alone.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: training
+:Q_ACCEPT: training portion | train
+:Q_EXPLAIN: Computing a min, max, mean or standard deviation over all the data lets the test fold influence the transform applied to it -- leakage, and an optimistic error.
+:Q_UNIT: proj1
+:END:
+
+** Which normalization is the more disturbed by a single extreme outlier?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: min-max | z-score | neither | both equally
+:Q_ANSWER: min-max
+:Q_EXPLAIN: One extreme value sets the range and crushes every other example into a narrow band. A z-score is affected through the mean and standard deviation, but far less sharply.
+:Q_UNIT: proj1
+:END:
+
+** Features must be normalized before a distance is computed because otherwise:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the feature with the widest numeric range dominates the distance | the distance can be negative | the metric axioms fail | categorical features cannot be mixed in
+:Q_ANSWER: the feature with the widest numeric range dominates the distance
+:Q_EXPLAIN: Which makes the choice of units an accidental form of feature weighting -- income in dollars would outvote age entirely.
+:Q_UNIT: proj1
+:END:
+
+** A month encoded as the integers 1 through 12 is safe to use directly in a distance.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It is cyclic: December and January are adjacent in reality but maximally far apart as integers. Encode it as a pair of sine and cosine components instead.
+:Q_UNIT: proj1
+:END:
+
+** When combining a numeric and a categorical distance, dropping the final pth root from both is safe because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the root is monotone, so neighbor ordering is unchanged | the root is always 1 | the distances are already normalized | the two distances have the same scale
+:Q_ANSWER: the root is monotone, so neighbor ordering is unchanged
+:Q_EXPLAIN: Nearest-neighbor search only needs the ranking. What you must then avoid is treating the resulting numbers as distances -- no kernel bandwidth, no threshold, no reporting them.
+:Q_UNIT: proj1
+:END:
+
 * Tuning and Reducing a Nearest-Neighbor Model
 
 ** Explain how a k-nearest-neighbor regressor turns its neighbors into a single prediction.
@@ -171,6 +233,33 @@ mark indentation depth.
 :Q_TYPE: short
 :Q_ANSWER: Every quantity fitted from data is fitted inside the training half; the test half is touched once, at scoring.
 :Q_STEPS: drop identifier features; apply any target transform | for each of 5 repetitions: | .  shuffle and split the data into halves A and B | .  for (train, test) in [ (A,B), (B,A) ]: | .  .  fit normalization on train only, apply to both | .  .  build categorical distance tables from train only | .  .  split train again and sweep hyperparameters on that inner split | .  .  refit on the full train half with the chosen values | .  .  build any reduced exemplar set from train only | .  .  score the baseline and the models on test | report the distribution of the ten scores per model
+:Q_UNIT: proj1
+:END:
+
+** Editing and condensing run with k = 1 while prediction uses a tuned k because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the reduction is about reproducing the 1-NN boundary | k = 1 is faster | a tuned k is unavailable at that stage | the two values must differ
+:Q_ANSWER: the reduction is about reproducing the 1-NN boundary
+:Q_EXPLAIN: They are asking which stored points are needed to preserve the boundary; prediction is a separate question about how much smoothing the data wants.
+:Q_UNIT: proj1
+:END:
+
+** Applying edited or condensed nearest neighbor to a regression problem requires one extra hyperparameter: an error __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: threshold
+:Q_ACCEPT: tolerance | epsilon | threshold (tolerance)
+:Q_EXPLAIN: With a continuous target there is no "misclassified" to test, so you need a tolerance that says when a prediction counts as close enough.
+:Q_UNIT: proj1
+:END:
+
+** As the bandwidth of a kernel-weighted k-NN regressor grows very large, its prediction approaches:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the mean of the training targets | the nearest neighbor's target | zero | the median
+:Q_ANSWER: the mean of the training targets
+:Q_EXPLAIN: Every neighbor gets near-equal weight, so it collapses to the null model. A very small bandwidth does the opposite and follows the single nearest point.
 :Q_UNIT: proj1
 :END:
 
@@ -236,6 +325,41 @@ mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: State whether the error is in log space or back-transformed. The two are not comparable, and a good log-space error can hide large errors on the original scale.
+:Q_UNIT: proj1
+:END:
+
+** A column holding a unique identifier for each row must be:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: dropped before training | normalized | treated as categorical | used only in the tree
+:Q_ANSWER: dropped before training
+:Q_EXPLAIN: It carries no generalizable signal but has perfect apparent information gain, so a tree splits on it at the root and a distance is polluted by it.
+:Q_UNIT: proj2
+:END:
+
+** In the Congressional Vote data, a "?" entry means the member abstained, so imputing it would:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: invent a vote that was deliberately not cast | reduce the sample size | break the distance metric | only matter for the tree
+:Q_ANSWER: invent a vote that was deliberately not cast
+:Q_EXPLAIN: It is a real third category, not a missing value. Abstention is informative in itself and should be encoded as its own value.
+:Q_UNIT: proj1
+:END:
+
+** A feature produced by someone else fitting a regression to the very target you are predicting must be dropped.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: ERP on the Computer Hardware data. It leaks the target, so keeping it measures how well you can copy another model. It can still serve as a comparison benchmark, just not as an input.
+:Q_UNIT: proj1
+:END:
+
+** Before log-transforming a target whose values start at zero, you add one because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: log 0 is undefined | it centres the data | it removes the skew | it normalizes the range
+:Q_ANSWER: log 0 is undefined
+:Q_EXPLAIN: log(y + 1) maps 0 to 0 and keeps the compression of the large values, which is the point of the transform on Forest Fires.
 :Q_UNIT: proj1
 :END:
 
@@ -313,6 +437,42 @@ mark indentation depth.
 :Q_UNIT: proj2
 :END:
 
+** The splitting criterion that avoids favouring many-valued features is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: gain ratio | information gain | mean squared error | entropy
+:Q_ANSWER: gain ratio
+:Q_EXPLAIN: Dividing by intrinsic value penalizes a broad split, which is what stops a high-cardinality column winning the root on apparent gain alone.
+:Q_UNIT: proj2
+:END:
+
+** A decision tree handles categorical features without one-hot encoding because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: a node can branch once per category | it normalizes internally | it converts them to integers | it ignores them
+:Q_ANSWER: a node can branch once per category
+:Q_EXPLAIN: It never needs a numeric distance between two categories, which is exactly what k-NN does need -- hence VDM.
+:Q_UNIT: proj2
+:END:
+
+** In the project, the holdout reserved inside each training portion for pruning decisions is __________ percent.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 20
+:Q_ACCEPT: 20% | twenty
+:Q_EXPLAIN: It comes out of the training half of the 5x2 split, never out of the test half, so the reported error stays untouched by the pruning decisions.
+:Q_UNIT: proj2
+:END:
+
+** Pruning helps a tree most on a dataset that is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: small or noisy | large and clean | high-dimensional | perfectly separable
+:Q_ANSWER: small or noisy
+:Q_EXPLAIN: That is where the deep branches are fitting noise rather than structure. On large clean data the full tree's extra splits are mostly earning their place.
+:Q_UNIT: proj2
+:END:
+
 * Comparing the Two Approaches
 
 ** Compare how k-nearest neighbor and a decision tree each control overfitting, and name the hyperparameter responsible in each.
@@ -335,3 +495,22 @@ mark indentation depth.
 :Q_ANSWER: The criterion and its formula, the order of operations, where each hyperparameter enters and what it was tuned against, the stopping and tie-breaking rules, and the choices you made where more than one was valid.
 :Q_UNIT: proj2
 :END:
+
+** The hyperparameter that controls overfitting is k for nearest neighbor and __________ for a decision tree.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: tree depth
+:Q_ACCEPT: depth | the pruning decision | tree size | depth (pruning)
+:Q_EXPLAIN: Raising k and pruning a tree are the same move: both trade variance for bias by refusing to honour small pockets of the training data.
+:Q_UNIT: proj2
+:END:
+
+** A pruned-tree study needs one holdout more than a k-NN study because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: pruning is a fitting decision that needs its own data | trees are slower | trees need more data | k-NN has no hyperparameters
+:Q_ANSWER: pruning is a fitting decision that needs its own data
+:Q_EXPLAIN: It must come from the training portion, separate both from the data the tree was grown on and from the test fold the result is reported on.
+:Q_UNIT: proj2
+:END:
+

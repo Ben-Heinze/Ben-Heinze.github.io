@@ -77,6 +77,32 @@ dots mark indentation depth.
 :Q_UNIT: dimred
 :END:
 
+** Keeping a subset of the original features is feature __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: selection
+:Q_EXPLAIN: Feature extraction instead builds new features as combinations of the originals, as PCA does -- which is why extraction costs you interpretability and selection does not.
+:Q_UNIT: dimred
+:END:
+
+** Which model of feature selection evaluates a candidate subset by actually running the learner on it?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the wrapper model | the filter model | the manifold model | the stepwise model
+:Q_ANSWER: the wrapper model
+:Q_EXPLAIN: It is far more expensive but measures what you care about. A filter scores features by a cheap statistic independent of the learner.
+:Q_UNIT: dimred
+:END:
+
+** Stepwise forward and backward selection are both forms of:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: greedy local search | exhaustive search | random search | dynamic programming
+:Q_ANSWER: greedy local search
+:Q_EXPLAIN: So they inherit the weakness: no backtracking, and a feature useful only in combination with another is never picked up by forward selection.
+:Q_UNIT: dimred
+:END:
+
 * Searching the Space of Feature Subsets
 
 ** How is a candidate feature subset represented so that a local search can operate on it?
@@ -173,6 +199,33 @@ dots mark indentation depth.
 :Q_UNIT: dimred
 :END:
 
+** In simulated annealing, lowering the temperature makes the search:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: less willing to accept a worse neighbor | more willing to accept a worse neighbor | faster per step | more random
+:Q_ANSWER: less willing to accept a worse neighbor
+:Q_EXPLAIN: It starts hot and exploratory and cools into plain hill climbing, which is how it escapes local optima that stop hill climbing outright.
+:Q_UNIT: dimred
+:END:
+
+** A candidate feature subset is usually represented for local search as a __________ vector.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: bit
+:Q_ACCEPT: binary | bit (binary) | boolean
+:Q_EXPLAIN: One bit per feature, so a neighbor is a single bit flip and a genetic algorithm's crossover and mutation apply directly.
+:Q_UNIT: dimred
+:END:
+
+** Removing mutation from a genetic algorithm costs it the ability to:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: reintroduce a feature value absent from the whole population | combine good solutions | select by fitness | converge
+:Q_ANSWER: reintroduce a feature value absent from the whole population
+:Q_EXPLAIN: Crossover can only shuffle what is already present, so without mutation the population converges and cannot recover lost material.
+:Q_UNIT: dimred
+:END:
+
 * Principal Component Analysis
 
 ** Explain what PCA is looking for.
@@ -225,6 +278,41 @@ dots mark indentation depth.
 :Q_UNIT: dimred
 :END:
 
+** PCA chooses its directions using the class labels.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: PCA is unsupervised -- it maximizes variance regardless of class, so the direction of greatest spread can be useless for separating classes. Fisher's LDA is the supervised counterpart.
+:Q_UNIT: dimred
+:END:
+
+** In PCA, the eigenvalues of the covariance matrix give:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the variance captured along each component | the direction of each component | the number of components to keep | the reconstruction error
+:Q_ANSWER: the variance captured along each component
+:Q_EXPLAIN: The eigenvectors give the directions. Each eigenvalue over the sum of all of them is that component's proportion of variance.
+:Q_UNIT: dimred
+:END:
+
+** The data must be __________ before PCA, or the first component points at the mean instead of the direction of greatest spread.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: centered
+:Q_ACCEPT: centred | mean-centered | centered (mean subtracted)
+:Q_EXPLAIN: The covariance matrix is defined about the mean, so skipping the subtraction makes the leading eigenvector track the offset from the origin.
+:Q_UNIT: dimred
+:END:
+
+** Principal components are guaranteed to be uncorrelated because they are:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: orthogonal eigenvectors of a symmetric matrix | chosen greedily | normalized to unit length | sorted by eigenvalue
+:Q_ANSWER: orthogonal eigenvectors of a symmetric matrix
+:Q_EXPLAIN: The covariance matrix is real and symmetric, so its eigenvectors are mutually orthogonal -- and in the rotated basis the covariance matrix is diagonal.
+:Q_UNIT: dimred
+:END:
+
 * Fisher's Linear Discriminant
 
 ** Explain what Fisher's linear discriminant is looking for, and how that differs from PCA.
@@ -264,6 +352,24 @@ dots mark indentation depth.
 :Q_UNIT: dimred
 :END:
 
+** Fisher's discriminant direction is given by:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the inverse within-class scatter times the difference of the class means | the difference of the class means | the leading eigenvector of the covariance matrix | the between-class scatter times the class means
+:Q_ANSWER: the inverse within-class scatter times the difference of the class means
+:Q_EXPLAIN: w = S_W^{-1}(m_1 - m_2). The inverse scatter is what stops the direction simply pointing along the line joining the means when the classes are elongated.
+:Q_UNIT: dimred
+:END:
+
+** Fisher's criterion maximizes between-class scatter while minimizing __________ scatter.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: within-class
+:Q_ACCEPT: within class | S_W
+:Q_EXPLAIN: Separation alone is not enough: a projection can pull the means apart while smearing both classes so widely that they still overlap.
+:Q_UNIT: dimred
+:END:
+
 * What Clustering Is Doing
 
 ** Explain what a mixture density model says about how the data was generated.
@@ -291,6 +397,24 @@ dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: The total squared distance from each point to the representative vector it was assigned. It is what you lose by replacing a point with its code word.
+:Q_UNIT: clust
+:END:
+
+** Replacing each example by the centre of its cluster is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: vector quantization | spectral clustering | reconstruction | fuzzification
+:Q_ANSWER: vector quantization
+:Q_EXPLAIN: Colour quantization is the standard example: store k representative colours and an index per pixel instead of a full value per pixel.
+:Q_UNIT: clust
+:END:
+
+** A mixture density model says the data was generated by:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: first picking a component, then drawing from it | a single Gaussian | a deterministic function plus noise | a uniform distribution over clusters
+:Q_ANSWER: first picking a component, then drawing from it
+:Q_EXPLAIN: Which component was picked is the latent variable EM never observes -- and estimating it is the E step.
 :Q_UNIT: clust
 :END:
 
@@ -421,6 +545,50 @@ dots mark indentation depth.
 :Q_UNIT: clust
 :END:
 
+** k-means' main weakness is its sensitivity to:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the initial choice of centres | the number of features | the order of the features | the distance metric axioms
+:Q_ANSWER: the initial choice of centres
+:Q_EXPLAIN: It converges to a local optimum of reconstruction error, so a bad start gives a bad answer. Hence restarts, and hence k-means++.
+:Q_UNIT: clust
+:END:
+
+** k-means++ chooses each new seed with probability proportional to the __________ distance to the nearest existing centre.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: squared
+:Q_ACCEPT: square | squared (D^2)
+:Q_EXPLAIN: Squaring sharpens the preference for far-away points, so a genuinely distant region is far likelier to be seeded than it would be under plain distance.
+:Q_UNIT: clust
+:END:
+
+** k-means++ guarantees an expected reconstruction error within a factor of 8(ln k + 2) of optimal.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: Notable because it bounds the quality of the initialization alone, before a single k-means iteration has run.
+:Q_UNIT: clust
+:END:
+
+** A medoid differs from a centroid in that it:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: must be an actual data point | is the mean of the cluster | minimizes squared error | is chosen at random
+:Q_ANSWER: must be an actual data point
+:Q_EXPLAIN: Which is what lets k-medoids work where a mean is undefined or meaningless -- categorical data, or when you only have a distance matrix.
+:Q_UNIT: clust
+:END:
+
+** The fuzzification parameter in fuzzy c-means controls:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: how soft the membership assignments are | the number of clusters | the convergence threshold | the distance metric
+:Q_ANSWER: how soft the membership assignments are
+:Q_EXPLAIN: Drive it toward 1 and memberships harden into k-means; raise it and every point belongs partly to every cluster.
+:Q_UNIT: clust
+:END:
+
 * Expectation Maximization
 
 ** Explain the problem EM is designed to solve.
@@ -466,6 +634,24 @@ dots mark indentation depth.
 :Q_UNIT: clust
 :END:
 
+** k-means is the special case of EM clustering in which:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: each point is assigned wholly to its nearest centre | the number of clusters is 2 | the covariances are estimated | the priors are uniform
+:Q_ANSWER: each point is assigned wholly to its nearest centre
+:Q_EXPLAIN: Hardening the E step's soft responsibilities to 0/1 turns the M step's weighted mean into a plain mean -- which is exactly the k-means update.
+:Q_UNIT: clust
+:END:
+
+** The latent variable in EM clustering is the __________ of each point.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: cluster membership
+:Q_ACCEPT: component membership | which cluster generated it | membership | assignment
+:Q_EXPLAIN: It is never observed -- if it were, the problem would be supervised and you could fit each component directly.
+:Q_UNIT: clust
+:END:
+
 * Hierarchical and Spectral Clustering
 
 ** Compare agglomerative and divisive hierarchical clustering.
@@ -508,6 +694,40 @@ dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Cluster membership is decided locally, so only nearby relationships carry information. Forcing distant pairs to keep their distances wastes the embedding on irrelevant structure.
+:Q_UNIT: clust
+:END:
+
+** Which linkage merges on the largest distance between any pair of points across the two clusters?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: complete-link | single-link | average-link | divisive
+:Q_ANSWER: complete-link
+:Q_EXPLAIN: Single-link takes the smallest such distance, which lets clusters chain along a thin bridge of points; average-link uses the distance between the two clusters' averages.
+:Q_UNIT: clust
+:END:
+
+** Which linkage is most prone to chaining two clusters together through a thin bridge of points?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: single-link | complete-link | average-link | all equally
+:Q_ANSWER: single-link
+:Q_EXPLAIN: One close pair is enough to trigger the merge, however far apart the bulk of the two clusters are.
+:Q_UNIT: clust
+:END:
+
+** The tree produced by hierarchical clustering is called a __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: dendrogram
+:Q_EXPLAIN: Cutting it at a height h gives a flat clustering, so one run supplies every k at once rather than committing to one.
+:Q_UNIT: clust
+:END:
+
+** Agglomerative clustering starts from a single cluster and divides it.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: That is divisive clustering. Agglomerative starts with N singletons and merges the nearest pair until one cluster remains.
 :Q_UNIT: clust
 :END:
 
@@ -626,6 +846,59 @@ dots mark indentation depth.
 :Q_UNIT: clust
 :END:
 
+** The silhouette coefficient of a point falls in the range:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: -1 to 1 | 0 to 1 | 0 to infinity | -infinity to infinity
+:Q_ANSWER: -1 to 1
+:Q_EXPLAIN: Near 1 the point sits comfortably in its cluster; near 0 it is on a boundary; negative means it is closer on average to another cluster than to its own.
+:Q_UNIT: clust
+:END:
+
+** A negative silhouette value for a point means it is closer on average to another cluster than to its own.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: Useful because it localizes the failure -- it names the points that are misassigned, rather than just scoring the clustering as a whole.
+:Q_UNIT: clust
+:END:
+
+** Which direction is better for pseudo-F?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: higher | lower | closest to 1 | closest to 0
+:Q_ANSWER: higher
+:Q_EXPLAIN: It is a ratio of between-group to within-group variation, each over its degrees of freedom, so a high value means well separated and tight.
+:Q_UNIT: clust
+:END:
+
+** The Adjusted Rand Index corrects the Rand Index for agreement expected by __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: chance
+:Q_ACCEPT: random chance | chance alone
+:Q_EXPLAIN: Two random clusterings already agree on many pairs, so the raw Rand Index has a misleadingly high floor that moves with k and the cluster sizes.
+:Q_UNIT: clust
+:END:
+
+** Which of these is an external cluster-validity measure?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Adjusted Rand Index | silhouette coefficient | pseudo-F | Dunn index
+:Q_ANSWER: Adjusted Rand Index
+:Q_EXPLAIN: It compares against known labels. The other three are internal -- computable from the geometry alone, which is what you are left with when no labels exist.
+:Q_UNIT: clust
+:END:
+
+** Classification metrics such as accuracy cannot evaluate a clustering because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: cluster labels are arbitrary and there is no ground truth | clusters are never balanced | the number of clusters varies | distances are unnormalized
+:Q_ANSWER: cluster labels are arbitrary and there is no ground truth
+:Q_EXPLAIN: Permuting the cluster names changes accuracy but not the clustering, which is why the Rand Index counts pairs rather than labels.
+:Q_UNIT: clust
+:END:
+
 * Choosing the Number of Clusters
 
 ** Explain why you cannot pick k by minimizing reconstruction error.
@@ -656,3 +929,22 @@ dots mark indentation depth.
 :Q_ANSWER: Exploring the data to see what structure exists, and preprocessing -- mapping into a new space where supervised learning is easier.
 :Q_UNIT: clust
 :END:
+
+** You cannot choose k by minimizing reconstruction error because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: it falls monotonically as k rises, bottoming out at one point per cluster | it is not computable | it rises with k | it ignores separation
+:Q_ANSWER: it falls monotonically as k rises, bottoming out at one point per cluster
+:Q_EXPLAIN: Hence the elbow heuristic: look for where the improvement per added cluster drops off, rather than for a minimum that always sits at k = N.
+:Q_UNIT: clust
+:END:
+
+** Setting a maximum allowed distance within a cluster is equivalent to setting a maximum allowed __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: reconstruction error
+:Q_ACCEPT: reconstruction error per distance | error
+:Q_EXPLAIN: It is the same constraint expressed in different units, which is how leader clustering decides the cluster count implicitly from a threshold.
+:Q_UNIT: clust
+:END:
+

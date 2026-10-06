@@ -62,6 +62,23 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: nonpar
 :END:
 
+** Relative to a parametric method, a nonparametric method moves the computational cost to:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: query time | training time | neither, the cost is the same | preprocessing only
+:Q_ANSWER: query time
+:Q_EXPLAIN: Training is close to free -- store the data. Every prediction then pays for a search, which is what editing, condensing and KD-trees exist to reduce.
+:Q_UNIT: nonpar
+:END:
+
+** Every nonparametric method rests on the assumption that similar inputs have __________ outputs.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: similar
+:Q_EXPLAIN: It is still an inductive bias -- a weaker one than assuming a functional form, but it is what makes the stored examples informative about a new point.
+:Q_UNIT: nonpar
+:END:
+
 * Classification as Density Estimation
 
 ** Explain why classifying a query point reduces to a density estimation problem.
@@ -103,6 +120,33 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: It partitions the space into regions, each the set of points nearest one training example. It is exactly the decision geometry of 1-NN.
+:Q_UNIT: nonpar
+:END:
+
+** Parzen windows fix the __________ and let the count of points inside it vary.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: volume
+:Q_ACCEPT: region | window size | bandwidth | volume (the region)
+:Q_EXPLAIN: k-NN is the dual: fix k and let the volume grow until k points are enclosed.
+:Q_UNIT: nonpar
+:END:
+
+** On data with both very dense and very sparse regions, which adapts better?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: k-NN, because its volume grows where data is sparse | Parzen windows, because its window is fixed | neither adapts | both adapt equally
+:Q_ANSWER: k-NN, because its volume grows where data is sparse
+:Q_EXPLAIN: A fixed Parzen window is simultaneously too wide for the dense region and too narrow for the sparse one.
+:Q_UNIT: nonpar
+:END:
+
+** A Voronoi diagram is a picture of which algorithm's decision boundary?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: 1-nearest neighbor | k-NN with tuned k | Parzen windows | a decision tree
+:Q_ANSWER: 1-nearest neighbor
+:Q_EXPLAIN: Each cell is the region closer to one stored point than to any other, so the cell's label is that point's label.
 :Q_UNIT: nonpar
 :END:
 
@@ -203,6 +247,67 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: \(K(x_i,x_j) = \phi(x_i)^{T}\phi(x_j)\) for some map \(\phi\) -- the kernel is an inner product in a transformed space you never have to construct.
+:Q_UNIT: nonpar
+:END:
+
+** Which of these is not one of the four metric axioms?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: D(x,y) * D(y,z) >= D(x,z) | D(x,y) >= 0 | D(x,y) = 0 if and only if x = y | D(x,y) = D(y,x)
+:Q_ANSWER: D(x,y) * D(y,z) >= D(x,z)
+:Q_EXPLAIN: The triangle inequality is additive: D(x,y) + D(y,z) >= D(x,z). The other three are non-negativity, reflexivity and symmetry.
+:Q_UNIT: nonpar
+:END:
+
+** The metric axiom stating that D(x,y) = 0 only when x = y is called __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: reflexive
+:Q_ACCEPT: reflexivity | the reflexive axiom | identity of indiscernibles
+:Q_EXPLAIN: Without it, two distinct points could sit at zero distance and nearest-neighbor search could not tell them apart.
+:Q_UNIT: nonpar
+:END:
+
+** Minkowski distance with p = 1 is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Manhattan distance | Euclidean distance | max-coordinate distance | Hamming distance
+:Q_ANSWER: Manhattan distance
+:Q_EXPLAIN: p = 1 suits dimensions that are not commensurable (age, weight, gender); p = 2 suits dimensions with similar properties (width, height, depth).
+:Q_UNIT: nonpar
+:END:
+
+** Minkowski distance with p = infinity is the __________ distance.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: max-coordinate
+:Q_ACCEPT: maximum coordinate | Chebyshev | L-infinity | max coordinate
+:Q_EXPLAIN: D_inf(x,y) = max_i |x_i - y_i| -- only the single worst-matching feature counts.
+:Q_UNIT: nonpar
+:END:
+
+** As p rises in the Minkowski distance, the largest single coordinate difference matters more.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: In the limit it is all that matters. This is why a single unnormalized wide-range feature does more damage at p = 2 than at p = 1.
+:Q_UNIT: nonpar
+:END:
+
+** A kernel function is required to satisfy the triangle inequality.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: A kernel measures similarity, not distance, so the triangle inequality need not apply. It must be symmetric and non-negative, and it implies an inner product in some feature space.
+:Q_UNIT: nonpar
+:END:
+
+** The Value Difference Metric cannot be used on a regression problem because it needs:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: class labels to form conditional distributions | numeric features | a fixed bandwidth | a metric space
+:Q_ANSWER: class labels to form conditional distributions
+:Q_EXPLAIN: It calls two categorical values close when the class distribution conditioned on each is similar. With a continuous target there are no classes to condition on.
 :Q_UNIT: nonpar
 :END:
 
@@ -313,6 +418,41 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: nonpar
 :END:
 
+** As the bandwidth of a kernel density estimate goes to zero, the estimate becomes:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: a spike at each data point | a flat line | a single Gaussian | undefined
+:Q_ANSWER: a spike at each data point
+:Q_EXPLAIN: Pure variance -- it memorizes the sample. A very large bandwidth does the opposite: it washes out into one broad bump, pure bias.
+:Q_UNIT: nonpar
+:END:
+
+** The k-NN posterior for class i among the k neighbors is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: k_i / k | k / k_i | k_i / N | 1 / k
+:Q_ANSWER: k_i / k
+:Q_EXPLAIN: Which is why the plurality vote is the right decision rule: picking the most-represented class among the neighbors is taking the maximum posterior.
+:Q_UNIT: nonpar
+:END:
+
+** Under the curse of dimensionality, the data needed to maintain a fixed density grows __________ in the number of dimensions.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: exponentially
+:Q_ACCEPT: exponential
+:Q_EXPLAIN: Neighborhoods empty out, so the nearest neighbor stops being near and the "similar inputs, similar outputs" assumption quietly stops holding.
+:Q_UNIT: nonpar
+:END:
+
+** In the class-conditional kernel density estimator, the normalizer uses the count of examples in that class rather than the total.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: It is estimating p(x | C_i), a density over that class alone, so it must integrate to 1 over that class. The class prior enters separately.
+:Q_UNIT: nonpar
+:END:
+
 * Nearest Neighbor in Practice
 
 ** Explain how a k-NN classifier produces a label, and how ties are handled.
@@ -363,6 +503,33 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Delete examples, or build a smaller prototype set -- both lose information. Or index everything with a tree, which loses nothing but stops helping in high dimensions.
+:Q_UNIT: nonpar
+:END:
+
+** As k rises to the size of the training set, a k-NN classifier approaches:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: predicting the majority class everywhere | the 1-NN boundary | a linear boundary | a Voronoi diagram
+:Q_ANSWER: predicting the majority class everywhere
+:Q_EXPLAIN: It becomes the null model -- maximum bias, zero variance. At k = 1 it is the opposite: it follows every point, including the noise.
+:Q_UNIT: nonpar
+:END:
+
+** Naive nearest-neighbor search over N stored examples with d features costs:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: O(Nd) per query | O(d) per query | O(N log N) per query | O(1) per query
+:Q_ANSWER: O(Nd) per query
+:Q_EXPLAIN: Every stored point is compared on every feature. Editing and condensing cut N; a KD-tree cuts how many points are visited.
+:Q_UNIT: nonpar
+:END:
+
+** Distance-weighted voting addresses the problem that:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: a far neighbor counts as much as a near one | ties cannot be broken | k must be odd | distances are unnormalized
+:Q_ANSWER: a far neighbor counts as much as a near one
+:Q_EXPLAIN: Weighting by 1/d or a kernel lets the vote fall off with distance, which also makes the choice of k less delicate.
 :Q_UNIT: nonpar
 :END:
 
@@ -447,6 +614,32 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: nonpar
 :END:
 
+** Condensed nearest neighbor is greedy, so it does not guarantee the smallest consistent subset.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: The subset it keeps depends on the order it scans, which is why the scan is randomized -- and why two runs can give different stored sets.
+:Q_UNIT: nonpar
+:END:
+
+** Which method keeps the points near the decision boundary and discards the interior of each class?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: condensed nearest neighbor | edited nearest neighbor version 1 | Parzen windows | LOF
+:Q_ANSWER: condensed nearest neighbor
+:Q_EXPLAIN: It keeps only what is needed to reproduce the boundary. Editing instead removes points that disagree with their neighbors, smoothing the boundary rather than thinning behind it.
+:Q_UNIT: nonpar
+:END:
+
+** Both edited and condensed nearest neighbor are run with k = __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 1
+:Q_ACCEPT: one
+:Q_EXPLAIN: The reduction is about which points are needed to reproduce the 1-NN boundary. The k used at prediction time is tuned separately.
+:Q_UNIT: nonpar
+:END:
+
 * Indexing with a KD-Tree
 
 ** Explain how a KD-tree is built.
@@ -482,6 +675,23 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: In high dimensions the query sits close to every splitting plane relative to its nearest neighbor, so the pruning test keeps failing and the search degrades to a full scan.
+:Q_UNIT: nonpar
+:END:
+
+** A KD-tree branch can be pruned when the distance from the query to the splitting plane exceeds the best neighbor distance found so far.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: Nothing on the far side of the plane can be closer than the plane itself, so the whole subtree is provably irrelevant. The test is exact -- pruning costs no accuracy.
+:Q_UNIT: nonpar
+:END:
+
+** A KD-tree stops helping when:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the dimension is high, so few branches can be pruned | the data set is large | the data set is small | the features are categorical
+:Q_ANSWER: the dimension is high, so few branches can be pruned
+:Q_EXPLAIN: With many dimensions the nearest neighbor is barely nearer than the rest, the pruning test rarely fires, and the query degenerates to a full scan with overhead on top.
 :Q_UNIT: nonpar
 :END:
 
@@ -540,6 +750,23 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Features unnormalized so one dominates the distance; a badly tuned \(k\) or bandwidth; or the features genuinely carry no signal for this target. A pipeline bug is the fourth.
+:Q_UNIT: nonpar
+:END:
+
+** Which smoother gives a continuous prediction?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the kernel smoother | the regressogram | the running mean | none of them
+:Q_ANSWER: the kernel smoother
+:Q_EXPLAIN: Its weights change continuously as the query moves. The regressogram jumps at bin edges and the running mean jumps as a point enters or leaves the window.
+:Q_UNIT: nonpar
+:END:
+
+** All three smoothers share the form of a __________ average of nearby training responses.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: weighted
+:Q_EXPLAIN: They differ only in the weight function: bin membership, window membership, or a kernel of the distance.
 :Q_UNIT: nonpar
 :END:
 
@@ -602,3 +829,30 @@ Unit =nonpar=. In the pseudocode answers, leading dots mark indentation depth.
 :Q_EXPLAIN: Two passes are needed: the second uses the neighbors' k-distances, which only exist once every point has been scored.
 :Q_UNIT: nonpar
 :END:
+
+** The Local Outlier Factor is a ratio rather than a raw distance so that it can:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: compare a point's local density with its neighbors' | avoid computing distances | work without a metric | handle categorical features
+:Q_ANSWER: compare a point's local density with its neighbors'
+:Q_EXPLAIN: A single global distance threshold would flag every point in a legitimately sparse cluster. The ratio asks whether a point is unusual for its own neighborhood.
+:Q_UNIT: nonpar
+:END:
+
+** Outlier detection is an unsupervised problem.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: Outliers are not a labeled class -- if you had labels for them it would be a (very unbalanced) classification problem. This is also why one-class classification exists.
+:Q_UNIT: nonpar
+:END:
+
+** An LOF value near 1 indicates a point that is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: of normal density for its neighborhood | a strong outlier | an exact duplicate | in the densest region
+:Q_ANSWER: of normal density for its neighborhood
+:Q_EXPLAIN: The ratio is near 1 when the point's local density matches its neighbors'. Values well above 1 mark a point in a sparser region than the company it keeps.
+:Q_UNIT: nonpar
+:END:
+

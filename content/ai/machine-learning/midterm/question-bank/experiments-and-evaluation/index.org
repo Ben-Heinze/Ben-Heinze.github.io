@@ -84,6 +84,31 @@ indentation depth.
 :Q_UNIT: eval
 :END:
 
+** What you evaluate when you report a cross-validated error is the learning __________, not a single fitted model.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: algorithm
+:Q_EXPLAIN: Each fold produces a different learner. The folds estimate how the algorithm behaves on data of this size and kind, which is what justifies retraining on everything afterwards.
+:Q_UNIT: eval
+:END:
+
+** Training error cannot be used to compare two algorithms because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: it rewards the one that memorizes more | it is too noisy | it is not computable | it ignores the class priors
+:Q_ANSWER: it rewards the one that memorizes more
+:Q_EXPLAIN: A 1-NN classifier scores zero training error by construction and may generalize terribly.
+:Q_UNIT: eval
+:END:
+
+** A single error measurement from one validation set is enough to declare one algorithm better than another.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It is one draw from a distribution with no estimate of its spread. You need repeated measurements to tell a real difference from the variation of the split.
+:Q_UNIT: eval
+:END:
+
 * Resampling
 
 ** Explain K-fold cross-validation.
@@ -162,6 +187,50 @@ indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Training sets should be large and the measurements independent, but with fixed data larger sets necessarily overlap more. You cannot have both.
+:Q_UNIT: eval
+:END:
+
+** In a bootstrap sample of size N drawn with replacement, the expected fraction of distinct original examples included is about:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: 63.2% | 36.8% | 50% | 90%
+:Q_ANSWER: 63.2%
+:Q_EXPLAIN: Each example is missed with probability (1 - 1/N)^N, which tends to 1/e ~ 36.8%. So 36.8% are left out and serve as the test set.
+:Q_UNIT: eval
+:END:
+
+** The fraction of examples left out of a bootstrap sample tends to 1/e, which is about __________ percent.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 36.8
+:Q_ACCEPT: 36.8% | 37 | 36.79
+:Q_EXPLAIN: (1 - 1/N)^N -> 1/e as N grows. Those held-out examples are what the bootstrap scores on.
+:Q_UNIT: eval
+:END:
+
+** The statistical weakness of K-fold cross-validation is that its K error estimates are:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: not independent, because the training sets overlap | too few to average | biased upward | drawn from different distributions
+:Q_ANSWER: not independent, because the training sets overlap
+:Q_EXPLAIN: Any two of the K training sets share most of their examples, so the usual tests that assume independent samples do not strictly apply.
+:Q_UNIT: eval
+:END:
+
+** 5x2 cross-validation is preferred over 10-fold because its ten numbers:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: come in pairs whose two training sets are disjoint | are more numerous | have lower variance | use more training data per fold
+:Q_ANSWER: come in pairs whose two training sets are disjoint
+:Q_EXPLAIN: Each replication splits in half, so the two halves share nothing. The cost is that each model trains on only 50% of the data, which biases the error estimate upward.
+:Q_UNIT: eval
+:END:
+
+** Leave-one-out cross-validation trains as many models as there are examples.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: Which is why it is reserved for small data sets -- it is nearly unbiased but costs N fits and its estimates are highly variable.
 :Q_UNIT: eval
 :END:
 
@@ -279,6 +348,58 @@ indentation depth.
 :Q_UNIT: eval
 :END:
 
+** Of the examples the classifier labelled positive, the fraction that really are positive is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: precision | recall | accuracy | specificity
+:Q_ANSWER: precision
+:Q_EXPLAIN: Recall is the other direction: of the examples that really are positive, the fraction the classifier found.
+:Q_UNIT: eval
+:END:
+
+** Of the examples that really are positive, the fraction the classifier found is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: recall | precision | accuracy | the F-measure
+:Q_ANSWER: recall
+:Q_EXPLAIN: A screening test wants recall -- a missed case is the expensive error. A spam filter wants precision -- a lost real message is the expensive error.
+:Q_UNIT: eval
+:END:
+
+** The F-measure combines precision and recall using a __________ mean.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: harmonic
+:Q_EXPLAIN: The harmonic mean is dragged down by the smaller of the two, so you cannot score well by sacrificing one entirely -- an arithmetic mean would let 100% recall at 2% precision look respectable.
+:Q_UNIT: eval
+:END:
+
+** Which averaging gives every class equal weight regardless of its size?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: macro-averaging | micro-averaging | weighted averaging | neither
+:Q_ANSWER: macro-averaging
+:Q_EXPLAIN: Micro-averaging pools the counts first, so a class with 10000 examples dominates one with 50. Report macro when the small class is the one you care about.
+:Q_UNIT: eval
+:END:
+
+** Accuracy is a safe metric as long as the test set is large enough.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Size does not fix imbalance. At 99 negatives to 1 positive, always predicting negative scores 99% accuracy while finding nothing.
+:Q_UNIT: eval
+:END:
+
+** An ROC curve plots the true positive rate against the:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: false positive rate | precision | recall | threshold
+:Q_ANSWER: false positive rate
+:Q_EXPLAIN: One point per threshold, so the curve shows the whole trade-off rather than the single operating point a precision-recall pair fixes. AUC summarizes it in one number.
+:Q_UNIT: eval
+:END:
+
 * Designing the Experiment
 
 ** Distinguish controllable from uncontrollable factors in an experiment.
@@ -341,6 +462,33 @@ indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: A range the true error plausibly falls in, with a stated probability. It makes the uncertainty explicit and lets you tell a real difference from noise.
+:Q_UNIT: eval
+:END:
+
+** Using the same cross-validation folds for every algorithm you compare is an instance of:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: blocking | randomization | replication | factorial design
+:Q_ANSWER: blocking
+:Q_EXPLAIN: It removes the variation due to the split from the comparison, so the difference you measure is attributable to the algorithms rather than to which examples each happened to get.
+:Q_UNIT: eval
+:END:
+
+** Randomization protects an experiment against __________ factors.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: uncontrollable
+:Q_ACCEPT: uncontrolled | nuisance | uncontrollable (nuisance)
+:Q_EXPLAIN: You cannot remove them, so you stop them aligning systematically with the thing you are measuring.
+:Q_UNIT: eval
+:END:
+
+** The "one factor at a time" strategy assumes that:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the factors do not interact | the factors are independent of the response | there are only two factors | the response is linear
+:Q_ANSWER: the factors do not interact
+:Q_EXPLAIN: When they do, the best setting of one depends on the other, and tuning them separately finds neither. Factorial design is the fix, at the cost of a combinatorial number of runs.
 :Q_UNIT: eval
 :END:
 
@@ -437,3 +585,29 @@ indentation depth.
 :Q_ANSWER: \(5^{4} = 625\) configurations times 10 folds, so 6250 fits. Which is why grid search is only viable for very few hyperparameters.
 :Q_UNIT: eval
 :END:
+
+** For the same evaluation budget, random search usually beats grid search because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: it does not waste trials varying hyperparameters that do not matter | it is cheaper per trial | it always finds the optimum | it needs no ranges
+:Q_ANSWER: it does not waste trials varying hyperparameters that do not matter
+:Q_EXPLAIN: A grid spends its budget on the full product of levels; random search gives every hyperparameter a distinct value on every trial, so it explores the ones that matter more finely.
+:Q_UNIT: eval
+:END:
+
+** Tuning k by picking the value with the lowest error on your test fold gives an honest error estimate.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: The test fold has then been used to make a choice, so the reported number is optimistic. Tune on a validation split inside the training portion and keep the test fold untouched.
+:Q_UNIT: eval
+:END:
+
+** In Bayesian optimization, the function that decides which configuration to try next is the __________ function.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: acquisition
+:Q_EXPLAIN: It balances exploiting where the surrogate model predicts good performance against exploring where the model is most uncertain.
+:Q_UNIT: eval
+:END:
+

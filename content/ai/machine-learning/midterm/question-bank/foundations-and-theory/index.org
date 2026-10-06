@@ -119,6 +119,49 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: found
 :END:
 
+** In supervised learning, the component that supplies the correct action is the __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: critic
+:Q_EXPLAIN: Critic supplies the correct action, learner converts it into a rule, actor applies the rule. The ground truth comes from outside the learner.
+:Q_UNIT: found
+:END:
+
+** Which form of learning receives a reward rather than the correct answer?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: reinforcement | supervised | unsupervised | semi-supervised
+:Q_ANSWER: reinforcement
+:Q_EXPLAIN: It is told how good an action was, never what it should have done -- which is why it has to solve a sequential credit-assignment problem.
+:Q_UNIT: found
+:END:
+
+** Semi-supervised learning is motivated by labels being expensive while raw data is cheap.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: It mixes a little labeled data with a lot of unlabeled data, using approaches like self-training.
+:Q_UNIT: found
+:END:
+
+** In an active learning setting, who chooses which instances get labeled?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the learner | the critic | neither, they arrive at random | the actor
+:Q_ANSWER: the learner
+:Q_EXPLAIN: Choosing a query that halves the hypothesis space extracts far more information than a randomly drawn example, which is why active learning can need far fewer labels.
+:Q_UNIT: found
+:END:
+
+** During learning, the model's form is fixed in advance and only the __________ are optimized.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: parameters
+:Q_ACCEPT: weights | parameters (weights)
+:Q_EXPLAIN: Choosing the form is where inductive bias enters -- it is a decision made before any data is seen.
+:Q_UNIT: found
+:END:
+
 * The Winnow-2 Algorithm
 
 ** What kind of problem is Winnow-2 for, and what is the core idea behind how it learns?
@@ -215,6 +258,49 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: found
 :END:
 
+** On a promotion, Winnow-2 updates the weights of the active features by:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: multiplying by alpha | dividing by alpha | adding alpha | subtracting alpha
+:Q_ANSWER: multiplying by alpha
+:Q_EXPLAIN: Promotion fires when the true label is 1 and the prediction was 0 -- the score was too low, so the active weights are scaled up. Demotion divides by alpha.
+:Q_UNIT: found
+:END:
+
+** Winnow-2 updates its weights after every training example.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It is mistake-driven: a correct prediction means the weights already order this example correctly, so changing them could only break what works.
+:Q_UNIT: found
+:END:
+
+** A Winnow-2 update leaves the weights of features with x_i = 0 unchanged.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: An inactive feature contributed nothing to the score, so it bears no blame for the mistake. This is what lets Winnow-2 tolerate many irrelevant features.
+:Q_UNIT: found
+:END:
+
+** Winnow-2's decision rule predicts class 1 when the weighted sum is strictly greater than __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: theta
+:Q_ACCEPT: the threshold | theta (the threshold)
+:Q_EXPLAIN: f = sum_i w_i x_i, predict 1 if f > theta. Theta sets where the linear boundary sits; set badly it can make one class unreachable.
+:Q_UNIT: found
+:END:
+
+** Winnow-2 cannot learn XOR because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: XOR is not linearly separable | XOR needs more than two features | its updates are multiplicative | its threshold cannot be tuned
+:Q_ANSWER: XOR is not linearly separable
+:Q_EXPLAIN: A threshold on a weighted sum is a hyperplane -- a representation bias, not a search failure. No weight setting expresses XOR, so no amount of data helps.
+:Q_UNIT: found
+:END:
+
 * Why Learning Is Possible
 
 ** What is inductive bias?
@@ -280,6 +366,40 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: found
 :END:
 
+** Restricting which hypotheses can be expressed at all is a __________ bias.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: representation
+:Q_EXPLAIN: Preference bias instead orders hypotheses the learner could all express -- as a greedy tree-grower prefers shorter trees.
+:Q_UNIT: found
+:END:
+
+** Which of these is a preference bias rather than a representation bias?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: ID3 preferring shorter trees | Winnow-2 allowing only linear boundaries | a standard tree testing one feature per node | conjunctions of literals as the hypothesis space
+:Q_ANSWER: ID3 preferring shorter trees
+:Q_EXPLAIN: The other three limit what is expressible. ID3's greedy search could express a large tree but orders its search to find a small one first.
+:Q_UNIT: found
+:END:
+
+** A learner with no inductive bias can still generalize, given enough data.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: With no bias, every labeling of the unseen instances remains in the version space, so the learner has no grounds to prefer one prediction over another. Bias is what makes generalization possible at all.
+:Q_UNIT: found
+:END:
+
+** The No Free Lunch theorem implies that:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: no algorithm beats all others averaged over all possible problems | no algorithm can learn any problem | more data never helps | every algorithm has the same bias
+:Q_ANSWER: no algorithm beats all others averaged over all possible problems
+:Q_EXPLAIN: So calling an algorithm "good" is a claim about a match between its bias and the problems you actually face -- never a claim about all problems.
+:Q_UNIT: found
+:END:
+
 * Measuring Error
 
 ** Explain true error, and why you can never measure it.
@@ -307,6 +427,23 @@ pseudocode answers, leading dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Training error measures capacity, not quality -- a complex enough model drives it to zero by memorizing. Ask for error on data never used in fitting or tuning.
+:Q_UNIT: found
+:END:
+
+** The error you can actually compute from your data is the __________ error.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: sample
+:Q_ACCEPT: sample error | empirical
+:Q_EXPLAIN: True error is over the whole distribution, which you never have. Every bound in the course exists to relate the one you can measure to the one you care about.
+:Q_UNIT: found
+:END:
+
+** True error can be measured exactly given a large enough test set.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It is defined over the entire distribution. A larger test set tightens the estimate of it, but it stays an estimate.
 :Q_UNIT: found
 :END:
 
@@ -382,6 +519,59 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: found
 :END:
 
+** Which loss function is the natural fit for a model whose output is a probability?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: log loss (cross entropy) | 0/1 loss | squared loss | hinge loss
+:Q_ANSWER: log loss (cross entropy)
+:Q_EXPLAIN: 0/1 loss suits a hard class label, squared loss a continuous target, hinge loss a margin classifier. Log loss needs the output to be a probability to take its logarithm.
+:Q_UNIT: found
+:END:
+
+** The main drawback of 0/1 loss as a training objective is that it is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: flat almost everywhere, so it gives no gradient | unbounded | sensitive to outliers | only defined for two classes
+:Q_ANSWER: flat almost everywhere, so it gives no gradient
+:Q_EXPLAIN: It also scores a barely-wrong prediction the same as a wildly wrong one, so it cannot tell a nearly-correct model from a hopeless one.
+:Q_UNIT: found
+:END:
+
+** Hinge loss stops charging anything once the product of prediction and label reaches __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 1
+:Q_ACCEPT: one
+:Q_EXPLAIN: L_hinge = max{0, 1 - yhat*y}, so a correct prediction clear of the margin by 1 costs nothing -- the model stops being pushed once it is confidently right.
+:Q_UNIT: found
+:END:
+
+** Which loss is least disturbed by a few extreme outliers?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: absolute error | squared loss | log loss | hinge loss
+:Q_ANSWER: absolute error
+:Q_EXPLAIN: Squared loss grows quadratically in the residual, so one far-off point can dominate the whole sum and drag the fit toward it.
+:Q_UNIT: found
+:END:
+
+** In the risk function, lambda controls how much the regularization term counts against fitting the data.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: At lambda = 0 the penalty vanishes and the model is free to overfit; very large lambda crushes the parameters and the model underfits.
+:Q_UNIT: found
+:END:
+
+** A risk function differs from a loss function in that it is computed over:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the whole training set, plus a regularization term | a single example | the test set only | the validation set only
+:Q_ANSWER: the whole training set, plus a regularization term
+:Q_EXPLAIN: Loss scores one prediction; risk sums loss over the data and adds lambda*rho(theta). Risk is the thing actually minimized during training.
+:Q_UNIT: found
+:END:
+
 * Bias and Variance
 
 ** Explain bias as a source of error.
@@ -430,6 +620,32 @@ pseudocode answers, leading dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: High bias -- it is underfitting, and more data will not help. Fix by increasing model capacity, adding features, or lowering regularization.
+:Q_UNIT: found
+:END:
+
+** Total error decomposes into bias squared, variance, and:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: irreducible error | regularization | training error | the loss
+:Q_ANSWER: irreducible error
+:Q_EXPLAIN: Noise in the data itself. No model removes it, so it sets a floor that a reported error below should make you suspect leakage.
+:Q_UNIT: found
+:END:
+
+** Near-zero training error with poor test error is a symptom of high variance.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: The model is fitting the sample rather than the concept. Fixes: reduce complexity or add regularization, and get more data.
+:Q_UNIT: found
+:END:
+
+** As model complexity rises, bias and variance respectively:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: fall and rise | rise and fall | both fall | both rise
+:Q_ANSWER: fall and rise
+:Q_EXPLAIN: Which is why total error traces a U: it improves until the hypothesis space outgrows the concept, then degrades.
 :Q_UNIT: found
 :END:
 
@@ -500,6 +716,33 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: linreg
 :END:
 
+** Fitting by least squares is maximum likelihood estimation under the assumption that the noise is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Gaussian with constant variance | uniform | Laplacian | absent
+:Q_ANSWER: Gaussian with constant variance
+:Q_EXPLAIN: Maximizing the Gaussian likelihood turns the exponent into a sum of squared residuals, so minimizing squared error and maximizing likelihood are the same operation.
+:Q_UNIT: linreg
+:END:
+
+** Univariate linear regression minimizes the sum of __________ residuals.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: squared
+:Q_ACCEPT: squared (SSE) | square
+:Q_EXPLAIN: Which is what makes the closed form available: the derivative of a quadratic is linear, so setting it to zero gives a solvable system.
+:Q_UNIT: linreg
+:END:
+
+** Gradient descent is needed instead of the closed form when:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the matrix inverse is too expensive or does not exist | the data is noisy | the features are categorical | the target is continuous
+:Q_ANSWER: the matrix inverse is too expensive or does not exist
+:Q_EXPLAIN: With many features the inversion dominates, and with collinear features the system is singular. Gradient descent needs neither.
+:Q_UNIT: linreg
+:END:
+
 * Version Spaces
 
 ** What does it mean for a hypothesis to be consistent with the training data?
@@ -563,6 +806,32 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_TYPE: short
 :Q_ANSWER: Start the boundaries as far apart as the language allows, then generalize on positives and specialize on negatives.
 :Q_STEPS: CANDIDATE-ELIMINATION(D): | G <- the maximally general hypotheses | S <- the maximally specific hypotheses | for each example e in D: | .  if e is POSITIVE: | .  .  drop from G anything inconsistent with e | .  .  replace each inconsistent s in S by its minimal generalizations | .  .  keep only those some g in G is more general than | .  .  prune from S anything more general than another member | .  else: | .  .  drop from S anything inconsistent with e | .  .  replace each inconsistent g in G by its minimal specializations | .  .  keep only those some s in S is more specific than | .  .  prune from G anything more specific than another member | return (S, G)
+:Q_UNIT: theory
+:END:
+
+** A positive example causes candidate elimination to:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: generalize S and prune G | specialize G and prune S | generalize both | discard the example
+:Q_ANSWER: generalize S and prune G
+:Q_EXPLAIN: S must stretch minimally to admit the example; anything in G inconsistent with it is dropped. A negative example does the mirror image.
+:Q_UNIT: theory
+:END:
+
+** Candidate elimination has a representation bias but no preference bias.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: It keeps every consistent hypothesis rather than ordering them, so it expresses no preference. Its bias is entirely in the hypothesis language it can represent.
+:Q_UNIT: theory
+:END:
+
+** A single mislabeled example breaks candidate elimination because:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: it can eliminate the true concept, and nothing restores it | it slows the search | it widens the version space | it makes S and G equal
+:Q_ANSWER: it can eliminate the true concept, and nothing restores it
+:Q_EXPLAIN: Elimination is monotone and permanent. The algorithm has no notion of an example possibly being wrong, so the version space can collapse to empty.
 :Q_UNIT: theory
 :END:
 
@@ -673,6 +942,50 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: theory
 :END:
 
+** For conjunctions over n Boolean attributes, the size of the hypothesis space is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: 3 to the n | 2 to the n | n squared | 2 to the 2 to the n
+:Q_ANSWER: 3 to the n
+:Q_EXPLAIN: Each attribute appears positively, negatively, or not at all -- three choices, independently, for each of n attributes.
+:Q_UNIT: theory
+:END:
+
+** The Haussler bound bounds the probability that:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: some consistent hypothesis still has true error above epsilon | the sample error exceeds epsilon | the learner runs too long | the version space is empty
+:Q_ANSWER: some consistent hypothesis still has true error above epsilon
+:Q_EXPLAIN: That is the version space failing to be epsilon-exhausted. Bounding it at delta and solving for m gives the sample complexity.
+:Q_UNIT: theory
+:END:
+
+** In the sample complexity bound, the dependence on 1/delta is logarithmic while the dependence on 1/epsilon is linear.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: m >= (1/epsilon)(ln|H| + ln(1/delta)): demanding higher confidence is cheap, demanding higher accuracy is not.
+:Q_UNIT: theory
+:END:
+
+** Agnostic learning gives up the assumption that:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the target concept lies in the hypothesis space | the data is independently drawn | the learner is efficient | the labels are Boolean
+:Q_ANSWER: the target concept lies in the hypothesis space
+:Q_EXPLAIN: With no consistent hypothesis to find, the learner returns the best available one -- and the bound needs an epsilon-squared in the denominator rather than epsilon, so far more examples.
+:Q_UNIT: theory
+:END:
+
+** In "probably approximately correct", "probably" refers to __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: delta
+:Q_ACCEPT: 1 - delta | the confidence | delta (the confidence)
+:Q_EXPLAIN: Delta bounds the chance of a bad run; epsilon bounds how wrong the answer is on a good one -- that is the "approximately".
+:Q_UNIT: theory
+:END:
+
 * VC Dimension
 
 ** Explain what it means for a hypothesis space to shatter a set of points.
@@ -773,6 +1086,94 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: theory
 :END:
 
+** The VC dimension of axis-parallel rectangles in the plane is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: 4 | 3 | 2 | infinite
+:Q_ANSWER: 4
+:Q_EXPLAIN: The table: half intervals in R give 1, intervals in R give 2, half spaces in R^2 give 3, axis-parallel rectangles in R^2 give 4.
+:Q_UNIT: theory
+:END:
+
+** The VC dimension of intervals on the real line is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: 2 | 1 | 3 | 4
+:Q_ANSWER: 2
+:Q_EXPLAIN: An interval [a,b] shatters one or two points, but never three: label the outer two positive and the middle one negative and no interval obliges.
+:Q_UNIT: theory
+:END:
+
+** The VC dimension of a linear decision surface in d dimensions is __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: d + 1
+:Q_ACCEPT: d+1
+:Q_EXPLAIN: Which recovers 3 for a line in the plane -- any three non-collinear points are shattered, but no four.
+:Q_UNIT: theory
+:END:
+
+** To shatter a set of points, a hypothesis space must realize:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: every possible labeling of those points | one correct labeling of those points | at least half the labelings | every labeling of every larger set
+:Q_ANSWER: every possible labeling of those points
+:Q_EXPLAIN: All 2 to the N dichotomies. VC dimension is the size of the largest set for which that holds.
+:Q_UNIT: theory
+:END:
+
+** Establishing that VC(H) = d requires exhibiting one shattered set of size d and proving no set of size d+1 is shattered.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: The lower bound is an example, the upper bound is an impossibility argument. One alone leaves the dimension undetermined.
+:Q_UNIT: theory
+:END:
+
+** A finite hypothesis space can have infinite VC dimension.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Shattering N points needs 2^N distinct hypotheses, so VC(H) is at most lg|H|. VC dimension exists precisely to measure infinite spaces, where |H| says nothing.
+:Q_UNIT: theory
+:END:
+
+** Many consider the VC dimension to be a measure of the strength of a learner's __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: inductive bias
+:Q_ACCEPT: bias | inductive bias (its restriction on H)
+:Q_EXPLAIN: Low VC dimension is a strong restriction on H -- fewer labelings expressible, fewer examples needed, more risk of underfitting.
+:Q_UNIT: theory
+:END:
+
+** In the triple tradeoff, as the complexity of H increases, generalization error:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: first decreases, then increases | decreases monotonically | increases monotonically | stays flat
+:Q_ANSWER: first decreases, then increases
+:Q_EXPLAIN: It turns once H is more complex than the concept. As N increases, error just decreases -- that part is monotone.
+:Q_UNIT: theory
+:END:
+
+** Learning is called an __________ problem because the data does not determine a unique solution.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: ill-posed
+:Q_ACCEPT: ill posed | illposed
+:Q_EXPLAIN: Which is exactly why inductive bias is required rather than merely helpful.
+:Q_UNIT: theory
+:END:
+
+** Underfitting is the case where the hypothesis space is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: less complex than the target concept | more complex than the target concept | the same complexity as the concept | infinite
+:Q_ANSWER: less complex than the target concept
+:Q_EXPLAIN: Overfitting is the mirror image: H more complex than c or f.
+:Q_UNIT: theory
+:END:
+
 * Making Decisions Under Cost
 
 ** Explain risk minimization and why a cost matrix is needed at all.
@@ -809,3 +1210,30 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_ANSWER: MAP weights the likelihood by a prior over hypotheses; ML ignores the prior. They coincide exactly when all priors are equal.
 :Q_UNIT: theory
 :END:
+
+** When the cost matrix is 0/1, risk minimization reduces to choosing:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the most probable class | the cheapest class | the majority class | the class with the largest likelihood
+:Q_ANSWER: the most probable class
+:Q_EXPLAIN: With every error costing the same, expected cost is just the probability of being wrong, so minimizing it means taking the maximum posterior -- h_MAP.
+:Q_UNIT: theory
+:END:
+
+** The maximum likelihood hypothesis is the MAP hypothesis with the __________ dropped.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: prior
+:Q_ACCEPT: prior probability | P(h)
+:Q_EXPLAIN: Equivalent to assuming a uniform prior -- defensible when you have no reason to favour any hypothesis, and quietly wrong when you do.
+:Q_UNIT: theory
+:END:
+
+** Raising the cost of a false negative moves the decision boundary so that more examples are classified positive.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: A missed cancer diagnosis costing far more than a false alarm means the threshold on the posterior drops -- you accept more false alarms to buy back misses.
+:Q_UNIT: theory
+:END:
+

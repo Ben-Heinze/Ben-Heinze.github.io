@@ -20,16 +20,18 @@ syllabus says the exam has three parts:
 2. {{{hl(blue,Specific questions on the programming assignments)}}}
 3. Open-ended short answer
 
-The practice material below is shaped to match that: mostly free-response with a
-reveal-the-model-answer self-grade, a layer of objective questions for sharp
-recall, randomized numeric drills for the calculations, and a whole section of
-project questions on mechanism and pseudocode.
+The practice material below is shaped to match that, part for part:
+free-response questions with a reveal-the-model-answer self-grade for part 3, an
+objective layer of multiple-choice, true/false and fill-in questions for part 1,
+a whole section of project questions on mechanism and pseudocode for part 2, and
+randomized numeric drills for the calculations that run underneath all three.
 
 The one explicit instruction from the course so far is on the
 [[file:../][Machine Learning]] index page: *what to study: the Winnow
-algorithm*. There are twelve Winnow questions in the foundations bank,
+algorithm*. There are seventeen Winnow questions in the foundations bank,
 including both update rules, the worked weight trace, the representation bias,
-pseudocode and a randomized weight-update drill.
+pseudocode, a randomized weight-update drill, and five objective questions on the
+threshold rule, the mistake-driven update and why XOR is out of reach.
 
 * Where to start
 
@@ -40,10 +42,10 @@ pseudocode and a randomized weight-update drill.
 - [[file:question-bank/][Question Bank]] to read the questions as a plain list
   rather than take them shuffled.
 
-Everything is *self-assessed*. Nothing is auto-graded, including the
-calculations: the engine shows the model answer and the worked steps, and you
-mark your own. Every test also has a *Flashcards* mode that runs the same pool
-one card at a time.
+Everything is *self-assessed*. Nothing is auto-graded -- not the calculations,
+and not the multiple-choice either: the engine renders the options, shows the
+right answer and the worked steps, and you mark your own. Every test also has a
+*Flashcards* mode that runs the same pool one card at a time.
 
 * Practice tests by topic
 
@@ -100,8 +102,9 @@ links to the notes it comes from.
 - Risk minimization, 0/1 loss, \(h_{MAP}\) and \(h_{ML}\)
 
 ** [[file:../lecture-notes/5-tree-learning/][Week 5: Tree Learning]]
+- Expected value as one operation: entropy, expected entropy and intrinsic value are each a weighted sum, differing only in what sits in the value slot
 - ID3, entropy, expected entropy, information gain; the Quinlan weather numbers
-- Gain ratio and intrinsic value; why unique identifiers break plain gain
+- Gain ratio and intrinsic value; why unique identifiers break plain gain, and why \(IV = \lg n\) for \(n\) singleton branches
 - Continuous attributes: binary splits, midpoints, quantiles, equal-width vs equal-frequency
 - Regression trees: the MSE criterion, leaf means, MLE implies least squares, small disjuncts
 - Overfitting (formally); reduced error pruning; early stopping and Quinlan's chi-square

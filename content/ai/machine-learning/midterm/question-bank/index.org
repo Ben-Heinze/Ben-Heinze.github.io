@@ -31,10 +31,23 @@ questions feed the shuffled, timed
 * How the questions are built
 
 Most are *free response*: you recall the answer, then *Reveal answer* shows the
-model answer and you mark yourself. A thinner layer of multiple-choice,
-true/false and fill-in questions covers the definitions worth knowing cold --
-the metric axioms, the VC-dimension table, the linkage types, which loss suits
-which output.
+model answer and you mark yourself. That layer carries the mechanism and the
+pseudocode -- the parts the exam's open-ended section asks for.
+
+On top of it sits an *objective layer* of multiple-choice, true/false and
+fill-in questions, matching the objective section of the exam. These pin the
+facts the free-response answers leave soft: the four metric axioms, the
+VC-dimension table, the three linkage types, which loss suits which output, the
+Minkowski special cases, the bootstrap percentages, the VC dimension of a
+=d=-dimensional linear surface. They are deliberately not restatements -- where a
+free-response question asks you to explain single-, complete- and average-link,
+the objective version asks which one is the largest pairwise distance.
+
+Every type is still *self-assessed*: multiple-choice and true/false render their
+options and fill-in renders a text box, but nothing is graded. *Reveal answer*
+shows the right answer and its =:Q_EXPLAIN:= note, and you mark your own. One
+consequence for *Flashcards* mode: it shows a question's prompt without its
+options, so every objective stem is written to stand on its own as a card.
 
 *Pseudocode questions* reveal a monospace outline under the model answer. In
 those outlines, *leading dots mark indentation depth*, since the single-line Org
@@ -49,11 +62,12 @@ both project pipelines end to end.
 
 *Calculation questions* are generated fresh on every =New test=, so the numbers
 change but the method does not. They cover entropy and information gain, gain
-ratio, precision/recall/F-beta, micro versus macro averaging, the Haussler and
-PAC and VC sample-complexity bounds, the silhouette coefficient, pseudo-F, LOF,
-Minkowski distance, VDM, a Winnow-2 weight update, a Gaussian KDE, the k-NN
-posterior, the bootstrap percentages, and a regression-tree leaf MSE. Each one
-reveals its worked steps so you can check your arithmetic against the method.
+ratio, intrinsic value, a plain expected value, precision/recall/F-beta, micro
+versus macro averaging, the Haussler and PAC and VC sample-complexity bounds,
+the silhouette coefficient, pseudo-F, LOF, Minkowski distance, VDM, a Winnow-2
+weight update, a Gaussian KDE, the k-NN posterior, the bootstrap percentages,
+and a regression-tree leaf MSE. Each one reveals its worked steps so you can
+check your arithmetic against the method.
 
 * Adding to the bank
 
@@ -69,3 +83,24 @@ up on every test that includes its =:Q_UNIT:=, with no other edits needed:
 :Q_UNIT: trees
 :END:
 #+end_example
+
+An objective question is the same drawer with a different =:Q_TYPE:=. Use =mc=
+with pipe-separated =:Q_OPTIONS:= (no pipes inside an option), =tf= with
+=:Q_ANSWER:= exactly =True= or =False=, or =fill= with =:Q_ACCEPT:= listing the
+variants you would also accept. =:Q_EXPLAIN:= is what the reveal shows under the
+answer, so it is the place to put the contrast that makes the fact stick:
+
+#+begin_example
+,** Which linkage merges on the largest distance between any pair of points across the two clusters?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: complete-link | single-link | average-link | divisive
+:Q_ANSWER: complete-link
+:Q_EXPLAIN: Single-link takes the smallest such distance; average-link uses the cluster averages.
+:Q_UNIT: clust
+:END:
+#+end_example
+
+Keep multiple-choice distractors inside the course material -- a sibling from the
+same slide, never an invented term, since a plausible fabricated option is still
+something to misremember.

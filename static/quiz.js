@@ -367,6 +367,46 @@
           'IV(f) = -[' + ivTerms.join(' + ') + '] = ' + round(iv, 4) + '   (partition sizes only)\n' +
           'gainRatio = gain / IV = ' + round(gain, 4) + ' / ' + round(iv, 4) + ' = ' + round(gr, 4) };
     },
+    // Intrinsic value of a k-valued split: entropy over the branch SIZES, with
+    // the class counts deliberately discarded. The denominator of gain ratio.
+    iv: function () {
+      var k = pick([2, 3, 3, 4, 5]), sizes = [], i, t = 0;
+      for (i = 0; i < k; i++) { var s = randint(1, 12); sizes.push(s); t += s; }
+      var iv = 0, terms = [], prods = [];
+      for (i = 0; i < k; i++) {
+        var w = sizes[i] / t;
+        iv += -w * lg(w);
+        terms.push('(' + sizes[i] + '/' + t + ') lg(' + sizes[i] + '/' + t + ')');
+        prods.push('(' + round(w, 4) + ')(' + round(lg(w), 4) + ')');
+      }
+      return { q: 'Intrinsic value: a node of ' + t + ' examples splits on a ' + k + '-valued feature into partitions of sizes ' +
+          vec(sizes) + '. IV(f) in bits?',
+        a: round(iv, 4), unit: 'bits', tol: 0.005, steps:
+          'IV(f) = -sum_j ((p_j+n_j)/(p+n)) lg((p_j+n_j)/(p+n))      // sizes only -- classes discarded\n' +
+          '      = -[' + terms.join(' + ') + ']\n' +
+          '      = -[' + prods.join(' + ') + ']\n' +
+          '      = ' + round(iv, 4) + ' bits\n' +
+          '(a ' + k + '-way even split would give lg ' + k + ' = ' + round(lg(k), 4) + ', the maximum here)' };
+    },
+    // Plain expected value: sum of value times probability. The operation that
+    // entropy, expected entropy and the risk function each instantiate.
+    expval: function () {
+      var k = pick([3, 3, 4]), w = [], vals = [], i, t = 0;
+      for (i = 0; i < k; i++) { var c = randint(1, 9); w.push(c); t += c; vals.push(randint(0, 20)); }
+      var ev = 0, terms = [];
+      for (i = 0; i < k; i++) {
+        ev += (w[i] / t) * vals[i];
+        terms.push('(' + w[i] + '/' + t + ')(' + vals[i] + ')');
+      }
+      return { q: 'Expected value: ' + k + ' outcomes occur ' + vec(w) + ' times out of ' + t +
+          ', and the quantity takes the values ' + vec(vals) + '. E[X]?',
+        a: round(ev, 4), unit: '', tol: 0.005, steps:
+          'E[X] = sum_j P(x_j) * x_j                      // weights must sum to 1\n' +
+          'P = ' + vec(w.map(function (c) { return round(c / t, 4); })) + '   (sums to 1)\n' +
+          'E[X] = ' + terms.join(' + ') + '\n' +
+          '     = ' + round(ev, 4) + '\n' +
+          '(expected entropy is this with H(p_j,n_j) in the value slot)' };
+    },
     // Precision / recall / F-beta off a 2x2 confusion matrix.
     prf: function () {
       var tp = randint(8, 40), fp = randint(2, 20), fn = randint(2, 20), tn = randint(8, 40);

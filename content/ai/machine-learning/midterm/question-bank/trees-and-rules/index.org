@@ -120,6 +120,120 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: trees
 :END:
 
+** Explain what an expected value is, and how you compute one.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The average of a quantity weighted by how likely each outcome is: \(E[X] = \sum_j P(x_j) \cdot x_j\). You compute it by listing the outcomes, writing each one's probability, multiplying each value by its probability, and summing. Every "expected" quantity in the course -- expected entropy, expected loss in the risk function -- is this one operation with a different quantity in the value slot.
+:Q_STEPS: EXPECTED-VALUE(outcomes): | total <- 0 | for each outcome j: | .  p_j <- probability of outcome j      // the weights must sum to 1 | .  v_j <- the value of the quantity at outcome j | .  total <- total + p_j * v_j | return total
+:Q_UNIT: trees
+:END:
+
+** Entropy is itself an expected value. Say what is being averaged and with what weights.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The quantity averaged is the self-information \(-\lg P(x)\) of each class, and the weight on each is that class's probability. So \(H = \sum_i P(x_i)(-\lg P(x_i))\) -- the expected surprise of learning an example's label.
+:Q_UNIT: trees
+:END:
+
+** Entropy is the expected value of the __________ of each outcome.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: self-information
+:Q_ACCEPT: surprise | surprisal | self information
+:Q_EXPLAIN: Self-information is -lg P(x). Entropy weights it by P(x) and sums.
+:Q_UNIT: trees
+:END:
+
+** Expected entropy is an expected value. Identify the outcomes, the weights, and the quantity being averaged.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The outcomes are the partitions \(j\) the feature splits the node into. The weight on partition \(j\) is the fraction of the node's examples that land in it, \((p_j + n_j)/(p + n)\). The quantity averaged is that partition's own entropy \(H(p_j, n_j)\). So \(E(f_i) = \sum_j \frac{p_j + n_j}{p + n} H(p_j, n_j)\) -- the entropy you should expect to be left with after testing the feature.
+:Q_STEPS: EXPECTED-ENTROPY(node, feature f): | t <- p + n                              // examples at the node | E <- 0 | for each value j of f: | .  (p_j, n_j) <- positives, negatives in partition j | .  w_j <- (p_j + n_j) / t               // the weight: P(outcome j) | .  E   <- E + w_j * H(p_j, n_j)         // the value: that partition's entropy | return E
+:Q_UNIT: trees
+:END:
+
+** Why does expected entropy weight each branch rather than simply averaging the branch entropies?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Because it is an expected value, and the probability of landing in a branch is proportional to its size. A plain average would let a two-example branch count as much as a two-hundred-example one, so a split could look good by creating one tiny pure branch while leaving the bulk of the data as uncertain as before.
+:Q_UNIT: trees
+:END:
+
+** Write the entropy of a class structure with more than two classes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(I(p_1, \ldots, p_k) = -\sum_{\ell=1}^{k} \frac{p_\ell}{p_1 + \cdots + p_k} \lg \frac{p_\ell}{p_1 + \cdots + p_k}\) -- each class's share of the node times the log of that share, summed and negated. The two-class \(H(p,n)\) is this with \(k = 2\).
+:Q_UNIT: trees
+:END:
+
+** Expected value
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: expval
+:Q_UNIT: trees
+:END:
+
+** In entropy, a probability is converted to bits by taking the logarithm to base:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: base 2 | base e | base 10 | base p+n
+:Q_ANSWER: base 2
+:Q_EXPLAIN: lg is log base 2, which is what makes the unit a bit. Base e would give nats; the choice only rescales entropy, so gain comparisons are unaffected.
+:Q_UNIT: trees
+:END:
+
+** The entropy of a two-class node is at its largest when:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the two classes have equal counts | one class is empty | the node holds a single example | the node is pure
+:Q_ANSWER: the two classes have equal counts
+:Q_EXPLAIN: H(p,n) peaks at 1 bit when p = n -- maximum uncertainty. It is 0 when the node is pure.
+:Q_UNIT: trees
+:END:
+
+** A node holding 7 positive and 0 negative examples has entropy 0.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: A pure node has no uncertainty left, so it becomes a leaf immediately -- as overcast does in the Quinlan Outlook split.
+:Q_UNIT: trees
+:END:
+
+** In an entropy calculation, the convention is that 0 lg 0 is taken to be __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 0
+:Q_ACCEPT: zero
+:Q_EXPLAIN: lg 0 is undefined, so Quinlan's convention sets the whole term to 0. Without it the entropy of a pure node could not be written down.
+:Q_UNIT: trees
+:END:
+
+** The expected entropy after a split can come out larger than the entropy of the parent node.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: gain(f) = H - E(f) is a mutual information, which is never negative, so E(f) can at best equal H -- which is what happens when the feature is useless.
+:Q_UNIT: trees
+:END:
+
+** Information gain is the entropy of the parent __________ the expected entropy after the split.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: minus
+:Q_ACCEPT: less | subtract
+:Q_EXPLAIN: gain(f_i) = H(p,n) - E(f_i): the uncertainty removed by testing the feature.
+:Q_UNIT: trees
+:END:
+
+** On the Quinlan weather set, the entropy of the whole 9-positive / 5-negative set is about:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: 0.94 bits | 0.69 bits | 0.25 bits | 1.00 bits
+:Q_ANSWER: 0.94 bits
+:Q_EXPLAIN: H(9,5) = -(9/14)lg(9/14) - (5/14)lg(5/14) ~ 0.94. Outlook's expected entropy is 0.694, giving a gain of 0.246 -- the winning root split.
+:Q_UNIT: trees
+:END:
+
 * The Problem with Information Gain
 
 ** Suppose you add a column that is a unique row ID. What does an information-gain tree do with it?
@@ -171,6 +285,71 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: trees
 :END:
 
+** Write the intrinsic value of a feature, and explain how it is computed.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(IV(f_i) = -\sum_{j=1}^{m_i} \frac{p_j + n_j}{p + n} \lg \frac{p_j + n_j}{p + n}\). You compute it exactly like entropy, except the probabilities are the partition sizes rather than the class counts: take each branch's share of the node, multiply by the log of that share, sum, negate. It is the entropy of the split itself -- how much information the answer to "which branch?" carries.
+:Q_STEPS: INTRINSIC-VALUE(node, feature f): | t  <- p + n                            // examples at the node | IV <- 0 | for each value j of f: | .  s_j <- (p_j + n_j) / t               // branch share -- classes ignored | .  if s_j > 0: IV <- IV - s_j * lg(s_j) | return IV
+:Q_UNIT: trees
+:END:
+
+** Intrinsic value and expected entropy are both weighted sums over the same partitions. State precisely what differs.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The weights are the same -- each branch's share of the node. The quantity being weighted differs: expected entropy averages each branch's class entropy \(H(p_j, n_j)\), while intrinsic value averages \(-\lg\) of the branch's own share. So expected entropy asks how mixed the branches are, and intrinsic value asks only how many branches there are and how evenly they are filled.
+:Q_UNIT: trees
+:END:
+
+** Intrinsic value
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: iv
+:Q_UNIT: trees
+:END:
+
+** Intrinsic value looks at the partition __________ alone and discards the classes.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: sizes
+:Q_ACCEPT: size | sizes alone | counts
+:Q_EXPLAIN: It mimics entropy but over branch shares rather than class shares, which is exactly what lets it penalize a many-valued feature.
+:Q_UNIT: trees
+:END:
+
+** What does intrinsic value ignore that expected entropy uses?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the class labels | the partition sizes | the parent node's entropy | the number of branches
+:Q_ANSWER: the class labels
+:Q_EXPLAIN: IV is computed from branch sizes only. That is the point: it measures the breadth of the split without crediting it for separating classes.
+:Q_UNIT: trees
+:END:
+
+** A feature taking a distinct value on each of n examples has intrinsic value:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: lg n | n | 1 | 0
+:Q_ANSWER: lg n
+:Q_EXPLAIN: n branches each of share 1/n gives -sum (1/n) lg(1/n) = lg n, which grows with n and so divides down the perfect gain a row-ID column would otherwise score.
+:Q_UNIT: trees
+:END:
+
+** A feature that sends every example down one branch has intrinsic value 0.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: One branch of share 1 gives -1 lg 1 = 0. This is gain ratio's own failure mode: a near-zero denominator inflates even a tiny gain, so you only rank features whose raw gain is at least average.
+:Q_UNIT: trees
+:END:
+
+** Gain ratio puts information gain in the __________ and intrinsic value in the denominator.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: numerator
+:Q_EXPLAIN: gainRatio(f_i) = gain(f_i) / IV(f_i).
+:Q_UNIT: trees
+:END:
+
 * Continuous Features
 
 ** Explain how a decision tree handles a continuous feature.
@@ -206,6 +385,24 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_TYPE: short
 :Q_ANSWER: Sort, then score the midpoint between each adjacent pair of distinct values.
 :Q_STEPS: BEST-NUMERIC-SPLIT(D, feature f, criterion): | sort D ascending by f | best_score <- worst possible;  best_thr <- none | for i = 1 .. size(D)-1: | .  if f(D[i]) == f(D[i+1]): continue | .  thr <- midpoint of f(D[i]) and f(D[i+1]) | .  score <- criterion( examples below thr, examples at or above ) | .  if score beats best_score: record thr and score | return (best_thr, best_score)
+:Q_UNIT: trees
+:END:
+
+** Binning that puts the same number of points in every bin is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: equal-frequency | equal-width | equal-variance | midpoint
+:Q_ANSWER: equal-frequency
+:Q_EXPLAIN: Equal-width cuts the range into intervals of the same size, so a skewed feature leaves some bins nearly empty; equal-frequency cuts on quantiles instead.
+:Q_UNIT: trees
+:END:
+
+** A standard decision tree splits a continuous feature with a __________ split.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: binary
+:Q_ACCEPT: binary (two-way) | two-way
+:Q_EXPLAIN: f_i < val goes one way, everything else the other -- so a numeric feature can be re-tested further down the same path.
 :Q_UNIT: trees
 :END:
 
@@ -252,6 +449,24 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_ANSWER: Same recursion, scoring splits by weighted squared error and predicting the mean at each leaf.
 :Q_STEPS: REGRESSION-TREE(D, F): | if D is tiny or F is empty: return leaf( mean response of D ) | best <- none | for each feature f and each candidate split of f: | .  partition D by that split | .  Err <- size-weighted squared deviation of each branch from its own mean | .  if Err beats best: record it | if no split improves on the parent: return leaf( mean response of D ) | node <- interior node testing the best split | recurse on each branch | return node
 :Q_EXPLAIN: A numeric feature can be split again further down at a different threshold; a categorical one is exhausted by a single split.
+:Q_UNIT: trees
+:END:
+
+** The splitting criterion for a regression tree is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: mean squared error | information gain | gain ratio | intrinsic value
+:Q_ANSWER: mean squared error
+:Q_EXPLAIN: Entropy needs class counts. A regression tree minimizes E_m, the MSE of each branch about its own mean, and predicts that mean at the leaf.
+:Q_UNIT: trees
+:END:
+
+** A regression tree's prediction surface is piecewise __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: constant
+:Q_ACCEPT: constant (a step function) | flat
+:Q_EXPLAIN: Each leaf predicts one number -- its mean -- so the fitted function is a step surface over axis-parallel boxes.
 :Q_UNIT: trees
 :END:
 
@@ -329,6 +544,41 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: trees
 :END:
 
+** Reduced error pruning accepts a replacement when the pruned tree is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: no worse on the validation set | strictly better on the validation set | no worse on the training set | smaller, regardless of error
+:Q_ANSWER: no worse on the validation set
+:Q_EXPLAIN: Accepting ties is what lets pruning make progress: a simpler tree at equal measured error is the better bet by Occam's razor.
+:Q_UNIT: trees
+:END:
+
+** Pruning decisions may be made on the same data the tree was grown on.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: The grown tree already fits that data, so every subtree would look necessary. Pruning needs a separate holdout, which is why the project reserves 20% for it.
+:Q_UNIT: trees
+:END:
+
+** Early stopping is also known as __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: pre-pruning
+:Q_ACCEPT: prepruning | pre pruning
+:Q_EXPLAIN: It decides not to make a split in the first place, rather than growing out and cutting back.
+:Q_UNIT: trees
+:END:
+
+** Quinlan's early-stopping rule for ID3 tests a split with:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: a chi-square test of independence | a t-test on the error rates | a validation set | the gain ratio
+:Q_ANSWER: a chi-square test of independence
+:Q_EXPLAIN: The null hypothesis is that the feature is independent of the class. Fail to reject it (say at 99% confidence) and the split is not worth making.
+:Q_UNIT: trees
+:END:
+
 * How Trees Are Biased
 
 ** Explain the preference bias of decision tree learning and what shape of tree it favours.
@@ -370,6 +620,32 @@ pseudocode answers, leading dots mark indentation depth.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: The tree can simply never split on them, so they cost little. k-NN cannot opt out -- every feature enters the distance, so the neighbor ordering degrades.
+:Q_UNIT: trees
+:END:
+
+** The representation bias of a standard decision tree is that its boundaries are:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: axis-parallel | linear in all features at once | smooth | unrestricted
+:Q_ANSWER: axis-parallel
+:Q_EXPLAIN: Each test names one feature, so a diagonal boundary has to be approximated by a staircase -- many splits, each on few examples.
+:Q_UNIT: trees
+:END:
+
+** An oblique tree removes that restriction by testing a __________ combination of features at a node.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: linear
+:Q_ACCEPT: linear (weighted) | weighted
+:Q_EXPLAIN: OC1 does this. The cost is a far larger search at every node and a loss of the readability that made trees attractive.
+:Q_UNIT: trees
+:END:
+
+** Decision tree learning has a preference bias for shorter trees rather than a representation bias.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It has both. The greedy gain-driven search prefers short trees (preference bias), and the axis-parallel test form limits what is expressible at all (representation bias).
 :Q_UNIT: trees
 :END:
 
@@ -467,6 +743,50 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: logic
 :END:
 
+** From "A implies B" and "not B", the rule that concludes "not A" is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: modus tollens | modus ponens | resolution | unification
+:Q_ANSWER: modus tollens
+:Q_EXPLAIN: Modus ponens runs the other way: from A implies B and A, conclude B.
+:Q_UNIT: logic
+:END:
+
+** Resolution requires its sentences to be in __________ normal form.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: conjunctive
+:Q_ACCEPT: CNF | conjunctive (CNF)
+:Q_EXPLAIN: CNF is a conjunction of disjunctions of literals, so the knowledge base is a set of clauses and resolution can cancel complementary literals pairwise.
+:Q_UNIT: logic
+:END:
+
+** A Horn clause is a clause with at most how many positive literals?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: one | two | none | no limit
+:Q_ANSWER: one
+:Q_EXPLAIN: Which is why Horn form is usually written as implications: z and w implies y.
+:Q_UNIT: logic
+:END:
+
+** Resolution theorem proving establishes a theorem by deriving the __________ clause.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: empty
+:Q_ACCEPT: empty clause | NIL | null
+:Q_EXPLAIN: You negate the goal, add it to the knowledge base, and resolve: deriving the empty clause is a contradiction, which proves the original goal.
+:Q_UNIT: logic
+:END:
+
+** A Skolem constant may reuse a name already appearing in the knowledge base.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It must be fresh. Reusing a name asserts an identity the existential statement never claimed, which makes the proof unsound.
+:Q_UNIT: logic
+:END:
+
 * Learning Rules
 
 ** Explain what it means for a rule to cover an example.
@@ -532,3 +852,30 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_ANSWER: Induced rules may overlap and need not partition the space, so each can be pruned independently. A tree's rules share structure, so pruning one changes others.
 :Q_UNIT: logic
 :END:
+
+** The score FOIL uses to choose the next literal to add to a rule is called __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: FoilGain
+:Q_ACCEPT: Foil gain | information gain
+:Q_EXPLAIN: FoilGain(l, Rule) = t(lg(p1/(p1+n1)) - lg(p0/(p0+n0))): the improvement in purity, scaled by t, the prior positive bindings the extended rule still covers.
+:Q_UNIT: logic
+:END:
+
+** Rules produced by sequential covering can be applied in any order.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Each rule after the first was learned only on the examples its predecessors left uncovered, so it is only valid once those have been removed. The set is a decision list.
+:Q_UNIT: logic
+:END:
+
+** The rule-set pruning strategy named in the notes is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Incremental Reduced Error Pruning (IREP) | reduced error pruning | chi-square pre-pruning | cost-complexity pruning
+:Q_ANSWER: Incremental Reduced Error Pruning (IREP)
+:Q_EXPLAIN: Pruning predicates subsumes pruning whole rules, so you do not need both; rules are then sorted by coverage.
+:Q_UNIT: logic
+:END:
+
