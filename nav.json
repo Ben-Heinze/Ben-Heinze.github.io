@@ -63,6 +63,10 @@
               {
                 "label": "6.1 presentation",
                 "href": "/ai/machine-learning/lecture-notes/6-1-presentation/index.html"
+              },
+              {
+                "label": "7 GLMs",
+                "href": "/ai/machine-learning/lecture-notes/7-glms/index.html"
               }
             ]
           },

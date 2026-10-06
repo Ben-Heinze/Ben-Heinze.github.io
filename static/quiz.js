@@ -98,6 +98,103 @@
   }
   function unitLabel(u) { return UNIT_LABEL[u] || (u ? u.toUpperCase() : ''); }
 
+  // ── question ratings ────────────────────────────────────────────────────────
+  // A pass for critiquing the bank itself: mark each question good or bad and
+  // attach a note. Saved through the dev server (serve.py) into
+  // question-ratings.json at the repo root, so verdicts survive a rebuild and
+  // can be read back outside the browser. localStorage is the fallback when the
+  // page is served from somewhere without that endpoint.
+  var RATINGS = {};
+  var RATINGS_LS = 'questionRatings';
+
+  function loadRatings() {
+    try {
+      var local = JSON.parse(localStorage.getItem(RATINGS_LS) || '{}');
+      Object.keys(local).forEach(function (k) { RATINGS[k] = local[k]; });
+    } catch (e) {}
+    return fetch('/api/ratings').then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (server) {
+        Object.keys(server).forEach(function (k) { RATINGS[k] = server[k]; });
+      }).catch(function () {});
+  }
+
+  function saveRating(item, patch) {
+    if (!item.id) return;
+    var rec = RATINGS[item.id] || { id: item.id, q: item.q, unit: item.unit };
+    if ('rating' in patch) {
+      if (patch.rating) rec.rating = patch.rating; else delete rec.rating;
+    }
+    if ('note' in patch) {
+      if (patch.note) rec.note = patch.note; else delete rec.note;
+    }
+    if (rec.rating || rec.note) RATINGS[item.id] = rec; else delete RATINGS[item.id];
+    try { localStorage.setItem(RATINGS_LS, JSON.stringify(RATINGS)); } catch (e) {}
+    var body = { id: item.id, q: item.q, unit: item.unit };
+    if ('rating' in patch) body.rating = patch.rating || '';
+    if ('note' in patch) body.note = patch.note || '';
+    return fetch('/api/rating', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).catch(function () {});   // offline: localStorage already holds it
+  }
+
+  // The good / bad / note controls for one question.
+  function ratingRow(item, cls) {
+    var rec = RATINGS[item.id] || {};
+    var wrap = el('div', 'qz-rate-wrap' + (cls ? ' ' + cls : ''));
+    var row = el('div', 'qz-rate');
+
+    var good = el('button', 'qz-rate-btn'); good.type = 'button';
+    good.textContent = 'Good question';
+    var bad = el('button', 'qz-rate-btn'); bad.type = 'button';
+    bad.textContent = 'Bad question';
+    var noteBtn = el('button', 'qz-rate-btn'); noteBtn.type = 'button';
+    var status = el('span', 'qz-rate-status');
+
+    var noteBox = el('div', 'qz-note-box'); noteBox.hidden = true;
+    var ta = el('textarea', 'qz-note-text');
+    ta.placeholder = 'What is wrong with it, or what would make it better?';
+    ta.value = rec.note || '';
+    var saveBtn = el('button', 'qz-btn primary'); saveBtn.type = 'button';
+    saveBtn.textContent = 'Save note';
+    noteBox.appendChild(ta); noteBox.appendChild(saveBtn);
+
+    function paint() {
+      var r = RATINGS[item.id] || {};
+      good.className    = 'qz-rate-btn qz-rate-good' + (r.rating === 'good' ? ' is-on' : '');
+      bad.className     = 'qz-rate-btn qz-rate-bad'  + (r.rating === 'bad'  ? ' is-on' : '');
+      noteBtn.className = 'qz-rate-btn qz-rate-note' + (r.note ? ' is-on' : '');
+      noteBtn.textContent = r.note ? 'Note \u2713' : 'Note';
+    }
+    function flash(msg) {
+      status.textContent = msg;
+      setTimeout(function () { if (status.textContent === msg) status.textContent = ''; }, 1600);
+    }
+    function setRating(v) {
+      var cur = (RATINGS[item.id] || {}).rating;
+      var next = cur === v ? '' : v;          // clicking the active one clears it
+      saveRating(item, { rating: next });
+      paint(); flash(next ? 'saved' : 'cleared');
+    }
+    good.addEventListener('click', function () { setRating('good'); });
+    bad.addEventListener('click', function () { setRating('bad'); });
+    noteBtn.addEventListener('click', function () {
+      noteBox.hidden = !noteBox.hidden;
+      if (!noteBox.hidden) ta.focus();
+    });
+    saveBtn.addEventListener('click', function () {
+      saveRating(item, { note: ta.value });
+      paint(); flash(ta.value.trim() ? 'note saved' : 'note cleared');
+      noteBox.hidden = true;
+    });
+
+    row.appendChild(good); row.appendChild(bad); row.appendChild(noteBtn); row.appendChild(status);
+    wrap.appendChild(row); wrap.appendChild(noteBox);
+    paint();
+    return wrap;
+  }
+
   // Page-replacement simulation, shared by the `replace` generator's screening
   // pass and its step trace. Returns the fault count and the per-reference log.
   function simulate(ref, frames, algo) {
@@ -563,12 +660,12 @@
     var items = [], nodes = {};
 
     function toConceptItem(r) {
-      return { type: r.type, q: r.q, options: r.options || [], a: r.answer, accept: r.accept || [], e: r.explain, unit: r.unit,
+      return { id: r.id, type: r.type, q: r.q, options: r.options || [], a: r.answer, accept: r.accept || [], e: r.explain, unit: r.unit,
                steps: (r.steps && r.steps.length) ? formatSteps(r.steps) : '' };
     }
     function toCalcItem(r) {
       var g = GEN[r.gen]();
-      return { type: 'calc', q: g.q, a: g.a, unit: r.unit, dispUnit: g.unit, tol: g.tol, steps: g.steps, e: '' };
+      return { id: r.id, type: 'calc', q: g.q, a: g.a, unit: r.unit, dispUnit: g.unit, tol: g.tol, steps: g.steps, e: '' };
     }
 
     function buildTest() {
@@ -628,6 +725,7 @@
         card.appendChild(one);
         var fb = el('div', 'qz-feedback'); card.appendChild(fb);
         qroot.appendChild(card);
+        card.appendChild(ratingRow(item));
         nodes[idx] = { el: card, feedback: fb, get: get, item: item };
       });
       typeset(qroot);
@@ -695,6 +793,9 @@
       q('.qz-card-tag').textContent = tagTxt;
       q('.qz-card-count').textContent = (cardIdx + 1) + ' / ' + items.length;
       q('.qz-card-hint').textContent = cardFlipped ? HINT_BACK : HINT_FRONT;
+      var stale = host.querySelector('.qz-rate-card');
+      if (stale) stale.parentNode.removeChild(stale);
+      q('.qz-card').appendChild(ratingRow(item, 'qz-rate-card'));
       typeset(face);
     }
     function flipCard() { cardFlipped = !cardFlipped; drawCard(); }
@@ -711,17 +812,28 @@
     var swipeX = 0, swipeY = 0, swiped = false;
     var cardEl = q('.qz-card');
     cardEl.addEventListener('touchstart', function (e) {
+      if (inRating(e)) return;
       var t = e.changedTouches[0]; swipeX = t.clientX; swipeY = t.clientY; swiped = false;
       if (!touch) { touch = true; setHints(); drawCard(); }
     }, { passive: true });
     cardEl.addEventListener('touchend', function (e) {
+      if (inRating(e)) return;
       var t = e.changedTouches[0], dx = t.clientX - swipeX, dy = t.clientY - swipeY;
       // Horizontal, far enough, and not really a scroll.
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
         swiped = true; stepCard(dx < 0 ? 1 : -1);
       }
     }, { passive: true });
-    cardEl.addEventListener('click', function () {
+    function inRating(e) {
+      var n = e.target;
+      while (n && n !== cardEl) {
+        if (n.classList && n.classList.contains('qz-rate-wrap')) return true;
+        n = n.parentNode;
+      }
+      return false;
+    }
+    cardEl.addEventListener('click', function (e) {
+      if (inRating(e)) return;        // rating the card is not flipping it
       if (swiped) { swiped = false; return; }
       cardFlipped ? stepCard(1) : flipCard();
     });
@@ -794,7 +906,8 @@
     var mounts = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-test]'));
     if (!mounts.length) return;
     var cur = currentHref();
-    fetch('/quiz-index.json')
+    Promise.resolve(loadRatings())
+      .then(function () { return fetch('/quiz-index.json'); })
       .then(function (r) { return r.json(); })
       .then(function (bank) {
         if (!Array.isArray(bank)) bank = [];

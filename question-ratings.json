@@ -1,0 +1,16 @@
+{
+  "lh_a7a603611bb1": {
+    "id": "lh_a7a603611bb1",
+    "note": "Instead of asking a question like this, just ask to define the different stepwise searches and the pros and cons of them. This can be divided into different questions",
+    "q": "Both stepwise methods are the same kind of search. Which, and what weakness do they inherit?",
+    "unit": "dimred",
+    "updated": "2026-10-05T13:57:48"
+  },
+  "lh_e0e9e693d0c7": {
+    "id": "lh_e0e9e693d0c7",
+    "q": "You tune k by picking the value with the lowest error on your test fold. Explain what is wrong and give the fix.",
+    "rating": "bad",
+    "unit": "eval",
+    "updated": "2026-10-05T13:55:26"
+  }
+}

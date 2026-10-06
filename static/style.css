@@ -1166,6 +1166,33 @@ body.learn-open { overflow: hidden; }
 .quiz-widget .qz-feedback.info{ background: rgba(128,128,128,0.14); }
 .quiz-widget .qz-steps { margin-top: 0.4rem; white-space: pre-wrap;
   font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; opacity: 0.9; }
+/* Question rating: a critique pass over the bank itself. Good / bad / note per
+   question, in both the test list and the flashcard deck. Deliberately quiet —
+   it sits under every question and must not compete with the question itself. */
+.quiz-widget .qz-rate-wrap { margin-top: 0.9rem; border-top: 1px dashed rgba(128,128,128,0.3);
+  padding-top: 0.6rem; }
+.quiz-widget .qz-rate { display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap; }
+.quiz-widget .qz-rate-btn { padding: 0.25rem 0.6rem; border-radius: 5px;
+  border: 1px solid rgba(128,128,128,0.4); background: transparent; color: inherit;
+  font: inherit; font-size: 0.8em; cursor: pointer; opacity: 0.75; }
+.quiz-widget .qz-rate-btn:hover { border-color: currentColor; opacity: 1; }
+.quiz-widget .qz-rate-btn.is-on { opacity: 1; font-weight: 600; border-color: currentColor; }
+.quiz-widget .qz-rate-good.is-on { color: #1a7f37; border-color: #1a7f37; }
+.quiz-widget .qz-rate-bad.is-on  { color: #b3261e; border-color: #b3261e; }
+.quiz-widget .qz-rate-note.is-on { color: #8a6d00; border-color: #8a6d00; }
+.quiz-widget .qz-rate-status { font-size: 0.75em; opacity: 0.6; }
+.quiz-widget .qz-note-box { margin-top: 0.5rem; display: flex; flex-direction: column;
+  gap: 0.45rem; align-items: flex-start; }
+.quiz-widget .qz-note-box[hidden] { display: none; }
+.quiz-widget .qz-note-text { width: 100%; min-height: 4.5rem; padding: 0.5rem;
+  border-radius: 6px; border: 1px solid rgba(128,128,128,0.45);
+  background: transparent; color: inherit; font: inherit; font-size: 0.9em; }
+.quiz-widget .qz-rate-card { margin-top: 1.1rem; }
+@media (prefers-color-scheme: dark) {
+  .quiz-widget .qz-rate-good.is-on { color: #3fb950; border-color: #3fb950; }
+  .quiz-widget .qz-rate-bad.is-on  { color: #ff7b72; border-color: #ff7b72; }
+  .quiz-widget .qz-rate-note.is-on { color: #d4a72c; border-color: #d4a72c; }
+}
 .quiz-widget .qz-actions { margin: 1.3rem 0; display: flex; gap: 0.7rem; flex-wrap: wrap; align-items: center; }
 .quiz-widget .qz-actions[hidden] { display: none; }
 .quiz-widget .qz-btn { padding: 0.5rem 1.05rem; border-radius: 6px; border: 1px solid rgba(128,128,128,0.5);

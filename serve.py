@@ -18,6 +18,58 @@ import time
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PUBLIC = os.path.join(ROOT, 'public')
 NAV = os.path.join(ROOT, 'nav.json')
+# Question ratings collected from the quiz UI. Lives at the repo root, not under
+# public/, so a rebuild never wipes it. Keyed by the stable question id that
+# wiki-build-quiz-index writes into quiz-index.json.
+RATINGS = os.path.join(ROOT, 'question-ratings.json')
+_ratings_lock = threading.Lock()
+
+
+def read_ratings():
+    try:
+        with open(RATINGS) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def write_rating(entry):
+    """Merge one rating/note into the store, keyed by question id.
+
+    Rating and note are independent: sending only a note leaves an existing
+    verdict alone, and vice versa, so the two controls never clobber each other.
+    """
+    qid = (entry.get('id') or '').strip()
+    if not qid:
+        raise ValueError('missing question id')
+    with _ratings_lock:
+        store = read_ratings()
+        rec = store.get(qid, {})
+        rec['id'] = qid
+        for k in ('q', 'unit', 'page'):
+            if entry.get(k):
+                rec[k] = entry[k]
+        if 'rating' in entry:
+            if entry['rating'] in ('good', 'bad'):
+                rec['rating'] = entry['rating']
+            else:
+                rec.pop('rating', None)          # cleared
+        if 'note' in entry:
+            note = (entry.get('note') or '').strip()
+            if note:
+                rec['note'] = note
+            else:
+                rec.pop('note', None)
+        rec['updated'] = datetime.datetime.now().isoformat(timespec='seconds')
+        if rec.get('rating') or rec.get('note'):
+            store[qid] = rec
+        else:
+            store.pop(qid, None)                 # both cleared: drop the row
+        tmp = RATINGS + '.tmp'
+        with open(tmp, 'w') as f:
+            json.dump(store, f, indent=2, sort_keys=True)
+        os.replace(tmp, RATINGS)
+        return store.get(qid, {})
 
 # serve.py is local-only tooling: every rebuild it runs (the dev server and the
 # page-management commands) must include pages marked "private" in nav.json, so
@@ -854,6 +906,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/__reload':
             return self._serve_reload_stream()
+        if self.path.split('?')[0] == '/api/ratings':
+            return self._send_json(200, read_ratings())
         fs_path = self.translate_path(self.path)
         if os.path.isdir(fs_path):
             if not self.path.rstrip('?').endswith('/'):
@@ -865,6 +919,26 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if fs_path.endswith('.html') and os.path.isfile(fs_path):
             return self._serve_html(fs_path)
         return super().do_GET()
+
+    def do_POST(self):
+        if self.path.split('?')[0] != '/api/rating':
+            self.send_error(404)
+            return
+        try:
+            length = int(self.headers.get('Content-Length') or 0)
+            entry = json.loads(self.rfile.read(length) or b'{}')
+            saved = write_rating(entry)
+        except Exception as e:
+            return self._send_json(400, {'ok': False, 'error': str(e)})
+        return self._send_json(200, {'ok': True, 'record': saved})
+
+    def _send_json(self, code, payload):
+        body = json.dumps(payload).encode()
+        self.send_response(code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def _serve_html(self, fs_path):
         """Serve an HTML file with the live-reload client injected before </body>."""
