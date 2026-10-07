@@ -1,0 +1,86 @@
+#+TITLE: 9 Decision Trees
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+/Decision tree/:  hierarchical model for supervised learning where the local region is identifieid in a sequence of recursive splits in a smaller number of steps
+  - Decision nodes:
+    - test function $f_m(\mathbf{x})$ with discrete outcomes labeling the branches 
+  - terminal leaves 
+    - value written in the leaf is the output (classification result)
+
+Decision tree is Nonparametric 
+
+* Univariate Trees
+
+/Univariate tree/: A decision tree that only tests a single input feature at each decision node. If the used input dimension $x_j$ is discrete and has $n$ possible values, the decision node checks the value of $x_j$ and takes the corresponding branch, implementing an $n$-way split 
+  example: if an attribute is color $\in$ {red, green, blue}, then a node on that attribute will have one branch for each color with three branches total
+
+If $x_j$ is ordered and numeric, the test comparison is:
+
+\(
+  f_m(\mathbf{x}) : x_j > w_{m0}
+\)
+
+|$f_m(\mathbf{x})$| discriminant function that subdivides values of x into different regions (branches result based on value of x) |
+|$x_j$| value of input, where $j$ is one of the possible values of $x$ |
+|$w_{m0}$| chosen threshold value |
+
+
+/Binary Split/: a decision node that splits the input space into two branches that are orthogonal to each other 
+
+Finding the smallest tree is NP-Complete, so we need to search for them heuristically. Tree learning algorithms are greedy.
+
+
+* classification Trees 
+
+/Impurity measure/: A way to quantify the goodness of a split 
+/Pure split/: A split is pure if after the split, for every branch, every training instance gets categorized into the same class (all the training examples agree on the categorization from this split)
+
+** Impurity Measures
+One possible impurity measure is /entropy/:
+
+\[
+  \mathcal{I}_m = - \sum_{i=1}^{K} p_m^i \log_2 p_m^i
+\]
+where $0 \log 0 \equiv 0$
+
+
+Entropy in information theory  specified the minimum number of bits needed to encode the class code of an instance.
+(explain this with an example in more detail)
+
+We can devise codes and use less than a bit per message by having shorter codes for the more likely class, and longer codes for the less likely class. 
+
+Entropy is not the only impurity measure. There is also Gini index, and misclassification error. 
+
+If a node is not pure, then the instances should be split to decrease impurity.   
+  - Numeric values: mu tuple split positions are possible 
+Look for a split that minimizes impurity after the split. This is locally optimal and has no guarantee of finding the smallest tree
+
+223 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -89,6 +89,10 @@
               {
                 "label": "8 Nonparametric Methods",
                 "href": "/ai/machine-learning/textbook-notes/8-nonparametric-methods/index.html"
+              },
+              {
+                "label": "9 Decision Trees",
+                "href": "/ai/machine-learning/textbook-notes/9-decision-trees/index.html"
               }
             ]
           },
