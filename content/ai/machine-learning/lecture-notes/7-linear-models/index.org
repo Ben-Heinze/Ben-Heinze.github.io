@@ -1,0 +1,44 @@
+#+TITLE: 7 Linear Models
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+* Naive Bayes
+exam question: "the features are conditionally independent, given the class. not "features are independent" test question
+
+The naive bayes model is a linear model at its core, since the more probabilities you multiply together, the more the probabilities approach zero. You can transform the data to log and just sum them up rather than multiplying, which makes this a linear model.
+
+Naive bayes can only solve linearly separable problems exactly
+
+* semi-naive bayes 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

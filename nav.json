@@ -67,6 +67,10 @@
               {
                 "label": "7 GLMs",
                 "href": "/ai/machine-learning/lecture-notes/7-glms/index.html"
+              },
+              {
+                "label": "7 Linear Models",
+                "href": "/ai/machine-learning/lecture-notes/7-linear-models/index.html"
               }
             ]
           },
