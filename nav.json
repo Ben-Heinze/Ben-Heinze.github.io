@@ -315,6 +315,10 @@
           {
             "label": "3 Scheduling",
             "href": "/operating-systems/lectures/3-scheduling/index.html"
+          },
+          {
+            "label": "Handouts",
+            "href": "/operating-systems/lectures/handouts/index.html"
           }
         ]
       },

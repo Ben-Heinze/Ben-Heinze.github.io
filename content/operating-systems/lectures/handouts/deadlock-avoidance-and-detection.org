@@ -1,0 +1,268 @@
+#+TITLE: Deadlock Avoidance and Detection
+#+TAGS: operating-systems, scheduling
+#+OPTIONS: toc:nil num:nil
+
+A digital recreation of the class handout. This is Stallings Chapter 6 material
+(deadlock), not Chapter 9 scheduling --- it was handed out with the
+[[file:../3-scheduling/][3 Scheduling]] block of lectures.
+
+* Deadlock avoidance: the state
+
+Avoidance needs four pieces of state. Two vectors describe the resources
+themselves, two $n \times m$ matrices describe what each of the $n$ processes
+wants and currently holds across the $m$ resource types.
+
+\[
+  R = (R_1, R_2, \ldots, R_m)
+\]
+
+Resource vector --- the total amount of each resource in the system.
+
+\[
+  V = (V_1, V_2, \ldots, V_m)
+\]
+
+Available vector --- the total amount of each resource not allocated to any
+process.
+
+\[
+  C = \begin{pmatrix}
+    C_{11} & C_{12} & \cdots & C_{1m} \\
+    C_{21} & C_{22} & \cdots & C_{2m} \\
+    \vdots & \vdots & \vdots & \vdots \\
+    C_{n1} & C_{n2} & \cdots & C_{nm}
+  \end{pmatrix}
+\]
+
+Claim matrix --- $C_{ij}$ = requirement of process $i$ for resource $j$.
+
+\[
+  A = \begin{pmatrix}
+    A_{11} & A_{12} & \cdots & A_{1m} \\
+    A_{21} & A_{22} & \cdots & A_{2m} \\
+    \vdots & \vdots & \vdots & \vdots \\
+    A_{n1} & A_{n2} & \cdots & A_{nm}
+  \end{pmatrix}
+\]
+
+Allocation matrix --- $A_{ij}$ = current allocation to process $i$ of resource
+$j$.
+
+The invariants that hold over these, worth stating because every step of the
+algorithms below relies on them:
+
+- $R_j = V_j + \sum_{i=1}^{n} A_{ij}$ for all $j$ --- every unit of a resource is
+  either free or allocated to somebody.
+- $C_{ij} \leq R_j$ for all $i, j$ --- no process may claim more than exists.
+- $A_{ij} \leq C_{ij}$ for all $i, j$ --- no process is allocated more than it
+  claimed.
+
+* Figure 6.9 --- Deadlock Avoidance Logic
+
+** (a) Global data structures
+
+#+BEGIN_SRC text
+struct  state {
+        int  resource[m];
+        int  available[m];
+        int  claim[n][m];
+        int  alloc[n][m];
+}
+#+END_SRC
+
+** (b) Resource allocation algorithm
+
+#+BEGIN_SRC text
+if (alloc [i,*] + request [*] > claim [i,*])
+    <error>;                            /* total request > claim*/
+else if (request [*] > available [*])
+    <suspend process>;
+else {                                  /* simulate alloc */
+    <define newstate by:
+    alloc [i,*] = alloc [i,*] + request [*];
+    available [*] = available [*] - request [*]>;
+}
+if (safe (newstate))
+    <carry out allocation>;
+else {
+    <restore original state>;
+    <suspend process>;
+}
+#+END_SRC
+
+The shape to notice: the allocation is simulated first and only committed if the resulting state is safe. A request that would be legal and
+satisfiable is still refused when granting it would leave the system unable to
+guarantee that every process can finish.
+
+** (c) Test for safety algorithm (banker's algorithm)
+
+#+BEGIN_SRC text
+boolean safe (state S) {
+    int currentavail[m];
+    process rest[<number of processes>];
+    currentavail = available;
+    rest = {all processes};
+    possible = true;
+    while (possible) {
+        <find a process Pk in rest such that
+        claim [k,*] - alloc [k,*]<= currentavail;
+        if (found) {            /* simulate execution of Pk */
+            currentavail = currentavail + alloc [k,*];
+            rest = rest - {Pk};
+        }
+        else possible = false;
+    }
+    return (rest == null);
+}
+#+END_SRC
+
+A state is safe if there exists at least one ordering in which every process can run to completion.
+The loop repeatedly looks for a process whose
+remaining need $C - A$ fits in what is currently free; running it to completion
+returns everything it holds, which may unblock another. If the loop empties
+=rest=, such an ordering exists and the state is safe.
+
+* Example: determination of a safe state
+
+Four processes, three resource types.
+
+Claim matrix $C$:
+
+|    | R1 | R2 | R3 |
+| P1 |  3 |  2 |  2 |
+| P2 |  6 |  1 |  3 |
+| P3 |  3 |  1 |  4 |
+| P4 |  4 |  2 |  2 |
+
+Allocation matrix $A$:
+
+|    | R1 | R2 | R3 |
+| P1 |  1 |  0 |  0 |
+| P2 |  6 |  1 |  2 |
+| P3 |  2 |  1 |  1 |
+| P4 |  0 |  0 |  2 |
+
+$C - A$, the amount each process could still demand:
+
+|    | R1 | R2 | R3 |
+| P1 |  2 |  2 |  2 |
+| P2 |  0 |  0 |  1 |
+| P3 |  1 |  0 |  3 |
+| P4 |  4 |  2 |  0 |
+
+Resource vector $R$:
+
+| R1 | R2 | R3 |
+|  9 |  3 |  6 |
+
+Available vector $V$:
+
+| R1 | R2 | R3 |
+|  0 |  1 |  1 |
+
+** Running the safety test on this state
+
+Only $0, 1, 1$ is free, so most processes cannot be satisfied immediately. The
+algorithm only needs /one/ to be:
+
+| Step | =currentavail= | Process run | Why it fits                  | Released ($A_k$) |
+|    0 | (0, 1, 1)      | ---         | initial =available=          | ---              |
+|    1 | (0, 1, 1)      | P2          | needs (0, 0, 1) $\leq$ (0, 1, 1) | (6, 1, 2)    |
+|    2 | (6, 2, 3)      | P1          | needs (2, 2, 2) $\leq$ (6, 2, 3) | (1, 0, 0)    |
+|    3 | (7, 2, 3)      | P3          | needs (1, 0, 3) $\leq$ (7, 2, 3) | (2, 1, 1)    |
+|    4 | (9, 3, 4)      | P4          | needs (4, 2, 0) $\leq$ (9, 3, 4) | (0, 0, 2)    |
+|    5 | (9, 3, 6)      | ---         | =rest= is empty              | ---              |
+
+=rest= empties, so the state is safe, with safe sequence
+P2, P1, P3, P4. Note that =currentavail= finishes at $(9, 3, 6) = R$, which is
+the sanity check: every resource came back.
+
+P2 is the only process that can start, and it is the one holding the most. That
+is the usual shape of these problems --- safety hinges on a single process being
+able to proceed, and the rest unlocks from there.
+
+* Deadlock detection algorithm
+
+Detection drops the claim matrix. Instead of asking "could every process
+finish?", it asks "which processes are blocked on requests that cannot currently
+be met?" --- so it uses a request matrix
+$Q$ of what each process is
+actually asking for right now, rather than the worst case it might ever ask for.
+
+** Figure 6.10 --- Example for Deadlock Detection
+
+Four processes, five resource types.
+
+Request matrix $Q$:
+
+|    | R1 | R2 | R3 | R4 | R5 |
+| P1 |  0 |  1 |  0 |  0 |  1 |
+| P2 |  0 |  0 |  1 |  0 |  1 |
+| P3 |  0 |  0 |  0 |  0 |  1 |
+| P4 |  1 |  0 |  1 |  0 |  1 |
+
+Allocation matrix $A$:
+
+|    | R1 | R2 | R3 | R4 | R5 |
+| P1 |  1 |  0 |  1 |  1 |  0 |
+| P2 |  1 |  1 |  0 |  0 |  0 |
+| P3 |  0 |  0 |  0 |  1 |  0 |
+| P4 |  0 |  0 |  0 |  0 |  0 |
+
+Resource vector:
+
+| R1 | R2 | R3 | R4 | R5 |
+|  2 |  1 |  1 |  2 |  1 |
+
+Available vector:
+
+| R1 | R2 | R3 | R4 | R5 |
+|  0 |  0 |  0 |  0 |  1 |
+
+** The algorithm
+
+1. Mark each process that has a row in the Allocation matrix of all zeros. A
+   process that has no allocated resources cannot participate in a deadlock.
+2. Initialize a temporary vector $W$ to equal the Available vector.
+3. Find an index $i$ such that process $i$ is currently unmarked and the \(i\)-th
+   row of $Q$ is less than or equal to $W$. That is, $Q_{ik} \leq W_{ik}$, for
+   $1 \leq k \leq m$. If no such row is found, terminate the algorithm.
+4. If such a row is found, mark process $i$ and add the corresponding row of the
+   allocation matrix to $W$. That is, set $W_k = W_k + A_{ik}$, for
+   $1 \leq k \leq m$. Return to step 3.
+
+#+begin_quote
+A deadlock exists if and only if there are unmarked processes at the end of the algorithm.
+#+end_quote
+
+A marked process is one the algorithm has shown can be satisfied and run to
+completion; an unmarked one is stuck. Marking is monotonic --- $W$ only ever
+grows --- so the order in which you pick eligible rows in step 3 does not change
+the final set of unmarked processes.
+
+** Running detection on this state
+
+| Step | Action                                        | Marked         | $W$               |
+|    1 | P4's allocation row is all zeros, so mark it  | {P4}           | ---               |
+|    2 | $W \leftarrow$ Available                      | {P4}           | (0, 0, 0, 0, 1)   |
+|    3 | P3: $Q_3 = (0,0,0,0,1) \leq W$ --- mark it    | {P3, P4}       | ---               |
+|    4 | $W \leftarrow W + A_3 = W + (0,0,0,1,0)$      | {P3, P4}       | (0, 0, 0, 1, 1)   |
+|    3 | P1 needs R2, P2 needs R3; neither fits $W$    | {P3, P4}       | (0, 0, 0, 1, 1)   |
+
+No further row qualifies, so the algorithm terminates with
+P1 and P2 unmarked --- the system is deadlocked, and those two are
+the processes involved.
+
+Why each of the two fails is worth reading off the vectors: P1 requests one unit
+of R2, but R2's single unit is held by P2; P2 requests one unit of R3, but R3's
+single unit is held by P1. That is the circular wait, visible directly in $Q$ and
+$A$ without drawing a graph.
+
+* Avoidance vs detection
+
+| | Avoidance (banker's) | Detection |
+| Needs | The claim matrix $C$ --- the maximum each process may ever request | Only the current request matrix $Q$ |
+| When it runs | On every resource request, before granting | Periodically, or when a request goes unsatisfied |
+| What it decides | Whether granting a request keeps the state safe | Whether a deadlock has already happened |
+| Cost | Pays the safety test on every request | Cheaper per request, but deadlocks actually occur |
+| Downside | Requires knowing worst-case claims up front; refuses safe-looking requests | Needs a recovery mechanism --- kill or roll back a process |

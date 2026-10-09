@@ -1,0 +1,23 @@
+#+TITLE: Handouts
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-09
+#+TAGS: operating-systems
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Digital recreations of the paper handouts given out in class, kept here rather
+than on the lecture pages because a handout rarely matches the deck it arrived
+with. Each one is its own file, grouped below by the lecture block it was handed
+out with.
+
+* 3 Scheduling
+
+#+INCLUDE: "deadlock-avoidance-and-detection.org" :minlevel 2

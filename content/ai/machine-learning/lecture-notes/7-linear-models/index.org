@@ -23,7 +23,12 @@ Naive bayes can only solve linearly separable problems exactly
 * semi-naive bayes 
 
 
+* Gradient Descent
 
+Three types of gradient descents:
+- Batch gradient descent
+- Incremental (stochastic) gradient descent: 
+- Mini-batch (stochastic) gradient descent: 
 
 
 
