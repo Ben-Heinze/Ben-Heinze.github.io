@@ -71,6 +71,42 @@ def write_rating(entry):
         os.replace(tmp, RATINGS)
         return store.get(qid, {})
 
+def merge_ratings(path):
+    """Merge a browser export into question-ratings.json, newest record wins.
+
+    The deployed GitHub Pages site has no /api/rating endpoint, so a verdict
+    made there lives only in that browser's localStorage. "Export ratings" in
+    the quiz toolbar downloads it in this file's own shape; this merges it back
+    in. Records are keyed by question id and compared on 'updated', so running
+    it twice is a no-op and an older export cannot overwrite a newer verdict.
+    """
+    with open(path) as f:
+        incoming = json.load(f)
+    if not isinstance(incoming, dict):
+        raise ValueError('expected a JSON object keyed by question id')
+    with _ratings_lock:
+        store = read_ratings()
+        added = updated = skipped = 0
+        for qid, rec in incoming.items():
+            if not isinstance(rec, dict):
+                continue
+            old = store.get(qid)
+            if old is None:
+                store[qid] = rec
+                added += 1
+            elif (rec.get('updated') or '') > (old.get('updated') or ''):
+                store[qid] = rec
+                updated += 1
+            else:
+                skipped += 1
+        tmp = RATINGS + '.tmp'
+        with open(tmp, 'w') as f:
+            json.dump(store, f, indent=2, sort_keys=True)
+        os.replace(tmp, RATINGS)
+    print('%s: %d added, %d updated, %d already current (%d total)'
+          % (os.path.basename(RATINGS), added, updated, skipped, len(store)))
+
+
 # serve.py is local-only tooling: every rebuild it runs (the dev server and the
 # page-management commands) must include pages marked "private" in nav.json, so
 # they stay visible while working locally. publish.el gates on this env var and
@@ -1013,6 +1049,18 @@ def main():
             print('error: ' + str(e), file=sys.stderr)
             sys.exit(1)
         if not result.get('ok'):
+            sys.exit(1)
+        return
+
+    if len(sys.argv) > 1 and sys.argv[1] == 'merge-ratings':
+        # Fold a browser "Export ratings" download into question-ratings.json.
+        if len(sys.argv) < 3:
+            print('error: merge-ratings needs a path to the exported JSON', file=sys.stderr)
+            sys.exit(1)
+        try:
+            merge_ratings(sys.argv[2])
+        except Exception as e:
+            print('error: ' + str(e), file=sys.stderr)
             sys.exit(1)
         return
 

@@ -731,6 +731,143 @@ dots mark indentation depth.
 :Q_UNIT: clust
 :END:
 
+** Write the four linkage rules as formulas over a point distance delta.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Merge the pair minimizing D. Single: \(D = \min_{x \in C_i, z \in C_j} \delta(x,z)\). Complete: the same with max. Average: \(D = \frac{1}{m_i m_j}\sum_{x \in C_i, z \in C_j}\delta(x,z)\). Ward: \(D = \mathit{ESS}_{ij} - \mathit{ESS}_i - \mathit{ESS}_j\) with \(\mathit{ESS}_k = \sum_{x \in C_k}\|x - \bar{x}_k\|^2\).
+:Q_UNIT: clust
+:END:
+
+** Explain what Ward's method merges on, and what it has in common with k-means.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The pair of clusters whose merge increases the within-cluster sum of squares the least -- the error sum of squares of the union minus that of the two parts. It optimizes the same criterion k-means does, but greedily and hierarchically rather than by iterating to convergence.
+:Q_UNIT: clust
+:END:
+
+** Which linkage rule merges the pair of clusters that increases the within-cluster sum of squares the least?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Ward's method | single-link | complete-link | average-link
+:Q_ANSWER: Ward's method
+:Q_EXPLAIN: The other three score a merge by distances between points across the two clusters; Ward scores it by the variance the merge creates.
+:Q_UNIT: clust
+:END:
+
+** Distinguish polythetic from monothetic hierarchical methods, and give an example of each.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A polythetic method considers all features at once -- agglomerative HAC, merging on a distance over the whole vector. A monothetic method works one attribute at a time -- divisive association analysis, splitting on a single attribute.
+:Q_UNIT: clust
+:END:
+
+** A method that splits or merges using one attribute at a time rather than all of them is called __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: monothetic
+:Q_ACCEPT: monothetic method
+:Q_EXPLAIN: Polythetic is the opposite, and is what every distance-based method is, since a distance consumes the whole feature vector at once.
+:Q_UNIT: clust
+:END:
+
+* Density-Based Clustering
+
+** Explain what density-based clustering defines a cluster to be, and the two things it gains over k-means.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A region of high point density separated from others by regions of low density. It finds clusters of arbitrary shape, where k-means can only produce convex roughly spherical cells, and it needs no k up front.
+:Q_UNIT: clust
+:END:
+
+** Give DBSCAN's two parameters and the three categories every point falls into.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A radius epsilon and a minimum count minPts. A core point has at least minPts points within epsilon of it; a border point has fewer but lies within epsilon of a core point; a noise point is neither and belongs to no cluster.
+:Q_UNIT: clust
+:END:
+
+** Describe how DBSCAN forms its clusters once the points are categorized.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Clusters are the connected components of the core points under "within epsilon of each other". Each border point is then attached to a cluster of an adjacent core point. Noise points are left unassigned.
+:Q_STEPS: DBSCAN(X, epsilon, minPts): | for each point p in X: | .  N(p) <- {q in X : dist(p,q) <= epsilon} | .  if |N(p)| >= minPts: mark p CORE | for each pair of core points p, q with dist(p,q) <= epsilon: | .  union their clusters   // connected components of the core points | for each non-core point p: | .  if some core point q has dist(p,q) <= epsilon: mark p BORDER, assign to q's cluster | .  else: mark p NOISE, leave unassigned | return the clusters
+:Q_UNIT: clust
+:END:
+
+** A point with fewer than minPts neighbours within epsilon, but lying within epsilon of a core point, is a __________ point.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: border
+:Q_ACCEPT: border point | boundary
+:Q_EXPLAIN: It joins a cluster but cannot extend it -- only core points propagate connectivity, which is what stops a chain of sparse points bridging two dense regions.
+:Q_UNIT: clust
+:END:
+
+** DBSCAN assigns every point in the data set to some cluster.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Noise points are left unassigned -- which is the other thing k-means cannot do, since every point must go to some centroid.
+:Q_UNIT: clust
+:END:
+
+** State DBSCAN's main weakness.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Choosing epsilon and minPts, and more fundamentally that one epsilon cannot serve clusters of substantially different densities -- a value loose enough for the sparse cluster merges the dense ones.
+:Q_UNIT: clust
+:END:
+
+** Compared with k-means, DBSCAN's advantage is that it:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: finds clusters of arbitrary shape and needs no k | always converges faster | guarantees a globally optimal clustering | requires no distance measure
+:Q_ANSWER: finds clusters of arbitrary shape and needs no k
+:Q_EXPLAIN: It trades the choice of k for the choice of epsilon and minPts, so it is not parameter-free -- just parameterized by density rather than by cluster count.
+:Q_UNIT: clust
+:END:
+
+* Association Analysis
+
+** Explain what association analysis does and where it sits among the hierarchical methods.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It is the monothetic divisive method: it splits the data on the single attribute most associated with the rest, rather than merging on a distance over all attributes. HAC is the polythetic agglomerative counterpart.
+:Q_UNIT: clust
+:END:
+
+** For two binary attributes, write the four co-occurrence counts association analysis uses.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Over the n data points, with F_ij the j-th attribute of point i: \(a = \sum_i F_{ij} \wedge F_{ik}\), \(b = \sum_i (1-F_{ij}) \wedge F_{ik}\), \(c = \sum_i F_{ij} \wedge (1-F_{ik})\), \(d = \sum_i (1-F_{ij}) \wedge (1-F_{ik})\) -- the four cells of the 2x2 table for the attribute pair (j,k).
+:Q_UNIT: clust
+:END:
+
+** Write the normalized association between two binary attributes, and say which attribute gets split on.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(\phi_{jk} = \frac{ad - bc}{\sqrt{(a+b)(a+c)(b+d)(c+d)}}\), the correlation coefficient specialized to two binary variables. Split on \(F_{\mathit{split}} = \arg\max_j \sum_k \phi_{jk}\) -- the attribute carrying the most information about all the others.
+:Q_UNIT: clust
+:END:
+
+** Association analysis splits on the attribute with the:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: greatest total association with the other attributes | greatest information gain with respect to the class | smallest within-cluster sum of squares | highest variance
+:Q_ANSWER: greatest total association with the other attributes
+:Q_EXPLAIN: There is no class label here -- it is unsupervised, so the criterion is association among attributes rather than gain against a target.
+:Q_UNIT: clust
+:END:
+
+** Before association analysis can be applied, non-binary attributes must first be __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: binarized
+:Q_ACCEPT: converted to binary | made binary | binarised
+:Q_EXPLAIN: The counts a, b, c, d and the phi coefficient are all defined over 0/1 attributes, so anything else has to be converted and then normalized.
+:Q_UNIT: clust
+:END:
+
 * Evaluating a Clustering
 
 ** Explain why you cannot evaluate a clustering with classification metrics.

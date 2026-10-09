@@ -1,0 +1,883 @@
+#+TITLE: 3 Scheduling
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+TAGS: operating-systems, scheduling
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Uniprocessor scheduling.pdf][Uniprocessor Scheduling (PDF)]] · [[file:Windows_Linux_CPU_Scheduling.pdf][Windows and Linux CPU Scheduling (PDF)]]: Adiesha Liyanage
+
+The first deck is a single-processor treatment: the three timescales a scheduler
+operates on, the criteria it is judged by, and six classic short-term policies run
+against one shared example. The second deck takes the same question to two real
+systems and shows that neither of them uses a textbook policy verbatim.
+
+There is an interactive animation of the policy comparison at
+[[https://www.cs.montana.edu/adiesha/animations/assets/os/scheduling-comparison.html][cs.montana.edu/adiesha/animations/.../scheduling-comparison.html]].
+
+* Scheduling
+
+The aim of processor scheduling is to assign processes to be executed by the processor over time in a way that meets system objectives — response time, throughput, and processor efficiency.
+
+The key to multiprogramming /is/ scheduling: having several processes resident at
+once only buys you anything if something decides, moment to moment, which one runs.
+Everything on this page concerns a system with one processor.
+
+* Types of Scheduling
+
+Four decisions, distinguished by what they decide rather than by which component
+makes them:
+
+| Long-term     | The decision to add to the pool of processes to be executed                              |
+| Medium-term   | The decision to add to the number of processes partially or fully in main memory         |
+| Short-term    | The decision as to which available process will be executed by the processor             |
+| I/O           | The decision as to which process's pending I/O request is handled by an available device |
+
+In modern general-purpose desktop operating systems these are /not/ necessarily
+three separate scheduler components. The reason to learn them separately is that
+they make fundamentally different decisions:
+
+- *Long-term*: should this job/process enter the system at all?
+- *Medium-term*: should this process temporarily be removed from active execution?
+- *Short-term*: which ready thread should use the CPU now?
+
+Figure 9.1 in the deck overlays these onto the process state diagram: long-term
+scheduling drives the =New -> Ready= transition, medium-term scheduling drives the
+suspend transitions (=Ready/Suspend= and =Blocked/Suspend=), and short-term
+scheduling drives =Ready -> Running=. Figure 9.3 redraws the same thing as a
+queueing diagram: batch jobs and interactive users feed a long-term scheduler,
+which feeds the ready queue; the short-term scheduler pulls from the ready queue
+into the processor; and timeout, release, and event-wait edges carry work back out.
+
+** Long-Term Scheduling
+
+The long-term scheduler determines which programs are admitted to the system for
+processing. In doing so it controls the degree of multiprogramming:
+
+- The more processes created, the smaller the percentage of time each process gets
+  to execute.
+- So it may deliberately /limit/ admissions to provide satisfactory service to the
+  processes already in the system.
+
+Once admitted, a process is normally handed to the short-term scheduler. In some
+systems new programs are instead created as swapped-out processes, in which case
+they go to the medium-term scheduler.
+
+Two decisions, taken together (deck figure, p8):
+
+- *When* the OS can take on one or more additional processes — driven by the
+  current degree of multiprogramming.
+- *Which* jobs to accept and turn into processes — by FCFS, or by priority,
+  expected execution time, and I/O requirements.
+
+Interactive time-sharing systems behave differently: a process-creation request can
+be generated simply by a user attempting to connect. Time-sharing users are not
+queued up and kept waiting until the system can accept them — the OS accepts all
+authorized users until the system is saturated.
+
+** Medium-Term Scheduling
+
+Part of the swapping function. Swapping-in decisions are based on the need to
+manage the degree of multiprogramming, and take into account the memory
+requirements of the swapped-out processes.
+
+** Short-Term Scheduling
+
+Known as the /dispatcher/. It executes most frequently and makes the fine-grained
+decision of which process to execute next. It is invoked whenever an event occurs
+that may block the current process or create an opportunity to preempt it in favour
+of another:
+
+- Clock interrupts
+- I/O interrupts
+- Operating system calls
+- Signals (e.g. semaphores)
+
+The rest of this page is about short-term scheduling.
+
+* Short-Term Scheduling Criteria
+
+What are we trying to achieve? To allocate processor time to processes, and to do
+so in a way that optimizes one or more aspects of system behaviour. System
+behaviour can be viewed from two perspectives, and each splits again by whether it
+can be quantified:
+
+|                     | *User-oriented* — behaviour as perceived by the individual user or process | *System-oriented* — effective and efficient utilization of the processor |
+| *Performance-related* (quantitative, easily measured)    | Turnaround time, response time, deadlines | Throughput, processor utilization                     |
+| *Non-performance-related* (qualitative, hard to measure) | Predictability                            | Fairness, enforcing priorities, balancing resources   |
+
+User-oriented criteria are important on virtually all systems. System-oriented
+criteria are generally of minor importance on single-user systems.
+
+** User-oriented, performance-related
+
+- /Turnaround time/ --- the interval between the submission of a process and its
+  completion. Also written $T_r$.
+- /Response time/ --- for an interactive process, the time from submission of a
+  request until the response begins to be received.
+- /Deadline/ --- where process deadlines can be specified, the algorithm must meet
+  them, or at least meet some required percentage of them.
+
+** User-oriented, non-performance-related
+
+- /Predictability/ --- a given job should run in about the same amount of time and
+  at about the same cost regardless of the load on the system.
+
+** System-oriented, performance-related
+
+- /Throughput/ --- number of processes completed per unit of time.
+- /Processor utilization/ --- the percentage of time the processor is busy.
+
+** System-oriented, non-performance-related
+
+- /Fairness/ --- processes should be treated the same in the absence of user- or
+  system-supplied guidance.
+- /Enforcing priorities/ --- when processes are assigned priorities, the policy
+  should favour higher-priority processes.
+- /Balancing resources/ --- the policy should keep the system's resources busy.
+
+Note that several of these actively conflict: favouring high priority works against
+fairness, and maximizing throughput tends to work against response time.
+
+* Priority-Based Scheduling
+
+In many systems processes are assigned a priority, and the scheduler picks the
+ready process with the highest priority. The natural implementation is a
+priority-queuing approach: one ready queue per priority level, =RQ0= through
+=RQn=, with the dispatcher taking from the highest non-empty queue (Figure 9.4 in
+the deck).
+
+The problem with a *pure* priority scheme is starvation
+— lower-priority
+processes may never run as long as higher-priority work keeps arriving. The fix is
+to make priority a function of age and execution history rather than a fixed
+attribute, so a process that has waited drifts upward. Both the multilevel feedback
+policy below and the real Windows and Linux schedulers are versions of this idea.
+
+* Scheduling Policies
+
+Each policy is characterised by two things:
+
+- Selection function
+  --- determines which process, among the ready
+  processes, is selected next. It is written in terms of three quantities:
+  - $w$ = time spent in the system so far (waiting)
+  - $e$ = time spent in execution so far
+  - $s$ = total service time required by the process, including $e$
+- Decision mode
+  --- specifies the instants at which the selection
+  function is exercised:
+  - /Nonpreemptive/: once a process is running it continues until it terminates or
+    blocks itself.
+  - /Preemptive/: the currently running process may be interrupted and moved to the
+    ready state by the OS.
+
+** Nonpreemptive vs preemptive
+
+Preemptive policies incur greater overhead — every preemption is a context switch —
+but provide better service to the process population as a whole, because no single
+process can monopolize the processor. Efficient process switching, hardware
+support, and larger main memory all help preemptive policies run efficiently.
+
+Most general-purpose modern systems use preemptive scheduling. Some systems still
+use nonpreemptive policies, real-time operating systems among them.
+
+** The worked example
+
+Every policy in the deck is run against this one process set (Stallings Table 9.4):
+
+| Process      | A | B | C | D | E |
+| Arrival Time | 0 | 2 | 4 | 6 | 8 |
+| Service Time | 3 | 6 | 4 | 5 | 2 |
+
+And compared on turnaround time $T_r$ and normalized turnaround time $T_r/T_s$,
+where $T_s$ is the service time. The summary table (Stallings Table 9.5) is worth
+having in full, because the ranking is the point of the whole section:
+
+| Policy         | Metric          |    A |    B |    C |    D |    E |  Mean |
+| FCFS           | Finish Time     |    3 |    9 |   13 |   18 |   20 |       |
+|                | $T_r$           |    3 |    7 |    9 |   12 |   12 |  8.60 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.25 | 2.40 | 6.00 |  2.56 |
+| RR, $q = 1$    | Finish Time     |    4 |   18 |   17 |   20 |   15 |       |
+|                | $T_r$           |    4 |   16 |   13 |   14 |    7 | 10.80 |
+|                | $T_r/T_s$       | 1.33 | 2.67 | 3.25 | 2.80 | 3.50 |  2.71 |
+| RR, $q = 4$    | Finish Time     |    3 |   17 |   11 |   20 |   19 |       |
+|                | $T_r$           |    3 |   15 |    7 |   14 |   11 | 10.00 |
+|                | $T_r/T_s$       | 1.00 | 2.50 | 1.75 | 2.80 | 5.50 |  2.71 |
+| SPN            | Finish Time     |    3 |    9 |   15 |   20 |   11 |       |
+|                | $T_r$           |    3 |    7 |   11 |   14 |    3 |  7.60 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.75 | 2.80 | 1.50 |  1.84 |
+| SRT            | Finish Time     |    3 |   15 |    8 |   20 |   10 |       |
+|                | $T_r$           |    3 |   13 |    4 |   14 |    2 |  7.20 |
+|                | $T_r/T_s$       | 1.00 | 2.17 | 1.00 | 2.80 | 1.00 |  1.59 |
+| HRRN           | Finish Time     |    3 |    9 |   13 |   20 |   15 |       |
+|                | $T_r$           |    3 |    7 |    9 |   14 |    7 |  8.00 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.25 | 2.80 | 3.50 |  2.14 |
+| FB, $q = 1$    | Finish Time     |    4 |   20 |   16 |   19 |   11 |       |
+|                | $T_r$           |    4 |   18 |   12 |   13 |    3 | 10.00 |
+|                | $T_r/T_s$       | 1.33 | 3.00 | 3.00 | 2.60 | 1.50 |  2.29 |
+| FB, $q = 2^i$  | Finish Time     |    4 |   17 |   18 |   20 |   14 |       |
+|                | $T_r$           |    4 |   15 |   14 |   14 |    6 | 10.60 |
+|                | $T_r/T_s$       | 1.33 | 2.50 | 3.50 | 2.80 | 3.00 |  2.63 |
+
+Reading it: *SRT wins on both means* (7.20 and 1.59), SPN is next, and the two
+round-robin variants are the worst on mean turnaround. But notice E, the shortest
+job: under FCFS it waits behind everything and gets a normalized turnaround of
+6.00, while SRT gives it 1.00. That single column is the argument for knowing
+service times. And notice D, the longest job still in the system at the end: it
+sits at 2.80 under almost every policy, which is why "SRT is best" is a statement
+about means and not about any individual process.
+
+[Figure 9.5, a Gantt-chart comparison of all eight schedules over $t = 0..20$, is a
+slide image and is not reproduced here — see p41 of the PDF.]
+
+** First-Come-First-Served (FCFS)
+
+- Selection function: $\max w$
+- Decision mode: nonpreemptive
+
+The simplest policy. As each process becomes ready it joins the ready queue; when
+the running process ceases to execute, the process that has been in the queue
+longest is selected. Implementation is literally a queue.
+
+Its two biases:
+
+- *Performs much better for long processes than short ones.* A short job arriving
+  behind a long one inherits the long one's wait, which is catastrophic in relative
+  terms — hence E's 6.00 above.
+- *Favours processor-bound processes over I/O-bound ones.* A long CPU-bound process
+  occupies the processor while short I/O-bound processes wait behind it. The deck's
+  illustration: =P1= is CPU-bound and needs 100 ms of CPU; =P2= and =P3= are
+  I/O-bound and each need 2 ms of CPU before doing I/O. Behind =P1=, both I/O-bound
+  processes stall, and the I/O devices sit idle the whole time.
+
+** Round Robin
+
+- Selection function: constant (cycle through the queue)
+- Decision mode: preemptive, at a given time quantum $q$
+
+Preemption based on a clock, which is why it is also called /time slicing/. A clock
+interrupt is generated at periodic intervals; when it occurs, the running process is
+placed at the back of the ready queue and the next ready job is selected on an FCFS
+basis.
+
+The principal design issue is the length of the quantum:
+
+- If $q$ is very short, short processes move through the system relatively quickly.
+- But there is processing overhead in the clock interrupt and the scheduling itself,
+  so a very short quantum must be avoided.
+- Useful guide: the quantum should be slightly greater than the time required for a typical interaction or process function.
+
+Particularly effective in general-purpose time-sharing and transaction-processing
+systems. Its one drawback is again the relative treatment of processor-bound and
+I/O-bound processes: an I/O-bound process typically does /not/ use its full
+quantum — it blocks partway through — so it gets a smaller share of the processor
+than a CPU-bound process that consumes every quantum in full. (The fix, virtual
+round robin, gives a process that blocks early a preferential auxiliary queue so
+it reclaims the unused remainder.)
+
+** Shortest Process Next (SPN)
+
+- Selection function: $\min s$
+- Decision mode: nonpreemptive
+
+The process with the shortest expected processing time is selected next, so a short
+process jumps to the head of the queue. Implementation is a priority queue keyed on
+expected service time.
+
+The difficulty is that you need to know, or at least estimate, each process's
+required processing time. Either the OS uses previous statistics it has stored, or
+the user/programmer supplies the value. If the programmer's estimate is
+substantially under the actual running time the system may abort the job.
+
+Costs:
+
+- Possibility of starvation for longer processes, as long as there is a
+  steady supply of shorter ones.
+- Variability of response time is increased, so it is less predictable.
+- Not suitable for time-sharing systems.
+
+Useful for batch processing where user interaction is minimal — mainframes and
+early computers — and potentially in real-time or embedded systems.
+
+** Shortest Remaining Time (SRT)
+
+- Selection function: $\min(s - e)$
+- Decision mode: preemptive
+
+The preemptive version of SPN: the scheduler always chooses the process with the
+shortest expected /remaining/ processing time, re-deciding whenever a new process
+arrives.
+
+- Does not favour long processes, and should give superior turnaround performance to
+  SPN, because a short job gets immediate preference over a running longer job. The
+  table above bears this out — SRT is the best policy on both means.
+- Risk of starvation of longer processes remains.
+- Elapsed service time must be recorded for every process.
+- No additional interrupts are generated: the dispatcher is only invoked when a new
+  process enters the system, not on a clock tick, so the overhead is lower than
+  round robin's.
+
+** Highest Response Ratio Next (HRRN)
+
+- Selection function: $\max R$, where
+
+\[
+  R = \frac{w + s}{s}
+\]
+
+- Decision mode: nonpreemptive
+
+When the current process completes or blocks, choose the ready process with the
+greatest $R$. This is attractive because it accounts for the age
+of a
+process. Shorter jobs are still favoured — a small $s$ makes the ratio large — but
+aging without service increases $w$ and hence the ratio, so a longer process will
+eventually get past competing shorter jobs. That is starvation-freedom bought
+without giving up the preference for short jobs, and it lands HRRN between SPN and
+FCFS in the comparison table.
+
+** Multilevel Feedback
+
+- Decision mode: preemptive, at each time quantum
+
+An extension of FCFS for the case where we have /no/ indication of the relative
+length of the various processes — which is the normal case, and which rules out
+SPN, SRT and HRRN, all of which need $s$. Instead of service time, it focuses on
+time spent in execution so far, using a dynamic priority mechanism over a set of
+queues =RQ0=, =RQ1=, ..., =RQn= (Figure 9.10):
+
+- When a process first enters the system it is placed in the priority 0 queue.
+- After it is preempted, it is returned to the priority 1 queue.
+- Each subsequent time, it is placed in the next lower-priority queue.
+- In the lowest-priority queue, FCFS is used.
+- Selection always takes a ready process from the highest-priority non-empty queue,
+  moving down only when the queues above are empty.
+
+So a process that keeps using its full quantum sinks, and short interactive
+processes that block early stay near the top — it infers "this is a long job" from
+behaviour rather than being told. The cost: turnaround time for longer processes stretches out very fast, since a long process keeps sinking while new
+arrivals keep entering above it. Using a quantum that grows with depth
+($q = 2^i$ at level $i$) softens this, which is the =FB, q = 2^i= row in the table.
+
+[One slide in this section (p40) is a figure with no extractable text — see the PDF.]
+
+* Windows and Linux CPU Scheduling
+
+Three schedulers, three different answers to "who runs next":
+
+- *Windows*: select the highest current thread priority, with dynamic boosts.
+- *Linux CFS*: favour the smallest weighted virtual runtime.
+- *Linux EEVDF*: select the earliest virtual deadline among eligible tasks.
+
+All three balance responsiveness against other scheduling goals, and none of them
+is one of the textbook policies above in pure form.
+
+** Windows priority levels
+
+| Range  | Meaning                          |
+| 16--31 | Real-time priority range         |
+| 1--15  | Variable priority range          |
+| 0      | Reserved for the zero-page thread |
+
+Larger priority numbers receive preference. The zero-page thread clears free memory
+pages when no other thread needs the CPU.
+
+Base priority comes from combining a process class with a thread level:
+
+| Process class | Thread level | Base priority |
+| Normal        | Below normal |             7 |
+| Normal        | Normal       |             8 |
+| Normal        | Above normal |             9 |
+| High          | Normal       |            13 |
+
+*** Kernel execution and system threads
+
+- System threads have their own priorities, chosen for their work. Some run at high
+  priorities, but they need not all run at 31.
+- A system call enters kernel mode without automatically raising thread priority
+  — kernel mode and priority are independent.
+- Interrupt urgency is controlled separately by /interrupt request levels/ (IRQLs),
+  which the kernel uses to control which interrupts and kernel activities are
+  allowed to preempt the currently executing code.
+
+*** Selection and preemption
+
+- Choose a ready thread at the highest current priority.
+- At equal priority, distribute time slices using round robin.
+- A newly ready higher-priority thread preempts a lower-priority thread.
+- A /quantum/ is a time slice; its length depends on system settings.
+
+Worked example — one CPU, 4 ms quantum, fixed priorities, boosts disabled:
+
+| Time (ms) | Running thread | Reason                    |
+| 0--4      | A, priority 8  | First equal-priority turn |
+| 4--6      | B, priority 8  | Next turn                 |
+| 6--8      | C, priority 10 | Higher priority preempts B |
+
+At 8 ms, C blocks. A or B can resume under queue rules. Note that B is preempted
+mid-quantum at 6 ms: priority beats the round-robin turn.
+
+*** Dynamic priority boosts
+
+- Input events and completed waits can temporarily raise a thread's /dynamic/
+  priority, which helps a waking or interactive thread respond promptly.
+- After each full quantum the thread consumes, the boosted priority is
+  reduced by one level
+  until it returns to the thread's base priority.
+  So a thread that keeps running loses its boost, and one that keeps blocking
+  keeps it.
+- Threads whose base priority is in the real-time range 16--31 do /not/ receive
+  these normal dynamic boosts.
+
+*** Foreground applications and responsiveness
+
+- Windows tracks the foreground window and the thread/process associated with it.
+  Clicking a window or using $Alt+Tab$ can change which application is in the
+  foreground.
+- Foreground activity and user input can receive temporary scheduling preference to
+  improve responsiveness.
+- But simply having a visible GUI does not cause every thread in the application to
+  receive a higher priority.
+
+*** Starvation prevention and its limits
+
+- Windows can temporarily boost ready threads that have waited too long for CPU
+  time, helping them compete with higher-priority runnable threads.
+- Those temporary boosts later decay back toward the base priority.
+- Among threads at the same priority level, round-robin time slicing applies.
+- The limit: continuously runnable real-time threads can still prevent ordinary-priority threads from running.
+  Priority-based scheduling's starvation
+  problem is mitigated, not eliminated.
+
+** Linux scheduling policies
+
+- Ordinary tasks normally use =SCHED_OTHER=, also called =SCHED_NORMAL=. CFS and
+  EEVDF provide selection /within/ this fair scheduler.
+- =SCHED_FIFO= and =SCHED_RR= provide real-time priority policies.
+- =SCHED_DEADLINE= uses earliest-deadline-first with execution budgets and
+  admission control.
+
+[The slide following this one (p12) is a figure with no extractable text — see the PDF.]
+
+*** Weights and CPU entitlement
+
+A /weight/ expresses a task's relative claim on CPU service. A lower nice value
+gives a task a larger scheduling weight, increasing its target CPU share when tasks
+compete — informally, a lower nice value means the task is "less nice" to other
+tasks. For comparable runnable tasks the target share is approximately
+
+\[
+  \text{share}_i = \frac{w_i}{\sum_j w_j}
+\]
+
+where $w_i$ is task $i$'s weight. A task's /actual/ share changes dynamically as
+competing tasks block, sleep, wake up, or become runnable.
+
+Worked example — one CPU, all tasks runnable, same fair group, no CPU quota:
+
+| Task | Weight | Target share | CPU in 30 ms |
+| A    |      2 | 2 / 4 = 50%  | 15 ms        |
+| B    |      1 | 1 / 4 = 25%  | 7.5 ms       |
+| C    |      1 | 1 / 4 = 25%  | 7.5 ms       |
+
+If C blocks, A targets ⅔ of CPU time and B targets ⅓ — the denominator is the
+weight sum of the /runnable/ set, not of every task that exists.
+
+*** CFS virtual runtime
+
+Virtual runtime $v$ records CPU service after adjusting for weight. Let $\Delta t$
+be actual CPU time, $w$ the task's weight, and $w_0$ a reference weight. The
+increment is
+
+\[
+  \Delta v = \Delta t \times \frac{w_0}{w}
+\]
+
+A larger weight makes virtual runtime grow more slowly
+— which is the whole
+trick: the scheduler then just has to pick the smallest $v$, and the weighting falls
+out of the accounting rather than out of the selection rule.
+
+Worked selection example — reference weight 1, B runs for an illustrative 2 ms:
+
+| Task | Weight | Initial $v$ | $v$ after B runs 2 ms       |
+| A    |      2 |           6 | $6 = 6 + 0 \times (1/2)$    |
+| B    |      1 |           4 | $6 = 4 + 2 \times (1/1)$    |
+| C    |      1 |           5 | $5 = 5 + 0 \times (1/1)$    |
+
+First choice: B, which has the smallest $v$. Next choice in this model: C — B has
+caught up to A's 6, and C's 5 is now the smallest.
+
+Implementation and fairness:
+
+- Classic CFS organizes runnable entities in a red-black tree keyed by virtual
+  runtime and favours the entity with the smallest virtual runtime.
+- As a task runs its virtual runtime increases, allowing other tasks to catch up.
+- Granularity and wake-up placement balance fairness against responsiveness while
+  avoiding excessive context switches.
+
+*** EEVDF — earliest eligible virtual deadline first
+
+The newer selection rule for the same fair class. It adds the notion of /lag/:
+
+- Lag
+  measures CPU service owed relative to the fair allocation.
+- /Positive/ lag: the task has received less than its fair share.
+- /Negative/ lag: the task has received more than its fair share.
+- A runnable task with nonnegative lag is eligible
+  for selection.
+
+Virtual deadlines. Let $V$ be the scheduler's current virtual time, representing
+the fair-service progress of the runnable set; $v$ the task's current virtual
+runtime; $r$ its requested real CPU slice; $w$ its weight; and $w_0$ the reference
+weight. Then
+
+\[
+  d = v + r \times \frac{w_0}{w} \qquad \text{(virtual deadline)}
+\]
+
+A task is considered only when it is eligible — that is, when it is owed fair CPU
+service. Among eligible tasks, EEVDF selects the one with the smallest virtual
+deadline $d$. The task's lag is determined by how far its service position is
+behind or ahead of $V$.
+
+Worked selection example — equal weights, $V = 10$:
+
+| Task | $v$ | Slice $r$ | Deadline $d$ | Eligible? |
+| A    |   8 |         8 |           16 | Yes       |
+| B    |   9 |         5 |           14 | Yes       |
+| C    |  13 |       0.5 |         13.5 | No        |
+
+EEVDF chooses B. C has the earliest deadline but is ineligible
+— its
+$v = 13$ is ahead of $V = 10$, so it has already had more than its share. This is
+the example to remember, because it shows the eligibility test doing work that a
+pure earliest-deadline rule would get wrong.
+
+Responsiveness and fairness:
+
+- A shorter request gives an eligible task an earlier virtual deadline, so a task
+  that asks for little gets served soon. This is how latency-sensitive work is
+  accommodated without a priority.
+- Eligibility prevents a task that is already ahead from always winning.
+- When a request ends, accounting and the next request determine future choices.
+- Linux began the CFS-to-EEVDF transition in version 6.6.
+
+[One slide in this section (p21) is a shrunken slide image whose font carries no
+usable character map, so no text could be extracted — see the PDF.]
+
+*** CFS and EEVDF compared
+
+| Property            | Classic CFS              | EEVDF                        |
+| Main selection      | Smallest virtual runtime | Earliest eligible deadline   |
+| Fairness accounting | Weighted virtual runtime | Weighted runtime and lag     |
+| Latency mechanism   | Granularity and wakeups  | Request length and deadlines |
+| Fixed round robin?  | No                       | No                           |
+
+** Preemption and multiple CPUs
+
+- Both Windows and Linux support preemptive thread scheduling.
+- Kernel execution can temporarily disable or defer preemption while critical
+  kernel work is in progress.
+- /CPU affinity/ restricts the set of processors on which a thread is allowed to
+  run.
+- /Load balancing/ tries to distribute runnable work across CPUs while also
+  considering cache locality, NUMA effects, and available CPU capacity.
+
+** Windows and Linux side by side
+
+| Question                 | Windows                       | Linux fair class            |
+| Who runs next?           | Highest dynamic priority      | CFS $v$ or EEVDF $d$        |
+| How is preference set?   | Process class + thread level  | Nice and group weights      |
+| Interactive response     | Temporary boosts              | Wakeups and fair accounting |
+| Equal treatment          | Round robin at same priority  | Equal target CPU shares     |
+
+The structural difference: Windows expresses preference as a /priority/ and patches
+the resulting starvation with temporary boosts, while Linux expresses preference as
+a /weight/ and gets starvation-freedom from the fairness accounting itself. Neither
+is a textbook policy — but Windows at the same priority level is round robin, and
+Linux's fair class is closest in spirit to the aging idea behind HRRN.
+
+* Handout: Deadlock Avoidance and Detection
+
+A digital recreation of the class handout. This is Stallings Chapter 6 material
+(deadlock), not Chapter 9 scheduling --- it is filed here because it was handed
+out with this block of lectures.
+
+** Deadlock avoidance: the state
+
+Avoidance needs four pieces of state. Two vectors describe the resources
+themselves, two $n \times m$ matrices describe what each of the $n$ processes
+wants and currently holds across the $m$ resource types.
+
+\[
+  R = (R_1, R_2, \ldots, R_m)
+\]
+
+Resource vector --- the total amount of each resource in the system.
+
+\[
+  V = (V_1, V_2, \ldots, V_m)
+\]
+
+Available vector --- the total amount of each resource not allocated to any
+process.
+
+\[
+  C = \begin{pmatrix}
+    C_{11} & C_{12} & \cdots & C_{1m} \\
+    C_{21} & C_{22} & \cdots & C_{2m} \\
+    \vdots & \vdots & \vdots & \vdots \\
+    C_{n1} & C_{n2} & \cdots & C_{nm}
+  \end{pmatrix}
+\]
+
+Claim matrix --- $C_{ij}$ = requirement of process $i$ for resource $j$.
+
+\[
+  A = \begin{pmatrix}
+    A_{11} & A_{12} & \cdots & A_{1m} \\
+    A_{21} & A_{22} & \cdots & A_{2m} \\
+    \vdots & \vdots & \vdots & \vdots \\
+    A_{n1} & A_{n2} & \cdots & A_{nm}
+  \end{pmatrix}
+\]
+
+Allocation matrix --- $A_{ij}$ = current allocation to process $i$ of resource
+$j$.
+
+The invariants that hold over these, worth stating because every step of the
+algorithms below relies on them:
+
+- $R_j = V_j + \sum_{i=1}^{n} A_{ij}$ for all $j$ --- every unit of a resource is
+  either free or allocated to somebody.
+- $C_{ij} \leq R_j$ for all $i, j$ --- no process may claim more than exists.
+- $A_{ij} \leq C_{ij}$ for all $i, j$ --- no process is allocated more than it
+  claimed.
+
+** Figure 6.9 --- Deadlock Avoidance Logic
+
+*** (a) Global data structures
+
+#+BEGIN_SRC text
+struct  state {
+        int  resource[m];
+        int  available[m];
+        int  claim[n][m];
+        int  alloc[n][m];
+}
+#+END_SRC
+
+*** (b) Resource allocation algorithm
+
+#+BEGIN_SRC text
+if (alloc [i,*] + request [*] > claim [i,*])
+    <error>;                            /* total request > claim*/
+else if (request [*] > available [*])
+    <suspend process>;
+else {                                  /* simulate alloc */
+    <define newstate by:
+    alloc [i,*] = alloc [i,*] + request [*];
+    available [*] = available [*] - request [*]>;
+}
+if (safe (newstate))
+    <carry out allocation>;
+else {
+    <restore original state>;
+    <suspend process>;
+}
+#+END_SRC
+
+The shape to notice: the allocation is simulated first and only committed if the resulting state is safe. A request that would be legal and
+satisfiable is still refused when granting it would leave the system unable to
+guarantee that every process can finish.
+
+*** (c) Test for safety algorithm (banker's algorithm)
+
+#+BEGIN_SRC text
+boolean safe (state S) {
+    int currentavail[m];
+    process rest[<number of processes>];
+    currentavail = available;
+    rest = {all processes};
+    possible = true;
+    while (possible) {
+        <find a process Pk in rest such that
+        claim [k,*] - alloc [k,*]<= currentavail;
+        if (found) {            /* simulate execution of Pk */
+            currentavail = currentavail + alloc [k,*];
+            rest = rest - {Pk};
+        }
+        else possible = false;
+    }
+    return (rest == null);
+}
+#+END_SRC
+
+A state is safe if there exists at least one ordering in which every process can run to completion.
+The loop repeatedly looks for a process whose
+remaining need $C - A$ fits in what is currently free; running it to completion
+returns everything it holds, which may unblock another. If the loop empties
+=rest=, such an ordering exists and the state is safe.
+
+** Example: determination of a safe state
+
+Four processes, three resource types.
+
+Claim matrix $C$:
+
+|    | R1 | R2 | R3 |
+| P1 |  3 |  2 |  2 |
+| P2 |  6 |  1 |  3 |
+| P3 |  3 |  1 |  4 |
+| P4 |  4 |  2 |  2 |
+
+Allocation matrix $A$:
+
+|    | R1 | R2 | R3 |
+| P1 |  1 |  0 |  0 |
+| P2 |  6 |  1 |  2 |
+| P3 |  2 |  1 |  1 |
+| P4 |  0 |  0 |  2 |
+
+$C - A$, the amount each process could still demand:
+
+|    | R1 | R2 | R3 |
+| P1 |  2 |  2 |  2 |
+| P2 |  0 |  0 |  1 |
+| P3 |  1 |  0 |  3 |
+| P4 |  4 |  2 |  0 |
+
+Resource vector $R$:
+
+| R1 | R2 | R3 |
+|  9 |  3 |  6 |
+
+Available vector $V$:
+
+| R1 | R2 | R3 |
+|  0 |  1 |  1 |
+
+*** Running the safety test on this state
+
+Only $0, 1, 1$ is free, so most processes cannot be satisfied immediately. The
+algorithm only needs /one/ to be:
+
+| Step | =currentavail= | Process run | Why it fits                  | Released ($A_k$) |
+|    0 | (0, 1, 1)      | ---         | initial =available=          | ---              |
+|    1 | (0, 1, 1)      | P2          | needs (0, 0, 1) $\leq$ (0, 1, 1) | (6, 1, 2)    |
+|    2 | (6, 2, 3)      | P1          | needs (2, 2, 2) $\leq$ (6, 2, 3) | (1, 0, 0)    |
+|    3 | (7, 2, 3)      | P3          | needs (1, 0, 3) $\leq$ (7, 2, 3) | (2, 1, 1)    |
+|    4 | (9, 3, 4)      | P4          | needs (4, 2, 0) $\leq$ (9, 3, 4) | (0, 0, 2)    |
+|    5 | (9, 3, 6)      | ---         | =rest= is empty              | ---              |
+
+=rest= empties, so the state is safe, with safe sequence
+P2, P1, P3, P4. Note that =currentavail= finishes at $(9, 3, 6) = R$, which is
+the sanity check: every resource came back.
+
+P2 is the only process that can start, and it is the one holding the most. That
+is the usual shape of these problems --- safety hinges on a single process being
+able to proceed, and the rest unlocks from there.
+
+** Deadlock detection algorithm
+
+Detection drops the claim matrix. Instead of asking "could every process
+finish?", it asks "which processes are blocked on requests that cannot currently
+be met?" --- so it uses a request matrix
+$Q$ of what each process is
+actually asking for right now, rather than the worst case it might ever ask for.
+
+*** Figure 6.10 --- Example for Deadlock Detection
+
+Four processes, five resource types.
+
+Request matrix $Q$:
+
+|    | R1 | R2 | R3 | R4 | R5 |
+| P1 |  0 |  1 |  0 |  0 |  1 |
+| P2 |  0 |  0 |  1 |  0 |  1 |
+| P3 |  0 |  0 |  0 |  0 |  1 |
+| P4 |  1 |  0 |  1 |  0 |  1 |
+
+Allocation matrix $A$:
+
+|    | R1 | R2 | R3 | R4 | R5 |
+| P1 |  1 |  0 |  1 |  1 |  0 |
+| P2 |  1 |  1 |  0 |  0 |  0 |
+| P3 |  0 |  0 |  0 |  1 |  0 |
+| P4 |  0 |  0 |  0 |  0 |  0 |
+
+Resource vector:
+
+| R1 | R2 | R3 | R4 | R5 |
+|  2 |  1 |  1 |  2 |  1 |
+
+Available vector:
+
+| R1 | R2 | R3 | R4 | R5 |
+|  0 |  0 |  0 |  0 |  1 |
+
+*** The algorithm
+
+1. Mark each process that has a row in the Allocation matrix of all zeros. A
+   process that has no allocated resources cannot participate in a deadlock.
+2. Initialize a temporary vector $W$ to equal the Available vector.
+3. Find an index $i$ such that process $i$ is currently unmarked and the \(i\)-th
+   row of $Q$ is less than or equal to $W$. That is, $Q_{ik} \leq W_{ik}$, for
+   $1 \leq k \leq m$. If no such row is found, terminate the algorithm.
+4. If such a row is found, mark process $i$ and add the corresponding row of the
+   allocation matrix to $W$. That is, set $W_k = W_k + A_{ik}$, for
+   $1 \leq k \leq m$. Return to step 3.
+
+#+begin_quote
+A deadlock exists if and only if there are unmarked processes at the end of the algorithm.
+#+end_quote
+
+A marked process is one the algorithm has shown can be satisfied and run to
+completion; an unmarked one is stuck. Marking is monotonic --- $W$ only ever
+grows --- so the order in which you pick eligible rows in step 3 does not change
+the final set of unmarked processes.
+
+*** Running detection on this state
+
+| Step | Action                                        | Marked         | $W$               |
+|    1 | P4's allocation row is all zeros, so mark it  | {P4}           | ---               |
+|    2 | $W \leftarrow$ Available                      | {P4}           | (0, 0, 0, 0, 1)   |
+|    3 | P3: $Q_3 = (0,0,0,0,1) \leq W$ --- mark it    | {P3, P4}       | ---               |
+|    4 | $W \leftarrow W + A_3 = W + (0,0,0,1,0)$      | {P3, P4}       | (0, 0, 0, 1, 1)   |
+|    3 | P1 needs R2, P2 needs R3; neither fits $W$    | {P3, P4}       | (0, 0, 0, 1, 1)   |
+
+No further row qualifies, so the algorithm terminates with
+P1 and P2 unmarked --- the system is deadlocked, and those two are
+the processes involved.
+
+Why each of the two fails is worth reading off the vectors: P1 requests one unit
+of R2, but R2's single unit is held by P2; P2 requests one unit of R3, but R3's
+single unit is held by P1. That is the circular wait, visible directly in $Q$ and
+$A$ without drawing a graph.
+
+** Avoidance vs detection
+
+| | Avoidance (banker's) | Detection |
+| Needs | The claim matrix $C$ --- the maximum each process may ever request | Only the current request matrix $Q$ |
+| When it runs | On every resource request, before granting | Periodically, or when a request goes unsatisfied |
+| What it decides | Whether granting a request keeps the state safe | Whether a deadlock has already happened |
+| Cost | Pays the safety test on every request | Cheaper per request, but deadlocks actually occur |
+| Downside | Requires knowing worst-case claims up front; refuses safe-looking requests | Needs a recovery mechanism --- kill or roll back a process |
+
+* References
+
+Microsoft Learn, =learn.microsoft.com/en-us/windows/win32/procthread/= --- Scheduling
+Priorities, Priority Boosts, Context Switches, Multiple Processors.
+
+Linux kernel documentation, =docs.kernel.org/scheduler/= --- CFS Scheduler, EEVDF
+Scheduler, Scheduler Nice Design, Deadline Task Scheduling, Control Group v2.

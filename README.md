@@ -591,7 +591,7 @@ Every line is prefixed with its font size and x offset, which is what makes the 
 
 `pdftext.py` is self-contained (no poppler, no third-party packages). It handles object streams, the page tree, `/ToUnicode` CMaps, and — for the Identity-H subset fonts PowerPoint emits, whose `/ToUnicode` is only a stub — the embedded TrueType `cmap` table.
 
-**One limitation to plan around:** equations set in math fonts usually have a sparse `/ToUnicode` that covers the operators but not the italic variables, and those subsets carry no `post` table. Operators, relations and structure come through (`∑ ∈ ≥ ∨ ⇒ ℋ θ`), the variable letters do not. Reconstruct formulas from the surrounding prose, which names the quantities, rather than expecting to lift them verbatim.
+**One limitation to plan around:** how much of an equation survives depends on the font. Where a math font maps its italic variables into Unicode's Mathematical Alphanumeric block, they come through as those astral italics (`𝑤 = 𝑡𝑖𝑚𝑒 𝑠𝑝𝑒𝑛𝑡 𝑖𝑛 𝑡ℎ𝑒 𝑠𝑦𝑠𝑡𝑒𝑚`), so a formula set entirely in one of those is usable as-is. But a font with a sparse `/ToUnicode` covering the operators and not the variables carries no `post` table to fall back on: there, operators, relations and structure come through (`∑ ∈ ≥ ∨ ⇒ ℋ θ`) and the variable letters do not. PowerPoint decks routinely mix both. When a dump's formulas come out as structure without names, reconstruct them from the surrounding prose, which names the quantities, rather than expecting to lift them verbatim.
 
 ---
 

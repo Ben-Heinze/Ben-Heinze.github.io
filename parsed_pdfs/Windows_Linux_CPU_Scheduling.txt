@@ -1,0 +1,485 @@
+
+───── page 1/26 ─────
+[  33pt x    55] Windows and Linux
+[  33pt x    55] CPU Scheduling
+[  20pt x    61] CSCI 460
+[  20pt x    61] Adiesha Liyanage
+[  14pt x   877] 01
+
+───── page 2/26 ─────
+[  33pt x    55] The ideas behind each scheduler
+[  23pt x    61] •
+[  23pt x    88] Windows: select the highest current thread priority.(with dynamic boosts)
+[  23pt x    61] •
+[  23pt x    88] Linux
+[  23pt x    97] •
+[  23pt x   124] CFS: favor the smallest weighted virtual runtime.
+[  23pt x    97] •
+[  23pt x   124] EEVDF: select the earliest virtual deadline among eligible tasks.
+[  23pt x    61] •
+[  23pt x    88] All three balance responsiveness with other scheduling goals.
+[  14pt x   877] 03
+
+───── page 3/26 ─────
+[  33pt x    55] Windows priority levels
+[  20pt x    66] Range
+[  20pt x   254] Meaning
+[  20pt x    66] 16
+[  20pt x    86] –
+[  20pt x    96] 31
+[  20pt x   254] Real-time priority range
+[  20pt x    66] 1
+[  20pt x    76] –
+[  20pt x    86] 15
+[  20pt x   254] Variable priority range
+[  20pt x    66] 0
+[  20pt x   254] Reserved for the zero-page thread
+[  23pt x    61] Larger priority numbers receive preference.
+[  17pt x    61] The zero-page thread clears free memory pages when other threads need no CPU.
+[  14pt x   877] 04
+
+───── page 4/26 ─────
+[  33pt x    55] Kernel execution and system threads
+[  28pt x    61] •
+[  28pt x    88] System threads have their own priorities, chosen for their work.
+[  28pt x    61] •
+[  28pt x    88] Some run at high priorities.
+[  28pt x    97] •
+[  28pt x   124] System threads need not all run at 31.
+[  28pt x    61] •
+[  28pt x    88] A system call enters kernel mode without automatically raising
+[  28pt x    88] thread priority.
+[  28pt x    61] •
+[  28pt x    88] Interrupt request levels (IRQLs) separately control interrupt
+[  28pt x    88] urgency.
+[  23pt x    97] •
+[  23pt x   124] In Windows,
+[  23pt x   243] IRQLs (Interrupt Request Levels)
+[  23pt x   547] are used by the kernel to control
+[  23pt x   124] which interrupts, and kernel activities are allowed to preempt the currently
+[  23pt x   124] executing code
+[  23pt x   264] .
+[  14pt x   877] 05
+
+───── page 5/26 ─────
+[  33pt x    55] Windows base priority
+[  20pt x    66] Process class
+[  20pt x   381] Thread level
+[  20pt x   696] Base priority
+[  20pt x    66] Normal
+[  20pt x   381] Below normal
+[  20pt x   696] 7
+[  20pt x    66] Normal
+[  20pt x   381] Normal
+[  20pt x   696] 8
+[  20pt x    66] Normal
+[  20pt x   381] Above normal
+[  20pt x   696] 9
+[  20pt x    66] High
+[  20pt x   381] Normal
+[  20pt x   696] 13
+[  14pt x   877] 06
+
+───── page 6/26 ─────
+[  33pt x    55] Windows selection and preemption
+[  32pt x    61] •
+[  32pt x    88] Choose a ready thread at the highest current priority.
+[  32pt x    61] •
+[  32pt x    88] At equal priority, distribute time slices using round robin.
+[  32pt x    61] •
+[  32pt x    88] A newly ready higher-priority thread preempts a lower-
+[  32pt x    88] priority thread.
+[  32pt x    61] •
+[  32pt x    88] A quantum is a time slice.
+[  32pt x    97] •
+[  32pt x   124] Its length depends on system settings.
+[  14pt x   877] 07
+
+───── page 7/26 ─────
+[  33pt x    55] Windows worked example
+[  17pt x    61] One CPU, 4 ms quantum, fixed priorities, boosts disabled.
+[  20pt x    66] Time (ms)
+[  20pt x   261] Running thread
+[  20pt x   539] Reason
+[  20pt x    66] 0
+[  20pt x    76] –
+[  20pt x    86] 4
+[  20pt x   261] A, priority 8
+[  20pt x   539] First equal-priority turn
+[  20pt x    66] 4
+[  20pt x    76] –
+[  20pt x    86] 6
+[  20pt x   261] B, priority 8
+[  20pt x   539] Next turn
+[  20pt x    66] 6
+[  20pt x    76] –
+[  20pt x    86] 8
+[  20pt x   261] C, priority 10
+[  20pt x   539] Higher priority preempts B
+[  21pt x    61] At 8 ms, C blocks. A or B can resume under queue rules.
+[  14pt x   877] 08
+
+───── page 8/26 ─────
+[  33pt x    55] Windows dynamic priority boosts
+[  28pt x    61] •
+[  28pt x    97] Input events and completed waits can temporarily raise a
+[  28pt x    97] thread’s dynamic priority.
+[  28pt x    61] •
+[  28pt x    97] These boosts help a waking or interactive thread respond
+[  28pt x    97] promptly.
+[  28pt x    61] •
+[  28pt x    97] After each full-time slice (quantum) it consumes, the boosted
+[  28pt x    97] priority is reduced by one level until it returns to the thread’s base
+[  28pt x    97] priority.
+[  28pt x    61] •
+[  28pt x    97] Threads whose base priority is 16
+[  28pt x   496] –
+[  28pt x   509] 31 are in the real-time range
+[  28pt x    97] and do not receive these normal dynamic priority boosts.
+[  14pt x   877] 09
+
+───── page 9/26 ─────
+[  33pt x    55] Foreground applications and responsiveness
+[  28pt x    61] •
+[  28pt x    97] Windows tracks the foreground window and the thread/process
+[  28pt x    97] associated with it.
+[  28pt x    61] •
+[  28pt x    97] Clicking a window or using
+[  18pt x   421] 𝐴𝑙𝑡+𝑇𝑎𝑏
+[  28pt x   504] can change which application
+[  28pt x    97] is in the foreground.
+[  28pt x    61] •
+[  28pt x    97] Foreground activity and user input can receive temporary
+[  28pt x    97] scheduling preference to improve responsiveness.
+[  28pt x    61] •
+[  28pt x    97] Simply having a visible GUI does not cause every thread in the
+[  28pt x    97] application to receive a higher priority.
+[  14pt x   877] 10
+
+───── page 10/26 ─────
+[  33pt x    55] Starvation prevention and its limits
+[  28pt x    61] •
+[  28pt x    97] Windows can temporarily boost ready threads that have waited
+[  28pt x    97] too long for CPU time.
+[  28pt x    61] •
+[  28pt x    97] The boost helps those threads compete with higher-priority
+[  28pt x    97] runnable threads and reduces starvation risk.
+[  28pt x    61] •
+[  28pt x    97] Temporary dynamic boosts later decay back toward the thread’s
+[  28pt x    97] base priority.
+[  28pt x    61] •
+[  28pt x    97] Among threads at the same priority level, Windows uses round-
+[  28pt x    97] robin time slicing.
+[  28pt x    61] •
+[  28pt x    97] Continuously runnable real-time threads can still prevent
+[  28pt x    97] ordinary-priority threads from running.
+[  14pt x   877] 11
+
+───── page 11/26 ─────
+[  33pt x    55] Linux scheduling policies
+[  28pt x    58] •
+[  28pt x    85] Ordinary tasks normally use SCHED_OTHER, also called
+[  28pt x    85] SCHED_NORMAL.
+[  28pt x    94] •
+[  28pt x   121] CFS and EEVDF provide selection within the fair scheduler.
+[  28pt x    58] •
+[  28pt x    85] SCHED_FIFO and SCHED_RR provide real-time priority policies.
+[  28pt x    58] •
+[  28pt x    85] SCHED_DEADLINE uses EDF with execution budgets and
+[  28pt x    85] admission control.
+[  14pt x   877] 12
+
+───── page 13/26 ─────
+[  33pt x    55] Linux weights and CPU entitlement
+[  28pt x    61] •
+[  28pt x    97] A weight expresses a task’s relative claim on CPU service.
+[  28pt x    61] •
+[  28pt x    97] A lower nice value gives a task a larger scheduling weight,
+[  28pt x    97] increasing its target CPU share when tasks compete.
+[  28pt x    61] •
+[  28pt x    97] Informally: a lower nice value means the task is “less nice” to
+[  28pt x    97] other tasks.
+[  28pt x    61] •
+[  28pt x    97] For comparable runnable tasks, the target CPU share is
+[  28pt x    97] approximately
+[  20pt x   264] 𝑤
+[  17pt x   281] 𝑖
+[  20pt x   516] ′
+[  28pt x    97] •
+[  28pt x   133] 𝑠ℎ𝑎𝑟𝑒=
+[  28pt x   309] where
+[  28pt x   389] 𝑤
+[  28pt x   423] is task
+[  28pt x   506] 𝑖𝑠
+[  28pt x   544] weight.
+[  20pt x   204] 𝑖
+[  20pt x   408] 𝑖
+[  20pt x   250] σ𝑤
+[  17pt x   294] 𝑗
+[  17pt x   264] 𝑗
+[  28pt x    61] •
+[  28pt x    97] A task’s actual share changes dynamically as competing tasks
+[  28pt x    97] block, sleep, wake up, or become runnable.
+[  14pt x   877] 13
+
+───── page 14/26 ─────
+[  33pt x    55] Weighted CPU share example
+[  17pt x    61] One CPU, all tasks runnable, same fair group, no CPU quota.
+[  20pt x    66] Task
+[  20pt x   209] Weight
+[  20pt x   351] Target share
+[  20pt x   636] CPU in 30 ms
+[  20pt x    66] A
+[  20pt x   209] 2
+[  20pt x   351] 2 / 4 = 50%
+[  20pt x   636] 15 ms
+[  20pt x    66] B
+[  20pt x   209] 1
+[  20pt x   351] 1 / 4 = 25%
+[  20pt x   636] 7.5 ms
+[  20pt x    66] C
+[  20pt x   209] 1
+[  20pt x   351] 1 / 4 = 25%
+[  20pt x   636] 7.5 ms
+[  21pt x    61] If C blocks: A targets ⅔ of CPU time, B targets ⅓.
+[  14pt x   877] 14
+
+───── page 15/26 ─────
+[  33pt x    55] CFS virtual runtime
+[  32pt x    61] •
+[  32pt x    88] Virtual runtime
+[  32pt x   294] 𝑣
+[  32pt x   320] records CPU service after adjusting for
+[  32pt x    88] weight.
+[  32pt x    61] •
+[  32pt x    88] Let
+[  32pt x   135] Δ𝑡
+[  32pt x   175] be actual CPU time,
+[  32pt x   438] 𝑤
+[  32pt x   470] the weight, and
+[  32pt x   680] 𝑤₀
+[  32pt x   724] a reference
+[  32pt x    88] weight.
+[  23pt x   481] 𝑤
+[  19pt x   500] 0
+[  32pt x    61] •
+[  32pt x    88] The increment is
+[  32pt x   311] Δ𝑣=Δ𝑡
+[  32pt x   451] ×
+[  32pt x   512] .
+[  23pt x   487] 𝑤
+[  32pt x    61] •
+[  32pt x    88] A larger weight makes virtual runtime grow more slowly.
+[  14pt x   877] 15
+
+───── page 16/26 ─────
+[  33pt x    55] CFS worked selection example
+[  17pt x    61] Reference weight = 1. B runs for an illustrative 2 ms.
+[  20pt x    78] Task
+[  20pt x   167] Weight
+[  20pt x   270] Initial v
+[  20pt x   413] v after B runsfor
+[  20pt x   413] 2ms
+[  20pt x   538] 2
+[  20pt x    78] A
+[  20pt x   167] 2
+[  20pt x   270] 6
+[  20pt x   435] 6=6+0
+[  20pt x   520] ×
+[  20pt x   538] 1
+[  20pt x   541] 1
+[  20pt x    78] B
+[  20pt x   167] 1
+[  20pt x   270] 4
+[  20pt x   433] 6=4+
+[  20pt x   507] 2×
+[  20pt x   541] 1
+[  20pt x   538] 1
+[  20pt x    78] C
+[  20pt x   167] 1
+[  20pt x   270] 5
+[  20pt x   435] 5=5+0
+[  20pt x   520] ×
+[  20pt x   538] 1
+[  23pt x    61] First choice: B. Next choice in this model: C.
+[  14pt x   877] 16
+
+───── page 17/26 ─────
+[  33pt x    55] CFS fairness and implementation
+[  28pt x    55] •
+[  28pt x    91] Classic CFS organizes runnable entities in a red-black tree by
+[  28pt x    91] virtual runtime and favors the entity with the smallest virtual
+[  28pt x    91] runtime.
+[  28pt x    55] •
+[  28pt x    91] As a task runs, its virtual runtime increases, allowing other tasks
+[  28pt x    91] to catch up.
+[  28pt x    55] •
+[  28pt x    91] Granularity and wake-up placement balance fairness with
+[  28pt x    91] responsiveness while avoiding excessive context switches.
+[  14pt x   877] 17
+
+───── page 18/26 ─────
+[  33pt x    55] EEVDF(Earliest eligible virtual deadline first)
+[  32pt x    61] •
+[  32pt x    88] Lag measures CPU service owed relative to the fair
+[  32pt x    88] allocation.
+[  32pt x    61] •
+[  32pt x    88] Positive lag: the task has received less than its fair share.
+[  32pt x    61] •
+[  32pt x    88] Negative lag: the task has received more than its fair
+[  32pt x    88] share.
+[  32pt x    61] •
+[  32pt x    88] A runnable task with nonnegative lag is eligible for
+[  32pt x    88] selection.
+[  14pt x   877] 18
+
+───── page 19/26 ─────
+[  33pt x    55] EEVDF virtual deadlines
+[  32pt x    61] •
+[  32pt x    97] Let
+[  32pt x   147] 𝑉
+[  32pt x   174] be the scheduler
+[  32pt x   407] ’
+[  32pt x   413] s
+[  32pt x   435] current virtual time
+[  32pt x   715] ,
+[  32pt x    97] representing the fair-service progress of the runnable set.
+[  32pt x    61] •
+[  32pt x    97] Let
+[  32pt x   147] 𝑣
+[  32pt x   172] be the current virtual runtime,
+[  32pt x   588] 𝑟
+[  32pt x   610] the requested real
+[  32pt x    97] CPU slice,
+[  32pt x   246] 𝑤
+[  32pt x   277] the task weight, and
+[  32pt x   559] 𝑤
+[  32pt x   603] the reference
+[  23pt x   582] 0
+[  32pt x    97] weight.
+[  23pt x   483] 𝑤
+[  19pt x   502] 0
+[  32pt x   277] 𝑑=𝑣
+[  32pt x   385] +𝑟×
+[  32pt x   520] (virtual deadline)
+[  23pt x   489] 𝑤
+[  32pt x    61] •
+[  32pt x    97] A task is considered only when it is
+[  32pt x   579] eligible
+[  32pt x   693] (it is owed fair
+[  32pt x    97] CPU service)
+[  32pt x    61] •
+[  32pt x    97] Among eligible tasks, EEVDF selects the task with the
+[  32pt x    97] smallest virtual deadline
+[  32pt x   464] 𝒅
+[  32pt x   485] .
+[  32pt x    61] •
+[  32pt x    97] The task
+[  32pt x   212] ’
+[  32pt x   219] s lag is determined by how far its service
+[  14pt x   877] 19
+[  32pt x    97] position is behind or ahead of
+[  32pt x   509] 𝑉
+
+───── page 20/26 ─────
+[  33pt x    55] EEVDF worked selection example
+[  17pt x    61] Equal weights. V is the runqueuevirtual-time reference. V = 10.
+[  20pt x    66] Task
+[  20pt x   194] v
+[  20pt x   321] Slice r
+[  20pt x   494] Deadline d
+[  20pt x   696] Eligible?
+[  20pt x    66] A
+[  20pt x   194] 8
+[  20pt x   321] 8
+[  20pt x   494] 16
+[  20pt x   696] Yes
+[  20pt x    66] B
+[  20pt x   194] 9
+[  20pt x   321] 5
+[  20pt x   494] 14
+[  20pt x   696] Yes
+[  20pt x    66] C
+[  20pt x   194] 13
+[  20pt x   321] 0.5
+[  20pt x   494] 13.5
+[  20pt x   696] No
+[  22pt x    61] EEVDF chooses B. C has the earliest deadline but is ineligible.
+[  14pt x   877] 20
+
+───── page 22/26 ─────
+[  33pt x    55] EEVDF responsiveness and fairness
+[  32pt x    55] •
+[  32pt x    82] A shorter request can give an eligible task an earlier virtual
+[  32pt x    82] deadline.
+[  32pt x    55] •
+[  32pt x    82] Eligibility prevents a task already ahead from always winning.
+[  32pt x    55] •
+[  32pt x    82] When a request ends, accounting and the next request
+[  32pt x    82] determine future choices.
+[  32pt x    55] •
+[  32pt x    82] Linux began the CFS-to-EEVDF transition in version 6.6.
+[  14pt x   877] 21
+
+───── page 23/26 ─────
+[  33pt x    55] CFS and EEVDF compared
+[  20pt x    66] Property
+[  20pt x   306] Classic CFS
+[  20pt x   612] EEVDF
+[  20pt x    66] Main selection
+[  20pt x   306] Smallest virtual runtime
+[  20pt x   612] Earliest eligible deadline
+[  20pt x    66] Fairness accounting
+[  20pt x   306] Weighted virtual runtime
+[  20pt x   612] Weighted runtime and lag
+[  20pt x    66] Latency mechanism
+[  20pt x   306] Granularity and wakeups
+[  20pt x   612] Request length and deadlines
+[  20pt x    66] Fixed round robin?
+[  20pt x   306] No
+[  20pt x   612] No
+[  14pt x   877] 22
+
+───── page 24/26 ─────
+[  33pt x    55] Preemption and multiple CPUs
+[  28pt x    61] •
+[  28pt x    97] Both Windows and Linux support preemptive thread scheduling.
+[  28pt x    61] •
+[  28pt x    97] Kernel execution can temporarily disable or defer preemption
+[  28pt x    97] while critical kernel work is in progress.
+[  28pt x    61] •
+[  28pt x    97] CPU affinity restricts the set of processors on which a thread is
+[  28pt x    97] allowed to run.
+[  28pt x    61] •
+[  28pt x    97] Load balancing tries to distribute runnable work across CPUs
+[  28pt x    97] while also considering cache locality, NUMA effects, and
+[  28pt x    97] available CPU capacity.
+[  14pt x   877] 23
+
+───── page 25/26 ─────
+[  33pt x    55] Windows and Linux fair scheduling
+[  20pt x    66] Question
+[  20pt x   310] Windows
+[  20pt x   612] Linux fair class
+[  20pt x    66] Who runs next?
+[  20pt x   310] Highest dynamic priority
+[  20pt x   612] CFS v or EEVDF d
+[  20pt x    66] How is preference set?Process class + thread level
+[  20pt x   612] Nice and group weights
+[  20pt x    66] Interactive response
+[  20pt x   310] Temporary boosts
+[  20pt x   612] Wakeups and fair accounting
+[  20pt x    66] Equal treatment
+[  20pt x   310] Round robin at same priorityEqual target CPU shares
+[  14pt x   877] 24
+
+───── page 26/26 ─────
+[  33pt x    55] Official references
+[  21pt x    61] Microsoft Learn
+[  21pt x    61] Scheduling Priorities, Priority Boosts, Context Switches, Multiple Processors
+[  21pt x    61] Linux kernel documentation
+[  21pt x    61] CFS Scheduler, EEVDF Scheduler, Scheduler Nice Design
+[  21pt x    61] Deadline Task Scheduling, Control Group v2
+[  18pt x    61] learn.microsoft.com/en-us/windows/win32/procthread/
+[  18pt x    61] docs.kernel.org/scheduler/
+[  14pt x   877] 27

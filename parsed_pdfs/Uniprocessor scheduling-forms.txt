@@ -1,0 +1,385 @@
+
+───── page 5/42 ─────
+[  14pt x   157] New
+[  12pt x   221] Long-term
+[  12pt x    61] Long-term
+[  12pt x   221] scheduling
+[  12pt x    61] scheduling
+[  12pt x    80] Ready/
+[  14pt x   223] Ready
+[  14pt x   361] Running
+[  14pt x   518] Exit
+[  12pt x    77] Suspend
+[  12pt x   281] Short-term
+[  12pt x   131] Medium-term
+[  12pt x   283] scheduling
+[  12pt x   139] scheduling
+[  12pt x    76] Blocked/
+[  14pt x   218] Blocked
+[  12pt x    77] Suspend
+[  12pt x   134] Medium-term
+[  12pt x   142] scheduling
+[  18pt x   101] Figure 9.1 Scheduling and Process State Transitions
+
+───── page 6/42 ─────
+[  14pt x   195] Long-term
+[  14pt x   422] Time-out
+[  14pt x   196] scheduling
+[  14pt x   455] Short-termReady Queue
+[  14pt x    58] Batch
+[  14pt x   673] Release
+[  14pt x   457] scheduling
+[  14pt x    63] jobs
+[  12pt x   550] Processor
+[  14pt x   300] Medium-term
+[  14pt x   310] scheduling
+[  14pt x   170] Interactive
+[  14pt x   316] Ready, Suspend Queue
+[  14pt x   187] users
+[  14pt x   529] Medium-term
+[  14pt x   539] scheduling
+[  14pt x   316] Blocked, Suspend Queue
+[  14pt x   332] Blocked Queue
+[  14pt x   503] Event Wait
+[  14pt x   235] Event
+[  14pt x   231] Occurs
+[  18pt x   287] Figure 9.3 Queuing Diagram for Scheduling
+
+───── page 38/42 ─────
+[  14pt x   208] RQ0
+[  14pt x   500] Release
+[  14pt x    69] Admit
+[  12pt x   395] Processor
+[  14pt x   208] RQ1
+[  14pt x   500] Release
+[  12pt x   395] Processor
+[  14pt x   208] RQ
+[  14pt x   229] n
+[  14pt x   500] Release
+[  12pt x   395] Processor
+[  18pt x   182] Figure 9.10 Feedback Scheduling
+
+───── page 41/42 ─────
+[  14pt x   157] 0
+[  14pt x   247] 5
+[  14pt x   332] 10
+[  14pt x   422] 15
+[  14pt x   512] 20
+[  12pt x   143] A
+[  12pt x    14] First-Come-First
+[  12pt x   143] B
+[  12pt x    14] Served (FCFS)
+[  12pt x   142] C
+[  12pt x   142] D
+[  12pt x   143] E
+[  12pt x   143] A
+[  12pt x    14] Round-Robin
+[  12pt x   143] B
+[  12pt x    14] (RR),
+[  12pt x    45] q
+[  12pt x    51] = 1
+[  12pt x   142] C
+[  12pt x   142] D
+[  12pt x   143] E
+[  12pt x   143] A
+[  12pt x    14] Round-Robin
+[  12pt x   143] B
+[  12pt x    14] (RR),
+[  12pt x    45] q
+[  12pt x    51] = 4
+[  12pt x   142] C
+[  12pt x   142] D
+[  12pt x   143] E
+[  12pt x   143] A
+[  12pt x    14] Shortest Process
+[  12pt x   143] B
+[  12pt x    14] Next (SPN)
+[  12pt x   142] C
+[  12pt x   142] D
+[  12pt x   143] E
+[  12pt x   143] A
+[  12pt x    14] Shortest Remaining
+[  12pt x   143] B
+[  12pt x    14] Time (SRT)
+[  12pt x   142] C
+[  12pt x   142] D
+[  12pt x   143] E
+[  12pt x   143] A
+[  12pt x    14] Highest Response
+[  12pt x   143] B
+[  12pt x    14] Ratio Next (HRRN)
+[  12pt x   142] C
+[  12pt x   142] D
+[  12pt x   143] E
+[  12pt x   143] A
+[  12pt x    14] Feedback
+[  12pt x   143] B
+[  12pt x    14] q
+[  12pt x    20] = 1
+[  12pt x   142] C
+[  12pt x   142] D
+[  12pt x   143] E
+[  12pt x   143] A
+[  12pt x    14] Feedback
+[  12pt x   143] B
+[  10pt x    39] i
+[  12pt x    14] q
+[  12pt x    20] = 2
+[  12pt x   142] C
+[  12pt x   142] D
+[  12pt x   143] E
+[  14pt x   157] 0
+[  14pt x   247] 5
+[  14pt x   332] 10
+[  14pt x   422] 15
+[  14pt x   512] 20
+[  18pt x   105] Figure 9.5 A Comparison of Scheduling Policies
+
+───── page 42/42 ─────
+[  12pt x     6] Process
+[  12pt x   146] A
+[  12pt x   204] B
+[  12pt x   263] C
+[  12pt x   321] D
+[  12pt x   382] E
+[  12pt x     6] Arrival Time
+[  12pt x   147] 0
+[  12pt x   205] 2
+[  12pt x   264] 4
+[  12pt x   323] 6
+[  12pt x   383] 8
+[  12pt x     6] Service Time (
+[  12pt x    77] T
+[  12pt x    88] )
+[  12pt x   147] 3
+[  12pt x   205] 6
+[  12pt x   264] 4
+[  12pt x   323] 5
+[  12pt x   383] 2
+[  12pt x   434] Mean
+[  10pt x    84] s
+[  12pt x   225] FCFS
+[  12pt x     6] Finish Time
+[  12pt x   157] 3
+[  12pt x   212] 9
+[  12pt x   265] 13
+[  12pt x   324] 18
+[  12pt x   385] 20
+[  12pt x     6] Turnaround Time (
+[  12pt x    98] T
+[  12pt x   109] )
+[  12pt x   157] 3
+[  12pt x   212] 7
+[  12pt x   271] 9
+[  12pt x   324] 12
+[  12pt x   385] 12
+[  12pt x   440] 8.60
+[  10pt x   105] r
+[  12pt x     6] T
+[  12pt x    17] /
+[  12pt x    20] T
+[  12pt x   142] 1.00
+[  12pt x   197] 1.17
+[  12pt x   256] 2.25
+[  12pt x   315] 2.40
+[  12pt x   376] 6.00
+[  12pt x   440] 2.56
+[  10pt x    13] rs
+[  12pt x   211] RR
+[  12pt x   231] q
+[  12pt x   240] = 1
+[  12pt x     6] Finish Time
+[  12pt x   157] 4
+[  12pt x   206] 18
+[  12pt x   265] 17
+[  12pt x   324] 20
+[  12pt x   385] 15
+[  12pt x     6] Turnaround Time (
+[  12pt x    98] T
+[  12pt x   109] )
+[  12pt x   157] 4
+[  12pt x   206] 16
+[  12pt x   265] 13
+[  12pt x   324] 14
+[  12pt x   391] 7
+[  12pt x   434] 10.80
+[  10pt x   105] r
+[  12pt x     6] T
+[  12pt x    17] /
+[  12pt x    20] T
+[  12pt x   142] 1.33
+[  12pt x   197] 2.67
+[  12pt x   256] 3.25
+[  12pt x   315] 2.80
+[  12pt x   376] 3.50
+[  12pt x   440] 2.71
+[  10pt x    13] rs
+[  12pt x   211] RR
+[  12pt x   231] q
+[  12pt x   237] = 4
+[  12pt x     6] Finish Time
+[  12pt x   157] 3
+[  12pt x   206] 17
+[  12pt x   265] 11
+[  12pt x   324] 20
+[  12pt x   385] 19
+[  12pt x     6] Turnaround Time (
+[  12pt x    98] T
+[  12pt x   109] )
+[  12pt x   157] 3
+[  12pt x   206] 15
+[  12pt x   271] 7
+[  12pt x   324] 14
+[  12pt x   385] 11
+[  12pt x   434] 10.00
+[  10pt x   105] r
+[  12pt x     6] T
+[  12pt x    17] /
+[  12pt x    20] T
+[  12pt x   142] 1.00
+[  12pt x   203] 2.5
+[  12pt x   256] 1.75
+[  12pt x   315] 2.80
+[  12pt x   376] 5.50
+[  12pt x   440] 2.71
+[  10pt x    13] rs
+[  12pt x   222] SPN
+[  12pt x     6] Finish Time
+[  12pt x   157] 3
+[  12pt x   212] 9
+[  12pt x   265] 15
+[  12pt x   324] 20
+[  12pt x   385] 11
+[  12pt x     6] Turnaround Time (
+[  12pt x    98] T
+[  12pt x   109] )
+[  12pt x   157] 3
+[  12pt x   212] 7
+[  12pt x   265] 11
+[  12pt x   324] 14
+[  12pt x   391] 3
+[  12pt x   440] 7.60
+[  10pt x   105] r
+[  12pt x     6] T
+[  12pt x    17] /
+[  12pt x    20] T
+[  12pt x   142] 1.00
+[  12pt x   197] 1.17
+[  12pt x   256] 2.75
+[  12pt x   315] 2.80
+[  12pt x   376] 1.50
+[  12pt x   440] 1.84
+[  10pt x    13] rs
+[  12pt x   222] SRT
+[  12pt x     6] Finish Time
+[  12pt x   157] 3
+[  12pt x   206] 15
+[  12pt x   271] 8
+[  12pt x   324] 20
+[  12pt x   385] 10
+[  12pt x     6] Turnaround Time (
+[  12pt x    98] T
+[  12pt x   109] )
+[  12pt x   157] 3
+[  12pt x   206] 13
+[  12pt x   271] 4
+[  12pt x   324] 14
+[  12pt x   391] 2
+[  12pt x   440] 7.20
+[  10pt x   105] r
+[  12pt x     6] T
+[  12pt x    17] /
+[  12pt x    20] T
+[  12pt x   142] 1.00
+[  12pt x   197] 2.17
+[  12pt x   256] 1.00
+[  12pt x   315] 2.80
+[  12pt x   376] 1.00
+[  12pt x   440] 1.59
+[  10pt x    13] rs
+[  12pt x   216] HRRN
+[  12pt x     6] Finish Time
+[  12pt x   157] 3
+[  12pt x   212] 9
+[  12pt x   265] 13
+[  12pt x   324] 20
+[  12pt x   385] 15
+[  12pt x     6] Turnaround Time (
+[  12pt x    98] T
+[  12pt x   109] )
+[  12pt x   157] 3
+[  12pt x   212] 7
+[  12pt x   271] 9
+[  12pt x   324] 14
+[  12pt x   391] 7
+[  12pt x   440] 8.00
+[  10pt x   105] r
+[  12pt x     6] T
+[  12pt x    17] /
+[  12pt x    20] T
+[  12pt x   142] 1.00
+[  12pt x   197] 1.17
+[  12pt x   256] 2.25
+[  12pt x   315] 2.80
+[  12pt x   382] 3.5
+[  12pt x   440] 2.14
+[  10pt x    13] rs
+[  12pt x   212] FB
+[  12pt x   230] q
+[  12pt x   236] = 1
+[  12pt x     6] Finish Time
+[  12pt x   157] 4
+[  12pt x   206] 20
+[  12pt x   265] 16
+[  12pt x   324] 19
+[  12pt x   385] 11
+[  12pt x     6] Turnaround Time (
+[  12pt x    98] T
+[  12pt x   109] )
+[  12pt x   157] 4
+[  12pt x   206] 18
+[  12pt x   265] 12
+[  12pt x   324] 13
+[  12pt x   391] 3
+[  12pt x   434] 10.00
+[  10pt x   105] r
+[  12pt x     6] T
+[  12pt x    17] /
+[  12pt x    20] T
+[  12pt x   142] 1.33
+[  12pt x   197] 3.00
+[  12pt x   256] 3.00
+[  12pt x   315] 2.60
+[  12pt x   382] 1.5
+[  12pt x   440] 2.29
+[  10pt x    13] rs
+[  12pt x   210] FB
+[  12pt x   229] q
+[  12pt x   235] = 2
+[  12pt x   254] i
+[  12pt x     6] Finish Time
+[  12pt x   157] 4
+[  12pt x   206] 17
+[  12pt x   265] 18
+[  12pt x   324] 20
+[  12pt x   385] 14
+[  12pt x     6] Turnaround Time (
+[  12pt x    98] T
+[  12pt x   109] )
+[  12pt x   157] 4
+[  12pt x   206] 15
+[  12pt x   265] 14
+[  12pt x   324] 14
+[  12pt x   391] 6
+[  12pt x   434] 10.60
+[  10pt x   105] r
+[  12pt x     6] T
+[  12pt x    17] /
+[  12pt x    20] T
+[  12pt x   142] 1.33
+[  12pt x   197] 2.50
+[  12pt x   256] 3.50
+[  12pt x   315] 2.80
+[  12pt x   376] 3.00
+[  12pt x   440] 2.63
+[  10pt x    13] rs

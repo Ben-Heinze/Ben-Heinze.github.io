@@ -131,6 +131,10 @@
                   {
                     "label": "Projects",
                     "href": "/ai/machine-learning/midterm/question-bank/projects/index.html"
+                  },
+                  {
+                    "label": "Ensembles",
+                    "href": "/ai/machine-learning/midterm/question-bank/ensembles/index.html"
                   }
                 ]
               },
@@ -161,6 +165,10 @@
               {
                 "label": "Project Walkthroughs",
                 "href": "/ai/machine-learning/midterm/project-walkthroughs/index.html"
+              },
+              {
+                "label": "Ensembles",
+                "href": "/ai/machine-learning/midterm/ensembles/index.html"
               }
             ]
           }
@@ -303,6 +311,10 @@
           {
             "label": "2 Process Management",
             "href": "/operating-systems/lectures/2-process-management/index.html"
+          },
+          {
+            "label": "3 Scheduling",
+            "href": "/operating-systems/lectures/3-scheduling/index.html"
           }
         ]
       },
@@ -367,6 +379,10 @@
       {
         "label": "2 A Theory of Inferred Causation",
         "href": "/nisl/2-a-theory-of-inferred-causation/index.html"
+      },
+      {
+        "label": "3 Causal Diagrams and Identification of Causal Effects",
+        "href": "/nisl/3-causal-diagrams-and-identification-of-causal-effects/index.html"
       }
     ]
   },

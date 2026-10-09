@@ -19,3 +19,4 @@
 | Week 3 (Sep 9)  | Memory Hierarchy --- at the bottom of 1 Memory Management      |
 | Week 3 (Sep 11) | Virtual Memory --- at the bottom of 1 Memory Management        |
 | Week 5 (Sep 21) | 2 Process Management                                           |
+| Week 7 (Oct 7)  | 3 Scheduling --- uniprocessor policies, Windows and Linux schedulers |

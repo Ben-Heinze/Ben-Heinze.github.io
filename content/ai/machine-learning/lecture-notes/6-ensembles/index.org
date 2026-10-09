@@ -1,6 +1,7 @@
 #+TITLE: 6 Ensembles
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-09-28
+#+TAGS: boosting, clustering, ensembles, machine-learning, week-6
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
@@ -12,12 +13,673 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-* Rule Pruning 
+Slides: [[file:Week 6 Notes.pdf][Week 6: Ensembles (PDF)]]
+
+The deck covers three blocks: it finishes the rule-learning thread from
+[[file:../5-tree-learning/index.org][5 Tree Learning]] with pruning and RIPPER, then
+spends most of its length on ensembles, then turns to hierarchical and density-based
+clustering. A fair number of the slides are images (pseudocode and worked examples
+pasted in as pictures); those are marked below and are worth reading off the PDF.
+
+* Rule Pruning
+
 - Two approaches to pruning:
-    - Prune whole rules
-    - Prune predicates within rules
-    
-- Pruning predicates subsumes pruning rules (you dont need to do both)
-- Sort rules by coverage 
-- Resulting pruning strategy, similar to decision trees is Incremental Reduced Error Pruning (IREP)
-    
+  - Prune whole rules
+  - Prune predicates within rules
+- Pruning predicates subsumes
+  pruning rules --- dropping every
+  predicate from a rule is the same as dropping the rule, so you don't need to do
+  both. Given a rule $p \wedge q \wedge r \to y$, pruning predicates can reach any
+  of its generalizations, including the empty one.
+- Sort the rules by coverage.
+- The resulting pruning strategy, similar to decision trees, is
+  Incremental Reduced Error Pruning (IREP).
+
+The data split is the same idea as reduced-error pruning for trees:
+grow using 2/3 of the data, prune using 1/3 of the data.
+Growing on
+one subset and evaluating removals on a held-out subset is what keeps pruning from
+simply undoing the fit.
+
+** The =PruneRule= function
+
+Let $\mathit{Prune\,Pos}$ and $\mathit{Prune\,Neg}$ be the positive and negative
+halves of the pruning set. For the current rule, let $p$ be the number of examples
+in $\mathit{Prune\,Pos}$ covered by the rule, and $n$ the number of examples in
+$\mathit{Prune\,Neg}$ covered by it. Define
+
+\[
+  v(\textit{Rule}, \mathit{Prune\,Pos}, \mathit{Prune\,Neg})
+    = \frac{p - n}{p + n}
+\]
+
+Choose the predicate to prune that maximizes $v$. The numerator rewards a rule for
+covering positives rather than negatives; the denominator normalizes by how much the
+rule covers at all, so a rule that covers two positives and no negatives doesn't
+automatically beat one covering twenty positives and one negative on raw counts
+alone.
+
+** RIPPER
+
+RIPPER --- "Repeated Incremental Pruning to Produce Error Reduction".
+Given a rule set $\textit{RuleSet} = \{\textit{Rule}_1, \ldots, \textit{Rule}_k\}$,
+there are two options at each step:
+
+1. *Replace Rule* --- judged on total error.
+2. *Revise Rule* --- modify the rule's predicates.
+
+Decisions are made on Minimum Description Length.
+
+*** Minimum Description Length
+
+An information-theoretic approach to model selection. Rather than choosing the
+hypothesis that fits best, choose the one for which /model plus data/ is cheapest
+to describe. Starting from the MAP hypothesis,
+
+\[
+  h_{\mathit{MAP}} = \arg\max_{h \in H} P(D \mid h)\, P(h)
+                   = \arg\max_{h \in H} \big[ \log_2 P(D \mid h) + \log_2 P(h) \big]
+                   = \arg\min_{h \in H} \big[ -\log_2 P(D \mid h) - \log_2 P(h) \big]
+\]
+
+By Shannon's source coding result, the optimal code length for an event of
+probability $p$ is $-\log_2 p$ bits. So writing
+
+\[
+  L(D \mid h) = -\log_2 P(D \mid h)
+  \qquad\text{and}\qquad
+  L(h) = -\log_2 P(h)
+\]
+
+the expression above becomes
+
+\[
+  h_{\mathit{MDL}} = \arg\min_{h \in H} \big[ L(D \mid h) + L(h) \big]
+\]
+
+$L(h)$ is the cost of describing the rule set and $L(D \mid h)$ the cost of
+describing the data's exceptions to it. MDL is therefore the same
+preference for simplicity that pruning expresses, stated in bits
+--- and that
+is why RIPPER can use one criterion to decide between replacing and revising a rule.
+
+[Three slides here are images: the RIPPER algorithm (p7), building the rule set
+(p8), and optimizing the rule set (p9). The pseudocode is not extractable from the
+PDF --- read it there.]
+
+* Ensembles
+
+** Motivation
+
+- It is difficult to determine the appropriate inductive bias for a learning method
+  with respect to a target data set.
+- Effect: susceptibility to either overfitting (high bias / low variance) or
+  underfitting (low bias / high variance).
+- Approach:
+  - Train multiple base learners (models)
+  - Combine predictions from the base learners
+- Intended result: simultaneous reduction of bias and variance.
+  - *CAUTION!*
+  - The bias--variance tradeoff still applies.
+  - The "No Free Lunch" theorems still apply.
+
+That caution is the honest framing: an ensemble does not escape the tradeoff, it
+sidesteps the problem of having to /pick/ one inductive bias up front.
+
+** Problem statement
+
+Given:
+
+- A training data set $D$ for supervised learning, drawn from a common instance
+  space $X$.
+- A collection of inductive learning algorithms.
+
+Hypotheses are produced by applying inducers to subsets $D_i \subseteq D$, where the
+subsets are obtained by sampling, transformation, partitioning, and so on. Consider
+those hypotheses as $|H|$ definitions of prediction algorithms --- the
+base learners.
+
+Return: a new prediction algorithm --- not necessarily in $H$ --- for $x \in X$ that
+combines the outputs of the collection of prediction algorithms.
+
+** The three families
+
+| Bagging  | Short for "bootstrap aggregation". Generate multiple sets of bootstrap samples, train on each set, apply basic aggregation. |
+| Boosting | A sequential process. Each learner is trained based on the performance of previous learners; apply a weighted aggregation scheme. |
+| Stacking | Train /different/ base learners (i.e. different algorithms), then train an aggregator to determine how best to combine them. |
+
+** Critical factors
+
+Two things an ensemble needs, and they pull against each other:
+
+- *Accuracy*
+  - The expectation is that the base learners be trained to be as accurate as
+    possible.
+  - But some ensemble methods only require weak learners
+    --- learners
+    capable of performing only slightly better than chance.
+  - In those methods accuracy comes from the aggregation process, not from any
+    individual learner.
+- *Diversity*
+  - The base learners need to have knowledge about different aspects of the task.
+  - Achievable in several ways: diverse training sets, reweighting of the same
+    training set, or applying multiple methods with different inductive biases ---
+    which maps onto bagging, boosting and stacking respectively.
+
+** General approaches
+
+*Parallel* --- train base learners independently, combine the results through simple
+aggregation. Input data goes to Learner 1, Learner 2, ..., Learner $n$ at once, and
+their outputs are aggregated into a prediction.
+
+*Sequential* --- train base learners iteratively, where the focus of training is
+correcting errors from previous learners. Input data flows through Learner 1 to
+Learner 2 to Learner $n$, and the prediction comes off the end of the chain.
+
+Bagging and random forests are parallel; boosting is sequential.
+
+** Measuring diversity
+
+The goal is to train a set of base learners negatively correlated with one another. Ensemble diversity can be computed pairwise or non-pairwise. Let $H$
+denote the ensemble of base learners.
+
+*Pairwise --- Yule's Q statistic.* Let $I_{j,i}$ indicate whether learner $i$
+recognizes data item $j$ correctly, and let $N^{ab}$ denote the number of times
+$I_{j,i} = a$ and $I_{j,k} = b$. Then for the pair of learners $i$ and $k$
+
+\[
+  Q_{i,k} = \frac{N^{11} N^{00} - N^{01} N^{10}}{N^{11} N^{00} + N^{01} N^{10}}
+\]
+
+and the ensemble measure averages over all pairs:
+
+\[
+  Q = \frac{2}{m(m-1)} \sum_{i} \sum_{k > i} Q_{i,k}
+\]
+
+Want Q as close to --1 as possible
+--- $Q$ is positive when two
+learners tend to succeed and fail on the same items, so negative values are the
+disagreement we are after.
+
+*Non-pairwise --- entropy.* Let $\rho(x_j)$ denote the number of learners that
+correctly classify $x_j$. Then
+
+\[
+  E(H) = \frac{1}{n} \sum_{j=1}^{n} \frac{1}{m - \lceil m/2 \rceil}
+         \min\big(\rho(x_j),\; m - \rho(x_j)\big)
+\]
+
+Want E as close to +1 as possible.
+The $\min$ is maximal when the
+learners split evenly on an item, so the measure peaks when the ensemble disagrees
+the most it can.
+
+** Combining learners
+
+The predictions of the base learners need to be combined into a final prediction.
+Such combiners are often called aggregators. How you aggregate varies
+by task (classification vs regression), and the type of ensemble generally dictates
+the method:
+
+- Bagging/boosting: apply a *static* combination rule after training.
+- Stacking: *train* an aggregation model based on the performance of base learners.
+
+*** Majority vote
+
+Arguably the simplest method, and specific to classification. Given a set of base
+learners $H$, let $d_{t,c} \in \{0, 1\}$ denote whether classifier $t$ indicated
+class $c$. Then
+
+\[
+  \mathit{class} = \arg\max_{c \in C} \sum_{t=1}^{|H|} d_{t,c}
+\]
+
+*** Weighted majority vote
+
+Adjust the majority vote by the performance of the base learners. With $d_{t,c}$ as
+above, let
+
+\[
+  w_t = \frac{p_t}{\sum_{t=1}^{|H|} p_t}
+\]
+
+where $p_t$ is the estimated accuracy of learner $t$. Then
+
+\[
+  \mathit{class} = \arg\max_{c \in C} \sum_{t=1}^{|H|} w_t\, d_{t,c}
+\]
+
+The weights are normalized accuracies, so they sum to 1 and a learner that is barely
+better than chance contributes proportionally little.
+
+[The worked example of weighted majority vote (p20) is a slide image --- see the PDF.]
+
+*** Simple aggregation for regression
+
+The process is similar to classification: replace the vote with the (weighted) mean,
+or the median. Let $\hat{y}_t$ denote the prediction from the \(t\)-th base learner,
+and let
+
+\[
+  w_t = \frac{(1 / e_t)}{\sum_{t=1}^{|H|} (1 / e_t)}
+\]
+
+where $e_t$ is the estimated /error/ of learner $t$ --- note this inverts, where the
+classification weights used accuracy directly. Then
+
+\[
+  \mathit{resp} = \frac{1}{|H|} \sum_{t=1}^{|H|} \hat{y}_t
+  \qquad\text{(unweighted)}
+  \qquad\qquad
+  \mathit{resp} = \sum_{t=1}^{|H|} w_t\, \hat{y}_t
+  \qquad\text{(weighted)}
+\]
+
+** Ensemble selection
+
+Conventional wisdom says that as the number of base learners increases, accuracy and
+resistance to overfitting should improve. Two things complicate that:
+
+- As the number of base learners increases, so does computational complexity.
+- As the number of base learners increases, diversity can start to decrease, thus /reducing/ the accuracy of the ensemble.
+
+So there might be an "optimal" subset of base learners for a given ensemble ---
+which makes this a subset selection
+problem, the same problem as
+feature selection (see the dimensionality reduction module in
+[[file:../3-density-estimation/index.org][3 Density Estimation]]). Common approaches:
+
+- Stepwise selection: forward, backward, local search
+- Wrapper-based
+- Filter-based
+
+*** Example: forward model selection
+
+A wrapper-based approach:
+
+1. Begin with an empty ensemble.
+2. Select the base learner from a library of base learners, either
+   a. based on individual model performance on a validation set, or
+   b. based on maximizing ensemble performance on a validation set.
+3. Repeat step 2 as long as ensemble performance continues to improve, or until all
+   models in the library have been examined.
+4. Return the selected subset of base learners.
+
+This assumes the models can be ordered on performance, but still requires evaluating
+the ensemble as it is generated --- and that evaluation inside the loop is exactly
+what makes it a wrapper
+method rather than a filter.
+
+** Bootstrap aggregation (bagging)
+
+Perhaps the most basic method for constructing ensembles. It has strong statistical
+properties, from which uncertainty quantification can be performed. It results in a
+set of diverse base learners by virtue of their being trained on different subsets
+of the training data.
+
+The process:
+
+1. Generate $b$ different bootstrap training sets $D_1, \ldots, D_b$, each of size
+   $|D|$.
+2. Each data set $D_i$ is generated by sampling from $D$
+   with replacement
+   until $|D|$ examples are selected.
+3. Train $b$ different base learners, learner $H_i$ on data set $D_i$.
+4. The combiner is (weighted) majority, or (weighted) mean/median.
+
+REMARK: bagging is optimized when the base learners exhibit high variance and low bias, such as a decision tree.
+That is the key pairing to
+remember --- bagging averages variance away but cannot fix bias, so it wants
+unstable, low-bias learners. Boosting wants the opposite.
+
+** Random Forests
+
+Breiman's definition:
+
+#+begin_quote
+A /random forest/ is a classifier consisting of a collection of tree-structured
+classifiers $\{h(x, \Theta_k),\ k = 1, \ldots, m\}$ where the $\Theta_k$ are
+independent, identically distributed random vectors and each tree casts a unit vote
+for the most popular class at input $x$.
+#+end_quote
+
+- This can be adapted for regression using averaging instead of voting.
+- A common variant also selects a random subset of /features/ from which to generate
+  the trees --- so randomness enters twice, through the bootstrap sample and through
+  the features available at each split.
+- REMARK: several cases have been demonstrated where random forests show competitive performance on tasks often "solved" via deep learning.
+
+[The random forest diagram (p28) is a slide image --- see the PDF.]
+
+*** Properties
+
+- The trees in a random forest are simpler and therefore easier to construct.
+- RF ensembles have been shown to be highly accurate and resistant to overfitting
+  --- ensembles naturally regularize.
+- Individual trees are relatively easy to interpret, although full ensembles are
+  not.
+- RF ensembles provide a level of interpretability through the ability to do
+  variable importance analysis.
+- Technically, RF ensembles do not need cross-validation --- out-of-bag samples
+  can be used for generalization assessment, since each tree has roughly
+  a third of the data withheld from it by the bootstrap. Often we still
+  cross-validate anyway.
+- RF ensembles can also be used for /clustering/, by counting the number of times
+  pairs of points appear in the same leaves across the set of trees. That count is a
+  similarity measure learned by a supervised method --- a neat bridge to the
+  clustering section below.
+- There exist many variants.
+
+*** Possible variants
+
+- Individual trees have all features available, and grow with optimal splits fully
+  on bootstrapped samples.
+- Individual trees have a random subset of features available, and grow with optimal
+  splits on bootstrapped samples.
+- Individual trees are grown with random splits.
+- Only "stumps" are used as base learners, each stump generated based on information
+  gain.
+- Only "random stumps" are used as base learners.
+- Oblique (multivariate) splits are allowed when generating the trees.
+- A "spatial" variant considers spatial correlation in selecting features.
+
+** Boosting
+
+Invented independently by Freund (1990) and Schapire (1990). A sequential method of
+constructing ensembles by re-weighting the training data based on prior performance.
+
+- As a sequential process, it stops generating base learners either when a tunable
+  target number have been generated, or when the performance of the ensemble has
+  plateaued.
+- Assumes weak learners, consisting of high bias and low variance
+  ---
+  the mirror image of bagging's requirement.
+- Tends to work poorly with noisy data, since it tends to over-weight
+  the noisy examples. A mislabelled point is permanently misclassified, so
+  reweighting keeps escalating its importance.
+
+*** Basic boosting
+
+The original boosting algorithm only built an ensemble of three base learners. For
+training set $D$ with $|D| = n$:
+
+1. Sample $n_1 < n$ examples $D_1 \subset D$ without replacement.
+2. Train base learner $\rho_1$ on this sample.
+3. Sample a second set of $n_2 < n$ examples $D_2 \subset D$ such that
+   a. the first $n_2 / 2$ examples correspond to the examples from $D$ /misclassified/
+      by $\rho_1$, and
+   b. the remaining $n_2 / 2$ are drawn from $D$ without replacement but are
+      /correctly/ classified by $\rho_1$.
+4. Train base learner $\rho_2$ from $D_2$.
+5. Apply $\rho_1$ and $\rho_2$ to $D$ and extract all examples where they
+   disagree
+   to yield $D_3 \subset D$.
+6. Train $\rho_3$ on $D_3$.
+7. Use the ensemble via majority vote.
+
+Each stage is deliberately handed the cases the previous stage found hard: $D_2$ is
+half errors by construction, and $D_3$ is nothing but disagreements.
+
+*** Adaptive boosting (AdaBoost)
+
+Often called AdaBoost; the version in the deck is also referred to as
+AdaBoost.M1. It often uses decision trees (or decision stumps) as
+base learners, but this is not required. The ensemble chooses a class as
+
+\[
+  \mathit{class} = \arg\max_{c} \sum_{i=1}^{m} \log\!\left(\frac{1}{\beta_i}\right) \rho_i(x)
+\]
+
+so each learner's vote is weighted by $\log(1/\beta_i)$, where $\beta_i$ is derived
+from learner $i$'s weighted error. A learner with low error gets a large weight; one
+near chance gets a weight near zero.
+
+[The AdaBoost pseudocode occupies the left-hand side of p33 as an image --- see the
+PDF.]
+
+*** Advanced boosting
+
+More advanced boosting algorithms have been developed in recent years:
+
+| Gradient Boosting | Train learners correlated with the negative gradient of the loss function with respect to the entire ensemble. |
+| XGBoost           | Gradient boosting with regularization added to the loss function.                                            |
+| LightGBM          | Gradient boosting with one-sided sampling (reduces training examples needed) and feature bundling (reduces features to be evaluated). |
+| CatBoost          | Omits the sample being used to train when estimating the gradient, similar to a "jackknife" sample.          |
+
+The deck focuses on basic gradient boosting as the common core.
+
+*** Gradient boosting
+
+Core idea: develop base learners that are highly correlated with the gradient of the loss function for the entire ensemble.
+
+The goal is to learn an approximation $\hat{F}(x)$ of an underlying target function
+$F(x)$ by minimizing a loss function $L(y, F(x))$ and constructing a weighted sum of
+functions:
+
+\[
+  \hat{F}_m(x) = \hat{F}_{m-1}(x) + \gamma_m f_m(x)
+\]
+
+where $\gamma_m$ is the weight of the \(m\)-th function $f_m(x)$. We assume
+
+\[
+  \hat{F}_0(x) = \arg\min_{f} \sum_{i=1}^{n} L(y_i, f(x_i))
+\]
+
+Each successive base learner finds
+
+\[
+  \gamma_m f_m(x) = \arg\min_{\gamma, f} \sum_{i=1}^{n}
+     L\big(y_i,\; \hat{F}_{m-1}(x_i) + \gamma f(x_i)\big)
+\]
+
+Significantly, the first learner trains on the original data and subsequent learners
+train on the residuals
+of the ensemble so far:
+
+\[
+  r_{m,i} = -\left[\frac{\partial L(y_i, \hat{F}(x_i))}{\partial \hat{F}(x_i)}\right]_{\hat{F}(x) = \hat{F}_{m-1}(x)}
+\]
+
+With squared-error loss that derivative is just $y_i - \hat{F}_{m-1}(x_i)$, which is
+why "fit the next tree to the residuals" and "follow the negative gradient" are the
+same instruction here.
+
+[The gradient boosting illustration (p36) is a slide image --- see the PDF.]
+
+** Stacking
+
+So far every method has assumed the models in the ensemble are of the /same/ type.
+Stacking allows different types of models to be combined. The primary advantage is
+that it lets models with different inductive biases contribute to the overall
+prediction based on their individual strengths. A meta-learner
+is used
+to combine the predictions:
+
+: Training Data -> [Base Learner 1 ... Base Learner m] -> Prediction Data -> Meta Learner -> Combined Prediction
+
+*** Learning for stacking
+
+- Base learners are referred to as Level 0
+  models.
+- The meta-learner results in a Level 1
+  model, whose purpose is to
+  combine predictions.
+- The data set for the Level 1 model consists of (predictions, target) pairs.
+
+So the two levels train on differently shaped data:
+
+- *Level 0*: the learning algorithm $k$ is trained on
+  $\{(x_i, y_i)\}_{i=1}^{n}$ and produces $f_k(x)$.
+- *Level 1*: the meta learner is trained on
+  $\{(f_{i,k},\, y_{i,k})\}_{i=1,k=1}^{(n,m)}$ and produces $F(x)$.
+
+The Level 1 training set is the base learners' /outputs/, not the original features
+--- which is why the meta-learner can be simple even when the base learners are not.
+
+[The stacking diagram (p39) is a slide image --- see the PDF.]
+
+*** Types of models
+
+- Different types of models are used for the Level 0 models --- e.g. SVM, decision
+  tree, neural network.
+- For classification, the meta-model can be anything but is often logistic
+  regression. If a linear classifier is insufficient, move to a more sophisticated
+  model.
+- For regression, the meta-model can be anything but is often linear regression.
+  Likewise, if linear regression is insufficient, move to something more
+  sophisticated.
+
+** Overfitting
+
+The conventional wisdom is that all ensemble methods are robust with respect to
+overfitting, and regularization is based upon diversity among members of the ensemble.
+Where that diversity comes from differs by method:
+
+| Bagging           | Diversity comes from the individual data sets.                                      |
+| Boosting          | Diversity comes from re-weighting the data and then weighting the base learners.    |
+| Gradient Boosting | Diversity comes from focusing on combining predictions focused on the residuals.    |
+| Stacking          | Diversity comes from the different inductive biases of the base learners.           |
+
+Which makes diversity the single thread running through the whole module: it is the
+mechanism behind each method, the thing ensemble selection trades against size, and
+the quantity Yule's Q and the entropy measure were defined to score.
+
+* Clustering and Association Analysis
+
+The last block of the deck returns to unsupervised learning, picking up from the
+clustering introduced in [[file:../3-density-estimation/index.org][3 Density Estimation]].
+
+** Agglomerative vs divisive
+
+Hierarchical clustering comes in two directions, and splits again by how many
+features a split considers at a time:
+
+|             | Agglomerative (bottom-up, merge)                   | Divisive (top-down, split)              |
+| Polythetic  | HAC --- merges on a distance over all features     | Feature building                        |
+| Monothetic  |                                                    | Association analysis --- splits on one attribute |
+
+Polythetic
+methods consider all features at once; monothetic
+methods work one attribute at a time. HAC is the
+agglomerative polythetic case and is covered next; association analysis is the
+monothetic divisive case.
+
+[The dendrogram slide (p42) and the HAC illustration (p44) are slide images --- see
+the PDF. A dendrogram plots the merge sequence against merge distance, so cutting it
+at a chosen height yields a clustering, and the height of each join says how
+dissimilar the two merged clusters were.]
+
+** Linkage rules
+
+HAC needs a rule for the distance between two /clusters/, given a distance $\delta$
+between points. Each rule merges the pair $C_i, C_j$ minimizing $D(C_i, C_j)$, and
+they differ only in how a cluster-to-cluster distance is formed:
+
+- *Single linkage* --- the nearest pair of points:
+
+\[
+  D(C_i, C_j) = \min_{x \in C_i,\, z \in C_j} \delta(x, z)
+\]
+
+- *Complete linkage* --- the farthest pair of points:
+
+\[
+  D(C_i, C_j) = \max_{x \in C_i,\, z \in C_j} \delta(x, z)
+\]
+
+- *Average linkage* --- the mean over all cross-cluster pairs:
+
+\[
+  D(C_i, C_j) = \frac{1}{m_i m_j} \sum_{x \in C_i,\, z \in C_j} \delta(x, z)
+\]
+
+- *Ward's method* --- merge the pair that increases the within-cluster sum of squares
+  the least:
+
+\[
+  D(C_i, C_j) = \mathit{ESS}_{ij} - \mathit{ESS}_{i} - \mathit{ESS}_{j},
+  \qquad
+  \mathit{ESS}_{k} = \sum_{x \in C_k} \| x - \bar{x}_k \|^2
+\]
+
+The practical difference: single linkage will chain clusters together through a
+sequence of near neighbours, complete linkage insists on compactness and so resists
+chaining, average linkage sits between them, and Ward's method optimizes the same
+criterion k-means does but does it greedily and hierarchically.
+
+** Association analysis
+
+The monothetic divisive case: split on the single attribute that best separates the
+data. For binary attributes, let $F_{ij}$ be the \(j\)-th attribute of the \(i\)-th data
+point and $F_{ik}$ the \(k\)-th attribute of the same point. Counting co-occurrences
+over the $n$ data points gives a $2 \times 2$ table for each attribute pair
+$(j, k)$:
+
+\begin{align*}
+a &= \sum_{i=1}^{n} F_{ij} \wedge F_{ik} \\
+b &= \sum_{i=1}^{n} (1 - F_{ij}) \wedge F_{ik} \\
+c &= \sum_{i=1}^{n} F_{ij} \wedge (1 - F_{ik}) \\
+d &= \sum_{i=1}^{n} (1 - F_{ij}) \wedge (1 - F_{ik})
+\end{align*}
+
+The association strength between attributes $j$ and $k$ is then normalized as
+
+\[
+  \phi_{jk} = \frac{ad - bc}{\sqrt{(a + b)(a + c)(b + d)(c + d)}}
+\]
+
+and the attribute to split on is the one with the greatest total association with
+the rest:
+
+\[
+  F_{\mathit{split}} = \arg\max_{j} \sum_{k=1}^{d} \phi_{jk}
+\]
+
+Non-binary attributes have to be converted to binary first, then normalized. Note
+that $\phi$ is the familiar correlation coefficient specialised to two binary
+variables --- so "split on the most associated attribute" is "split on the attribute
+that carries the most information about the others".
+
+[The motivating example (p47) and the k-means / HAC comparison on it (p48--49) are
+slide images --- see the PDF.]
+
+** Density-based clustering
+
+The alternative to both hierarchical and centroid methods: define clusters as
+regions of high point density, separated by regions of low density. This finds
+clusters of arbitrary shape --- the thing k-means cannot do, since it can only
+produce convex, roughly spherical cells --- and it does not require the number of
+clusters up front.
+
+*** Point categorization
+
+Two parameters: a radius $\varepsilon$ and a minimum count $\mathit{minPts}$. Every
+point falls into one of three categories by how many points lie within
+$\varepsilon$ of it:
+
+- Core point
+  --- at least $\mathit{minPts}$ points within
+  $\varepsilon$ (counting itself). It is in the interior of a dense region.
+- Border point
+  --- fewer than $\mathit{minPts}$ neighbours, but within
+  $\varepsilon$ of a core point. It is on the edge of a cluster.
+- Noise point
+  --- neither. It belongs to no cluster.
+
+*** DBSCAN
+
+Given that categorization, the algorithm is short: form clusters as the connected
+components of the core points under "within $\varepsilon$ of each other", then
+attach each border point to a cluster of an adjacent core point. Noise points are
+left unassigned --- which is the other thing k-means cannot do, since k-means must
+assign every point to some centroid.
+
+The parameters are the catch: $\varepsilon$ and $\mathit{minPts}$ have to be chosen,
+and a single $\varepsilon$ cannot serve clusters of substantially different
+densities.
+
+[The DBSCAN slides (p50--52) and two further worked examples (p53--54) are slide
+images --- read them off the PDF, since the examples are what make the
+core/border/noise distinction concrete.]

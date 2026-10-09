@@ -18,4 +18,4 @@
 | Week 3 (Sep 11) | 3 Density Estimation --- outliers, dimensionality reduction, PCA/LDA, clustering |
 | Week 4 (Sep 18) | 4 Learning Theory --- cluster evaluation, version spaces, PAC, VC dimension  |
 | Week 5 (Sep 21) | 5 Tree Learning --- decision trees, ID3, regression trees                    |
-
+| Week 6 (Sep 28) | 6 Ensembles --- rule pruning, RIPPER, bagging, boosting, stacking, HAC, DBSCAN |

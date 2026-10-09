@@ -14,17 +14,18 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-Every midterm question lives on one of the six pages below, authored in Org with
+Every midterm question lives on one of the seven pages below, authored in Org with
 the answer in a property drawer. The drawers are stripped on export, so each page
 reads as a plain list of questions you can work straight down -- and the same
 questions feed the shuffled, timed
-[[file:../practice-test/][Practice Test]] and the six topic tests.
+[[file:../practice-test/][Practice Test]] and the seven topic tests.
 
 | Bank                                                                           | Units                        | Sourced from                                                      |
 | [[file:foundations-and-theory/][Foundations and Theory]]                        | =found=, =linreg=, =theory=  | Week 1, Week 4, linear regression notes, Alpaydin ch. 1           |
 | [[file:nonparametric-methods/][Nonparametric Methods]]                          | =nonpar=                     | Week 2, Alpaydin ch. 8, the k-nearest-neighbor notes              |
-| [[file:clustering-and-dimensionality/][Clustering and Dimensionality]]           | =clust=, =dimred=            | Week 3, clustering half of Week 4, Alpaydin ch. 7                 |
+| [[file:clustering-and-dimensionality/][Clustering and Dimensionality]]           | =clust=, =dimred=            | Week 3, clustering half of Week 4, Week 6 clustering, Alpaydin ch. 7 |
 | [[file:trees-and-rules/][Trees and Rules]]                                      | =trees=, =logic=             | Week 5, Week 6 rule pruning                                       |
+| [[file:ensembles/][Ensembles]]                                              | =ens=                        | Week 6 ensembles                                                  |
 | [[file:experiments-and-evaluation/][Experiments and Evaluation]]                 | =eval=                       | Week 2 experimental method, Alpaydin ch. 20                       |
 | [[file:projects/][Projects]]                                                    | =proj1=, =proj2=             | The two assignment PDFs                                           |
 
@@ -57,8 +58,9 @@ and regression, edited and condensed NN, KD-tree build and query, LOF, hill
 climbing, simulated annealing, genetic algorithms, PCA, Fisher's LDA, k-means,
 k-means++, EM, fuzzy c-means, agglomerative clustering, silhouette, candidate
 elimination, ID3, regression trees, numeric split selection, reduced error
-pruning, resolution, sequential covering, K-fold and 5x2 cross-validation, and
-both project pipelines end to end.
+pruning, resolution, sequential covering, DBSCAN, forward model selection,
+bagging, the original three-learner boosting algorithm, gradient boosting,
+stacking, K-fold and 5x2 cross-validation, and both project pipelines end to end.
 
 *Calculation questions* are generated fresh on every =New test=, so the numbers
 change but the method does not. They cover entropy and information gain, gain

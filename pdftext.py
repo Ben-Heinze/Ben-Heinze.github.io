@@ -15,10 +15,12 @@ Each output line is prefixed with its font size and x offset, which is what
 makes the dump usable: the largest size on a page is its title, and the x
 offsets give you the bullet nesting levels.
 
-Limitation worth knowing: equations set in math fonts (Cambria Math and
-friends) usually have a sparse /ToUnicode covering the operators but not the
-italic variables, and those subset fonts carry no post table. Operators,
-relations and structure survive; the variable letters do not. Expect to
+Limitation worth knowing: how much of an equation survives depends on the font.
+Variables mapped into Unicode's Mathematical Alphanumeric block decode to those
+astral italics and are usable as-is. But a math font with a sparse /ToUnicode
+covering the operators and not the variables has no post table to fall back on;
+there, operators, relations and structure survive and the variable letters do
+not. A single deck often mixes both. Where names are missing, expect to
 reconstruct formulas from the surrounding prose rather than to lift them.
 
 Usage:
@@ -240,16 +242,31 @@ class PDF:
             return None
         cmap = self.get(int(m.group(1)))[1] or b''
         mp = {}
+
+        def utf16(dst):
+            # A CMap destination is UTF-16BE, not a bare code point. Cambria Math
+            # maps italic variables into the astral Mathematical Alphanumeric
+            # block, so its destinations arrive as surrogate pairs.
+            if len(dst) % 4:
+                dst = dst + b'0' * (4 - len(dst) % 4)
+            return bytes.fromhex(dst.decode('ascii')).decode('utf-16-be', 'replace')
+
         for b in re.finditer(rb'beginbfchar(.*?)endbfchar', cmap, re.S):
             for src, dst in re.findall(rb'<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>', b.group(1)):
-                mp[int(src, 16)] = ''.join(
-                    chr(int(dst[i:i + 4], 16)) for i in range(0, len(dst), 4))
+                mp[int(src, 16)] = utf16(dst)
         for b in re.finditer(rb'beginbfrange(.*?)endbfrange', cmap, re.S):
             for lo, hi, dst in re.findall(
                     rb'<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>', b.group(1)):
-                lo, hi, d0 = int(lo, 16), int(hi, 16), int(dst, 16)
+                lo, hi, base = int(lo, 16), int(hi, 16), utf16(dst)
+                if not base:
+                    continue
+                # The range walks the destination's last code point, so a surrogate
+                # pair increments the astral character rather than overflowing chr().
                 for i in range(min(hi - lo + 1, 65536)):
-                    mp[lo + i] = chr(d0 + i)
+                    cp = ord(base[-1]) + i
+                    if cp > 0x10FFFF:
+                        break
+                    mp[lo + i] = base[:-1] + chr(cp)
         return mp or None
 
 # ---------- content stream tokenizer ----------

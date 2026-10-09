@@ -107,6 +107,15 @@
   var RATINGS = {};
   var RATINGS_LS = 'questionRatings';
 
+  // serve.py stamps records with datetime.now().isoformat(timespec='seconds'),
+  // i.e. local time, no zone suffix. Match that so an exported record is
+  // indistinguishable from a server-written one.
+  function stamp() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+      'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+
   function loadRatings() {
     try {
       var local = JSON.parse(localStorage.getItem(RATINGS_LS) || '{}');
@@ -127,8 +136,10 @@
     if ('note' in patch) {
       if (patch.note) rec.note = patch.note; else delete rec.note;
     }
+    rec.updated = stamp();
     if (rec.rating || rec.note) RATINGS[item.id] = rec; else delete RATINGS[item.id];
     try { localStorage.setItem(RATINGS_LS, JSON.stringify(RATINGS)); } catch (e) {}
+    refreshExport();
     var body = { id: item.id, q: item.q, unit: item.unit };
     if ('rating' in patch) body.rating = patch.rating || '';
     if ('note' in patch) body.note = patch.note || '';
@@ -137,6 +148,51 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     }).catch(function () {});   // offline: localStorage already holds it
+  }
+
+  // Download every rating as question-ratings.json's own shape. On the deployed
+  // site there is no /api/rating endpoint, so localStorage is the only copy a
+  // verdict ever gets -- this is the way to carry one back to the repo. Local
+  // dev writes the file directly and does not need it, but the button is shown
+  // in both places so the control means the same thing wherever you are.
+  function exportRatings() {
+    var out = {};
+    Object.keys(RATINGS).sort().forEach(function (k) {
+      var r = RATINGS[k];
+      if (!r || (!r.rating && !r.note)) return;
+      var rec = { id: r.id || k };
+      if (r.note) rec.note = r.note;
+      if (r.q) rec.q = r.q;
+      if (r.rating) rec.rating = r.rating;
+      if (r.unit) rec.unit = r.unit;
+      rec.updated = r.updated || stamp();
+      out[k] = rec;
+    });
+    var blob = new Blob([JSON.stringify(out, null, 2) + '\n'], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'question-ratings-export.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+  }
+
+  // Every mount gets a button; keep their labels in step as verdicts change.
+  var exportBtns = [];
+  function ratedCount() {
+    return Object.keys(RATINGS).filter(function (k) {
+      var r = RATINGS[k];
+      return r && (r.rating || r.note);
+    }).length;
+  }
+  function refreshExport() {
+    var n = ratedCount();
+    exportBtns.forEach(function (b) {
+      b.hidden = n === 0;
+      b.textContent = 'Export ratings (' + n + ')';
+    });
   }
 
   // The good / bad / note controls for one question.
@@ -675,6 +731,7 @@
         '<button type="button" class="qz-btn primary qz-new">New test</button>' +
         '<button type="button" class="qz-btn qz-timer qz-only-test">Start timer</button>' +
         '<span class="qz-sw qz-only-test">00:00</span>' +
+        '<button type="button" class="qz-btn qz-export" hidden>Export ratings</button>' +
       '</div>' +
       '<div class="qz-questions"></div>' +
       '<div class="qz-cards" hidden>' +
@@ -908,6 +965,11 @@
     q('.qz-mode').addEventListener('change', buildTest);
     q('.qz-reveal').addEventListener('click', revealAll);
     swBtn.addEventListener('click', function () { swRun ? swPause() : swStartFn(); });
+
+    var exportBtn = q('.qz-export');
+    exportBtn.addEventListener('click', exportRatings);
+    exportBtns.push(exportBtn);
+    refreshExport();
 
     buildTest();
   }

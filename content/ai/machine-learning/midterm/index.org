@@ -38,7 +38,7 @@ threshold rule, the mistake-driven update and why XOR is out of reach.
 - [[file:practice-test/][Practice Test]] -- the whole midterm, every unit. Pick a
   length, start the timer, work down the page. This is the one to use for a full
   sitting.
-- The six topic tests below for a focused session.
+- The seven topic tests below for a focused session.
 - [[file:question-bank/][Question Bank]] to read the questions as a plain list
   rather than take them shuffled.
 
@@ -52,8 +52,9 @@ right answer and the worked steps, and you mark your own. Every test also has a
 | Test                                                                                     | Covers                                                                             |
 | [[file:foundations-and-theory/][Foundations and Theory]]                                  | Weeks 1 and 4, linear regression                                                   |
 | [[file:nonparametric-methods/][Nonparametric Methods]]                                    | Week 2, Alpaydin ch. 8                                                             |
-| [[file:clustering-and-dimensionality/][Clustering and Dimensionality]]                     | Week 3, clustering half of Week 4, Alpaydin ch. 7                                  |
+| [[file:clustering-and-dimensionality/][Clustering and Dimensionality]]                     | Week 3, clustering half of Week 4, Week 6 clustering, Alpaydin ch. 7               |
 | [[file:trees-and-rules/][Trees and Rules]]                                                | Week 5, plus Week 6 rule pruning                                                   |
+| [[file:ensembles/][Ensembles]]                                                      | Week 6 ensembles                                                                   |
 | [[file:experiments-and-evaluation/][Experiments and Evaluation]]                           | Week 2 experimental method, Alpaydin ch. 20                                        |
 | [[file:project-walkthroughs/][Project Walkthroughs]]                                       | Projects 1 and 2                                                                   |
 
@@ -112,6 +113,20 @@ links to the notes it comes from.
 - Propositional logic, the nine inference rules, CNF/DNF/Horn
 - FOL, quantifiers, unification, Skolem constants; resolution theorem proving
 - Sequential covering; FoilGain; rule pruning and IREP
+
+** [[file:../lecture-notes/6-ensembles/][Week 6: Ensembles]]
+- Rule pruning: predicates subsume whole rules; grow on 2/3 and prune on 1/3; the PruneRule metric \((p-n)/(p+n)\)
+- RIPPER: replace vs revise; MDL as the MAP criterion rewritten in bits, \(L(h) + L(D \mid h)\)
+- Why ensembles: inductive bias is hard to pick; bias and variance reduced together, but the tradeoff and No Free Lunch still hold
+- Accuracy vs diversity; weak learners; parallel vs sequential; Yule's Q (want \(-1\)) and the entropy measure (want \(+1\))
+- Combiners: majority vote, weighted majority on normalized accuracy, the regression mean/median on reciprocal error
+- Ensemble selection as subset selection; forward model selection as a wrapper
+- Bagging: bootstrap with replacement to full size; wants high variance, low bias
+- Random forests: Breiman's definition, random feature subsets, out-of-bag estimation, variable importance
+- Boosting: the original three-learner algorithm, AdaBoost.M1's \(\log(1/\beta_i)\) weights; wants weak high-bias learners; fails on noise
+- Gradient boosting: fit the negative gradient, which is the residual under squared-error loss; XGBoost, LightGBM, CatBoost
+- Stacking: Level 0 base learners, a Level 1 meta-learner trained on (predictions, target) pairs
+- Clustering: polythetic vs monothetic; the four linkage rules including Ward; DBSCAN's \(\varepsilon\), minPts and core/border/noise; association analysis and \(\phi_{jk}\)
 
 ** Textbook
 - [[file:../textbook-notes/1-intro-to-ml/][Ch. 1]] -- association rules, discriminants, predictive vs descriptive models

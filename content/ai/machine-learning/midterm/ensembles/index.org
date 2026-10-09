@@ -1,0 +1,35 @@
+#+TITLE: Ensembles
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-09
+#+TAGS: machine-learning, midterm, practice-test
+#+STARTUP: noindent
+#+LEARN: nil
+#+QUIZ_TEST: ens
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The ensemble half of *Week 6*: why combining learners reduces bias and variance
+at once and why the tradeoff still applies, accuracy versus diversity, Yule's Q
+and the entropy diversity measure, majority and weighted-majority voting and the
+regression aggregators, ensemble selection as a subset-selection problem,
+forward model selection, bagging and the bootstrap, random forests and
+out-of-bag estimation, the original three-learner boosting algorithm, AdaBoost,
+gradient boosting and its modern variants, stacking with Level 0 and Level 1
+models, and where each method's diversity comes from.
+
+Press *Start timer*, then *Reveal answer* to check yourself; *New test*
+reshuffles. Self-assessed throughout.
+
+Drawn from
+[[file:../question-bank/ensembles/][Question Bank: Ensembles]]
+(=#+QUIZ_TEST: ens=).
+
+# The interactive test UI is injected here (a <div data-quiz-test="...">) by
+# publish.el and rendered by static/quiz.js from /quiz-index.json.

@@ -879,3 +879,84 @@ pseudocode answers, leading dots mark indentation depth.
 :Q_UNIT: logic
 :END:
 
+
+* RIPPER and Minimum Description Length
+
+** How is the data split when growing and pruning a rule set, and why must the two halves differ?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Grow on 2/3 of the data and prune on the remaining 1/3. Evaluating removals on data the rule was not grown on is what stops pruning from simply undoing the fit -- the same reason reduced error pruning needs a held-out set for trees.
+:Q_UNIT: logic
+:END:
+
+** When growing and pruning a rule set, the split is grow on __________ of the data and prune on the rest.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 2/3
+:Q_ACCEPT: two-thirds | 2/3 | two thirds | 66%
+:Q_EXPLAIN: Leaving a third for pruning. Prune on the growing set and every removal looks harmful, so nothing is ever pruned.
+:Q_UNIT: logic
+:END:
+
+** Write the metric the PruneRule function maximizes, and explain both parts of it.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With p the number of PrunePos examples and n the number of PruneNeg examples covered by the current rule, \(v = \frac{p - n}{p + n}\). The numerator rewards covering positives rather than negatives; the denominator normalizes by total coverage, so a rule covering 2 positives and 0 negatives is not automatically ranked above one covering 20 positives and 1 negative. Prune the predicate that maximizes v.
+:Q_UNIT: logic
+:END:
+
+** In the PruneRule metric (p - n) / (p + n), p and n count:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: pruning-set positives and negatives covered by the rule | growing-set positives and negatives covered by the rule | all positives and negatives in the data | the rule's predicates and its literals
+:Q_ANSWER: pruning-set positives and negatives covered by the rule
+:Q_EXPLAIN: They come from PrunePos and PruneNeg -- the held-out third. Counting on the growing set is exactly the mistake the split exists to prevent.
+:Q_UNIT: logic
+:END:
+
+** What does RIPPER stand for, and what are its two options at each step?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Repeated Incremental Pruning to Produce Error Reduction. At each step it can either replace a rule, judged on total error, or revise a rule by modifying its predicates. The choice is made on minimum description length.
+:Q_UNIT: logic
+:END:
+
+** RIPPER decides between replacing and revising a rule using:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: minimum description length | information gain | the chi-square test | the gain ratio
+:Q_ANSWER: minimum description length
+:Q_EXPLAIN: One criterion covers both options because MDL scores the whole rule set plus its exceptions in bits, so the two candidates are directly comparable.
+:Q_UNIT: logic
+:END:
+
+** Derive the MDL principle from the MAP hypothesis.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(h_{MAP} = \arg\max_h P(D|h)P(h) = \arg\max_h [\log_2 P(D|h) + \log_2 P(h)] = \arg\min_h [-\log_2 P(D|h) - \log_2 P(h)]\). By Shannon, the optimal code length for an event of probability q is -log_2 q bits, so writing L(D|h) = -log_2 P(D|h) and L(h) = -log_2 P(h) gives \(h_{MDL} = \arg\min_h [L(D|h) + L(h)]\).
+:Q_UNIT: logic
+:END:
+
+** In the MDL criterion, say what each of the two terms is the cost of describing.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: L(h) is the cost of describing the hypothesis -- the rule set itself. L(D|h) is the cost of describing the data given it -- the exceptions the rule set gets wrong. Minimizing the sum is the same preference for simplicity that pruning expresses, stated in bits.
+:Q_UNIT: logic
+:END:
+
+** The MDL criterion selects the hypothesis minimizing:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: L(h) + L(D given h) | L(h) alone | L(D given h) alone | L(h) - L(D given h)
+:Q_ANSWER: L(h) + L(D given h)
+:Q_EXPLAIN: Model cost plus exception cost. Minimizing L(h) alone picks the empty rule set; minimizing L(D|h) alone picks the one that memorizes the data.
+:Q_UNIT: logic
+:END:
+
+** MDL and maximum a posteriori selection choose different hypotheses.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: MDL is the MAP criterion rewritten -- take the log, negate, and read the two negative log probabilities as code lengths. They are the same rule in different units.
+:Q_UNIT: logic
+:END:

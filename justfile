@@ -95,3 +95,12 @@ run:
     sleep 0.5
     xdg-open http://localhost:8080
     wait $SERVER_PID
+
+# Merge a browser "Export ratings" download into question-ratings.json.
+# The deployed site has no /api/rating endpoint, so a verdict made there lives
+# only in that browser; "Export ratings" in the quiz toolbar downloads it and
+# this folds it back in. Keyed by question id, newest `updated` wins, so it is
+# safe to run twice.
+# Usage: just merge-ratings ~/Downloads/question-ratings-export.json
+merge-ratings file:
+    python3 serve.py merge-ratings "{{file}}"

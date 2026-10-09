@@ -1,0 +1,1195 @@
+
+───── page 1/54 ─────
+[  44pt x   312] Week 6: Ensembles
+[  32pt x   236] CSCI 447: Machine Learning
+[  32pt x   588] –
+[  32pt x   611] Fall 2026
+
+───── page 2/54 ─────
+[  44pt x    73] Rule Pruning
+[  28pt x    73] •
+[  28pt x    91] Two approaches to pruning
+[  24pt x   109] •
+[  24pt x   127] Prune whole rules
+[  24pt x   109] •
+[  24pt x   127] Prune predicates within rules
+[  28pt x   398] ݌׺ݍ׺ݎ
+[  28pt x   517] ֮ݑ
+[  28pt x    73] •
+[  28pt x    91] Note that pruning predicates
+[  28pt x   425] subsumes
+[  28pt x   543] pruning rules
+[  28pt x    73] •
+[  28pt x    91] Sort the rules by coverage
+[  28pt x    73] •
+[  28pt x    91] Resulting pruning strategy, similar to decision trees is
+[  28pt x   244] Incremental Reduced Error Pruning (IREP)
+
+───── page 3/54 ─────
+[  44pt x    73] Pruning
+[  20pt x   256] Grow using 2/3 of the data; Prune using 1/3 of the data
+
+───── page 4/54 ─────
+[  44pt x    73] The PruneRuleFunction
+[  28pt x    73] •
+[  28pt x    91] Let
+[  28pt x   132] ݄൞݄ݠݣݜݓ݄ݝݡ
+[  28pt x    73] •
+[  28pt x    91] Let
+[  28pt x   132] ݂൞݄ݠݣݜݓ݂ݓݕ
+[  28pt x    73] •
+[  28pt x    91] For the current rule, let
+[  28pt x   363] ݞ
+[  28pt x   385] be the number of examples in
+[  28pt x   732] ݄ݠݣݜݓ݄ݝݡ
+[  28pt x    91] covered by the rule, and
+[  28pt x   374] ݜ
+[  28pt x   397] be the number of examples in
+[  28pt x   743] ݄ݠݣݜݓ݂ݓݕ
+[  28pt x    91] covered by the rule.
+[  28pt x    73] •
+[  28pt x    91] Define
+[  28pt x   622] ݞൗ݂൘
+[  28pt x   726] ݜ
+[  28pt x   218] ߷݆ݣݚݓǳ݄ݠݣݜݓ݄ݝݡǳ݄ݠݣݜݓ݂ݓݕ൞
+[  28pt x   646] ݄ൗ݂
+[  28pt x    73] •
+[  28pt x    91] Choose the predicate the prune that maximizes
+[  28pt x   635] ߷
+[  28pt x   651] .
+
+───── page 5/54 ─────
+[  44pt x    73] RIPPER
+[  28pt x    73] •
+[  28pt x    91] “Repeated Incremental Pruning to Produce Error Reduction”
+[  28pt x    73] •
+[  28pt x    91] Let
+[  28pt x   132] ݆ݣݚݓ݇ݓݢ൞቎݆ݣݚݓǳǷǳ݆ݣݚݓ቏
+[  20pt x   333] େ
+[  20pt x   450] 𝑘
+[  28pt x    73] •
+[  28pt x    91] Two options:
+[  24pt x   109] 1.Replace Rule: Total error
+[  24pt x   109] 2.Revise Rule: Modify predicates
+[  28pt x    73] •
+[  28pt x   109] Make decisions based on Minimum Description Length
+[  28pt x   303] ࣰࣸ൞
+[  28pt x   403] ¡¢ቐܼࣸൗ
+[  28pt x   555] ࣸ(ࣰȓܼ)ቑ
+[  20pt x   402] ௓עࣴ
+
+───── page 6/54 ─────
+[  44pt x    73] Minimum Description Length
+[  24pt x    73] An information theoretic approach
+[  24pt x   255] ܼ
+[  24pt x   334] ൞¦¡¬݄
+[  24pt x   483] ࣰܼ݄(ܼ)
+[  17pt x   271] 𝑚𝑎௵
+[  17pt x   394] ௓עࣴ
+[  24pt x   334] ൞¦¡¬ £݄(ࣰ
+[  24pt x   536] ȓܼ)ൗ £݄ܼ
+[  17pt x   394] ௓עࣴ
+[  24pt x   334] ൞¦¡¢൘
+[  24pt x   473] £݄(ࣰȓܼ)൘ £݄(ܼ)
+[  17pt x   393] ௓עࣴ
+[  24pt x    73] Note:
+[  24pt x   133] ࣰܼࣸ
+[  24pt x   218] ൞൘ £݄(ࣰȓܼ)
+[  24pt x   385] and
+[  24pt x   427] ܼࣸ൞
+[  24pt x   511] ൘ £݄(ܼ)
+[  24pt x    73] So
+[  24pt x   237] ܼ
+[  24pt x   299] ൞¦¡¢ࣸ(ࣰ)൞¦¡¢
+[  24pt x   563] ࣰܼࣸ
+[  24pt x   647] ൗࣸ(ܼ)
+[  17pt x   253] 𝑚𝑎௵
+[  17pt x   340] ௓עࣴ
+[  17pt x   502] ௓עࣴ
+
+───── page 7/54 ─────
+[  44pt x    73] RIPPER Algorithm
+
+───── page 8/54 ─────
+[  44pt x    73] Building the Rule Set
+
+───── page 9/54 ─────
+[  44pt x    73] Optimizing the Rule Set
+
+───── page 10/54 ─────
+[  44pt x    73] Ensembles
+[  44pt x   273] –
+[  44pt x   304] Motivation
+[  26pt x    73] •
+[  26pt x    91] It is difficult to determine the appropriate inductive bias for a learning
+[  26pt x    91] method with respect to a target data set.
+[  26pt x    73] •
+[  26pt x    91] Effect: Susceptibility to either overfitting (high bias/low variance) or
+[  26pt x    91] underfitting (low bias/high variance).
+[  26pt x    73] •
+[  26pt x    91] Approach:
+[  22pt x   109] •
+[  22pt x   127] Train multiple base learners (models)
+[  22pt x   109] •
+[  22pt x   127] Combine predictions from base learners
+[  26pt x    73] •
+[  26pt x    91] Intended Result: Simultaneous reduction of bias and variance
+[  26pt x    73] •
+[  26pt x    91] CAUTION!
+[  22pt x   109] •
+[  22pt x   127] The bias-variance tradeoff still applies
+[  22pt x   109] •
+[  22pt x   127] The ”No Free Lunch” Theorems still apply
+
+───── page 11/54 ─────
+[  44pt x    73] Problem
+[  28pt x    73] •
+[  28pt x    91] Given:
+[  24pt x   109] •
+[  24pt x   127] Training data set
+[  24pt x   293] ܘ
+[  24pt x   313] for supervised learning.
+[  24pt x   109] •
+[  24pt x   127] ܘ
+[  24pt x   148] drawn from common instance space
+[  24pt x   506] ऄ
+[  24pt x   527] .
+[  24pt x   109] •
+[  24pt x   127] Collection of inductive learning algorithms.
+[  28pt x    73] •
+[  28pt x    91] Hypotheses produced by applying inducers to
+[  28pt x   616] ݡܘ
+[  28pt x   670] .
+[  24pt x   109] •
+[  24pt x   127] ݡǵܘծܘԴ
+[  24pt x   224] (sampling, transformation, partitioning, etc.).
+[  24pt x   109] •
+[  24pt x   127] Consider hypotheses as
+[  24pt x   362] ܈
+[  24pt x   385] definitions of prediction algorithms (“base
+[  24pt x   127] learners”).
+[  28pt x    73] •
+[  28pt x    91] Return: A new prediction algorithm (not necessarily
+[  28pt x   684] ע܈
+[  28pt x   730] ) for
+[  28pt x   784] ܲעܘ
+[  28pt x    91] that combines outputs from collection of prediction algorithms.
+
+───── page 12/54 ─────
+[  44pt x    73] Ensemble Methods
+[  28pt x    73] •
+[  28pt x    91] Bagging
+[  24pt x   109] •
+[  24pt x   127] Short for “bootstrap aggregation”
+[  24pt x   109] •
+[  24pt x   127] Generate multiple sets of bootstrap samples and train on each set
+[  24pt x   109] •
+[  24pt x   127] Apply basic aggregation
+[  28pt x    73] •
+[  28pt x    91] Boosting
+[  24pt x   109] •
+[  24pt x   127] A sequential process for training base learners
+[  24pt x   109] •
+[  24pt x   127] Each learner is trained based on the performance of previous learners
+[  24pt x   109] •
+[  24pt x   127] Apply a weighted aggregation scheme
+[  28pt x    73] •
+[  28pt x    91] Stacking
+[  24pt x   109] •
+[  24pt x   127] Train different base learners (i.e., use different algorithms)
+[  24pt x   109] •
+[  24pt x   127] Train an aggregator to determine how best to combine
+
+───── page 13/54 ─────
+[  44pt x    73] Critical Factors
+[  28pt x    73] •
+[  28pt x    91] Accuracy
+[  24pt x   109] •
+[  24pt x   127] The expectation is that the base learners be trained to be as accurate as
+[  24pt x   127] possible
+[  24pt x   109] •
+[  24pt x   127] Note that some ensemble methods only require “weak” learners, i.e.,
+[  24pt x   127] learners capable of performing only lightly better than chance
+[  24pt x   109] •
+[  24pt x   127] Accuracy comes from the aggregation process
+[  28pt x    73] •
+[  28pt x    91] Diversity
+[  24pt x   109] •
+[  24pt x   127] The base learners need to have knowledge about different aspects of the task
+[  24pt x   109] •
+[  24pt x   127] Can be accomplished in a variety of ways
+[  20pt x   145] •
+[  20pt x   163] Diverse training sets
+[  20pt x   145] •
+[  20pt x   163] Reweighting of the same training set
+[  20pt x   145] •
+[  20pt x   163] Applying multiple methods with different inductive biases
+
+───── page 14/54 ─────
+[  44pt x    73] General Approaches: Parallel
+[  28pt x    73] •
+[  28pt x    91] Train base learners independently
+[  28pt x    73] •
+[  28pt x    91] Combine the results through simple aggregation
+[  16pt x   375] Learner 1
+[  16pt x   720] Prediction
+[  16pt x   375] Learner 2
+[  16pt x   150] Input Data
+[  24pt x   398] ۀ
+[   7pt x   391] start
+[   7pt x   391] equation
+[   7pt x   391] midline
+[  16pt x   375] Learner n
+
+───── page 15/54 ─────
+[  44pt x    73] General Approaches: Sequential
+[  28pt x    73] •
+[  28pt x    91] Train base learners iteratively
+[  28pt x    73] •
+[  28pt x    91] Focus of training is correcting errors from previous learners
+[   7pt x   519] start
+[   7pt x   519] equation
+[  16pt x   246] Learner 1
+[  16pt x   390] Learner 2
+[  16pt x   609] Learner n
+[  24pt x   519] ۀ
+[   7pt x   519] midline
+[  16pt x    98] Input Data
+[   7pt x   519] horizontal
+[  16pt x   763] Prediction
+
+───── page 16/54 ─────
+[  44pt x    73] Diversity
+[  24pt x    73] •
+[  24pt x    91] The goal is to train a set of base learners negatively correlated with one another
+[  24pt x    73] •
+[  24pt x    91] Ensemble diversity can be computed “pairwise” or “non
+[  24pt x   636] -
+[  24pt x   643] pairwise”
+[  24pt x    73] •
+[  24pt x    91] Let
+[  24pt x   127] ࣰ
+[  24pt x   150] denote the ensemble of base learners
+[  24pt x    73] •
+[  24pt x    91] A pairwise diversity measure (Yule’s Q Statistic) –
+[  24pt x   571] Want as close to
+[  24pt x   736] –
+[  24pt x   748] 1 as possible
+[  14pt x   834] 𝑎𝑏
+[  20pt x   109] •
+[  20pt x   127] Let
+[  20pt x   157] ݧ
+[  20pt x   188] be an indicator of whether learner
+[  20pt x   472] ݗ
+[  20pt x   483] recognizes data item
+[  20pt x   655] ܲ
+[  20pt x   678] correctly, and let
+[  20pt x   818] ݂
+[  14pt x   166] 𝑗ǳ𝑖
+[  14pt x   665] 𝑗
+[  20pt x   127] denote the number of times
+[  20pt x   362] ݧ൞ݏ
+[  20pt x   430] and
+[  20pt x   465] ݧ൞
+[  20pt x   521] ݐ
+[  20pt x   533] .
+[  14pt x   371] 𝑗ǳ𝑖
+[  14pt x   475] 𝑗ǳ𝑘
+[  12pt x   196] 1100
+[  12pt x   259] 0110
+[  14pt x   185] ௙௙
+[  14pt x   237] ୑௙௙
+[  14pt x   400] େ
+[  14pt x   446] ௗ୑େௗ
+[  20pt x   344] ശ
+[  20pt x   432] ϕ
+[  20pt x   477] ϕ
+[  20pt x   109] •
+[  20pt x   127] ݅൞
+[  20pt x   305] and
+[  20pt x   340] ݅൞
+[  20pt x   539] ݅
+[  20pt x   571] .
+[  14pt x   140] 𝑖ǳ𝑘
+[  14pt x   552] 𝑖ǳ𝑘𝑖୒େ𝑘୒𝑖୐େ
+[  12pt x   196] 1100
+[  12pt x   259] 0110
+[  14pt x   185] ௙௙
+[  14pt x   237] ୐௙௙
+[  14pt x   380] ௗ(ௗ୑େ)
+[  24pt x    73] •
+[  24pt x    91] A non-pairwise diversity measure (Entropy)
+[  24pt x   517] –
+[  24pt x   535] Want as close to +1 as possible
+[  20pt x   109] •
+[  20pt x   127] Let
+[  20pt x   157] ό(ܲ)
+[  20pt x   206] denote the number of learners that correctly classify
+[  20pt x   638] ܲ
+[  20pt x   655] .
+[  14pt x   185] 𝑗
+[  14pt x   647] 𝑗
+[  14pt x   200] େ
+[  14pt x   286] େ
+[  14pt x   227] ௙
+[  20pt x   213] ϕ
+[  20pt x   109] •
+[  20pt x   127] ࣰܹ൞
+[  20pt x   326] ¡¢቎όܲǳ݀൘
+[  20pt x   455] ό(ܲ)቏
+[  14pt x   396] 𝑗
+[  14pt x   483] 𝑗𝑗୒େ
+[  14pt x   198] ௙
+[  14pt x   257] (ௗ୑ௗȒୈ)
+
+───── page 17/54 ─────
+[  44pt x    73] Combining Learners
+[  28pt x    73] •
+[  28pt x    91] In ensemble learning, the results of predictions from the base
+[  28pt x    91] learners need to be combined to generate a final prediction.
+[  28pt x    73] •
+[  28pt x    91] Such combiners are often referred to as “aggregators.”
+[  28pt x    73] •
+[  28pt x    91] Combining/aggregating predictions varies by task
+[  28pt x    91] (classification/regression).
+[  28pt x    73] •
+[  28pt x    91] The type of ensemble generally dictations the method of aggregation:
+[  24pt x   109] •
+[  24pt x   127] Bagging/boosting: Apply static combination rule after training
+[  24pt x   109] •
+[  24pt x   127] Stacking: Train an aggregation model based on performance of base learners
+
+───── page 18/54 ─────
+[  44pt x    73] Majority Vote
+[  28pt x    73] •
+[  28pt x    91] Arguably one of the “simplest” methods.
+[  28pt x    73] •
+[  28pt x    91] Applied specifically to classification problems.
+[  28pt x    73] •
+[  28pt x    91] Given a set of base learners
+[  28pt x   411] ࣰ
+[  28pt x   432] , let
+[  28pt x   481] ݒע
+[  28pt x   567] ΄ǳ΅
+[  28pt x   621] denote whether
+[  20pt x   497] 𝑡ǳ𝑐
+[  28pt x    91] classifier
+[  28pt x   196] ݢ
+[  28pt x   214] indicated class
+[  28pt x   385] ݑ
+[  28pt x   399] .
+[  28pt x    73] •
+[  28pt x    91] Generate prediction as follows:
+[  20pt x   559] ȓࣰȓ
+[  28pt x   322] ݑݚݏݡݡ൞¦¡¬
+[  28pt x   555] ෟݒ
+[  20pt x   512] 𝑐ע࣯
+[  20pt x   613] 𝑡ǳ𝑐
+[  20pt x   555] 𝑡୒େ
+
+───── page 19/54 ─────
+[  44pt x    73] Weighted Majority Vote
+[  28pt x    73] •
+[  28pt x    91] Adjust majority vote based on performance of base learners.
+[  28pt x    73] •
+[  28pt x    91] Applied specifically to classification problems.
+[  28pt x    73] •
+[  28pt x    91] Given a set of base learners
+[  28pt x   411] ࣰ
+[  28pt x   432] , let
+[  28pt x   481] ݒע
+[  28pt x   567] ΄ǳ΅
+[  28pt x   621] denote whether
+[  20pt x   497] 𝑡ǳ𝑐
+[  28pt x    91] classifier
+[  28pt x   196] ݢ
+[  28pt x   214] indicated class
+[  28pt x   385] ݑ
+[  28pt x   399] .
+[  20pt x   263] ȓࣰȓ
+[  20pt x   326] ሃ
+[  28pt x   243] ϕ
+[  28pt x    73] •
+[  28pt x    91] Let
+[  28pt x   132] ݥ൞݀
+[  28pt x   225] Ȓ
+[  28pt x   313] ݀
+[  28pt x   338] , where
+[  28pt x   430] ݀
+[  28pt x   462] is the estimated accuracy of learner
+[  17pt x   273] ሄ
+[  20pt x   152] 𝑡
+[  20pt x   214] 𝑡
+[  20pt x   445] 𝑡𝑡
+[  20pt x   263] 𝑡୒େ
+[  28pt x    91] ݢ
+[  28pt x   103] .
+[  28pt x    73] •
+[  28pt x    91] Generate prediction as follows:
+[  20pt x   544] ȓࣰȓ
+[  28pt x   307] ݑݚݏݡݡ൞¦¡¬
+[  28pt x   539] ෟݥݒ
+[  20pt x   497] 𝑐ע࣯
+[  20pt x   601] 𝑡𝑡ǳ𝑐
+[  20pt x   540] 𝑡୒େ
+
+───── page 20/54 ─────
+[  44pt x    73] Weighted Majority
+[  44pt x    73] Vote
+
+───── page 21/54 ─────
+[  44pt x    73] Simple Aggregation
+[  44pt x   425] –
+[  44pt x   457] Regression
+[  22pt x    73] •
+[  22pt x    91] The process for aggregation in regression is similar to that of classification.
+[  22pt x    73] •
+[  22pt x    91] Replace vote with finding the (weighted) mean (or median).
+[  22pt x    73] •
+[  22pt x    91] Let
+[  22pt x   124] ݧ෮
+[  22pt x   149] denote the prediction/response from the
+[  22pt x   522] ݢ
+[  22pt x   531] thbase learner
+[  16pt x   135] 𝑡
+[  16pt x   268] ȓࣰȓ
+[  22pt x   252] ϕ
+[  13pt x   355] ሄ
+[  22pt x    73] •
+[  22pt x    91] Let
+[  22pt x   124] ݥ൞(΅Ȓ݀)Ȓ
+[  22pt x   303] (΅Ȓ݀)
+[  22pt x   371] , where
+[  22pt x   443] ݀
+[  22pt x   469] is the estimated error of learner
+[  22pt x   759] ݢ
+[  22pt x   768] .
+[  13pt x   276] ሄ𝑡𝑡
+[  16pt x   455] 𝑡𝑡
+[  16pt x   268] 𝑡୒େ
+[  22pt x    73] •
+[  22pt x    91] For unweighted:
+[  16pt x   511] ȓࣰȓ
+[  22pt x   482] ΅
+[  22pt x   400] ݠݓݡݞ൞
+[  22pt x   507] ෟݧ෮
+[  16pt x   552] 𝑡
+[  22pt x   473] ȓࣰȓ
+[  16pt x   508] 𝑡୒େ
+[  22pt x    73] •
+[  22pt x    91] For weighted:
+[  16pt x   481] ȓࣰȓ
+[  22pt x   405] ݠݓݡݞ൞ෟ
+[  22pt x   511] ݥݧ෮
+[  16pt x   526] 𝑡𝑡
+[  16pt x   478] 𝑡୒େ
+
+───── page 22/54 ─────
+[  44pt x    73] Ensemble Selection
+[  28pt x    73] •
+[  28pt x    91] Conventional wisdom indicates as the number of base learners
+[  28pt x    91] increases, accuracy and resistance to overfitting should improve.
+[  28pt x    73] •
+[  28pt x    91] As the number of base learners increases, so does computational
+[  28pt x    91] complexity.
+[  28pt x    73] •
+[  28pt x    91] As the number of base learners increases, diversity can start to
+[  28pt x    91] decrease, thus
+[  28pt x   263] reducing
+[  28pt x   368] the performance (accuracy) of the ensemble.
+[  28pt x    73] •
+[  28pt x    91] This suggests there might be an “optimal” subset of base learners to
+[  28pt x    91] be used in a given ensemble.
+
+───── page 23/54 ─────
+[  44pt x    73] Ensemble Selection
+[  28pt x    73] •
+[  28pt x    91] Selecting the base learners to make up an ensemble is a “subset
+[  28pt x    91] selection” problem.
+[  28pt x    73] •
+[  28pt x    91] Approaches to subset selection are also applied in “feature” selection
+[  28pt x    91] (addressed in the module on dimensionality reduction).
+[  28pt x    73] •
+[  28pt x    91] Common approaches:
+[  24pt x   109] •
+[  24pt x   127] Stepwise selection:
+[  20pt x   145] •
+[  20pt x   163] Forward
+[  20pt x   145] •
+[  20pt x   163] Backward
+[  20pt x   145] •
+[  20pt x   163] Local search
+[  24pt x   109] •
+[  24pt x   127] Wrapper-based
+[  24pt x   109] •
+[  24pt x   127] Filter-based
+
+───── page 24/54 ─────
+[  44pt x    73] Example: Forward Model Selection
+[  26pt x    73] A wrapper-based approach:
+[  26pt x    73] 1.Begin with an empty ensemble
+[  26pt x    73] 2.Select the base learner from a library of base learners
+[  22pt x   109] a.Approach 1: based on individual model performance on a validation set
+[  22pt x   109] b.Approach 2: based on maximizing ensemble performance on a validation set
+[  26pt x    73] 3.Repeat step 2 as long as ensemble performance continues to improve, or
+[  26pt x   109] until all models in the library have been examined
+[  26pt x    73] 4.Return the selected subset of based learners
+[  26pt x    73] Assumes the models can be ordered based on performance, but still requires
+[  26pt x    73] evaluation of the ensemble as it is generated; this is what makes it a wrapper
+[  26pt x    73] method.
+
+───── page 25/54 ─────
+[  44pt x    73] Bootstrap Aggregation
+[  28pt x    73] •
+[  28pt x    91] Perhaps one of the most basic methods for constructing ensembles.
+[  28pt x    73] •
+[  28pt x    91] Has strong statistical properties from which uncertainty quantification
+[  28pt x    91] can be performed.
+[  28pt x    73] •
+[  28pt x    91] Referred to as “bagging” for short.
+[  28pt x    73] •
+[  28pt x    91] Results in a set of “diverse” base learners due to the fact they are
+[  28pt x    91] trained on different subsets of the training data.
+
+───── page 26/54 ─────
+[  44pt x    73] The Bagging Process
+[  28pt x    73] •
+[  28pt x    91] Generate
+[  28pt x   203] ݐ
+[  28pt x   225] different bootstrap training sets,
+[  28pt x   599] ܘǳǷǳܘ
+[  28pt x   709] , each of size
+[  20pt x   617] େ
+[  20pt x   695] 𝑏
+[  28pt x    91] ȓܘȓ
+[  28pt x   126] .
+[  28pt x    73] •
+[  28pt x    91] Each data set
+[  28pt x   248] ܘ
+[  28pt x   282] is generated by sampling from
+[  28pt x   631] ܘ
+[  28pt x   655] with replacement
+[  20pt x   266] 𝑖
+[  28pt x    91] until
+[  28pt x   149] ȓܘȓ
+[  28pt x   191] examples are selected.
+[  28pt x    73] •
+[  28pt x    91] Train
+[  28pt x   153] ݐ
+[  28pt x   175] different base learners using the appropriate data set. In other
+[  28pt x    91] words, train base learner
+[  28pt x   381] ࣰ
+[  28pt x   417] using
+[  28pt x   483] ܘ
+[  28pt x   517] as the training set.
+[  20pt x   401] 𝑖
+[  20pt x   502] 𝑖
+[  28pt x    73] •
+[  28pt x    91] The combiner is (weighted) majority or (weighted) mean/median.
+[  28pt x    73] •
+[  28pt x    91] REMARK:
+[  28pt x   207] Bagging is optimized when the base learners exhibit high
+[  28pt x    91] variance and low bias, such as a decision tree.
+
+───── page 27/54 ─────
+[  44pt x    73] Random Forests
+[  28pt x    73] •
+[  28pt x    91] Breiman defines a random forest as follows.
+[  20pt x   145] Def:
+[  20pt x   184] A
+[  20pt x   200] random forest
+[  20pt x   320] is a classifier consisting of a collection of tree-structured classifiers
+[  20pt x   864] ቎ݖܲǳȵǳݙ൞
+[  14pt x   922] 𝑘
+[  20pt x   145] ΅ǳǷǳݛ቏
+[  20pt x   219] where
+[  20pt x   283] ȵ
+[  20pt x   318] are independent, identically distributed random vectors and each
+[  14pt x   296] 𝑘
+[  20pt x   145] tree casts a unit vote for the most popular class at input
+[  20pt x   603] ܲ
+[  20pt x   614] .
+[  28pt x    73] •
+[  28pt x    91] This can be adapted for regression using averaging instead of voting.
+[  28pt x    73] •
+[  28pt x    91] A common variant on this method is to also select a random subset of
+[  28pt x    91] features from which to generate the trees.
+[  28pt x    73] •
+[  28pt x    91] REMARK:
+[  28pt x   207] Several cases have been demonstrated where random
+[  28pt x    91] forests show competitive performance on tasks often “solved” via
+[  28pt x    91] deep learning.
+
+───── page 28/54 ─────
+[  44pt x    73] Random Forests
+
+───── page 29/54 ─────
+[  44pt x    73] Properties of Random Forests
+[  26pt x    73] •
+[  26pt x    91] The trees in a RF are simpler and therefore easier to construct.
+[  26pt x    73] •
+[  26pt x    91] RF ensembles have been shown to be highly accurate and resistant to
+[  26pt x    91] overfitting (ensembles naturally regularize).
+[  26pt x    73] •
+[  26pt x    91] Individual trees are considered to be relatively easy to interpret (although,
+[  26pt x    91] full ensembles are not).
+[  26pt x    73] •
+[  26pt x    91] RF ensembles provide a level of interpretability through the ability to do
+[  26pt x    91] variable importance analysis.
+[  26pt x    73] •
+[  26pt x    91] Technically, RF ensembles do not need cross-validation
+[  26pt x   673] –
+[  26pt x   692] can use out-of-
+[  26pt x    91] bag samples for generalization assessment. Often, we still cross-validate.
+[  26pt x    73] •
+[  26pt x    91] RF ensembles can also be used for clustering by counting the number of
+[  26pt x    91] times pairs of points appear in the same leaves across the set of trees.
+[  26pt x    73] •
+[  26pt x    91] There exist many variants.
+
+───── page 30/54 ─────
+[  44pt x    73] Possible Variants
+[  28pt x    73] •
+[  28pt x    91] Individual trees have all features available and grow trees with
+[  28pt x    91] optimal splits fully on bootstrapped samples.
+[  28pt x    73] •
+[  28pt x    91] Individual trees have a random subset of features available and grow
+[  28pt x    91] trees with optimal splits on bootstrapped samples.
+[  28pt x    73] •
+[  28pt x    91] Individual trees are grown with random splits.
+[  28pt x    73] •
+[  28pt x    91] Only “stumps” are used as base learners where each stump is
+[  28pt x    91] generated based on information gain.
+[  28pt x    73] •
+[  28pt x    91] Only “random stumps” are used as base learners.
+[  28pt x    73] •
+[  28pt x    91] Oblique (multi-variate) splits are allowed when generating the trees.
+[  28pt x    73] •
+[  28pt x    91] A “spatial” variant considers spatial correlation in selecting features.
+
+───── page 31/54 ─────
+[  44pt x    73] Boosting
+[  28pt x    73] •
+[  28pt x    91] Invented independently by Freund (1990) and Shapire(1990).
+[  28pt x    73] •
+[  28pt x    91] A sequential method of constructing ensembles by re-weighting the
+[  28pt x    91] training data based on prior performance.
+[  28pt x    73] •
+[  28pt x    91] As a sequential (iterative) process, stops generating base learners
+[  28pt x    91] either when a target number (tunable) are generated or when
+[  28pt x    91] performance of the ensemble has plateaued.
+[  28pt x    73] •
+[  28pt x    91] Assumes weak learners, consisting of high bias and low variance.
+[  28pt x    73] •
+[  28pt x    91] Tends to work poorly with noisy data since it tends to over-weight the
+[  28pt x    91] noisy examples.
+
+───── page 32/54 ─────
+[  44pt x    73] Basic Boosting
+[  32pt x    73] The “original” boosting algorithm only built an ensemble of
+[  32pt x    73] three base learners.
+[  20pt x   109] 1.For training set
+[  20pt x   272] ܘ
+[  20pt x   285] , where
+[  20pt x   357] ܘ൞ݜ
+[  20pt x   413] , sample
+[  20pt x   486] ݜൡݜ
+[  20pt x   549] examples
+[  20pt x   630] ܘّܘ
+[  20pt x   695] without replacement.
+[  14pt x   497] େ
+[  14pt x   643] େ
+[  20pt x   109] 2.Train base learner
+[  20pt x   295] ό
+[  20pt x   319] on this sample.
+[  14pt x   305] େ
+[  20pt x   109] 3.Sample a second set of
+[  20pt x   336] ݜൡݜ
+[  20pt x   400] examples
+[  20pt x   481] ܘّܘ
+[  20pt x   546] such that
+[  14pt x   348] ୈ
+[  14pt x   494] ୈ
+[  20pt x   145] a.The first
+[  20pt x   252] ݜȒΆ
+[  20pt x   299] examples correspond to the misclassified examples from
+[  20pt x   762] ܘ
+[  20pt x   789] when using
+[  14pt x   264] ୈ
+[  14pt x   775] େ
+[  20pt x   181] ό
+[  20pt x   201] .
+[  14pt x   191] େ
+[  20pt x   145] b.The remaining
+[  20pt x   303] ݜȒΆ
+[  20pt x   349] are drawn from
+[  20pt x   479] ܘ
+[  20pt x   496] without replacement but correctly classified by
+[  14pt x   314] ୈ
+[  20pt x   181] ό
+[  20pt x   201] .
+[  14pt x   191] େ
+[  20pt x   109] 4.Train based learner
+[  20pt x   306] ό
+[  20pt x   330] from
+[  20pt x   374] ܘ
+[  14pt x   316] ୈ
+[  14pt x   387] ୈ
+[  20pt x   109] 5.Apply
+[  20pt x   196] ό
+[  20pt x   220] and
+[  20pt x   255] ό
+[  20pt x   279] to
+[  20pt x   301] ܘ
+[  20pt x   318] and extract all examples where they disagree to yield
+[  20pt x   753] ܘّܘ
+[  20pt x   819] .
+[  14pt x   206] େ
+[  14pt x   265] ୈ
+[  14pt x   766] ୉
+[  20pt x   109] 6.Train
+[  20pt x   190] ό
+[  20pt x   214] on
+[  20pt x   239] ܘ
+[  14pt x   200] ୉
+[  14pt x   253] ୉
+[  20pt x   109] 7.Use ensemble via majority vote.
+
+───── page 33/54 ─────
+[  44pt x    73] Adaptive Boosting
+[  19pt x   621] •
+[  19pt x   639] Often referred to as “AdaBoost.”
+[  19pt x   621] •
+[  19pt x   639] Often uses decision trees (or
+[  19pt x   639] decision stumps) as base
+[  19pt x   639] learners, but this is not required.
+[  19pt x   621] •
+[  19pt x   639] Algorithm to the left is also
+[  19pt x   639] referred to as the AdaBoost.M1
+[  19pt x   639] algorithm.
+[  19pt x   621] •
+[  19pt x   639] Choose class as
+[  12pt x   785] ௗ
+[  16pt x   843] ΅
+[  12pt x   874] 𝑐
+[  16pt x   645] ݑݚݏݡݡ൞¦¡¬ෟ
+[  16pt x   817] £ό
+[  16pt x   881] (ܲ)
+[  12pt x   754] 𝑐
+[  12pt x   895] 𝑗𝑖
+[  16pt x   840] ߬
+[  12pt x   785] 𝑖୒େ
+[  12pt x   849] 𝑖
+
+───── page 34/54 ─────
+[  44pt x    73] Advanced Boosting
+[  26pt x    73] •
+[  26pt x   109] More advanced boosting algorithms have been developed in recent
+[  26pt x   109] years.
+[  26pt x    73] •
+[  26pt x   109] Examples of prominent algorithms include:
+[  22pt x   109] •
+[  22pt x   145] Gradient Boosting
+[  22pt x   315] –
+[  22pt x   331] Train learners correlated with negative gradient of the loss
+[  22pt x   145] function with respect to the entire ensemble.
+[  22pt x   109] •
+[  22pt x   145] XGBoost
+[  22pt x   228] –
+[  22pt x   244] Gradient boosting with regularization added to the loss function.
+[  22pt x   109] •
+[  22pt x   145] LightGBM
+[  22pt x   240] –
+[  22pt x   256] Gradient boosting with one-sided sampling (reduces training examples
+[  22pt x   145] needed) and feature bundling (reduces features to be evaluated).
+[  22pt x   109] •
+[  22pt x   145] CatBoost
+[  22pt x   232] –
+[  22pt x   248] Omits the sample being used to train when estimating the gradient,
+[  22pt x   145] similar to a “jackknife” sample.
+[  26pt x    73] •
+[  26pt x   109] To focus on common characteristics, we will discuss basic gradient
+[  26pt x   109] boosting.
+
+───── page 35/54 ─────
+[  44pt x    73] Gradient Boosting
+[  19pt x    73] •
+[  19pt x   103] Core Idea: Develop base learners/models that are correlated highly with the gradient of the loss
+[  19pt x   103] function for the entire ensemble.
+[  19pt x   392] ෲ
+[  19pt x    73] •
+[  19pt x   103] The goal is to learn an approximation
+[  19pt x   389] ܺ(ܲ)
+[  19pt x   430] of an underlying target function
+[  19pt x   675] ܺ(ܲ)
+[  19pt x   717] by minimizing loss
+[  19pt x   103] function
+[  19pt x   171] ࣸ(ݧǳܺܲ)
+[  19pt x   257] and constructing a weighted sum of functions.
+[  19pt x   369] ෲ
+[  19pt x   440] ෲ
+[  19pt x   366] ܺܲ
+[  19pt x   418] ൞ܺ
+[  19pt x   486] ܲൗ߻
+[  19pt x   549] ݔ(ܲ)
+[  14pt x   373] 𝑚
+[  14pt x   446] 𝑚୑େ
+[  14pt x   535] 𝑚𝑚
+[  19pt x   669] ෲ
+[  19pt x   103] where
+[  19pt x   156] ߻
+[  19pt x   183] is the weight of the
+[  19pt x   334] ݛ
+[  19pt x   350] thfunction,
+[  19pt x   442] ݔ(ܲ)
+[  19pt x   488] . Here, we assume that
+[  19pt x   666] ܺݦ൞
+[  19pt x   734] ¦¡¢
+[  14pt x   165] 𝑚
+[  14pt x   449] 𝑚
+[  14pt x   675] ୆
+[  14pt x   790] ௫
+[  19pt x   103] ࣸ(ݧǳݔ(ܲ))
+[  19pt x   184] .
+[  14pt x   552] 𝑛
+[  19pt x   624] ෲ
+[  19pt x   539] ϕ
+[  19pt x    73] •
+[  19pt x   103] Each successive base learner finds
+[  19pt x   365] ߻ݔ
+[  19pt x   417] ܲ൞¦¡¢
+[  19pt x   578] ࣸ(ݧǳܺ
+[  19pt x   669] ܲൗ߻ݔ
+[  19pt x   745] ܲ)
+[  19pt x   776] .
+[  14pt x   375] 𝑚𝑚
+[  14pt x   515] పǳ௫
+[  14pt x   608] 𝑖𝑚୑
+[  14pt x   653] େ𝑖
+[  14pt x   755] 𝑖𝑖୒େ
+[  19pt x    73] •
+[  19pt x   103] Significantly, the first learner trains on the original data, and subsequent learners train on the
+[  19pt x   811] residuals
+[  19pt x   103] of the ensemble so far.
+[  19pt x   462] ෲ
+[  19pt x   402] ࠄࣸݧǳܺܲ
+[  14pt x   446] 𝑖
+[  19pt x   505] ኀ
+[  19pt x   352] ݠ൞
+[  19pt x   605] Ƕ
+[  14pt x   358] 𝑚𝑖
+[  19pt x   444] ෲ
+[  19pt x   429] ࠄܺܲ
+[  14pt x   514] ෲ
+[  14pt x   552] ෲ
+[  14pt x   512] ௑ܲ୒௑
+[  14pt x   582] (ܲ)
+[  12pt x   556] ೪౉1
+
+───── page 36/54 ─────
+[  44pt x    73] Gradient Boosting
+
+───── page 37/54 ─────
+[  44pt x    73] Stacking Introduction
+[  20pt x    73] •
+[  20pt x    91] So far, all of the methods examined have assumed the models in the ensemble are of the same
+[  20pt x    91] type.
+[  20pt x    73] •
+[  20pt x    91] Stacking is a method that allows different types of models to be combined.
+[  20pt x    73] •
+[  20pt x    91] The primary advantage is that stacking allows models with different inductive biases to contribute
+[  20pt x    91] to the overall prediction based on their individual strengths.
+[  20pt x    73] •
+[  20pt x    91] In stacking, a meta-learner is used to combine the predictions.
+[  14pt x   283] Base
+[  14pt x   269] Learner 1
+[  24pt x   296] …
+[  14pt x   592] Meta
+[  14pt x   753] Combined
+[  14pt x   125] Training
+[  14pt x   422] Prediction
+[  14pt x   585] Learner
+[  14pt x   753] Prediction
+[  14pt x   135] Data
+[  14pt x   439] Data
+[  14pt x   283] Base
+[  14pt x   267] Learner
+[  14pt x   316] m
+
+───── page 38/54 ─────
+[  44pt x    73] Learning for Stacking
+[  24pt x    73] •
+[  24pt x    91] Based learners are referred to as “Level 0” models.
+[  24pt x    73] •
+[  24pt x    91] The meta-
+[  24pt x   191] learner result in a “Level 1” model.
+[  24pt x    73] •
+[  24pt x    91] The purpose of the Level 1 model is to combine predictions.
+[  24pt x    73] •
+[  24pt x    91] The data set for the Level 1 model consists of (predictions, target) pairs.
+[  24pt x    73] •
+[  24pt x    91] Level 0:
+[   7pt x   286] open brace bold x sub i. ,y sub i. ,
+[   7pt x   660] f sub k , open
+[  14pt x   498] Learning
+[  17pt x   356] 𝑛
+[   7pt x   286] close brace sub open paren i.
+[   7pt x   660] paren bold x close
+[  24pt x   296] ܲǳݧ
+[  24pt x   661] ݔ(ܲ)
+[   7pt x   286] equals 1 close paren to the n
+[   7pt x   660] paren
+[  17pt x   309] 𝑖𝑖
+[  17pt x   670] 𝑘𝑖୒େ
+[  14pt x   489] Algorithm
+[  14pt x   551] k
+[  24pt x    73] •
+[  24pt x    91] Level 1:
+[   7pt x   241] open brace f sub , i. ,k end subscript,y sub , i. ,k end
+[  17pt x   336] 𝑛ǳ𝑚
+[   7pt x   665] cap F open paren
+[   7pt x   241] subscript , close brace sub open paren i. equals 1,k equals
+[   7pt x   665] bold x close
+[   7pt x   241] 1 close paren to the open paren n ,m close paren
+[  14pt x   488] Meta Learner
+[  24pt x   251] ݔǳݧ
+[  24pt x   665] ܺ(ܲ)
+[   7pt x   665] paren
+[  17pt x   260] 𝑖ǳ𝑘𝑖ǳ𝑘
+[  17pt x   336] 𝑖୒େǳ𝑘୒େ
+
+───── page 39/54 ─────
+[  44pt x    73] Stacking
+
+───── page 40/54 ─────
+[  44pt x    73] Types of Models
+[  28pt x    73] •
+[  28pt x    91] Different types of models are used for the level 0 models (e.g., SVM,
+[  28pt x    91] decision tree, neural network).
+[  28pt x    73] •
+[  28pt x    91] For classification problems, the meta-model can be anything but is
+[  28pt x    91] often logistic regression.
+[  28pt x    73] •
+[  28pt x    91] If linear classifier insufficient, can move to a more sophisticated
+[  28pt x    91] model.
+[  28pt x    73] •
+[  28pt x    91] For regression problems, the meta-model can be anything but is often
+[  28pt x    91] linear regression.
+[  28pt x    73] •
+[  28pt x    91] Similar to classification, if linear regression insufficient, can move to a
+[  28pt x    91] more sophisticated model.
+
+───── page 41/54 ─────
+[  44pt x    73] Overfitting
+[  26pt x    73] •
+[  26pt x    91] The conventional wisdom is that all ensemble methods are robust with
+[  26pt x    91] respect to overfitting.
+[  26pt x    73] •
+[  26pt x    91] Regularization is based upon diversity among members of the ensemble.
+[  26pt x    73] •
+[  26pt x    91] Bagging
+[  26pt x   180] –
+[  26pt x   199] Diversity comes from the individual data sets.
+[  26pt x    73] •
+[  26pt x    91] Boosting
+[  26pt x   189] –
+[  26pt x   208] Diversity comes from re-weighting the data and then weighting
+[  26pt x    91] the base learners.
+[  26pt x    73] •
+[  26pt x    91] Gradient Boosting
+[  26pt x   287] –
+[  26pt x   306] Diversity comes from focusing on combining
+[  26pt x    91] predictions focused on the residuals.
+[  26pt x    73] •
+[  26pt x    91] Stacking
+[  26pt x   185] –
+[  26pt x   204] Diversity comes from the different inductive biases of the base
+[  26pt x    91] learners.
+
+───── page 42/54 ─────
+[  44pt x    73] Dendrogram
+
+───── page 43/54 ─────
+[  44pt x    73] Agglomerative vs Divisive
+[  24pt x   358] Agglomerative
+[  24pt x   227] Polythetic
+[  24pt x   416] HAC
+[  24pt x   656] Features
+[  24pt x   510] Assoc.
+[  24pt x   219] Monothetic
+[  24pt x   502] Analysis
+[  24pt x   497] Divisive
+[  24pt x   445] Building
+
+───── page 44/54 ─────
+[  44pt x    73] Hierarchical Agglomerative Clustering
+
+───── page 45/54 ─────
+[  44pt x    73] Linkage Rules
+[  18pt x    73] •
+[  18pt x    91] Single Linkage: Merge clusters such that
+[  18pt x   381] ܸܝǳܝ
+[  18pt x   451] ൞¡¢
+[  18pt x   528] ߮(ܲǳܳ)
+[  13pt x   411] 𝑖𝑗
+[  13pt x   469] ܲעܝǳܳעܝ
+[  11pt x   491] 𝑖
+[  11pt x   520] 𝑗
+[  18pt x    73] •
+[  18pt x    91] Complete Linkage: Merge clusters such that
+[  18pt x   357] ܸܝǳܝ
+[  18pt x   427] ൞¡¢
+[  18pt x   498] ¡¬߮(ܲǳܳ)
+[  13pt x   386] 𝑖𝑗
+[  13pt x   486] ܲעܝǳܳעܝ
+[  11pt x   507] 𝑖
+[  11pt x   536] 𝑗
+[  18pt x    73] •
+[  18pt x    91] Average Linkage: Merge clusters such that
+[  18pt x   479] ΅
+[  18pt x   332] ܸܝǳܝ
+[  18pt x   402] ൞¡¢
+[  18pt x   527] ෟ
+[  18pt x   570] ߮(ܲǳܳ)
+[  13pt x   362] 𝑖𝑗
+[  18pt x   461] ݛݛ
+[  13pt x   476] େୈ
+[  13pt x   511] ܲעܝǳܳעܝ
+[  11pt x   532] 𝑖
+[  11pt x   561] 𝑗
+[  18pt x    73] •
+[  18pt x    91] Ward’s Method: Merge clusters such that
+[  18pt x   241] ݈݇݇൘ܹ݇݇
+[  13pt x   575] ୈ
+[  13pt x   832] ୈ
+[  18pt x   120] ܸܝǳܝ
+[  18pt x   190] ൞¡¢
+[  18pt x   326] ǳܹ݇݇൞ෟ
+[  18pt x   419] ෟෟ
+[  18pt x   491] ݦ൘
+[  18pt x   542] ݦҹǳ݈݇݇
+[  18pt x   628] ൞ෟ
+[  18pt x   678] ෟෟ
+[  18pt x   750] ݦ൘
+[  18pt x   801] ݦҹ
+[  13pt x   149] 𝑖𝑗
+[  13pt x   500] 𝑖𝑗𝑘
+[  13pt x   551] 𝑖ږ𝑘
+[  13pt x   759] 𝑖𝑗𝑘
+[  13pt x   810] ږږ𝑘
+[  18pt x   267] ܹ݇݇
+[  13pt x   411] 𝑖
+[  13pt x   443] 𝑗
+[  13pt x   477] 𝑘
+[  13pt x   670] 𝑖
+[  13pt x   702] 𝑗
+[  13pt x   736] 𝑘
+
+───── page 46/54 ─────
+[  44pt x    73] Association Analysis
+[  22pt x    73] •
+[  22pt x    91] Recall
+[  22pt x   605] ݏ൞ෟ
+[  22pt x   707] ܺ൚ܺ
+[  16pt x   615] 𝑗𝑘
+[  16pt x   718] 𝑖𝑗𝑖𝑘
+[  16pt x   691] ௽
+[  13pt x   701] 𝑖
+[  16pt x   242] 𝑛
+[  16pt x   350] ୈ
+[  22pt x   274] ݃൘ܹ
+[  16pt x   288] 𝑖
+[  16pt x   334] 𝑖
+[  22pt x   577] ݐ൞ෟ
+[  22pt x   678] (΅൘ܺ)൚ܺ
+[  16pt x   193] ୈ
+[  16pt x   586] 𝑗𝑘
+[  16pt x   736] 𝑖𝑗
+[  16pt x   787] 𝑖𝑘
+[  22pt x   180] ࠁ൞ෟ
+[  16pt x   663] ௽
+[  13pt x   672] 𝑖
+[  22pt x   303] ܹ
+[  16pt x   315] 𝑖
+[  16pt x   233] 𝑖୒େ
+[  22pt x   578] ݑ൞ෟ
+[  22pt x   677] ܺ൚(΅൘ܺ
+[  22pt x   794] )
+[  16pt x   585] 𝑗𝑘
+[  16pt x   688] 𝑖𝑗
+[  16pt x   777] 𝑖𝑘
+[  16pt x   662] ௽
+[  13pt x   671] 𝑖
+[  22pt x    73] •
+[  22pt x    91] Binary
+[  22pt x   153] →
+[  22pt x   180] Normalized
+[  22pt x   548] ݒ൞ෟ
+[  22pt x   650] (΅൘ܺ)൚(΅൘
+[  22pt x   796] ܺ)
+[  16pt x   559] 𝑗𝑘
+[  16pt x   709] 𝑖𝑗
+[  16pt x   807] 𝑖𝑘
+[  16pt x   184] ஄୸
+[  16pt x   356] ஄୸
+[  16pt x   635] ௽
+[  13pt x   645] 𝑖
+[  22pt x    73] •
+[  22pt x    91] ܺ
+[  22pt x   122] is the
+[  22pt x   175] ݘ
+[  22pt x   207] attribute of the
+[  22pt x   348] ݗ
+[  22pt x   379] data
+[  16pt x   761] ୈ𝑖𝑗
+[  22pt x   678] ݏݒ൘ݐݑ
+[  22pt x    91] point
+[  16pt x   536] ୈ
+[  22pt x   522] ࠁ൞
+[  16pt x   535] 𝑗𝑘
+[  16pt x   191] ஄୸
+[  16pt x   363] ஄୸
+[  22pt x   582] (ݏ൘ݐ)(ݏ൘ݑ)(ݐ൘ݒ
+[  22pt x   781] )(ݑ൘ݒ)
+[  22pt x    73] •
+[  22pt x    91] ܺ
+[  22pt x   124] is the
+[  22pt x   178] ݙ
+[  22pt x   213] attribute of the
+[  22pt x   355] ݗ
+[  22pt x   385] data
+[  16pt x   102] 𝑖𝑘
+[  22pt x    91] point
+[  16pt x   750] 𝑑
+[  16pt x   799] ୈ
+[  22pt x   565] ܺ
+[  22pt x   620] ൞¦¡¬ෟ
+[  22pt x   785] ࠁ
+[  16pt x   576] 𝑠௵𝑙𝑖𝑡
+[  16pt x   797] 𝑗𝑘
+[  16pt x   750] 𝑘୒େ
+
+───── page 47/54 ─────
+[  44pt x    73] A Motivating Example
+
+───── page 48/54 ─────
+[  44pt x    73] K
+[  44pt x    95] -Means
+
+───── page 49/54 ─────
+[  44pt x    73] HAC
+
+───── page 50/54 ─────
+[  44pt x    73] Density-based Clustering
+
+───── page 51/54 ─────
+[  44pt x    73] Point Categorization
+
+───── page 52/54 ─────
+[  44pt x    73] DBSCAN
+
+───── page 53/54 ─────
+[  44pt x    73] Another Example
+
+───── page 54/54 ─────
+[  44pt x    73] Another Example

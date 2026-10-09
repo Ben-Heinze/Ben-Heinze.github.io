@@ -1,0 +1,433 @@
+#+TITLE: Ensembles
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-09
+#+TAGS: machine-learning, midterm
+#+STARTUP: noindent
+#+QUIZ: t
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Training many models and combining them: why it works, how the base learners are
+made to disagree, and the four families -- bagging, boosting, stacking and the
+random forest. Unit =ens=. In the pseudocode answers, leading dots mark
+indentation depth.
+
+* Why Ensembles
+
+** Explain the problem ensembles are meant to solve.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It is hard to pick the right inductive bias for a given dataset in advance, so a single learner ends up either overfitting (high variance) or underfitting (high bias). Training several learners and combining them aims to reduce both at once.
+:Q_UNIT: ens
+:END:
+
+** An ensemble reduces bias and variance simultaneously, so the bias-variance tradeoff no longer applies to it.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: The deck is explicit that both the tradeoff and the No Free Lunch theorems still apply. The ensemble sidesteps having to commit to one inductive bias up front; it does not escape the tradeoff.
+:Q_UNIT: ens
+:END:
+
+** State the two critical factors a useful ensemble needs.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Accuracy and diversity. The base learners should be as accurate as possible -- though some methods need only weak learners, barely better than chance -- and they must know about different aspects of the task.
+:Q_UNIT: ens
+:END:
+
+** A learner that performs only slightly better than chance is called a __________ learner.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: weak
+:Q_ACCEPT: weak learner | base (weak)
+:Q_EXPLAIN: Boosting assumes exactly this: weak learners with high bias and low variance, with the accuracy coming out of the aggregation rather than any one model.
+:Q_UNIT: ens
+:END:
+
+** Give the three ways the notes list for making base learners diverse, and match each to a method.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Diverse training sets (bagging), reweighting the same training set (boosting), and applying multiple methods with different inductive biases (stacking).
+:Q_UNIT: ens
+:END:
+
+** Compare the parallel and sequential approaches to building an ensemble.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Parallel trains the base learners independently and combines them by simple aggregation; sequential trains them iteratively, each one focused on correcting the errors of those before it. Bagging and random forests are parallel, boosting is sequential.
+:Q_UNIT: ens
+:END:
+
+** Boosting trains its base learners independently of one another.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Boosting is the sequential family -- each learner is trained on data reweighted by how the previous learners performed, so it cannot be parallelized across learners the way bagging can.
+:Q_UNIT: ens
+:END:
+
+* Measuring Diversity
+
+** Explain what the ensemble is aiming for when it measures diversity.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A set of base learners negatively correlated with one another -- learners that fail on different examples, so that the combination can be right where any individual is wrong. Diversity can be measured pairwise or non-pairwise.
+:Q_UNIT: ens
+:END:
+
+** Write Yule's Q statistic for a pair of learners and say which value you want.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With N^ab counting the examples where learner i scored a and learner k scored b, \(Q_{i,k} = \frac{N^{11}N^{00} - N^{01}N^{10}}{N^{11}N^{00} + N^{01}N^{10}}\). It is positive when the two succeed and fail together, so you want it as close to -1 as possible.
+:Q_UNIT: ens
+:END:
+
+** For Yule's Q statistic, the ideal value for an ensemble is:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: as close to -1 as possible | as close to +1 as possible | as close to 0 as possible | exactly 1
+:Q_ANSWER: as close to -1 as possible
+:Q_EXPLAIN: Q is positive for learners that agree. The entropy measure is the one you drive toward +1 -- easy to mix up, so hold on to the direction of each.
+:Q_UNIT: ens
+:END:
+
+** Write the entropy measure of ensemble diversity and say which value you want.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With rho(x_j) the number of learners classifying x_j correctly out of m, \(E = \frac{1}{n}\sum_{j} \frac{1}{m - \lceil m/2 \rceil}\min(\rho(x_j),\, m - \rho(x_j))\). The min peaks when the learners split evenly on an example, and you want E as close to +1 as possible.
+:Q_UNIT: ens
+:END:
+
+** Yule's Q is a pairwise diversity measure and the entropy measure is __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: non-pairwise
+:Q_ACCEPT: nonpairwise | non pairwise
+:Q_EXPLAIN: Q scores one pair of learners at a time and is averaged over all pairs; the entropy measure looks at how the whole ensemble splits on each example.
+:Q_UNIT: ens
+:END:
+
+* Combining the Learners
+
+** What is an aggregator, and what decides which kind you use?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The combiner that turns the base learners' predictions into one final prediction. The task decides the form (vote for classification, mean or median for regression) and the ensemble type decides the kind: bagging and boosting apply a static rule after training, stacking trains a model to do it.
+:Q_UNIT: ens
+:END:
+
+** Write the majority vote rule.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With d_{t,c} in {0,1} indicating whether classifier t voted for class c, \(\mathit{class} = \arg\max_{c \in C} \sum_{t=1}^{|H|} d_{t,c}\).
+:Q_UNIT: ens
+:END:
+
+** Write the weighted majority vote, including how the weights are formed.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Weight each learner by its normalized accuracy, \(w_t = p_t / \sum_t p_t\) where p_t is learner t's estimated accuracy, then \(\mathit{class} = \arg\max_{c} \sum_t w_t d_{t,c}\). The weights sum to 1, so a learner near chance contributes almost nothing.
+:Q_UNIT: ens
+:END:
+
+** In the regression aggregator, the weights are built from each learner's error rather than its accuracy. Write them.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(w_t = (1/e_t) / \sum_t (1/e_t)\), where e_t is the estimated error of learner t -- the reciprocal inverts it, so a low-error learner gets a high weight. The prediction is then the weighted mean \(\sum_t w_t \hat{y}_t\), or the unweighted mean \(\frac{1}{|H|}\sum_t \hat{y}_t\).
+:Q_UNIT: ens
+:END:
+
+** Moving an ensemble from classification to regression, the vote is replaced by:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the (weighted) mean or median | the mode of the predictions | the maximum prediction | a second round of voting
+:Q_ANSWER: the (weighted) mean or median
+:Q_EXPLAIN: The structure is identical -- only the combining operation changes, and the weights switch from being built on accuracy to being built on the reciprocal of error.
+:Q_UNIT: ens
+:END:
+
+* Ensemble Selection
+
+** Conventional wisdom says more base learners is better. Give the two reasons it is not that simple.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Computational complexity grows with the number of learners, and diversity can start to fall as you add more -- which reduces the ensemble's accuracy. So there is an optimal subset rather than "as many as possible".
+:Q_UNIT: ens
+:END:
+
+** Choosing which base learners to include in an ensemble is an instance of which general problem?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: subset selection | density estimation | theorem proving | vector quantization
+:Q_ANSWER: subset selection
+:Q_EXPLAIN: The same problem as feature selection, and it takes the same approaches: stepwise (forward, backward, local search), wrapper-based and filter-based.
+:Q_UNIT: ens
+:END:
+
+** Walk through forward model selection, and say what makes it a wrapper method.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Start with an empty ensemble; repeatedly add the base learner from the library that is best either by individual validation performance or by the ensemble performance it produces; stop when the ensemble stops improving or the library is exhausted; return the subset. It is a wrapper because it evaluates the ensemble itself as it builds, rather than scoring models by a standalone statistic.
+:Q_STEPS: FORWARD-MODEL-SELECTION(library, validation set): | E <- empty ensemble | best <- performance of E | loop: | .  for each model M not yet in E: | .  .  score(M) <- performance of E + {M} on the validation set | .  M* <- the highest-scoring model | .  if score(M*) <= best: break | .  add M* to E; best <- score(M*) | .  if every model in the library has been examined: break | return E
+:Q_UNIT: ens
+:END:
+
+* Bagging and Random Forests
+
+** What does bagging stand for, and what gives its base learners their diversity?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Bootstrap aggregation. Each learner is trained on its own bootstrap sample, so they see different subsets of the training data and therefore disagree.
+:Q_UNIT: ens
+:END:
+
+** Describe the bagging process precisely, including the size of each sample.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Generate b bootstrap sets D_1..D_b, each of the same size |D| as the original, by sampling from D with replacement. Train base learner H_i on D_i. Combine by (weighted) majority for classification or (weighted) mean/median for regression.
+:Q_STEPS: BAGGING(D, b, learner): | for i = 1 to b: | .  D_i <- sample |D| examples from D WITH replacement | .  H_i <- learner(D_i) | return the ensemble {H_1 ... H_b} | PREDICT(x): | .  classification: (weighted) majority vote of H_i(x) | .  regression: (weighted) mean or median of H_i(x)
+:Q_UNIT: ens
+:END:
+
+** Each bootstrap training set in bagging is drawn:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: with replacement, to the same size as the original set | without replacement, to the same size as the original set | with replacement, to two-thirds the size of the original set | without replacement, to half the size of the original set
+:Q_ANSWER: with replacement, to the same size as the original set
+:Q_EXPLAIN: Sampling with replacement is what makes the samples differ while each stays the full size -- and it is why about a third of the data is left out of each tree, giving the out-of-bag estimate.
+:Q_UNIT: ens
+:END:
+
+** What kind of base learner does bagging want, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: High variance and low bias -- a decision tree is the standard example. Averaging over bootstrap samples cancels variance but cannot remove bias, so bagging wants unstable learners whose errors differ between samples.
+:Q_UNIT: ens
+:END:
+
+** Bagging is optimized when its base learners have:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: high variance and low bias | high bias and low variance | high bias and high variance | low bias and low variance
+:Q_ANSWER: high variance and low bias
+:Q_EXPLAIN: The exact mirror of boosting, which assumes weak learners with high bias and low variance. Knowing which way round each goes is the point of the pair.
+:Q_UNIT: ens
+:END:
+
+** State Breiman's definition of a random forest.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A classifier consisting of a collection of tree-structured classifiers {h(x, Theta_k), k = 1..m} where the Theta_k are independent, identically distributed random vectors, and each tree casts a unit vote for the most popular class at input x.
+:Q_UNIT: ens
+:END:
+
+** Beyond the bootstrap sample, what second source of randomness does the common random forest variant add?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A random subset of the features from which to generate each tree, so the trees differ in which features they are even allowed to split on, not just in which examples they see.
+:Q_UNIT: ens
+:END:
+
+** A random forest can be adapted to regression by replacing the unit vote with __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: averaging
+:Q_ACCEPT: the mean | averaging the predictions | the average
+:Q_EXPLAIN: The same substitution that turns any classification ensemble into a regression one.
+:Q_UNIT: ens
+:END:
+
+** Why does a random forest technically not need cross-validation?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Because of the out-of-bag samples. Each tree's bootstrap leaves part of the data unused, so those examples give an unbiased generalization estimate for that tree without a separate holdout. In practice we often still cross-validate.
+:Q_UNIT: ens
+:END:
+
+** Random forests give up interpretability entirely.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: The individual trees are simple and relatively easy to read even though the full ensemble is not, and variable importance analysis recovers a level of interpretability over the whole forest.
+:Q_UNIT: ens
+:END:
+
+** How can a random forest be used for clustering?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: By counting how often each pair of points lands in the same leaf across the set of trees. That count is a learned similarity measure, which can then be clustered.
+:Q_UNIT: ens
+:END:
+
+* Boosting
+
+** Explain what boosting does, and when it stops.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It builds the ensemble sequentially, re-weighting the training data after each learner according to how the ensemble has performed so far, so later learners concentrate on the examples that are still wrong. It stops at a tunable target number of learners, or when ensemble performance plateaus.
+:Q_UNIT: ens
+:END:
+
+** What kind of base learner does boosting assume, and why does noisy data hurt it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Weak learners with high bias and low variance. Noise hurts because the reweighting keeps raising the weight of examples that stay misclassified -- and a mislabelled example can never be got right, so boosting drives more and more of its effort into fitting the noise.
+:Q_UNIT: ens
+:END:
+
+** Boosting tends to work poorly on noisy data because it:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: over-weights the noisy examples | discards the noisy examples too early | cannot use decision trees as base learners | requires the data to be linearly separable
+:Q_ANSWER: over-weights the noisy examples
+:Q_EXPLAIN: Each round raises the weight of whatever is still wrong, and a mislabelled point is permanently wrong, so its weight escalates without bound.
+:Q_UNIT: ens
+:END:
+
+** Walk through the original three-learner boosting algorithm.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sample n_1 < n examples from D without replacement and train rho_1 on them. Build a second sample D_2 whose first half are examples rho_1 misclassified and whose second half rho_1 got right. Train rho_2 on D_2. Apply rho_1 and rho_2 to D and collect every example where they disagree as D_3; train rho_3 on it. Combine the three by majority vote.
+:Q_STEPS: BASIC-BOOSTING(D): | D_1 <- n_1 < n examples sampled from D without replacement | rho_1 <- train on D_1 | D_2 <- n_2 examples, built as: | .  first half: examples from D that rho_1 MISclassified | .  second half: examples from D that rho_1 classified correctly | rho_2 <- train on D_2 | D_3 <- every example of D where rho_1 and rho_2 DISAGREE | rho_3 <- train on D_3 | return majority vote of (rho_1, rho_2, rho_3)
+:Q_UNIT: ens
+:END:
+
+** In the original boosting algorithm, the third base learner is trained on the examples where:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the first two learners disagree | both of the first two learners are wrong | both of the first two learners are right | the first learner is wrong
+:Q_ANSWER: the first two learners disagree
+:Q_EXPLAIN: Each stage is handed the cases the previous stage found hard -- D_2 is half errors by construction, D_3 is nothing but disagreements.
+:Q_UNIT: ens
+:END:
+
+** Write how AdaBoost.M1 chooses a class, and explain the weight on each learner's vote.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(\mathit{class} = \arg\max_c \sum_{i=1}^{m} \log(1/\beta_i)\,\rho_i(x)\). Each learner's vote is weighted by log(1/beta_i), with beta_i derived from that learner's weighted error, so a low-error learner carries a large weight and one near chance carries almost none.
+:Q_UNIT: ens
+:END:
+
+** AdaBoost requires decision trees or stumps as its base learners.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It often uses them, but the algorithm only needs weak learners -- any learner better than chance will do.
+:Q_UNIT: ens
+:END:
+
+** State the core idea of gradient boosting.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Train each new base learner to be highly correlated with the negative gradient of the loss function with respect to the ensemble so far. The first learner fits the original data and every later one fits the ensemble's residuals.
+:Q_UNIT: ens
+:END:
+
+** Write the gradient boosting update and the residual it fits.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The ensemble grows as \(\hat{F}_m(x) = \hat{F}_{m-1}(x) + \gamma_m f_m(x)\), with \(\gamma_m f_m = \arg\min_{\gamma,f} \sum_i L(y_i, \hat{F}_{m-1}(x_i) + \gamma f(x_i))\). The target for f_m is the negative gradient \(r_{m,i} = -[\partial L(y_i, \hat{F}(x_i)) / \partial \hat{F}(x_i)]\) evaluated at F_{m-1}. Under squared-error loss that is just y_i - F_{m-1}(x_i), which is why "fit the residuals" and "follow the negative gradient" are the same instruction.
+:Q_STEPS: GRADIENT-BOOSTING(D, M, loss L): | F_0 <- argmin over constant f of sum_i L(y_i, f) | for m = 1 to M: | .  for each i: r_mi <- -dL(y_i, F(x_i)) / dF(x_i), evaluated at F = F_{m-1} | .  f_m <- fit a base learner to the residuals r_m | .  gamma_m <- argmin over gamma of sum_i L(y_i, F_{m-1}(x_i) + gamma f_m(x_i)) | .  F_m <- F_{m-1} + gamma_m f_m | return F_M
+:Q_UNIT: ens
+:END:
+
+** Under squared-error loss, the negative gradient that gradient boosting fits reduces to:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: the residual y_i - F_{m-1}(x_i) | the squared residual | the class label y_i | the learning rate gamma_m
+:Q_ANSWER: the residual y_i - F_{m-1}(x_i)
+:Q_EXPLAIN: Which is why the two descriptions of gradient boosting -- "fit the residuals" and "descend the gradient of the loss" -- are the same statement for that loss.
+:Q_UNIT: ens
+:END:
+
+** Distinguish XGBoost, LightGBM and CatBoost from plain gradient boosting.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: XGBoost adds regularization to the loss function. LightGBM adds one-sided sampling, cutting the training examples needed, and feature bundling, cutting the features evaluated. CatBoost omits the sample being used to train when it estimates the gradient, like a jackknife sample.
+:Q_UNIT: ens
+:END:
+
+** Which boosting variant reduces cost by one-sided sampling and feature bundling?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: LightGBM | XGBoost | CatBoost | AdaBoost.M1
+:Q_ANSWER: LightGBM
+:Q_EXPLAIN: XGBoost is the regularized one; CatBoost is the one that leaves the training sample out of its own gradient estimate.
+:Q_UNIT: ens
+:END:
+
+* Stacking
+
+** What does stacking allow that bagging and boosting do not, and how?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It combines models of different types. Bagging and boosting assume one kind of base learner; stacking trains a meta-learner over the base learners' predictions, so models with different inductive biases each contribute where they are strongest.
+:Q_UNIT: ens
+:END:
+
+** Explain the Level 0 and Level 1 models in stacking and what each is trained on.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Level 0 are the base learners, trained on the original data {(x_i, y_i)}. Level 1 is the meta-learner, whose job is to combine predictions and whose training set is (predictions, target) pairs {(f_{i,k}, y_{i,k})} -- the base learners' outputs rather than the original features.
+:Q_STEPS: STACKING(D, base learners L_1..L_m, meta learner): | // Level 0 | for k = 1 to m: | .  f_k <- L_k trained on D = {(x_i, y_i)} | // build the Level 1 training set | for each example i: | .  z_i <- (f_1(x_i), ..., f_m(x_i))   // the predictions become the features | .  pair z_i with the true label y_i | // Level 1 | F <- meta learner trained on {(z_i, y_i)} | PREDICT(x): F(f_1(x), ..., f_m(x))
+:Q_UNIT: ens
+:END:
+
+** In stacking, the Level 1 model is trained on:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: (predictions, target) pairs | the original (features, target) pairs | the residuals of the Level 0 models | a bootstrap sample of the original data
+:Q_ANSWER: (predictions, target) pairs
+:Q_EXPLAIN: The base learners' outputs are the meta-learner's input features, which is why the meta-learner can be simple even when the base learners are not.
+:Q_UNIT: ens
+:END:
+
+** What meta-model is typically used for stacking, for classification and for regression?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It can be anything, but logistic regression for classification and linear regression for regression are the usual choices. If the linear model is not sufficient, move to something more sophisticated.
+:Q_UNIT: ens
+:END:
+
+** The base learners in stacking are called Level __________ models.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 0
+:Q_ACCEPT: zero | level 0
+:Q_EXPLAIN: The meta-learner is the Level 1 model, and its whole purpose is combining the Level 0 predictions.
+:Q_UNIT: ens
+:END:
+
+* Ensembles and Overfitting
+
+** Explain the claim that ensembles are robust to overfitting, and what the regularization actually rests on.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The conventional wisdom is that all ensemble methods resist overfitting, and the regularization comes from diversity among the ensemble's members -- not from any explicit penalty. If the members stop being diverse, the protection goes with it.
+:Q_UNIT: ens
+:END:
+
+** Name the source of diversity for each of bagging, boosting, gradient boosting and stacking.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Bagging: the individual bootstrap data sets. Boosting: re-weighting the data and then weighting the base learners. Gradient boosting: combining predictions focused on the residuals. Stacking: the different inductive biases of the base learners.
+:Q_UNIT: ens
+:END:
+
+** Regularization in an ensemble comes from:
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: diversity among the ensemble members | an explicit penalty term on the combined model | early stopping of the base learners | pruning each base learner
+:Q_ANSWER: diversity among the ensemble members
+:Q_EXPLAIN: Which ties the whole module together -- diversity is the mechanism behind every method, the thing ensemble selection trades against size, and what Yule's Q and the entropy measure were defined to score.
+:Q_UNIT: ens
+:END:
