@@ -1,0 +1,117 @@
+#+TITLE: Homework 3
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Part I covers measurement structure and model diagrams for mixed models (=modeldiagramR=, =LearnVizLMM=). Part II is a group report on the class grip-strength experiment. My Part I answers are on their own page: [[file:part-1-answers.org][Homework 3 Part I Answers]].
+
+PDFs on this page:
+
+- [[file:statX12-hm3_sp26.pdf][Homework 3 handout]]
+- [[file:linse.pdf][Part I answers (first draft)]]
+- [[file:linse2.pdf][Part I answers (final)]]
+- [[file:linse_modeldiagramR.pdf][modeldiagramR output]]
+
+/STAT X12: Homework 3/
+
+Author(s): Part I (Individual) due: Friday, 4/10, 5pm, Part II (Group) due: Friday, 4/17
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE, message = FALSE)
+#+end_src
+
+* Part I - Variable Selection (turn in individually to GS, due 4/10)
+
+Read, /Data-Driven Model Structure Diagrams for Hierarchical Linear Mixed Models/ (Linse et. al, 2026). Then answer the following questions.
+
+1. (4 pts) In the matched pairs design example modeling sweat rate as a function of tattoo (yes/no) and other covariates, why does /weight/ have only an /i/ subscript, while the /indicator for no tattoo/ has an /ij/ subscript?
+
+2. (4 pts) Suppose one of your classmates shows you a diagram for the matched pairs design example modeling sweat rate as a function of tattoo (yes/no) and other covariates. In their diagram, they have /age/, which is measured just once per subject, at the observation level and they include an /ij/ subscript on /age/ in their theoretical model. Explain how ~modeldiagramR~ uses the data to generate a corrected model diagram that would help you remedy your classmate's error.
+
+3. (2 pts) Which package ~modeldiagramR~ or ~LearnVizLMM~ would have allowed you to easily check the model diagram you drew for Lab 7 (i.e., before cleaning and wrangling data)? Bonus points if you use it and provide a check on your model diagram here.
+
+For each of the scenarios below, (a) *5 pts* create a measurement structure diagram (as we've been doing in class) to describe the observations in the data set. Be sure to include columns for fixed and random effects, and well-defined subscripts; (b) *5 pts* write a theoretical model using proper notation that allows you to address the research question. Make sure all all variables and indices are well defined; and (c) *5 pts* identify and interpret model parameters that allow the researchers to address the question(s) of interest. */You may knit this lab to a word document to turn it in so that you can include photos of your neatly handwritten model structure diagrams and theoretical models if you would like (i.e., you do not need to complete the following problems in the .Rmd file)./*
+
+1. *(10 pts)* Consider a study on the impact that alcohol consumption may have on a person's IQ. Twenty-five people were recruited for this study that took place over five years. Over the course of the study, each person took twelve IQ tests at randomly selected times, with IQ scores being recorded from each (with units of "points"). At the time of each test, participants were asked to report the amount of alcohol (specifically beer) they consumed in the previous two weeks, which was then recorded as the amount of beer consumed (liters). Researchers are specifically interested in the relationship between IQ and the amount of beer consumed, after accounting for subject-to-subject variability.
+
+2. *(10 pts)* Consider a study in the US where fifteen states were selected at random. Within each state, twenty counties were selected at random for the study. Finally, fifty randomly sampled households within each county were surveyed. The political leaning of each selected county in the last presidential election (left-leaning if majority went for Biden and right-leaning if majority went for trump) was recorded along with the age of the youngest person in the household (years), and the per-person-adjusted household income (units = \$1000/person). Interest lies in if there are differences among the mean adjusted incomes for households in the US in left-leaning counties vs. those in the right-leaning counties, after accounting for the age of the youngest person in the household.
+
+* Part II - Report (turn in with your lab group to Canvas dropbox, due 4/17)
+
+*Instructions:* This part of the assignment */must be completed in your group/*. Please rotate the roles within your group from those you assumed on in previous Labs and */include a group-contribution statement as a final section to your report, briefly describing the role and/or contribution of each team member./*
+
+/Write a statistical report for the analysis you conducted in Labs 7,8, and 9. Please include all figures and tables *inline* with your writing./
+
+* Report Rubric
+
+1. *Introduction (10 pts)*
+   - Give a brief background of the research problem and description of the study design.
+   - Clearly outline the question(s) of interest you will address with the statistical analysis. The more specific you define the question of interest here, the easier the rest of the analysis is.
+2. *Statistical Procedures Used (10 pts)*
+   - This section should lay out the steps, decisions, and logic for making those decisions leading to the final model used to address questions of interest. The following should be included, and should be written up in a coherent report format.
+   - Describe the response variable and explanatory variables, the details of the study design (concept diagrams can be helpful here) identifying any design variables and describing the measurement structure of the data (if applicable).
+   - Describe the theoretical statistical model you will use to address each research question, identifying which parameters allow you to address the research question (define parameters of interest in words).
+   - Conduct EDA (exploratory data analysis) and create appropriate plots of the raw data. Describe what you learn from the plots and include figure captions for your plots.
+   - Describe any statistical procedures you will use to make inference related to the research question (e.g. two-sample t-test, analysis of variance, extra sum-of-squares F-test, etc). Be specific about which procedures (and parameters in models) are addressing which questions of interest (if there are multiple questions).
+   - Describe how you assessed assumptions, what your conclusions regarding the assumptions are, and justify your conclusions. Refer to the appropriate plots and include pertinent plots that are in addition to EDA plots (QQ-plots, residual plots, etc.)
+3. *Summary of Statistical Findings (10 pts)*
+   - Write up your /Summary of Statistical Findings/ for each question of interest. Follow examples in /The Sleuth/ and the information in /Writing a Summary of Statistical Findings/ handout.
+   - You can usually do this in two sentences: (1) Interpret the $p$-value in an "evidence" sentence and (2) provide and interpret point estimates and confidence intervals in the "it is estimated" sentence.
+   - Do NOT use the word /significant/ (the s-word) in any of its forms. Replace the s-word with words describing what you actually mean by it. Also try to avoid using the word /determine/ in the contexts of addressing questions of interest because they can never be definitively answered. Only use the word /correlation/ if you are actually calculating one!
+4. *Conclusion in context (i.e., with appropriate Scope of Inference) (10 pts)*
+   - Write a brief /Conclusion statement that includes the appropriate Scope of Inference/. See examples given in /The Sleuth/ and in the /Scope of Inference writing examples/ handout. Specifically, answer these two questions and comment on their implications:
+     1. Were the units randomly selected from some larger population? (i.e. What, if any, larger population can you infer the results to?)
+     2. Were the units randomly assigned to groups? (i.e. Are cause-and-effect statements justified?)
+   - Make sure you write the /Scope of Inference/ specific to the language of the problem (/not/ just generic statements). For example, DO NOT say "There was no randomization so cause and effect statements cannot be made." Instead, for example, say "The lizards were not randomly assigned to diets, therefore we can not conclude that the fly diet caused any increase in average weight over the lizards on the tofu diet."
+
+- *OTHER (10 pts)*:
+  - *Style*: Report must be written in complete sentences in paragraph format. Use the above four headings in your report so that it is clearly organized. Part of the grade for reports is based on writing (organization, grammar, appropriate use of statistical terms, etc.)
+  - *Length*: The body of the report should be _no more than 5 pages double spaced, including selected figures_!
+  - *Appendix*: Please include R-code (as little as is necessary) in your appendix. Use different specifications in the code chunks to hide code in the main text and show code in the appendix. For example, in the exploratory data analysis chunk, you may have the following specifications, ~```{r eda, echo = FALSE, results = "hide"}~ and the corresponding code chunk in the appendix will be exactly the same, but with a different name and different specifications, ~```{r eda-appendix, echo = TRUE, results = "asis"}~. /Note, you'll get an error when you try to compile if two code chunks have the same name, so be sure to adjust the name of the copied code chunk that goes in the appendix!/
+  - Use the comments provided on labs and homework to improve subsequent reports and assignments!
+  - _Don't forget your group collaboration/contribution statement!_
+
+* My draft conclusion for the Part II report
+
+
+There is evidence that an interaction between arm-position and hand-dominance is not likely. There does appear to be a negative impact on grip strength when testing their non-dominant hand compared to using their dominant hand. Similarly, testing grip strength with the user's arm-position to the side performed better than testing grip strength with the user's arm-position at a 90-degree angle. 
+The students were randomly assigned an order to test grip strength between the combinations of hand-dominance and arm-position, therefore we can conclude that there is a causal relationship between grip strength and combination of hand-dominance and arm-position.
+The people selected for gathering the dataset were a convenient sample of STATX12 students instead of a random selection, therefore we can only project these findings to Montana State University students in the spring 2026 semester taking STATX12 (assuming this is the only STATX12 class).
+
+* Documents
+
+** Homework 3 handout
+
+#+begin_export html
+<embed src="statX12-hm3_sp26.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Part I answers (first draft)
+
+#+begin_export html
+<embed src="linse.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Part I answers (final)
+
+#+begin_export html
+<embed src="linse2.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** modeldiagramR output
+
+#+begin_export html
+<embed src="linse_modeldiagramR.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

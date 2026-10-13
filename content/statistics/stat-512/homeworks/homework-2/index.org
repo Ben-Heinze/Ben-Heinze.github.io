@@ -1,0 +1,52 @@
+#+TITLE: Homework 2
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+- [[file:part-1.org][Part I: Variable selection]] (individual). The poem /The Blind Men and the Elephant/,
+  then a critique of the stepwise selection in Allison & Cicchetti (1976), /Sleep in Mammals/,
+  and a re-analysis of the =mammalsleep= data.
+- [[file:part-2.org][Part II: Two-way ANOVA analysis]] (group). A report on the 2024 Big Sky Biggie
+  30-mile mountain-bike race data.
+
+PDFs on this page:
+
+- [[file:hw2-part1-handout.pdf][Part I handout]]
+- [[file:hw2-part1-submission.pdf][Part I submission]]
+- [[file:hw2-part2-group.pdf][Part II handout]]
+- [[file:allison-cicchetti-1976-sleep-in-mammals.pdf][Allison & Cicchetti (1976), Sleep in Mammals]]
+
+* Documents
+
+** Part I handout
+
+#+begin_export html
+<embed src="hw2-part1-handout.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Part I submission
+
+#+begin_export html
+<embed src="hw2-part1-submission.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Part II handout
+
+#+begin_export html
+<embed src="hw2-part2-group.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Allison & Cicchetti (1976), Sleep in Mammals
+
+#+begin_export html
+<embed src="allison-cicchetti-1976-sleep-in-mammals.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

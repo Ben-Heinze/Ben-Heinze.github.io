@@ -1,0 +1,21 @@
+#+TITLE: Homeworks
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+No Homework 1 files were in the course folder.
+
+| Homework              | Due           | Topic                                                                                |
+|-----------------------+---------------+--------------------------------------------------------------------------------------|
+| [[file:homework-2/index.org][Homework 2]]            | Feb 13        | Variable selection (Part I) and a two-way ANOVA group report (Part II)               |
+| [[file:homework-3/index.org][Homework 3]]            | Apr 10 and 17 | Mixed-model structure (Part I) and the grip-strength group report (Part II)          |
+| [[file:homework-4/index.org][Homework 4]]            |               | Handout only                                                                         |

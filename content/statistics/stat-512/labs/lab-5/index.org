@@ -1,0 +1,256 @@
+#+TITLE: Lab 5
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Linear contrasts on the seaweed grazers additive model, reported on the regeneration-ratio (odds) scale, plus multiple-comparison adjustments.
+
+PDFs on this page:
+
+- [[file:lab5-handout.pdf][Lab 5 handout]]
+- [[file:lab5-turned-in.pdf][Lab 5 as turned in]]
+
+/STAT X12: Lab Assignment #5/
+
+Author(s): Clair Haags, Ben Heinze, Charlie Metzer
+
+Due Wednesday, 3/4/26, *8am*
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      include = TRUE,
+                      eval= TRUE
+                      )
+options(show.signif.stars = FALSE) #suppresses significance stars in output
+#+end_src
+
+* Part I: grazer contrasts wrap up
+
+For this part of the lab you will need to use the seaweed grazer data, ~case1301~ in ~Sleuth3~ to address questions (1) and (2) below. Although you can set up the contrasts without looking at the data, you'll need to (1) transform the ~Cover~ variable to create the "logit-regeneration ratio" response variable, (2) fit the final inferential model (in this case that is the additive model), (3) write code to estimate contrasts and generate 95% CIs for the true contrast, and (4) write up a summary of statistical findings /on the odds/"regeneration ratio" scale/.
+
+#+NAME: load-pkg
+#+begin_src R
+# load packages 
+library(tidyverse)
+library(Sleuth3)
+library(ggeffects)
+library(effects)
+library(multcomp)
+library(yarrr)
+library(emmeans)
+library(catstats)
+# seaweed grazer data
+glimpse(case1301)
+
+#+end_src
+
+1. Specify, analyze, and write up results from the contrast that allows you to investigate. Your summary should include a description of the contrast, a hypothesis test, and an interpretation of the 95% CI for the contrast of interest. /Do small fish have an effect on the regeneration ratio? If so, how much?/
+
+#+NAME: small-fish
+#+begin_src R
+df_grazers_logit <- case1301 |>
+  mutate(CoverLogit = log(Cover/(100-Cover)))
+
+lm_add <- lm(CoverLogit ~ Treat + Block, data=df_grazers_logit)
+
+levels(case1301$Treat)
+
+emm_grazers_logit <- emmeans(lm_add, specs = ~Treat)
+
+f_int <- c(-.5, -.5, .5, 0, .5, 0)
+
+gam2 <- contrast(emm_grazers_logit, list(gamma2 = f_int))
+
+gam2
+confint(gam2)
+#+end_src
+
+*To create the contrast, we need to analyze the possible ways to isolate the effect of small fish on the regeneration ratio. There are two possible ways, shown in the equation below.*
+
+$$\gamma_2 =  \frac{1}{2}(\mu_{Lf} - \mu_{L}) + \frac{1}{2}(\mu_{f} - \mu_{C})$$
+
+*Our null hypothesis is that small fish do not have an effect on the regeneration ratio. The alternative hypothesis is that small fish have some effect on the regeneration ratio. We are 95% confident that the median odds of regeneration associated with the presence of small fish is between 0.5011 and 0.9089 times that of the regeneration ratio without small fish.*
+
+2. Specify, analyze, and write up results from the contrast that allows you to investigate. Your summary should include a description of the contrast, a hypothesis test, and an interpretation of the 95% CI for the contrast of interest. /Do limpets have an effect on the regeneration ratio? If so, how much?/
+
+#+NAME: limpets
+#+begin_src R
+f_int2 <- c((-1/3), (1/3), (1/3), (1/3), (-1/3), (-1/3))
+
+gam3 <- contrast(emm_grazers_logit, list(gamma3 = f_int2))
+
+gam3
+confint(gam3)
+#+end_src
+
+*To create the contrast, we need to analyze the possible ways to isolate the effect of limpets on the regeneration ratio. There are three possible ways, shown in the equation below.*
+
+$$\gamma_3 = \frac{1}{3}(\mu_{LfF} - \mu_{fF}) + \frac{1}{3}(\mu_{Lf} - \mu_{f}) + \frac{1}{3}(\mu_{L} - \mu_{C})$$
+
+*Our null hypothesis is that limpets do not have an effect on the regeneration ratio. The alternative hypothesis is that limpets have some effect on the regeneration ratio. We are 95% confident that the median odds of regeneration associated with the presence of limpets is between 0.126 and 0.204 times that of the regeneration ratio without limpets.*
+
+* Part II: More practice and other follow-up tests
+
+We will use ~ex1321~ in ~Sleuth3~: "A data set simulated to match the summary statistics and conclusions from Rosenthal and Jacobson's Pygmalion study on elementary school students. The researchers assigned students at random to a Pygmalion or control treatment group. They supplied information to the teachers of those in the Pygmalion group with the false information that an intelligence test had indicated that the student was likely to excel." Student participants were given a standardized "intelligence" test at the beginning and end of the school year and their gain (post-pre) test was recorded. This was done for grades 1-6.
+
+- Rosenthal, R. and Jacobson, L. 1968, /Pygmalion in the Classroom: Teacher Expectation and Pupil's Intellectual Development/, Holt, Rinehart, and Winston, Inc.
+
+#+NAME: pyg-data
+#+begin_src R
+# rename data 
+df_pyg <- ex1321
+#Converted grade to a categorical variable for raw data plot
+df_pyg$Grade_fact <- as.factor(df_pyg$Grade)
+
+glimpse(df_pyg)
+#+end_src
+
+3. Write out a two-way ANOVA model that allows you to /investigate the Pygmalian effect on mean gain score and if this relationship is different for different grade levels./ Use the following variable definitions, and don't forget the model for the variance around the group means!
+
+- Define $I_{g}$ = 1 if student is in group /g/, and 0 if student is not in group /g/ for $g = G1,G2,G3,G4,G5,G6$
+- Define $I_{trt} = 1$ if student is in treatment group /trt/, and 0 if student is not in treatment group /trt/, where $trt = Pygmalian, Control$.
+- Gain = gain score on standardized "intelligence" test (post-pre) in points.
+
+$$\mu\{\text{Gain} \mid \text{ Grade, Treatment} \} =
+\beta_0 + \beta_1 I_{2}+ \beta_2 I_{3} + \beta_3 I_{4} + \beta_4 I_{5}+ \beta_5 I_{6}
+- \beta_6 I_{trt} + \beta_7 I_{2} I_{trt}+ \beta_8 I_{3} I_{trt} + \beta_9 I_{4} I_{trt} + \beta_{10} I_{5} I_{trt}+ \beta_{11} I_{6}I_{trt} $$
+
+$$\varepsilon_i {\sim} \mathcal{N}(0, \sigma^2)$$
+
+4. Create a raw data display and interaction plot for these data that allows you to investigate the Pygmalian effect on gain score, and if this relationship is different for the different grade levels studied. Provide a brief description of each plot with respect to how the plot helps you informally assess model assumptions or the presence of an interaction.
+
+#+NAME: data-viz
+#+begin_src R
+
+ggplot(df_pyg, aes(x = Grade_fact, y = Gain)) +
+  geom_violin() +
+  geom_jitter(aes(color = Treatment), width = 0.2, size = 1.5, alpha = 0.7) +
+  labs(x = "Grade",
+       y = "Gain (post-pre)",
+       title= "Violin Plot of Falsified Intelligence Test Student Gains Across Different Grades")
+#+end_src
+
+*The violin plot illustrating that shows each student’s grade, gain in scores, and treatment doesn’t seem to show much effect on gain from my observation. But grades 1, 2, and 5 show outliers towards increase in gain that primarily are Pygmalion students. Grade 1 shows a left skew while the other grades appear to lean towards a right skew with the exception of Grade 6 which shows now skew, just heavy tails. The mean gain does appear to be highest in grade 1, then slowly decreases from there until grade 5 where it seems to jump up again. Observing this violin plot helps us to get an initial idea of patterns in the data that we wouldn’t be able to see without the raw plots. This can help us better look for relationships in our data as we continue with statistical procedures.*
+
+#+begin_src R
+intplot(Gain~ Treatment * Grade_fact, data=df_pyg)
+#+end_src
+
+*The interaction plot shows that there isn’t a consistent difference between control and Pygmalion groups between grade levels. This is illustrated by the nonparallel lines in the control and Pygmalion groups. When we look at this plot, we can see that there are differences in effects between grades and that helps us to informally assess that there may be an interaction needed to assess this model properly.*
+
+*The interaction plot shows that there isn’t a consistent difference between control and Pygmalion groups between grade levels. This is illustrated by the nonparallel lines in the control and Pygmalion groups. When we look at this plot, we can see that there are differences in effects between grades and that helps us to informally assess that there may be an interaction needed to assess this model properly.*
+
+5. Fit the saturated model and create residual diagnostics. Assuming there are no severe violations of the independence assumption, do the residual diagnostics suggest any severe violations of other TWA modeling assumptions? Briefly explain your answer.
+
+#+NAME: fit-sat
+#+begin_src R
+lm_int <- lm(Gain ~ Grade_fact*Treatment, data= df_pyg)
+par(mfrow = c(2,2))
+plot(lm_int, pch = 18)
+#+end_src
+
+*When observing the residual diagnostics plots, there don’t appear to by any severe violations to linearity, constant variance, normality, or influential observations. No fanning patterns are evident in the residuals vs. fitted plot or the scale location, and no points fall outside of Cook’s distance in the residuals vs leverage plot. Only slight deviations from the line of normality appear in the normal Q-Q plot, but they aren’t severe enough to violate assumptions.*
+
+6. Regardless of your answer to the previous question, conduct a hypothesis test that allows you to investigate if the Pygmalion effect depends on grade level. Write a summary of statistical findings for your test. /Note there are two ways you can approach this problem!/
+
+#+NAME: test
+#+begin_src R
+lm_add <- lm(Gain ~ Grade_fact+Treatment, data= df_pyg)
+anova(lm_add, lm_int)
+
+anova(lm_int)
+#+end_src
+
+*There is little evidence against the null hypothesis that there is no effect of the Pygmalion effect between grade levels. (F=1.9211, coming from* $f_{1,308}$ *under* $H_0$*p-val = 0.09201)*
+
+7. Regardless of your answer to the previous question, suppose the researchers believe the Pygmalion effect should depend on grade level. Create an effects plots summarizing the most appropriate model in this case. Reference Display 13.21 and the discussion around "unpacking non-additive relationships" and provide a description of how grade and treatment interact in the context of this study.
+
+#+begin_src R
+plot(effect("Grade_fact:Treatment", lm_int))
+
+library(ggeffects)
+plot(ggpredict(lm_int, terms=c("Treatment", "Grade_fact"))) + 
+  geom_line(lty=2)
+#+end_src
+
+*The effects plot facets the difference between gain in scores from the control groups to the Pygmalion groups across differing grades. This plot shows that younger grades show a greater impact of being in a Pygmalion group than there appears to be from students in the upper grades presented in this study. Grades 3, 5, and 6 specifically seem to show little to no difference between control groups and Pygmalion groups. In general, it also appears that the control groups show a smaller deviation than what is seen in Pygmalion groups..*
+
+8. Generally, in the presence of an interaction, contrasts and linear combinations of marginal means of a single factor are useless. Comparing the marginal mean response between levels of factor A that are averaged over factor B (or visa versa) does not make sense because the relationship between the response and levels of factor A depends on the level of factor B! We can, however conduct contrasts on a flattened interaction variable that generates a level for every cell mean in the two-way table (most interesting). Or, we can investigate all pairwise comparisons of cell means (a bit lazy and not as interesting). We will choose the lazy route here. /Walk through the code line-by-line discussing each step with your group./ */To answer this question, summarize what you learn about differences between the 12 groups from this "all-pairwise comparisons" Tukey HSD follow-up test./*
+
+#+begin_src R
+# create a flattened treatment variable with 12 levels
+df_flat <- df_pyg |> 
+  mutate(flat_trt = factor(interaction(Grade, Treatment)))
+
+# plot the raw data
+pirateplot(Gain ~ flat_trt, data = df_flat, 
+           inf.method = "ci", inf.disp = "line", pal = "gray")
+# fit a one-way ANOVA with the flattened trt variable
+pyg_oneway <- lm(Gain ~ flat_trt, data = df_flat)
+
+# take a look at results
+summary(pyg_oneway)$coefficients
+# what does this one-way ANOVA tell us? Discuss with your group
+anova(pyg_oneway)
+
+# conduct Tukey HSD procedure to compare all 
+# pairwise comparisons of means: note there are choose(12,2) = 66 comparisons!
+# generate family-wise 95% CIs (using studentized range dist'n to adjust multiplier
+pyg_pairs <- glht(pyg_oneway, linfct = mcp(flat_trt = "Tukey"))
+summary(pyg_pairs)
+# plot results, discuss what you see with your group.
+old.par <- par(mai = c(1.5,2,1,1)) 
+plot(confint(pyg_pairs))
+
+# maybe the cld will help us put what we're seeing here into words.
+# you can add these letters to the effects plot you created in 7 
+# to help put into words what is learned from this investigation. 
+cld(pyg_pairs)
+
+# let's put the letters on an effects plot 
+cld_label <- cld(pyg_pairs)$mcletters$Letters
+
+# create df for cld letters
+df_cld <- df_flat |> 
+  group_by(flat_trt) |> 
+  summarise(avg_gain = mean(Gain), n = n()) |> 
+  mutate(cld = cld_label)
+
+# create effects plot and add cld letters
+plot(ggpredict(pyg_oneway, terms = c("flat_trt"))) +
+  labs(title = "Predicted values of Gain Scores and CLD ouptut", 
+       x = "", 
+       y = "Gain (post-pre in points)") + 
+  geom_label(data = df_cld, 
+             mapping = aes(x = as.numeric(flat_trt), y = avg_gain, 
+                           label = cld_label)) 
+#+end_src
+
+*When observing this Tukey HSD follow-up test we can see that with a 95% confidence interval there isn’t a detectable difference between control and Pygmalion groups in any of the grades. However, there are some detectable differences between grades 1 and 4 in the control group and between grades 1 compared to 3 and 4 in the Pygmalion group.*
+
+* Documents
+
+** Lab 5 handout
+
+#+begin_export html
+<embed src="lab5-handout.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Lab 5 as turned in
+
+#+begin_export html
+<embed src="lab5-turned-in.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

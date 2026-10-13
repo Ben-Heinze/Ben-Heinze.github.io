@@ -1,0 +1,80 @@
+#+TITLE: Binary Intro Worksheet
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Intro to binary logistic regression with the Donner Party data (Sleuth case 20.1): fitting =glm(..., family = "binomial")=, effects plots on the logit and probability scales, and drop-in-deviance tests.
+
+PDFs on this page:
+
+- [[file:binary-intro-worksheet.pdf][Binary logistic regression worksheet]]
+
+#+begin_src R
+options(show.signif.stars = FALSE)
+library(Sleuth3)
+library(tidyverse)
+# rename dataframe 
+donner_df <- case2001
+glimpse(donner_df) 
+
+# create new variables to match text
+df_donner <- donner_df |> 
+  mutate(fem = factor(ifelse(Sex == "Female", 1, 0)), 
+         surv = factor(ifelse(Status == "Survived", 1, 0)))
+# check new vars
+glimpse(df_donner)
+
+# fit binary logistic regression model 
+fit_donner <- glm(surv ~ Age + fem, 
+                  data = df_donner, family = "binomial") 
+summary(fit_donner)
+#+end_src
+
+#+begin_src R
+# # library effects package
+# library(effects)
+# # "effects" plot on the tranformed scale
+# plot(allEffects(fit_donner))
+# 
+# # on the original scale
+# library(ggeffects)
+# plot(ggpredict(fit_donner, terms = c("Age", "fem")),
+#      show_data = TRUE)
+# # using the effects package
+# plot(allEffects(fit_donner), type = "response")
+#+end_src
+
+#+begin_src R
+# fit the interaction (full) model
+fit_dint <- glm(surv ~ fem*Age, data = df_donner, 
+                family = "binomial")
+# Wald-based tests are provided in summary output for 
+# testing beta_j = 0 for just one beta. Which beta is assoc with the interaction? 
+summary(fit_dint)
+qnorm(p = 0.975)
+#+end_src
+
+#+begin_src R
+# LRT is
+anova(fit_donner, fit_dint)
+confint(fit_dint)
+exp(confint(fit_dint))
+#+end_src
+
+* Documents
+
+** Binary logistic regression worksheet
+
+#+begin_export html
+<embed src="binary-intro-worksheet.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

@@ -1,0 +1,39 @@
+#+TITLE: Textbook
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Ramsey, F. and Schafer, D. (2013). /The Statistical Sleuth: A Course in Methods of
+Data Analysis/, 3rd ed. Brooks/Cole.
+
+This page is marked private, so it only shows up under =just run= and is left
+off the deployed site.
+
+The book split into parts, grouped by the chapter folders they came in. Part 19
+was not in the course folder.
+
+| Chapter | PDFs |
+|---------+------|
+| 1-11    | [[file:sleuth-ch1-11-part01.pdf][part 1]] |
+| 12      | [[file:sleuth-ch12-part02.pdf][part 2]], [[file:sleuth-ch12-part03.pdf][part 3]] |
+| 13      | [[file:sleuth-ch13-part04.pdf][part 4]], [[file:sleuth-ch13-part05.pdf][part 5]] |
+| 14      | [[file:sleuth-ch14-part06.pdf][part 6]], [[file:sleuth-ch14-part07.pdf][part 7]] |
+| 15      | [[file:sleuth-ch15-part08.pdf][part 8]], [[file:sleuth-ch15-part09.pdf][part 9]] |
+| 16      | [[file:sleuth-ch16-part10.pdf][part 10]], [[file:sleuth-ch16-part11.pdf][part 11]] |
+| 17      | [[file:sleuth-ch17-part12.pdf][part 12]], [[file:sleuth-ch17-part13.pdf][part 13]] |
+| 18      | [[file:sleuth-ch18-part14.pdf][part 14]] |
+| 19      | [[file:sleuth-ch19-part15.pdf][part 15]], [[file:sleuth-ch19-part16.pdf][part 16]] |
+| 20      | [[file:sleuth-ch20-part17.pdf][part 17]], [[file:sleuth-ch20-part18.pdf][part 18]] |
+| 21      | [[file:sleuth-chapter-21.pdf][chapter 21]] |
+| 21-end  | [[file:sleuth-ch21-end-part20.pdf][part 20]] |
+
+The whole book in one file: [[file:statistical-sleuth-3e-full.pdf][statistical-sleuth-3e-full.pdf]] (74 MB).

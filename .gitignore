@@ -4,3 +4,6 @@ public/
 .claude/
 CLAUDE.md
 **/Rplots.pdf
+
+# Statistical Sleuth textbook PDFs: copyrighted and ~140 MB, kept local only
+content/statistics/stat-512/textbook/*.pdf

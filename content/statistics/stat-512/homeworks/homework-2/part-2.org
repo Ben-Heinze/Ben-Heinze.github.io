@@ -1,0 +1,164 @@
+#+TITLE: Homework 2 Part II
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Part II: group report on the 2024 Big Sky Biggie mountain-bike race data. The =df_biggie30clean.csv= file was not among the course files. Back to [[file:index.org][Homework 2]].
+
+PDFs on this page:
+
+- [[file:hw2-part2-group.pdf][Part II handout]]
+
+/STAT X12: Homework 2 (Group component)/
+
+Author(s): ALL PARTICIPATING GROUP MEMBER NAMES HERE
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE, message = FALSE)
+options(show.signif.stars = FALSE)
+#+end_src
+
+* Part II - Two-way ANOVA analysis (turn in with your lab group)
+
+*Instructions:* This part of the assignment */must be completed in your group/*. Please rotate the roles within your group from those you assumed on in previous Labs and */include a group-contribution statement as a final section to your report, briefly describing the role and/or contribution of each team member./*
+
+Data from the 2024 Big Sky Biggie 30-mile Mountain bike race [[https://bigskybiggie.com/][https://bigskybiggie.com/]] are provided on the course webpage as df_biggie30clean.csv. The variables in the data set are,
+
+- ~Place~: Overall place in the race 
+- ~Name~: participant's name
+- ~City~: participant's home city 
+- ~State~: participant's home state 
+- ~Gender~: participant's gender (recorded as binary M, F)
+- ~Pace~: average pace (mph)
+- ~age_group~: participant's age group (< 19, 19-29, 30-39, 40-49, 50+)
+- ~Bib~: bib number 
+- ~Age~: Age in years 
+- ~mph~: average miles per hour (mph)
+- ~tot_time~: total time in minutes 
+- ~finish_time~: time crossing the finish line (MST) 
+
+/Write a statistical report investigating the relationship between age group and total time to complete the race, and if this relationship differs across gender. Also address the following questions: which age groups are the fastest within each gender? The slowest within each gender? How much faster, on average, is the fastest group compared to the average time of all other groups./ The following code will get you started, but you'll have to write code to refine your model (including assessing diagnostics), and summarize results from your final inferential model (/hint:/ this will include contrasts!).
+
+#+begin_src R
+# load packages
+library(pander)
+library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(emmeans)
+
+# load data (note you may need to change the path). The path below indicates 
+# the dataset is in a data folder that exists in the folder where this .Rmd is 
+# saved.
+df_biggie <- read_csv("df_biggie30clean.csv")
+glimpse(df_biggie)
+
+# there are some racers who dropped (i.e., did not finish)
+# let's remove them from the analysis 
+df_big <- df_biggie |> 
+  filter(Place != "Drop")
+
+# compare the number of rows in df_biggie and df_big to see how many racers 
+# dropped
+glimpse(df_big)
+
+# lets look at some summary statistics
+summ_table <- df_big |> 
+  group_by(age_group, Gender) |> 
+  summarise(
+    avg_time = mean(tot_time), 
+    sd_time = mean(tot_time), 
+    n_group = n()
+  )
+# think about what the code above did and what it tells you about 
+summ_table
+
+# make fancy table output that goes directly in a markdown file
+pander::pander(summ_table, caption = "YOUR CAPTION HERE")
+
+# make a raw data and summary plots
+summ_table |> 
+  ggplot(aes(x = age_group, y = avg_time, group = Gender, colour = Gender)) + 
+  geom_line() +
+  geom_point() + 
+  labs(x = "Age Group",
+       y = "Average Time (Min)",
+       title = "Big Sky Biggie Average Time by Age Group")
+
+# start with saturated model to test for additivity and iterate 
+# until you settle on a final model for inference. Be sure to assess assumptions!
+biggie_int <- lm(tot_time ~ age_group * Gender, data = df_big)
+biggie_add <- lm(tot_time ~ age_group + Gender, data = df_big)
+anova(biggie_add, biggie_int)
+
+par(mfrow = c(2,2))
+plot(biggie_add, pch = 18)
+
+# conduct follow up tests and/or find CIs for contrasts to address secondary questions
+
+emm_biggie <- emmeans(biggie_add, specs = ~age_group)
+emm_biggie
+
+# create plots to summarize findings
+#+end_src
+
+* Statistical Procedures Used
+
+/*Since our research question investigates the relationship between age group and total time to complete the Big Sky Biggie 30-mile Mountain bike race and whether or not gender effects the outcome, this told us that that total time, age group, and gender should be in the model. We created two models, an additive model and an interaction model using total time it took each rider to complete the race in minutes as the response variable, and age group and gender being the two explanatory variables. The data collection did not include any design variables that contributed to describe the measurement structure of the data. Using a type 1 anova test, we tested for an interaction between age group and gender. The null hypothesis is that there is no evidence of interaction between age group and gender, and the alternative hypothesis is that there is some evidence of interaction between age group and gender. After conducting the type 1 anova test, there is weak evidence against there being no evidence of interaction between age group and gender, which means we will use the additive model to address the prompted research questions. */
+
+-----
+$$\hat{\mu}\{ \text{Total Time} \mid \text{age group, gender}\} = \text{AGE_GROUP + GENDER}$$
+$$\hat{\mu}\{\text{total time} \mid \text{age group, gender}\} = \beta_0 + \beta_1 I_{19-29}+ \beta_2 I_{30-39} + \beta_3 I_{40-49}+ \beta_4 I_{50+} + \beta_5 I_{m} $$
+
+*The statistical procedures used to make inference related to our research questions include an analysis of variance*
+
+*It is possible that some of the racers have connections between one another, and although the Big Sky Biggie website does not disclose any potential relationship between racers (i.e family members, friends, coworkers), we have no reason to believe the data is dependent on one another. The residuals vs fitted plot illustrates weak evidence against linearity, however, it also shows strong evidence against constant variance which is shown by the fanning behavior that widens around 240-260 units. Since the Q-Q plot shows the data points closely following the line of normality with minimal deviation on the lower and upper tail, there is weak evidence against normality. Finally, the residuals vs leverage plot does not exhibit any influential points as no points have a Cook's distance  greater than or equal to 0.5.*
+
+* Report Rubric
+
+1. *Introduction (10 pts)*
+   - Give a brief background of the research problem and description of the study design.
+   - Clearly outline the question(s) of interest you will address with the statistical analysis. The more specific you define the question of interest here, the easier the rest of the analysis is.
+2. *Statistical Procedures Used (10 pts)*
+   - This section should lay out the steps, decisions, and logic for making those decisions leading to the final model used to address questions of interest. The following should be included, and should be written up in a coherent report format.
+   - Describe the response variable and explanatory variables, the details of the study design (concept diagrams can be helpful here) identifying any design variables and describing the measurement structure of the data (if applicable).
+   - Describe the theoretical statistical model you will use to address each research question, identifying which parameters allow you to address the research question (define parameters of interest in words).
+   - Conduct EDA (exploratory data analysis) and create appropriate plots of the raw data. Describe what you learn from the plots and include figure captions for your plots.
+   - Describe any statistical procedures you will use to make inference related to the research question (e.g. two-sample t-test, analysis of variance, extra sum-of-squares F-test, etc). Be specific about which procedures (and parameters in models) are addressing which questions of interest (if there are multiple questions).
+   - Describe how you assessed assumptions, what your conclusions regarding the assumptions are, and justify your conclusions. Refer to the appropriate plots and include pertinent plots that are in addition to EDA plots (QQ-plots, residual plots, etc.)
+3. *Summary of Statistical Findings (10 pts)*
+   - Write up your /Summary of Statistical Findings/ for each question of interest. Follow examples in /The Sleuth/ and the information in /Writing a Summary of Statistical Findings/ handout.
+   - You can usually do this in two sentences: (1) Interpret the $p$-value in an "evidence" sentence and (2) provide and interpret point estimates and confidence intervals in the "it is estimated" sentence.
+   - Do NOT use the word /significant/ (the s-word) in any of its forms. Replace the s-word with words describing what you actually mean by it. Also try to avoid using the word /determine/ in the contexts of addressing questions of interest because they can never be definitively answered. Only use the word /correlation/ if you are actually calculating one!
+4. *Conclusion in context (i.e., with appropriate Scope of Inference) (10 pts)*
+   - Write a brief /Conclusion statement that includes the appropriate Scope of Inference/. See examples given in /The Sleuth/ and in the /Scope of Inference writing examples/ handout. Specifically, answer these two questions and comment on their implications:
+     1. Were the units randomly selected from some larger population? (i.e. What, if any, larger population can you infer the results to?)
+     2. Were the units randomly assigned to groups? (i.e. Are cause-and-effect statements justified?)
+   - Make sure you write the /Scope of Inference/ specific to the language of the problem (/not/ just generic statements). For example, DO NOT say "There was no randomization so cause and effect statements cannot be made." Instead, for example, say "The lizards were not randomly assigned to diets, therefore we can not conclude that the fly diet caused any increase in average weight over the lizards on the tofu diet."
+
+- *OTHER (10 pts)*:
+  - *Style*: Report must be written in complete sentences in paragraph format. Use the above four headings in your report so that it is clearly organized. Part of the grade for reports is based on writing (organization, grammar, appropriate use of statistical terms, etc.)
+  - *Length*: The body of the report should be _no more than 5 pages double spaced, including selected figures_!
+  - *Appendix*: Please include R-code (as little as is necessary) in your appendix. Use different specifications in the code chunks to hide code in the main text and show code in the appendix. For example, in the exploratory data analysis chunk, you may have the following specifications, ~```{r eda, echo = FALSE, results = "hide"}~ and the corresponding code chunk in the appendix will be exactly the same, but with a different name and different specifications, ~```{r eda-appendix, echo = TRUE, results = "asis"}~. /Note, you'll get an error when you try to compile if two code chunks have the same name, so be sure to adjust the name of the copied code chunk that goes in the appendix!/
+  - Use the comments provided on labs and homework to improve subsequent reports and assignments!
+  - _Don't forget your group collaboration/contribution statement!_
+
+* Documents
+
+** Part II handout
+
+#+begin_export html
+<embed src="hw2-part2-group.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

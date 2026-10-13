@@ -1,0 +1,192 @@
+#+TITLE: Chapter 12 Activity
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+In-class exploration of variable selection on the Sleuth case study 12.1 (state SAT scores): transformations, influential points (Alaska), sequential selection by hand, and all-subsets selection with =MuMIn=. The code below is the R script for the activity.
+
+PDFs on this page:
+
+- [[file:ch12-exploration-sat.pdf][Chapter 12 exploration handout]]
+
+#+NAME: q1
+#+begin_src R
+options(show.signif.stars = FALSE) 
+library(tidyverse)
+library(Sleuth3)
+sat <- case1201
+# ? case1201 and see text for more descriptions of variables
+glimpse(sat)
+#+end_src
+
+#+NAME: q2
+#+begin_src R
+library(GGally)
+library(Sleuth3)
+sat <- case1201
+ggpairs(sat[,c(8:2)])
+#+end_src
+
+#+NAME: q3
+#+begin_src R
+# note you may need to install patchwork 
+# install.packages("patchwork")
+library(patchwork)
+df_sat <- sat |> 
+  mutate(ltakers = log(Takers))
+
+# create scatterplot for SAT vs. ltakers 
+p1 <- ggplot(df_sat, aes(x = ltakers, y = SAT)) + 
+  geom_point() +
+  theme_bw()
+
+# create scatterplot for expenditures with labels as state names
+p2 <- ggplot(df_sat, 
+             aes(x = Expend, y = SAT, label = State)) +
+  geom_smooth(method = "lm") + 
+  geom_label(alpha = 0.5)  +
+  theme_bw()
+
+# does the relationship between log(takers) and SAT appear more linear? 
+# does Alaska have high leverage? large residual? 
+# Do you think it will have high Cook's d? 
+p1 + p2
+#+end_src
+
+#+NAME: q4
+#+begin_src R
+# compare residual plots with AK
+sat_all <- lm(SAT ~ log(Takers) + Rank + Income +
+            Years + Public + Expend , 
+          data = sat)
+# without AK
+sat_red <- lm(SAT ~ log(Takers) + Rank + Income +
+            Years + Public + Expend, 
+          data = sat[-29, ])
+# plot all in one window
+par(mfrow = c(2,4))
+plot(sat_all)
+plot(sat_red)
+#+end_src
+
+#+NAME: q5
+#+begin_src R
+# forward selection approach, want to consider all but 
+# two vars we want in model
+m1 <- lm(SAT ~ log(Takers) + Rank, 
+           data = sat[-29,])
+# Mcand1
+mcand1 <- lm(SAT ~ log(Takers) + Rank + Expend, 
+           data = sat[-29,])
+anova(m1, mcand1)
+
+# Mcand2
+mcand2 <- lm(SAT ~ log(Takers) + Rank + Income, 
+           data = sat[-29,])
+
+anova(m1, mcand2)
+
+
+mcand3 <- lm(SAT ~ log(Takers) + Rank + Years, 
+             data = sat[-29,])
+anova(m1, mcand3)
+
+mcand4 <- lm(SAT ~ log(Takers) + Rank + Public, 
+             data = sat[-29,])
+anova(m1, mcand4)
+
+
+# Mcand5
+mcand5 <- lm(SAT ~ log(Takers) + Rank + Expend + Public, 
+             data = sat[-29,])
+anova(mcand1, mcand5)
+
+# Mcand6
+mcand6 <- lm(SAT ~ log(Takers) + Rank + Expend + Years, 
+             data = sat[-29,])
+anova(mcand1, mcand6)
+#+end_src
+
+#+NAME: q6
+#+begin_src R
+# fit_forward <- step(lm(SAT ~ log(Takers) + Rank,
+#                        data = sat[-29,]),
+#                     scope = SAT ~ log(Takers) +
+#                       Income + Years + Public +
+#                       Expend + Rank,
+#                     direction = "forward")
+# summary(fit_forward)
+
+
+# ----q7a, eval = FALSE------------------------------------------------------------------------------------
+ fit_backward <- step(lm(SAT ~ log(Takers) + Income + Years +
+                                  Public + Expend + Rank,
+                         data = sat), direction = "backward")
+ 
+ summary(fit_backward)
+#+end_src
+
+#+NAME: q7b
+#+begin_src R
+ fit_step <- step(lm(SAT ~ log(Takers) + Rank,
+                     data = sat),
+                  scope = SAT ~ (log(Takers) +
+                                   Income + Years +
+                                   Public + Expend + Rank),
+                  direction = "both")
+ summary(fit_step)
+#+end_src
+
+#+NAME: all-subsets
+#+begin_src R
+# make dataset that removes alaska 
+sat2 <- df_sat[-29, ]
+full_model <- lm(SAT ~ ltakers + Income + Years + 
+                   Public + Expend + Rank, 
+                 data = sat2)
+summary(full_model)
+#+end_src
+
+#+NAME: mumin
+#+begin_src R
+# load MuMIn
+library(MuMIn) 
+# ensure all models use the same data 
+# need to run to use dredge function
+options(na.action = "na.fail") 
+
+# defaults to AICc for criterion, set to BIC
+allSubsets_sat <- dredge(full_model, rank = "BIC") 
+
+# number of rows is = # models in model set
+dim(allSubsets_sat) 
+
+# look at top set of models with diff in BIC < 6 from "top" model
+subset(allSubsets_sat, delta <6)
+#+end_src
+
+#+NAME: mumin-plot
+#+begin_src R
+# visualize same summary as above
+par(mar = c(3,5,6,4))
+plot(subset(allSubsets_sat,delta < 6), 
+     labAsExpr = TRUE)
+#+end_src
+
+* Documents
+
+** Chapter 12 exploration handout
+
+#+begin_export html
+<embed src="ch12-exploration-sat.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

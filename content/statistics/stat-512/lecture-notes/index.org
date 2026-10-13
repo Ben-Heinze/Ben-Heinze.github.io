@@ -1,0 +1,60 @@
+#+TITLE: Lecture Notes
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Class notes and handouts that aren't tied to a single lab or homework.
+
+PDFs on this page:
+
+- [[file:writing-a-scope-of-inference.pdf][Writing a scope of inference]] (handout)
+- [[file:chapter-18-19-notes.pdf][Chapter 18-19 notes]]
+- [[file:annotated-chapters-18-19.pdf][Chapter 18-19 notes, annotated]]
+- [[file:chapter-19-odds-ratio-ci.pdf][Chapter 19: odds ratio confidence interval]]
+
+* Chapters 18-19: odds ratios
+
+From page 7 of the chapter 18-19 notes. A 95% confidence interval for the odds
+ratio $\phi$ is built on the log scale and then back-transformed:
+
+$$\log(\hat{\phi}) \pm 1.96\, SE\left(\log(\hat{\phi})\right)$$
+
+95% CI for $\phi$: (1.486, 19.470)
+
+We are 95% confident that the odds of the cancer group is between 1.49 and 19.47
+times more likely than those who do not smoke.
+
+** Chapter 18-19 notes
+
+#+begin_export html
+<embed src="chapter-18-19-notes.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Chapter 18-19 notes, annotated
+
+#+begin_export html
+<embed src="annotated-chapters-18-19.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Chapter 19: odds ratio confidence interval
+
+#+begin_export html
+<embed src="chapter-19-odds-ratio-ci.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+* Writing a scope of inference
+
+** Scope of inference handout
+
+#+begin_export html
+<embed src="writing-a-scope-of-inference.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

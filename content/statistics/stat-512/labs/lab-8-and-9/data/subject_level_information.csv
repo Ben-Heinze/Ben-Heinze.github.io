@@ -1,0 +1,31 @@
+groupname,subjectID,deviceID,balance,forearm,age,weights,archery,climbing,height,bicep
+AMC,6387,D3,3.93,12,29,no,no,sometimes,73,13.25
+AMC,8149,D3,1.96,11,20,no,no,never,68,11
+AMC,9062,D3,6.58,11,21,no,no,sometimes,67,11
+LTA,3157,D5,20.76,13,21,no,no,sometimes,74,12
+LTA,8229,D5,7.23,13,19,Yes,No,never,73,14
+bikers,7457,C2,111.88,11,22,yes,no,sometimes,75,12.6
+bikers,2543,C2,62.98,10,21,yes,no,never,72,12.2
+Squids,7683,D3,3.1,10.5,19,No,No,never,73,12
+Squids,3864,D3,3.69,10.5,24,No,No,never,70,12
+Squids,3114,D3,9.75,9,21,No,No,never,67,12
+Squeeze Squad,3548,D1,6.95,10,19,no,no,never,68,11
+Squeeze Squad,9495,C1,5.67,11,23,no,no,never,73,13
+Squeeze Squad,3847,D1,2.98,12.25,22,No,no,sometimes,77,11.75
+Squeeze Squad,O798,D1,11.86,11.5,20,no,no,sometimes,69,12
+Squeeze Squad,3633,D1,7.15,9.5,20,no,no,never,64,10.5
+Krakens,9467,C2,5.49,10,20,no,no,never,71,10
+Krakens,8506,C2,34.29,9,19,no,no,never,61,10
+Fish eat Squid,1324,D4,87.78,11.5,23,Yes,No,No,66,12.5
+Fish eat Squid,7053,D4,4.88,12.5,20,No,No,No,72,13
+Fish eat Squid,1272,D4,9.95,12.5,27,no,Yes,Yes,69,11.75
+Penguins,8107,D5,16.8,10.5,29,no,no,never,69,13
+Penguins,3399,D5,2.81,11,20,no,no,sometimes,70,
+Penguins,5914,D5,11.46,10.3,34,no,no,never,70,14
+kettlehouse,2332,D2,19.88,10.5,22,yes,yes,yes,76,11
+kettlehouse,9341,D2,57.83,10.5,22,no,no,sometimes,70,12
+kettlehouse,2362,D2,12.93,11,30,no ,no,no,69,11
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,13

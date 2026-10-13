@@ -1,0 +1,158 @@
+#+TITLE: Lab 8 and 9
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Linear mixed models on the class grip-strength experiment: processing the raw data and fitting an LMM. The data-cleaning script is on its own page: [[file:data-cleaning.org][Lab 8 Data Cleaning]]. The CSVs live in =data/= next to this page.
+
+/Lab 8/9: Modeling the grip strength experiment data/
+
+Author(s): ALL PARTICIPATING GROUP MEMBER NAMES HERE
+
+Due: 4/15/26, /8am/
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE)
+options(show.signif.stars = FALSE)
+#+end_src
+
+We have two datasets containing information from the grip strength experiment you conducted in Lab 7. These files are posted to Canvas.
+
+- _subject_level_information.csv_ contains subject-level ($i level$) data  
+- _grip_strength_experiment.csv_ contains observation-level ($j level$) data 
+
+You have also already drawn diagrams for the study design and model and outlined an analysis plan for investigating your group's research question. In this lab we will practice basic data wrangling skills, analyze the data and summarize results.
+
+* Part II: Data preparation (finish before 4/8/26)
+
+1. Build off of the code used in the beginning of class to complete the data cleaning for _subject-level_information.csv_. Report only the code necessary for creating a finalized ~df_subj_clean~ data frame in the code chunk below. Provide ~glimpse(df_subj_clean)~ ~summary(df_subj_clean)~ to show that your data set is in fact cleaned. 
+
+#+begin_src R
+library(tidyverse)
+# import data
+subject <- read_csv("data/subject_level_information.csv")
+
+# Create factors
+df_subj <- subject |>
+  mutate(groupname = factor(groupname), 
+         deviceID = factor(deviceID), 
+         weights = factor(weights), 
+         archery = factor(archery), 
+         climbing = factor(climbing))
+
+# remove rows that are erroneously read in due to rogue bicep of 13 (mm?)
+df_subj <- df_subj[-idx_na, ]
+
+# create object with all subj-level IDs 
+sub_id <- df_subj |> 
+  select(subjectID) |>
+  pull() 
+
+# create object with all group-level IDs
+obs_id <- grip |> 
+  select(subjectID) |> 
+  distinct() |> 
+  pull()
+
+# clean weights
+df_subj_clean <- df_subj |> 
+  mutate(weights_clean = fct_collapse(weights, no = c("no", "No"), 
+                                yes = c("yes", "Yes")))
+
+# clean archery
+df_subj_clean <- df_subj_clean |> 
+  mutate(archery_clean = fct_collapse(archery, no = c("no", "No"), 
+                                      yes = c("yes", "Yes")))
+# clean climbing
+df_subj_clean <- df_subj_clean |> 
+  mutate(climbing_clean = fct_collapse(climbing,
+                                      never = c("never", "Never", "no", "No"),
+                                      sometimes = c("sometimes", "Sometimes"),
+                                      regularly = c("yes", "Yes")
+                                      ))
+
+# rename height to height_in and bicep to bicep_in
+rename(df_subj_clean, height_in = height)
+rename(df_subj_clean, bicep_in = bicep)
+
+glimpse(df_subj_clean)
+summary(df_subj_clean)
+#+end_src
+
+2. Read in ~grip_strnegth_experiment.csv~ and create a cleaned data frame called ~df_obs_clean~. Provide a bulleted list of the steps you took to clean the observation-level data. The code below will get you started. 
+
+#+begin_src R
+# read in data (note will need to change the path if your data sets are not saved in 
+# a "data" folder in the same folder where this lab is saved)
+grip <- read_csv("data/grip_strength_experiment.csv")
+
+# create factors, make plan for cleaning position and hand
+df_grip <- grip |> 
+  mutate(hand = factor(hand), 
+         position = factor(position))
+summary(df_grip)
+
+# look at all levels of hand 
+# see what levels we need to collapse
+df_grip |> 
+  select(hand) |> 
+  pull() |> 
+  levels()
+#+end_src
+
+3. Merge ~df_subj_clean~ and ~df_obs_clean~ using ~left_join~. /Hint: you may want to look at the help file for ~left_join~/
+
+4. Restate your group's research question. If you did not consider an interactive relationship between hand and position, add that component to your research question.
+
+5. You should have written out a theoretical model that can be used to address your group's question in Lab 7. Copy that model here (and adjust as needed to include interaction between hand and position) and identify the parameters of interest that will address the first component of your RQ (i.e., the interaction). 
+
+$gripstrength_{ij} = \mu_{ij} + student_i + \epsilon_{ij}$
+
+$\mu_{gripStregnth | forearm length, position, hand } = \beta_0 + \beta_1 I_{position=90} + \beta_2 I_{hand=non-dom} + \beta_3 forearm + \beta_4 I_{position=90} I_{hand=90}$
+
+* Part II: Analysis
+
+6. Create a raw data visualization that is appropriate for investigating an interactive relationship between /hand (non-dominant, dominant)/ and /position (straight, ninety)/ on /grip strength (lb)./ Be sure to appropriately display dependencies in repeated measurements and also include information about the covariate your group wants to account for using an additional encoding (e.g., color, shape, size) in your plot. Briefly describe what you see.  
+
+*insert plot here*
+
+7. Write code to estimate your model (specified in 5) using ~lme~ from ~{nlme}~ or ~lmer~ from ~{lme4}~. No explanation necessary just fit the model. 
+
+#+begin_src R
+library(lme4)
+fm1 <- lmer(grip_strength ~ position_clean *  hand_clean + forearm + (1 | subjectID), joined_df)
+summary(fm1)
+#+end_src
+
+8. Assess modeling assumptions using your brain and diagnostic plots (i.e., don't forget independence and be specific about what is assumed to be independent in your model!).
+
+#+begin_src R
+library(predictmeans)
+?predictmeans
+residplot(fm1)
+
+#+end_src
+
+*Independence: I don't think that we have independence between students because it was a convenience sample, and we don't know if there are confounding variables between students who are in Statistics512 at Montana state university.*
+
+*Normality: There is some evidence against normalisty as the lower tail datapoints tend to deviate from the line of normality in the normal plot vs residuals*
+
+9. Regardless of your answer to 7, provide summary output and CIs for parameters in your model. No discussion necessary. 
+
+10. Conduct model refinement of your tentative inferential model as necessary. Provide a bulleted explanation of the steps in this process and the evidence supporting each step, or an explanation of why your tentative model will be your final inferential model. 
+
+11. Summarize your findings using an effects plot and standard summaries of statistical findings. Be sure to address your research questions of interest and also summarize you findings around $\sigma_{subject}$ and $ICC$. 
+
+12. Write a scope of inference for this investigation.
+

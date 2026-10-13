@@ -1,0 +1,29 @@
+#+TITLE: Labs
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Group lab assignments, usually started in Wednesday's class and finished outside of class.
+Each page is the lab's R Markdown converted to Org, with the handout and
+submitted PDFs embedded where they exist. No Lab 7 files were in the course folder;
+its grip-strength study carries on in Labs 8 and 9 and Homework 3.
+
+| Lab                    | Due          | Topic                                                                  |
+|------------------------+--------------+------------------------------------------------------------------------|
+| [[file:lab-1/index.org][Lab 1]]                  | Jan 30       | Regression review with the =palmerpenguins= data                     |
+| [[file:lab-2-practice/index.org][Lab 2 Practice]]         |              | Case-influence statistics, ESS F-tests, effects plots                  |
+| [[file:lab-3/index.org][Lab 3]]                  | Feb 11       | Collinearity and variable selection on the air-quality data            |
+| [[file:lab-4/index.org][Lab 4]]                  | Feb 18       | Randomized blocks: the seaweed grazers                                 |
+| [[file:lab-5/index.org][Lab 5]]                  | Mar 4        | Linear contrasts and multiple comparisons                              |
+| [[file:lab-6/index.org][Lab 6]]                  |              | Midterm review                                                         |
+| [[file:lab-8-and-9/index.org][Lab 8 and 9]]            | Apr 8        | Cleaning the grip-strength data and fitting a linear mixed model       |
+| [[file:lab-10/index.org][Lab 10]]                 | Apr 29       | Binomial logistic regression with the flour-beetle data                |

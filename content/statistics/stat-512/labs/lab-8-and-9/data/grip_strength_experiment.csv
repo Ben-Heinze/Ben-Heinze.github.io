@@ -1,0 +1,105 @@
+subjectID,hand,position,order,grip_strength
+8107,Dominant,90,3,72.4
+8107,Dominant,Straight,2,85
+8107,Non-dominant,90,4,84
+8107,Non-dominant,Straight,1,75.4
+3399,Dominant,90,2,73.6
+3399,Dominant,Straight,4,80.6
+3399,Non-domintant,90,3,65.4
+3399,Non-domintant,Straight,1,83.2
+8229,Dominant,90,2,85.6
+8229,Dominant,Straight,3,95
+8229,Non-domintant,90,1,82.3
+8229,Non-domintant,Straight,4,92.2
+3157,dominant,90,1,86.8
+3157,non-dominant,Straight,2,91.2
+3157,non-dominant,90,3,84.4
+3157,dominant,Straight,4,99.6
+5914,dominant,90,1,81
+5914,non-dominant,Straight,2,92
+5914,non-dominant,90,3,82
+5914,dominant,Straight,4,98.6
+9467,dominant,90,1,71.2
+9467,dominant,Straight,,66.6
+9467,non-dominant,90,2,68
+9467,non-dominant,Straight,,72.4
+8506,dominant,straight,1,47.4
+8506,dominant,90,3,52.6
+8506,non-dominant,straight,4,42.4
+8506,non-dominant,90,2,43.4
+3548,non-dominant,Straight,1,60.2
+3548,dominant,90,2,64
+3548,non-dominant,90,3,55.2
+3548,dominant,Straight,4,66.2
+3847,dominant,90,1,116.8
+3847,dominant,Straight,2,119
+3847,non-dominant,90,3,114
+3847,non-dominant,Straight,4,127.2
+9495,dominant,Straight,1,110.2
+9495,dominant,90,2,116
+9495,non-dominant,90,3,106
+9495,non-dominant,Straight,4,98
+O798,non-dominant,Straight,1,58.6
+O798,dominant,Straight,2,62.8
+O798,non-dominant,90,3,62.8
+O798,dominant,90,4,62.8
+3633,non-dominant,90,1,40.2
+3633,non-dominant,Straight,2,36
+3633,dominant,Straight,3,50
+3633,dominant,90,4,47.6
+7457,dom,side,1,92.6
+2543,dom,side,1,110.6
+7457,non dominant,ninety,2,108.6
+2543,non dominant,ninety,2,116.2
+7457,dom,ninety,3,108.6
+2543,dom,ninety,3,108.4
+7457,non dominant,side,4,101.4
+2543,non dominant,side,4,113.8
+7683,dominant,ninety,1,57.8
+7683,dominant ,side,2,49
+7683,non dominant,ninety,3,55.2
+7683,non dominant ,side,4,51.2
+3864,dominant,side,1,93.6
+3864,non dominant,ninety,2,109.4
+3864,non dominant,side,3,99.8
+3864,dominant ,ninety,4,82
+3114,dominant,ninety,1,56.2
+3114,non dominant,ninety,2,51
+3114,dominant,side,3,58.4
+3114,non dominant,side,4,56
+2332,non,side,1,102.6
+2332,non,ninety,2,93.4
+2332,dom,side,3,103.2
+2332,dom,ninety,4,97.6
+9341,dom,ninety,1,96.4
+9314,dom,side,2,93
+9314,non,side,3,74.8
+9314,non,ninety,4,68
+2362,non,side,1,84.4
+2362,non,ninety,2,67
+2362,dom,ninety,3,73
+2632,dom,side,4,77.4
+1324,non,side,1,44
+1324,dom,90,2,42.8
+1324,dom,side,3,43
+1324,non,90,4,39.4
+7053,dom,90,1,60.4
+7053,dom,side,2,49
+7053,non,90,3,38.8
+7053,non,side,4,44.4
+1272,non,side,1,71
+1272,non,90,2,72.4
+1272,dom,side,3,93.6
+1272,dom,90,4,77.2
+6387,dom,ninety,3,110.4
+6387,dom,side,2,120.8
+6387,non-dom,ninety,1,85.1
+6387,non-dom,side,4,108.2
+8149,dom,ninety,3,36.4
+8149,dom,side,2,39.4
+8149,non-dom,ninety,1,39.2
+8149,non-dom,side,4,34
+9062,dom,ninety,3,54.2
+9062,dom,side,2,51.6
+9062,non-dom,ninety,1,38.8
+9062,non-dom,side,4,36.8

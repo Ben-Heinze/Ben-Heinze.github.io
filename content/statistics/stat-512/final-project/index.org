@@ -1,0 +1,103 @@
+#+TITLE: Final Project
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+A scaffolded project: outline an analysis plan for one component of a research
+study, and develop language for communicating its design and eventual results
+with an appropriate scope of inference. My project analyzes Coe et al.,
+/Impact of cognitive training on claims-based diagnosed dementia over 20 years:
+evidence from the ACTIVE study/, which linked the ACTIVE cognitive-training trial
+to Medicare claims data to get a 20-year follow-up on Alzheimer's disease and
+related dementias (ADRD).
+
+| Part                    | Due      | What I turned in                                                        |
+|-------------------------+----------+-------------------------------------------------------------------------|
+| [[file:part-1/index.org][Part 1]]                  | April 6  | Background, study design, research question, tentative model, scope     |
+| [[file:part-2/index.org][Part 2]]                  | April 13 | Power-calculation "baggage", quantitative backdrop, hypothetical summary |
+| [[file:part-3/index.org][Part 3]]                  | April 20 | The full analysis-plan report, with instructor feedback on Parts 1 and 2 |
+
+Readings: Chapters 23 and 24 of /The Statistical Sleuth/, and Higgs & Amrhein
+(2025), /Giving Less Power to Statistical Power/ (on the [[file:part-2/index.org][Part 2]] page).
+
+* Assignment
+
+** Part I (April 6, 5pm)
+
+Provide background to contextualize a single component of the research, along
+with a potential analysis plan.
+
+- *Background:* a short paragraph describing the research context and relevant
+  background information to motivate general research objectives.
+- *Description of study design:* describe the design using language from
+  chapters 23/24 and create a conceptual diagram (e.g., the seaweed grazer or
+  soybean diagrams). Use the diagram to aid the description.
+- *Research question:* the question to investigate and a tentative plan for
+  using regression (or a GLM). It can be compound (additivity, pre-planned
+  contrasts, etc.) but should have no more than 3 major components.
+- *Proposed theoretical model, EDA plan, and analysis plan:* can be in shorthand
+  Sleuth notation, with the measurement structure if an LMM is needed, plus a
+  bulleted list of raw-data visualizations and the steps for using the model to
+  address the question. For a two-way ANOVA, for example:
+  - Pirateplot of the raw data and an interaction plot of group averages ± sd.
+  - ESS F-test comparing additive and non-additive models, plus research
+    context, to assess the "additivity" assumption.
+  - Summarize the final inferential model with ESS F-tests, effects plots,
+    and/or linear contrasts.
+  - /Descriptions should be in the context of the research study!/
+- *Scope of inference:* a few sentences on the scope of inference the design
+  affords, using hypothetical results in context (e.g., because TRT was not
+  randomly assigned to U, differences in mean Y among TRT indicate associations
+  between TRT and Y).
+
+** Part II (April 13, 5pm)
+
+- Read Higgs and Amrhein (2025) and Sleuth 23.4-23.5. In your own words, translate
+  the cautions in Higgs and Amrhein to the content of 23.4 and 23.5: what
+  "baggage" comes with the Sleuth's power calculation methods? (Max 1/2 page
+  double spaced.)
+- *Quantitative backdrop:* draw one for a parameter in the research question
+  that could be summarized with a confidence interval, with labeled intervals
+  and the practical implications of each.
+- Pick /one/ interval from the backdrop and write a /hypothetical/ summary of
+  statistical findings, with scope of inference and practical context.
+
+** Part III (April 20, 5pm)
+
+Add the quantitative backdrop and summary of statistical findings to a single
+"analysis plan" document, incorporating instructor feedback so far. Peer review
+was due April 27 and the final report May 6 (5% bonus before May 1).
+
+** Rubric
+
+Each section is scored on a 10-point scale: 0-1 no/little credit, 2-5
+beginning, 6-8 developing, 9-10 advanced. The analysis plan document (90 points):
+
+1. *Introduction (10):* overview of the research area and objectives, and a clearly stated research question.
+2. *Methods (30):*
+   - Field methods / study design (10): thorough description, a concept diagram, the research question.
+   - Proposed statistical procedures (10): a theoretical model with all variables and parameters of interest
+     defined; a description and /sketch/ of at least one exploratory plot; a plan for refining the model.
+   - Quantitative backdrop (10): a figure with intervals leading to different conclusions, a full caption,
+     and a one- or two-sentence description.
+3. *Hypothetical results / summary of statistical findings (20):* communicating the model-refinement steps
+   and a hypothetical summary for a chosen interval (10); at least one sketched figure for summarizing
+   results, e.g. an effects plot (10).
+4. *Scope of inference (10).*
+5. *Conclusion (10):* practical implications of the chosen interval using the backdrop, and next steps.
+6. *Overall quality (10):* organization and complete sentences (5), spelling and grammar (2.5), following the format (2.5).
+
+* Coe et al., cognitive training and ADRD (the paper)
+
+#+begin_export html
+<embed src="cognitive-training-adrd.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

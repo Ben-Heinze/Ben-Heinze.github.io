@@ -1,0 +1,221 @@
+#+TITLE: Lab 10
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Binomial logistic regression with the flour-beetle dose-response data (=beetles.csv=, kept alongside this page). This is the blank lab template; no answers were filled in.
+
+PDFs on this page:
+
+- [[file:lab10-handout.pdf][Lab 10 handout]]
+
+/STAT X12: Lab Assignment #10/
+
+Author(s): GROUP PARTICIPANTS HERE
+
+Due, Wednesday 4/29/26, 8am
+
+* Binomial logistic regression
+
+Consider a designed experiment to investigate the effects of increasing concentrations of gaseous carbon disulphide (mg/l) on confused flour beetles (Strand, 1930). Approximately 30 confused flour beetles were put into a container where they were exposed to a concentration of gas for 5 hrs. The number of dead beetles per container and concentration of the gas was recorded at the end of 5 hrs.  Dosages were randomly assigned to containers. The experiment was repeated twice, providing two counts of dead beetles out 30 at each concentration. They recorded how many beetles died (~y~) out of the total (~n~) with rep 1 and rep 2 denoting the two runs at each concentration. Note that their variable ~n~ is . You can ignore the ~rep~ variable available in the data set although it could be a source of "extra-binomial variation".
+
+/Source/: Strand, A. (1930) Measuring the toxicity of insect fumigants. /Industrial and Engineering Chemistry: analytical edition/, 2(1), 4-8.
+
+*Variables*
+
+- ~conc~: Concentration of carbon disulphide after 5 hrs (mg/l)
+- ~y~: Number of dead beetles in concentration group 
+- ~n~: Total number of beetles in each concentration group (like our $m_i$ in our Binomial logistic regression notation).  
+- ~rep~: Replicate number (2 trials for each concentration group)
+
+#+begin_src R
+options(show.signif.stars = FALSE)
+library(tidyverse)
+# read in the data
+beetles <- read_csv("beetles.csv")
+names(beetles)
+# rename "y" to "Dead", "n" to "m", and create an "Alive" variable
+df_beetle <- beetles |> 
+    rename(Dead = y, 
+           m = n) |> 
+    mutate(Alive = m - Dead)
+head(df_beetle)
+#+end_src
+
+- Research question: /How does the concentration of gaseous carbon disulphide affect the probability of death of confused flour beetles?/ 
+
+1. *(5 pts)* Write out a theoretical model that allows you to address this research question. Be sure to define the distribution of the response, the linear predictor, and link function appropriately in your model. Also define all indicator variables and parameters (i.e., $\pi_i$, $\beta$s). 
+
+\begin{align*}
+Y_i &\sim \\
+\end{align*}
+
+- *YOUR RESPONSE HERE* 
+
+2. *(5 pts: 3 code, 2 explanation)* When we have binomial responses with $m_i > 1$, we can make graphs with the observed/empirical probabilities or logits versus predictor variables. Calculate and then plot the empirical probabilities of death AND empirical logits of probability of death for each row in the data set versus the concentration of carbon disulphide (two separate plots). What do these plots tell you about the relationship of interest? About the model assumptions?
+
+#+NAME: question2
+#+begin_src R
+# create empirical probs and logits
+df_plot <- df_beetle |> 
+  mutate(pi_hat = Dead/m, 
+         emp_logit = log(pi_hat/(1-pi_hat)))
+head(df_plot)
+# Write code to make a plot of conc v pi_hat (does it show the logistic "s" shape)?
+# Write code to make a plot of conc v. emp_logit (does it show a linear relationship)? 
+#+end_src
+
+- *RESPONSE*
+
+3. *(5 pts)* Fit a binomial model to address the research question. Make sure to fit the model so that successes correspond with ~Death~ of the beetles. Report the model summary and an effects plot on the probability (response) scale. 
+
+#+NAME: question3
+#+begin_src R
+library(effects)
+# write code to fit a model to address the RQ
+#+end_src
+
+4. *(5pts)* Report the estimated model and interpret the parameter of interest in the context of the problem on the odds scale. 
+
+- *Estimated model:*
+
+- *Interpretation*   
+
+5. *(5 pts)* Write a summary of statistical findings for the parameter that allows you to address the research question. Write code to conduct a drop-in-deviance LRT and estimate a 95% profile lhood CI for the multiplicative change in the odds of death for a 1 mg/l increase in gas. Include the appropriate scope of inference in your summary. 
+
+#+NAME: question5
+#+begin_src R
+
+#+end_src
+
+- *RESPONSE*
+
+6. *(5 pts)* Make the standard four-plot diagnostic array and an effects plot on the link scale (logit-scale) with partial residuals. There should be one severe violation that is most prominent. Note the violation and which plot(s) helped you to identify it.
+
+#+NAME: question6
+#+begin_src R
+# split plotting window into 1 row 4 cols 
+par(mfrow = c(1,4))
+#+end_src
+
+- *RESPONSE*
+
+7. *(5 pts)* Fit a quadratic model for the concentrations using ~poly(conc,2)~ as the ~x~ variable to create an orthogonal polynomial variable of order 2 (i.e. a linear and quadratic term for concentration), then generate and report a drop in deviance test to compare a linear version of concentration to the quadratic version. Report a summary of statistical findings for the test.
+
+#+NAME: question7
+#+begin_src R
+# polynomial fit
+#+end_src
+
+- *RESPONSE*
+
+8. *(5 pts)* On the plot below, the lines for the logit and predicted probabilities from the linear and quadratic models vs. concentration with their approximate 95% CIs are shown. The ~predict~ function and plotting code is not shared in the output, but you can investigate how it was generated in the .Rmd file if you're curious. Compare the two fits using the plot and summarize your findings from your visual comparison. /You'll have to change ~eval = FALSE~ to ~eval = TRUE~ for this code to run./ 
+
+#+NAME: question8
+#+begin_src R
+library(patchwork)
+range(df_beetle$conc)
+# create new data frame with concentrations ranging from 
+# min conc to max conc
+new_x <- data.frame(conc = seq(from = 49.06, to = 76.54,
+                               length.out = 100))
+# find the estimated mean and se for mean on the logit scale
+est_logit <- predict(fit_death, type = "link", 
+                    newdata = new_x, se.fit = TRUE) 
+
+# put in DF and make intervals, prob scale estimates, and fit type 
+df_pred <- tibble(est = est_logit$fit, se = est_logit$se.fit) |> 
+  # approx 95% ci and prob scale ests
+  mutate(est_lower = est - 2*se, 
+         est_upper = est + 2*se, 
+         est_prob = exp(est)/(1 + exp(est)), 
+         prob_lower = exp(est_lower)/(1 + exp(est_lower)), 
+         prob_upper = exp(est_upper)/(1 + exp(est_upper)), 
+         fit_type = "linear", 
+         conc = new_x$conc
+         )
+# take a look at the df 
+head(df_pred)
+
+# now make similar df using the quadratic model..
+est_logit2 <- predict(fit_death2, type = "link", 
+                    newdata = new_x, se.fit = TRUE) 
+# put in DF and make intervals, prob scale estimates, and fit type 
+df_pred2 <- tibble(est = est_logit2$fit, se = est_logit2$se.fit) |> 
+  # approx 95% ci and prob scale ests
+  mutate(est_lower = est - 2*se, 
+         est_upper = est + 2*se, 
+         est_prob = exp(est)/(1 + exp(est)), 
+         prob_lower = exp(est_lower)/(1 + exp(est_lower)), 
+         prob_upper = exp(est_upper)/(1 + exp(est_upper)), 
+         fit_type = "quadratic", 
+         conc = new_x$conc
+         )
+
+# bind together for plotting
+df_pred_all <- rbind(df_pred, df_pred2)
+head(df_pred_all)
+# logit scale plots
+plot_logit <- ggplot(data = df_pred_all, aes(x = conc, y = est, 
+                           col = fit_type)) + 
+    # add estimated logit-prob of death line
+    geom_line(alpha = 0.5) +
+    # add observations on logit-scale
+    geom_point(data = df_plot, aes(x = conc, y = emp_logit), 
+               alpha = 0.5, inherit.aes = FALSE) + 
+    # add interval around logit-prob of success
+    geom_ribbon(data = df_pred_all, aes(ymin = est_lower, 
+                               ymax = est_upper, x = conc), 
+              alpha = 0.2, inherit.aes = FALSE) + 
+    # labels
+    xlab("Concentration (units)") + 
+    ylab("Estimated log odds of mortality") + 
+    theme_bw() + 
+    facet_wrap(~fit_type)
+
+# probability scale plot, note how you can 
+# choose whether or not to inherit characteristics from 
+# the first call to ggplot with the inherit.aes argument
+plot_prob <- ggplot(data = df_pred_all, aes(x = conc, y = est_prob, 
+                           col = fit_type)) + 
+    geom_point(data = df_plot, aes(x = conc, y = pi_hat), 
+               alpha = 0.5, inherit.aes = FALSE) + 
+    geom_line(alpha = 0.5) + 
+    geom_ribbon(data = df_pred_all, aes(ymin = prob_lower, 
+                               ymax = prob_upper, x = conc), 
+              alpha = 0.2, inherit.aes = FALSE) + 
+    xlab("Concentration (units)") + 
+    ylab("Estimated Probability of mortality") + 
+    theme_bw() + 
+  facet_wrap(~fit_type)
+
+(plot_logit / plot_prob)
+#+end_src
+
+- *RESPONSE*
+
+9. *(2 pts)* A potential issue with binomial data is that the variance might not match the modeled variance. You can estimate overdispersion using a "fullish" model - so here use the quadratic model. Fit the model with ~quasibinomial~ and report the estimated dispersion parameter. Discuss whether there is a problem with using the binomial logistic regression model without adjusting for overdispersion. 
+
+#+NAME: question9
+#+begin_src R
+#+end_src
+
+- *RESPONSE*
+
+* Documents
+
+** Lab 10 handout
+
+#+begin_export html
+<embed src="lab10-handout.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

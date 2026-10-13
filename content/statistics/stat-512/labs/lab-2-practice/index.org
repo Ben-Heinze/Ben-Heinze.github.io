@@ -1,0 +1,98 @@
+#+TITLE: Lab 2 Practice
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Extra practice for Lab 2: case-influence statistics and model assessment.
+
+/STAT X12, Lab 2: Exploring case-influence statistics, Spring 2026/
+
+Author(s): YOUR NAME HERE: NOTE this will not be collected - solutions will post before class next Wednesday
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE)
+options(show.signif.stars = FALSE)
+#+end_src
+
+We'll continue with the ~penguins~ dataset in ~{palmerpenguins}~...
+
+1. In Lab 1, you did not investigate case influence statistics. Do you feel this was justified? Discuss with your group.  
+
+2. Now, consider the following RQ. /Suppose our interest lies in the relationship between flipper length (mm) and bill length (mm) for *female penguins* in this study. Specifically, we want to know if there are differences in the relationship between flipper length and bill length across the three species studied./ 
+
+#+NAME: load-data
+#+begin_src R
+# load packages we will use
+library(palmerpenguins)
+library(tidyverse)
+library(effects)
+library(ggeffects)
+# load dataset 
+data(penguins)
+#+end_src
+
+3. Write a linear model that allows you to address the question of interest, and explain which parameters in the model specifically allow us to address our question. Be sure to also define all variables. 
+
+4. Use the code below to create a coded scatterplot to visualize the data for female penguins. Provide a brief description of this plot, taking care to make note of any potentially influential points. /Note, you'll need to change ~eval = FALSE~ to ~eval = TRUE~ to get the plot to show up in your compiled document./ 
+
+#+NAME: question4
+#+begin_src R
+# subset the data just to be females, only vars we care about for the RQ, and 
+# drop NAs (remember this implicitly assumes values are missing completely at random!)
+penguins_fem <- penguins |> 
+  filter(sex == "female") |> 
+  dplyr::select(bill_length_mm, flipper_length_mm, species) |> 
+  drop_na()
+
+ggplot(penguins_fem, aes(x = bill_length_mm, 
+                     y = flipper_length_mm, 
+                     col = species)) + 
+  geom_point(alpha = 0.5) + 
+  theme_bw() 
+#+end_src
+
+5. Write code to fit the model in R and create a suite of diagnostic plots. No comment necessary, just write code to fit the model and create diagnostic plots. /Note: To get all 4 diagnostic plots to show up in a row, you can use ~par(mfrow = c(1,4))~./ 
+
+#+NAME: question5
+#+begin_src R
+
+#+end_src
+
+6. Which case(s) does the residuals vs. leverage plot flag as being potentially influential? Write code to look at the case, and create a set of case influence statistics plots similar to those provided in your text and your book (i.e., leverage ~ case, studentized residual ~ case, and cooks d ~ case). What do you learn about the point(s) in question
+
+#+NAME: question6
+#+begin_src R
+
+#+end_src
+
+7. Conduct an ESS F-test that allows us to address our question of interest. First do this using all of the data (i.e., including any potentially influential points) and then without any potentially influential points. Does your inference change? Explain. 
+
+#+NAME: question7
+#+begin_src R
+
+#+end_src
+
+8. Suppose you choose to exclude observation 140 from your final inferences. Write a summary of statistical findings to address the research question using the results from the appropriate ESS-F-test from question 6. 
+
+8. How does your scope of inference change for the Chinstrap penguins after removing observation 140? 
+
+9. Create an "effects" plot for the relationship between bill-length and flipper length across the three species using the ~effects~ package or ~ggeffects~ package. Describe the plot and comment on the range of bill lengths that you can comfortably make inference about flipper lengths for each species?
+
+#+NAME: question9
+#+begin_src R
+
+#+end_src
+
+10. If you finish all of the above, skim the paper associated with this dataset and discuss the following with your group: (i) identify the research questions of interest, (ii) use the field methods to write a scope of inference, (iii) discuss whether the conclusions presented in the paper are reasonably aligned with the SOI the study design affords.
+

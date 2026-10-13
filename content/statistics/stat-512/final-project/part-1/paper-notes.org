@@ -1,0 +1,340 @@
+#+TITLE: Part 1 Criteria and Paper Notes
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Working document for [[file:index.org][Part 1]]: the assignment criteria with my draft answers, then section-by-section notes on Coe et al.
+
+* Project Criteria
+
+** Background
+
+a short paragraph describing the research context and relevant background information to motivate general research objectives.
+
+Give a summary of the background of the paper
+
+1. goal is to see if cognitive training can delay ADRD
+2. used ACTIVE dataset, and linked it to medicare claims for long-term analysis. Explain ACTIVE dataset.
+3. Got sample from 6 metropolitian areas, 65+, list of exclusions maybe.
+4. There were four types of cognitive training: control, memory, speed, and reasoning.
+5. Potential for booster sessions.
+
+The paper used ACTIVE data and linked it to medicare claims data to get a long term dataset on the risk of developing ADRD. There was a control group, then three intervention arms: memory, speed, and reasoning. subjects who completed eight out of 10 initial training sessions were eligible to for being in a booster study, which provided an additional training session 11 and 35 weeks after the initial sessions. 
+
+** Description of Study Design
+
+Describe the study design using language from ch23/24 and create a conceptual diagram (e.g., seaweed grazer diagram, soybean diagram). Use your diagram to aid in your description of the design.
+Create a conceptual diagram, describe general design using the right language from 23/24.
+
+
+Controls and placebos: Subjects have a chance to be selected for the control group where no cognitive training intervention took place.
+
+Blinding: Staff who administered cognitive training and questionnaires were blinded to the intervention arms the participants were assigned to.
+
+Blocks: no blocking. Maybe time frame of checkups?
+
+Covariates: summarize covariates here.
+
+Randomization: The researchers randomized the elibile subjects into one of the four intervention groups with equal chance.
+
+Random Sampling: I dont think so? its not stated in this paper. After examining the paper that cited the study, I think its a population sample since they asked everyone eligible. There were 6 locations: Penn. State University, Indiana University, Hebrew Rehabilitation Center for the Aged, Johns Hopkins University, Wayne State University, and University of Alabama.
+
+Balance? Id say so. Memory=516, Speed=512, Reasoning=502, Control=491. 
+
+
+
+**/Example of diagram on 715 of Statistical Sleuth/**
+
+
+**Checklist of tasks involved in the design of a study**
+1. Objective: RQ: Is it possible for cognitive training to offset ADRD diagnoses, and if so, which method is most successful?
+2. Scope of inference:
+   - Randomized experiment, recruited from March 1998 to October 1999 in 6 metropolitan areas.
+   - experimental units: 65+ year old people (get more specific?)
+   - population of interest: people who are prone to getting an ADRD diagnosis.
+3. Understand the system under study: ADRD is a neurological disease that causes cognitive decline and death in a typically-older population of people. This progression begins slowly, but eventually overtakes the patient's memories until nothing is left. Due to the nature of the cognitive decline, researchers hypothesize that ADRD's effect on the brain may be combatted by increasing brain function via cognitive training.
+4. How to measure response: compare
+5. Factors
+   - Design factors to vary (trt and controls): invertention-arms, booster availability,
+   - Design factors to fix : Sites and waves of training/testing (replicate training waves)
+   - Confounding factors to control by blocking (NA?)
+   - Confounding factors to control by analysis (covariates): analysis controlled for vasclar risks since that is associaed with dementia.
+   - Factors to control by randomization: booster?
+6. Plan the conduct of experiment (timeline):
+   1. Get eligible subjects to take baseline data
+   2. randomize subjects into one of the four treatment groups
+   3. train them, if they complete 8/10 initial treatments, then randomize them to a booster or not.
+   4. Wait a long time, perform booster training if the subject was assigned to booster.
+   5. Link data to Medicare data to get a better idea of the long term effects of the cognitive training intervention
+7. Outline Statistical Analysis: compare the cause-specific hazard model (and Fine-gray hazard model) to estimtae the effects of the interventions on the outcome diagnosis of ADRD.. in the presense of a competing risk (death).
+8. Estimating the sample size (look at book for this)
+
+
+** Research Question
+
+Identify the research question you wish to investigate and a tEntative plan for using regression (or glm) for a statistical investigation. Your research question can be compound in that it can include investigating additivity, pre-planned contrast, etc., but it should not have more than 3 major components.Identify the research question you wish to investigate and a tentative plan for using regression (or glm) for a statistical investigation. Your research question can be compound in that it can include investigating additivity, pre-planned contrast, etc., but it should not have more than 3 major components.
+
+Choose one overall research question to dive into. restate it . Describe what they did (theoretical model), add notes about questions, why they did what they did, what else wouldve been better.
+
+Overall research question: Can cognitive training reduce the onset of ADRD in ADRD-prone patients?
+
+** Proposed theoretical model, EDA plan, and description of analysis plan.
+
+Can be in shorthand sleuth not and should include a description of the measurement structure (if necessary (i.e., if need to use a LMM)) as well as a bulleted list outlining appropriate raw data visualizations and steps for using the tentative model to address your research question. For example in a two-way ANOVA setting, bullets would include
+
+- Create pirateplot of raw data and interaction plot of group-level averages of the response plus/minus $sd(\text{response}_{group})$.
+- Use ESS F-test to compare additive and non-additive models in addition to research context to assess reasonableness of “additivity” assumption
+- Proceed with either additive or non-additive model and summarize results from the most appropriate final inferential model using ESS F-tests, effects plots, and/or linear contrasts.
+- Descriptions should be in the context of the research study!
+
+**Proposed Theoretical Model**
+
+This model keeps the sites fixed, so we will use an LMM for the mixed model:
+
+\begin{equation}
+y_{ij} = \mu_{ij} + EU_i + \epsilon_{ij}
+\end{equation}
+
+The mean is the likelihood of being diagnosed with ADRD given the intervention arm (arm) and the booster (booster):
+
+\begin{align}
+\mu_{ij} \{ \text{ADRD} \mid \text{arm, booster} \} = &\beta_0 + \beta_1 I_{\text{arm=memory}} + \beta_2 I_{\text{arm=speed}} + \beta_3 I_{\text{arm=reasoning}} \notag \\
+&+ \beta_4 I_{\text{booster=yes}} + \beta_5 I_{\text{arm=memory}} I_{\text{booster=yes}} \notag \\
+&+ \beta_6 I_{\text{arm=speed}} I_{\text{booster=yes}} + \beta_7 I_{\text{arm=reasoning}} I_{\text{booster=yes}}
+\end{align}
+
+Where the indicators are defined as:
+
+\begin{equation}
+I_{\text{arm=memory}} =
+\begin{cases}
+1 & \text{if arm is memory} \\
+0 & \text{otherwise}
+\end{cases}
+\qquad
+I_{\text{arm=speed}} =
+\begin{cases}
+1 & \text{if arm is speed} \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\begin{equation}
+I_{\text{arm=reasoning}} =
+\begin{cases}
+1 & \text{if arm is reasoning} \\
+0 & \text{otherwise}
+\end{cases}
+\qquad
+I_{\text{booster=yes}} =
+\begin{cases}
+1 & \text{if booster is yes} \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+The random effects and error terms are distributed as:
+
+\begin{equation}
+EU_{i} \sim \mathcal{N}(0, \sigma^2_{EU}), \qquad \epsilon_{ij} \sim \mathcal{N}(0, \sigma^2)
+\end{equation}
+
+Where $i = 1, 2, \ldots, 6$ for the six site locations, and $j = 1, 2, \ldots, 8$ is the combination of arm and boosters.
+
+
+
+---
+
+**Outline of raw visuals**
+- Create raw plot to determine whether an interaction or additive model should be used. Maybe use an type 1 anova test.
+- 
+
+
+**Steps for tentative model to address RQ**
+
+Once we have the model, we can see the linear regression lines by plotting the predicted hazard risk of ADRD diagnoses vs true risk of diagnoses (make this more clear), and compare the differences between the intervention arms and the booster classes to the baseline and control. Perform a **add test here** point estimate test to determine whether or not these changes are valuable.
+
+
+
+** Scope of Inference
+
+Write a few sentences describing the scope of inference afforded by your study design. Use the context of your research question to accurately describe hypothetical results (e.g., because TRT was not randomly assigned to U, differences in mean Y among TRT indicate associations between TRT and Y.)
+
+Write my own scope of inference.
+
+Scope of inference: population of eligible patients from 6 metropolitan areas (list all 6), with a randomized treatment for cognitive intervention, and a randomized treatment for booster. They did sample the eligible people, though there may be selection bias via the list of exclusions.
+
+We can generalize this to...
+
+We can (yes/no) say there is a causal relationship between...
+
+-------------------------------------------------------
+
+* Background
+
+- Advanced Cognitive Training for Independent and Vital Elderly (ACTIVE)
+- four-arm randomized control trial? shows improved performance up to 10 years
+- reductions in self-reprted disability in Instrumental Activities of Daily Living (IADLs)
+- some training arms worked better than others
+
+- Algorithmic definition of dementia
+  - interview and performance based measures
+- 10 year followup showed lower demintia risk
+- There is a debate on whether cognitive training intervention actually reduces risk; this can only be examined with long term research with advanced old age
+
+- Goal: determine impact of ACTIVE cognitive training intervention (CTI) over 20 year follow-up period, based on Medicare claims data.
+- Medicare claims advantage:
+  - outomce of diagnosed ADRD is independent from study assessments and investigators
+  - claims data are available even after participants dropped out of ACTIVE study
+  - real world importance of Medicare diagnoses in terms of care options and treatment in daily life
+- Medicare claims disadvantages (articles doesnt talk about this)
+  - primarily for people 65+, most likely doesn't address younger audience
+  - not everybody uses medicare
+  - research more about this
+
+1. examined if CTI impacted diagnosis of ADRD differed depending on domain-specific training at baseline
+2. whether diagnosis of ADRD differed among the participants who had booster sessions (at 11 and 35 months)
+3. if age of participants at baseline training had differential impact of CT on risk of diagnosed ADRD
+
+* Methods
+
+ACTIVE protocol, power calculations(?) for targeted sample size, and stat analysis plan for clinical trial described elsewhere
+
+ACTIVE study:
+- four-arm multisite, single-blind randomized controlled trial
+- N = 2802
+- 26% minority diverse sample
+- recruited from March 1998 to Octover 1999 in 6 metropolitan areas
+- community-dwelling adults 65+ were eligible (factors in for medicare issue)
+- Exclusion criteria:
+  - signiifcant cognitive dysfuntion (Mini-mental state examination (MMSE) score < 23)
+  - functional impairment (dependency or regular assistance in ADLs on Minimum Dataset Home Care)
+  - Self-reported diagnoses of Alzheimers
+  - stroke within last 12 months
+  - certain cancers
+  - current chemo/radiation therapy
+    
+- subjects randomized to one of the four intervention arms after completing baseline testing
+- staff who administered cognitive testing and questionnaires were blinded to the intervention arms the participants were assigned to.
+- no participant or public involvement in design, conduct, and reporting of trial
+
+- Of 2802 ACTIVE subjecs, 2763 were matched to Medicare via Acumen's matching algorithm(?)"
+  - 725 excluded, +8 who passed during enrollment
+  - Final sample: 2021 subjescts (71% of original sample) roughly distributed across 4 arms.
+
+** Cognitive Training intervention
+
+Three intervention arms, 60-75min sessions in small groups over 5-6 weeks.
+  - speed of processing training: visual search and ability to process increasingly complex info persented in successive shorter inspection times
+  - Memory traniing: verbal episodic memory through instruction and practice in the use of e mnemonic strategies
+  - Reasoning training: solving problems that contained serial pattern
+  - Fourth arm was no contact control group
+Booster training:
+- needed at least 8/10 training sessions got randomized again
+- sessions were 11 and 35 months after baseline
+- 4 75min sessions
+- booster is centrall to study design (prev studies shown booster sessions improved maintainance of training
+
+** Medicare Claims Records
+
+Medicare claims from 1/1/1999-12/31/2019 (20 years) were linked to training data for 2763 of the original 2802 subjects. Chronic Conditions Warehouse (CCW) algorithm diagnosed ADRD appearing in medicare claims. CCW algorithm demonstrated 85%-90% sensitive and specificity for diagnosing ADRD.
+
+** Covariates
+
+multiple prespecified covariates were included. vascular risks are associated with dementia so the analysis controled for cardiovascular risk factors. Although ACTIVE was a randomized trial. failure to adjust for covariates associated with an outcome could result in lower power, biased effect estimates, and inccorect conclusions.
+Covariate data measured at baseline through ACTIVE or Medicare was completed for all matched subjects. 2 marital status was mssing, and baseline processing speed factor score had 16 missing. This study controlled for basic study design features by having fixed effects be the site and waves of training/testing (replicate training waves), an aspect of the study deisgn that eneabled the participants to be recruited and trained for ~ 1.5 years.
+
+** Stat analysis
+
+modified intention-to-treat analysis estimated a cause-specific Cox proportional hazard model: ADRD diagnosis and death. Casuse-specific hazard reported is the chance of diagnosis of ADRD. time scale was time since initial intervention
+Schoenfeld residules were used to to test proportional hazard assumptions. If the assumptions were violated, they included interaction terms with covariates and time. Subjects wre censored if they enrolled in Medicare Advantage or reached end of study period without developing the end point of interest.
+
+They reported both the cause-specific hazard models and the Fine-gray hazard models. Fine gray model estimates relative effect of intervention on cumulative incidence of outcome (diagnosis of ADRD) in the presense of a competing risk (death).
+
+** Impact of each cognitive training intervention
+
+Missing data among covariates were handled multiple (10 iteration) imputations. Standard Errors were adjusted for variablity introduced by multiple imputation according to Rubin's rule
+
+Booster sessions:
+- each arm divided into 2 groups (n=1370)
+- total number of sessions: 8-18
+- HR difference in hazard of diagnosed between booster and control was taking
+- tested differences between randomized subjeects who received boosters, and those not randomized among the booster-eligible subsample within each training arm (speed N = 449; memory N = 456; reasoning N = 465) by including booster indictator.
+
+To account for age at baseline, there were interaction terms for age groups 65-69, 70-74, 75-79, >79, and intervention arms (three groups).
+
+2-sided tests, p-val < 0.05 was considered statistically significant.
+
+* Results 
+
+** Study sample characteristics
+
+- N = 2021
+- ave age: 73.6 range(65,94)
+- 76% female, 70% white
+- avg schooling: 13.7 years
+- Sample vascular risk factors at baseline:
+  - 66% hypertension
+  - ischemia 40%
+  - congestive heart failure (20%)
+  - atrial fibrillation 8%
+  - acute myocardial infarction (3%)
+  - diabetes (21%)
+- 7% smoked at baseline; 38% were former smokers
+- 77% mortality rate during 20-year follow up
+- avg age at death: 83.9 years
+
+Demographics and health characteristics at baseline were balanced across four arms (with minimal exceptions). no qualitative of statistical differences were found for the primary variables between the final Medicare-matched sample and the original sample, except for intervention site. no qualitative and no stat diffs between covariates and the intervention arms compared to control arm, except for baseline age.
+
+*** Impact of baseline training on risk of ADRD
+- 239/491 subjects (48.7%) in control wre diagnosed with ADRD within 20 year follow up.
+- other arms tended to have lowre risk of being diagnosed with ADRD, but isnt statistically significant.
+
+*** Impact of baseline training combined with booster sessions on risk of ADRD
+- speed training+ randomized to recieve booster sessions had statistically lower hazard of diagnosed ADRD in unadjusted and adjusted models (adjusted HR: 0.74, 95% CI: 0.59-0.93)
+- individuals in speed training arm + randomized booster sessions had lower hazard of diagnosed ADRD (adjusted HR: 0.81, 95% CI: 0.66-1.0) compared to speed training randomized that didnt get booster training.
+- neither memory nor reasoning effects wre statistically different with booster training vs no booster training
+
+*** impact of age at training on risk of ADRD
+
+- no significatn effect of age at training on risk of diagnosed ADRD over 20 year follow up for participants in any of the three intervention arms.
+- There was a trend (but not stat. significant) association of age for memory-trained group such that those whos started the memory intervention at a younger age experienced lower risk of ADRD
+  - (**Age 65-69**: HR: 0.69, 95% CI: 0.46-1.02),
+  - (**Age 70-74**: HR: 0.73, 95% CI: 0.51-1.05) compared to controls.
+
+Results comparable to estimates based on fine-gray model.
+
+** Discussion
+
+- speed group who receieved booster training 11 and 35 months after baseline showed statistically significant lower risk of diagnosed ADRD over 20 year followup.
+- subjects in speed group who did not complete initial speed training or any booster sessions did not show significantly lower risk of diagnosed ADRD
+- no stat. sig. benefit of memory or reasoning training on diagnosis of ADRD
+
+Speed training:
+- repetitive task training in neurorehabilitation is well established in other neurological conditions like a stroke.
+- possible reasons for this effect:
+  1. dose effect: simply more training leads to better outcomes
+  2. boosters strengthens training by adapting to the improving abilities of participant, as task difficulty increases. This is consistent with meta-analysis showing speed training effects are larger for tasks that are adaptive than once that aren't. This may suggest cognitive training needs to be repeated over time in a specific manner to reduce ADRD risk by facilitating the neuroplastic activation of neuronal connectivity.
+- focused on improooving both visual processing and attention (particularrly divided attention).
+- differedd from memory and reasining by being administered on a computer in an adaptive manner with increasing task difficult based on individuals performance (more curated).
+- discussion focused on improved divided attention might show benefits on tasks like driving.
+- speed training was associated with lower at-fault collisions 6 years after baseline, and number of speed training booster sessions was associated with maintenance of driving frequency. Other trainings shows impact on maintenance of driving, but speed was the greatest.
+
+
+Post-randomization selection bias is possible becayse the study excluded certain people (werent matched, previous stroke, etc.). Medicare Advantage was excluded due to data limitations, but these subjects tend to be healthier as a group.
+
+Match with medicare claim data mitigets study attrition and point-in-time measures of dementia status, bt theres still potential for selection bias in those who matches in medicae claims or erecieved diagnosis for ADRD. individuals who are able to access healthcare, subjects who have family who notice cognitive decline, and individuals with higher education are more likely to recieve dementia diagnoses. However, the strength of capturing cumulative incidence of dementia over 20 years from independently collected source would appear to outweigh these limitations.
+
+Futher limitation is that booster training was offered to a random subset of subjectss in training groups who completed 8/10 initial sessions, but this was mitigated by comparing randomized booster to those eligible, but not randomized to booster.
+
+Large number of publications generated from ACTIVE study, potential for Type 1 error, but its low because this is the first study using ACTIVE and medicare claims data
+

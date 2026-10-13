@@ -1,0 +1,141 @@
+#+TITLE: Lab 3
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Model assessment and variable selection on the UCI air-quality data (=air-quality.csv=, kept alongside this page so the code runs). This is the group submission; a teammate's version with different answers is at [[file:clair-version.org][Lab 3 (Clair's Version)]].
+
+/STAT X12, Lab 3, Spring 2026/
+
+Author(s): ALL PARTICIPATING GROUP MEMBER NAMES HERE
+
+Due: 2/11/26, 8am
+
+* Instructions
+
+#+begin_comment
+Work in your group to address all questions. Please use this skeleton .Rmd file as a template for addressing lab questions. ***Before you begin, save the document as, statX12-lab3-GROUP#ofyourgroup.Rmd***. Once you have saved the file with your group's identifying information, you should be able to knit the file to a .html or .docx (Word) (*Note:* this step requires that you have the packages `knitr` and `Rmarkdown` installed).
+#+end_comment
+
+#+begin_comment
+Turn in a single *knitted document* for you group including everyone's full names in the author line. ***Please save your document as a .pdf BEFORE uploading it to the Lab3 assignment repository on Gradescope. This will ensure all figures show up appropriately for grading.*** You can discuss this lab with people outside of your lab group, but you must document any sources of information outside of your group and the materials I am providing you (like web resources and LLMs).
+#+end_comment
+
+#+begin_comment
+***PLEASE DELETE OR COMMENT OUT THE INSTRUCTIONS (lines 8-14) BEFORE TURNING IN YOUR LAB***
+#+end_comment
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE)
+options(show.signif.stars = FALSE)
+library(GGally)
+#+end_src
+
+* Part I: Model Assessment and Variable Selection Reflection
+
+1. (5 pts) You should have completed Lab 2 and the variable selection activity. Discuss at least one concept that you solidified by working through the assignments and at least one thing you still feel uncertain about. Perhaps someone in your group will be able to help you clarify! For each member of your group, provide a note related to what was learned, solidified, or is still uncertain.
+
+- *Ben Heinze: Once concept it solidified for me was making sure that the code you write actually has the variables you're interested in. It's easy to let the computer do all the work. I am still uncertain about how AIC is a good score for adding/removing variables (depending on the algorithm).*
+- *MEMBER2*
+- *MEMBER3*
+
+* Part II: More Chapter 12 exploration
+
+For this section of the lab, we will investigate data collected by a gas multi-sensor device deployed in an Italian city.
+
+- *Source* [[https://archive.ics.uci.edu/ml/datasets/Air+Quality]]; S. De Vito, E. Massera, M. Piga, L. Martinotto, G. Di Francia, On field calibration of an electronic nose for benzene estimation in an urban pollution monitoring scenario, Sensors and Actuators B: Chemical, Volume 129, Issue 2, 22 February 2008, Pages 750-757, ISSN 0925-4005
+
+*Data Set Information:*
+
+#+begin_quote
+"The dataset contains 9358 instances of hourly averaged responses from an array of 5 metal oxide chemical sensors embedded in an Air Quality Chemical Multisensor Device. The device was located on the field in a significantly polluted area, at road level, within an Italian city. Data were recorded from March 2004 to February 2005 (one year) representing the longest freely available recordings of on field deployed air quality chemical sensor devices responses. Ground Truth hourly averaged concentrations for CO, Non Metanic Hydrocarbons, Benzene, Total Nitrogen Oxides (NOx) and Nitrogen Dioxide (NO2) and were provided by a co-located reference certified analyzer. Evidences of cross-sensitivities as well as both concept and sensor drifts are present as described in De Vito et al., Sens. And Act. B, Vol. 129,2,2008 eventually affecting sensors concentration estimation capabilities. Missing values are tagged with -200 value. This dataset can be used exclusively for research purposes. Commercial purposes are fully excluded."
+#+end_quote
+
+2. *(5 pts)* Based on the description above, which MLR assumption(s) could be severely violated if researchers were interested in predicting CO using other variables available, but not date-time?
+
+- *The assumption of independence is violated, because we cannot say for sure whether there is separation between data points. For example, what if most of this data set was sampled between two days, and the minority of the data points were sampled towards the end of the year. The frequency is not clear.*
+
+The data were cleaned (-200 measures replaced with NA) and daily averages were created for days with at least 20 observations. These cleaned data are available in ~air_quality.csv~. The following code reads in the data and creates a pairs plot. Turn ~eval = TRUE~ to view the plot.
+
+#+NAME: question2
+#+begin_src R
+aqi_df <- read.csv("air-quality.csv")
+head(aqi_df)
+ggpairs(aqi_df[,c(2:13,1)])
+#+end_src
+
+3. *(5 pts)* Briefly discuss what you see in the pairs plot with respect to collinearity in this set of potential explanatory variables. Consider CO (carbon monoxide) as the response variable and others as potential predictors. The code chunk below also provides VIF values for a first-order model with all predictors.
+
+#+NAME: question3
+#+begin_src R
+names(aqi_df)
+fit_firstorder <- lm(CO ~ tin_oxide + hydrocarbons + benzene + 
+              titania + NOx + tungsten_oxide + NO2_avg +
+              tungsten_oxide2 + indium_oxide + temp_C + 
+              rel_hum + abs_hum, data = aqi_df)
+car::vif(fit_firstorder)
+#+end_src
+
+- /All of the variables are highly co-linear, with the smallest VIF with hydrocarbons being 16 times larger than if the variable were completely independent from carbon monoxicde, and the largest variable being 296 times larger than if carbon monoxide were completely independent./
+
+4. *(5 pts)* Write a research question that aligns with /"Objective I: Adjusting"/ with the only restriction being that CO is your response variable of interest. In your RQ indicate what order of $X$ terms you will investigate.
+
+- /We will example carbon monoxide after accounting for absolute humidity and the other variables./
+
+5. *(10 pts)* Carry out a sequential VS analysis to address the question you wrote in question 7. Be sure to communicate the choices you made along the way (e.g., what criterion will you use for the steps, what's your stopping condition, forward/backward/stepwise). Report your code (but not the output!) and the final model your VS landed on.
+
+#+NAME: question5
+#+begin_src R
+# your code here 
+fit_forward <- step(lm(CO ~ abs_hum,
+                      data = aqi_df),
+                     scope = CO ~ abs_hum +tin_oxide
+                     +hydrocarbons + benzene + titania
+                    + NOx + tungsten_oxide + NO2_avg + tungsten_oxide2
+                    + indium_oxide + temp_C,
+                     direction = "forward")
+ summary(fit_forward)
+#+end_src
+*We used fowrard selection with the default AIC criterion. Updates stop once the AIC stops decreasing.*
+
+$$\mu\{CO \mid \text{abs_hum, NOx, titania, hydrocarbons, tin_oxide}\} = -0.8001 + 0.1154 x_{\text{abs_hum}} + 0.01 x_{\text{NOx}}+0.0008 x_{\text{titania}} + 0.0007 x_{\text{hydrocarbons}} + 0.0005 x_{\text{tin_oxide}}$$
+
+6. *(5 pts)* Now, carry out an /all subsets/ VS analysis. Is your top model the same model as the stepwise (sequential VS) method?
+
+#+NAME: question-6
+#+begin_src R
+full_model <- lm(CO ~ abs_hum +tin_oxide
+                     +hydrocarbons + benzene + titania
+                    + NOx + tungsten_oxide + NO2_avg + tungsten_oxide2
+                    + indium_oxide + temp_C, data = aqi_df)
+library(MuMIn) # Load the multi-model inference package
+# prevent fitting sub-models to different datasets 
+options(na.action = "na.fail") # Must be run to use dredge
+
+allSubsets_aqi <- dredge(full_model, rank = "BIC", 
+                         m.lim = c(3,10)) #Defaults into using
+
+# visualize results for all models within 4 BIC of top model
+# note you can play around with different subsets! 
+par(mar = c(3,5,6,4), mfrow = c(1,1)) 
+plot(subset(allSubsets_aqi, delta < 4),
+                           labAsExpr = TRUE)
+#+end_src
+
+- *The top model found in the stepwise method had the same variables with the exception of absolute humidity, which our group chose to force into the model.*
+
+7. *(5 pts)* Does your top model from the all-subsets analysis allow you to address your research question? Explain why or why not?
+
+- /No, our research question was related to CO after accounting for absolute humidity. The top model does not include absolute humidity, so it does not allow us to address the research question./
+

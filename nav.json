@@ -257,6 +257,113 @@
       {
         "label": "GLMs",
         "href": "/statistics/glms/index.html"
+      },
+      {
+        "label": "STAT 512",
+        "href": "/statistics/stat-512/index.html",
+        "children": [
+          {
+            "label": "Lecture Notes",
+            "href": "/statistics/stat-512/lecture-notes/index.html"
+          },
+          {
+            "label": "Activities",
+            "href": "/statistics/stat-512/activities/index.html",
+            "children": [
+              {
+                "label": "Chapter 12 Activity",
+                "href": "/statistics/stat-512/activities/chapter-12-activity/index.html"
+              },
+              {
+                "label": "Chapter 14 Activity",
+                "href": "/statistics/stat-512/activities/chapter-14-activity/index.html"
+              },
+              {
+                "label": "Binary Intro Worksheet",
+                "href": "/statistics/stat-512/activities/binary-intro-worksheet/index.html"
+              }
+            ]
+          },
+          {
+            "label": "Labs",
+            "href": "/statistics/stat-512/labs/index.html",
+            "children": [
+              {
+                "label": "Lab 1",
+                "href": "/statistics/stat-512/labs/lab-1/index.html"
+              },
+              {
+                "label": "Lab 2 Practice",
+                "href": "/statistics/stat-512/labs/lab-2-practice/index.html"
+              },
+              {
+                "label": "Lab 3",
+                "href": "/statistics/stat-512/labs/lab-3/index.html"
+              },
+              {
+                "label": "Lab 4",
+                "href": "/statistics/stat-512/labs/lab-4/index.html"
+              },
+              {
+                "label": "Lab 5",
+                "href": "/statistics/stat-512/labs/lab-5/index.html"
+              },
+              {
+                "label": "Lab 6",
+                "href": "/statistics/stat-512/labs/lab-6/index.html"
+              },
+              {
+                "label": "Lab 8 and 9",
+                "href": "/statistics/stat-512/labs/lab-8-and-9/index.html"
+              },
+              {
+                "label": "Lab 10",
+                "href": "/statistics/stat-512/labs/lab-10/index.html"
+              }
+            ]
+          },
+          {
+            "label": "Homeworks",
+            "href": "/statistics/stat-512/homeworks/index.html",
+            "children": [
+              {
+                "label": "Homework 2",
+                "href": "/statistics/stat-512/homeworks/homework-2/index.html"
+              },
+              {
+                "label": "Homework 3",
+                "href": "/statistics/stat-512/homeworks/homework-3/index.html"
+              },
+              {
+                "label": "Homework 4",
+                "href": "/statistics/stat-512/homeworks/homework-4/index.html"
+              }
+            ]
+          },
+          {
+            "label": "Final Project",
+            "href": "/statistics/stat-512/final-project/index.html",
+            "children": [
+              {
+                "label": "Part 1",
+                "href": "/statistics/stat-512/final-project/part-1/index.html"
+              },
+              {
+                "label": "Part 2",
+                "href": "/statistics/stat-512/final-project/part-2/index.html"
+              },
+              {
+                "label": "Part 3",
+                "href": "/statistics/stat-512/final-project/part-3/index.html"
+              }
+            ]
+          },
+          {
+            "label": "Textbook",
+            "href": "/statistics/stat-512/textbook/index.html",
+            "private": true
+          }
+        ]
       }
     ]
   },

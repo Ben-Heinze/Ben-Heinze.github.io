@@ -1,0 +1,69 @@
+#+TITLE: STAT 512
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+STAT 412/512, Methods of Data Analysis, Montana State University, Spring 2026.
+Taught by Katharine (Katie) Banner with Lakviru Perera. The textbook is
+/The Statistical Sleuth/ (Ramsey & Schafer, 3rd ed.).
+
+* Course goal
+
+Build on STAT X11. By the end of the course, one should be able to:
+
+- effectively and critically evaluate the inferential statements made in research
+  papers when related to MLR (including multifactor ANOVA), logistic regression
+  (binary and binomial), Poisson log-linear regression, and basic linear mixed
+  models (repeated measures models);
+- conduct principled analyses (i.e., following recommended workflows), and write
+  statistical reports.
+
+* Course structure
+
+- *First hour, MWF:* lecture via boardwork, handouts, slides and software demos,
+  plus discussions and activities.
+- *Wednesday:* a short quiz, then about half the period on the lab assignment.
+  Labs are done and turned in to Gradescope in groups, and usually finished
+  outside of class.
+- *Software:* R (4.5.1+) and RStudio Desktop.
+
+* Sections
+
+| Section          | What's there                                                                        |
+|------------------+-------------------------------------------------------------------------------------|
+| [[file:lecture-notes/index.org][Lecture Notes]]    | Chapter 18-19 notes and annotated slides, the scope-of-inference handout            |
+| [[file:activities/index.org][Activities]]       | In-class activities for chapters 12, 14 and 20                                      |
+| [[file:labs/index.org][Labs]]             | Labs 1-10: regression review through binomial logistic regression and mixed models  |
+| [[file:homeworks/index.org][Homeworks]]        | Homeworks 2-4                                                                       |
+| [[file:final-project/index.org][Final Project]]    | Analysis plan for the ACTIVE cognitive-training / dementia study                    |
+
+* Textbook
+
+#+begin_quote
+*Textbook needed:* the chapter readings come from /The Statistical Sleuth/
+(Ramsey & Schafer, 3rd ed., Brooks/Cole, 2013), which isn't published here.
+A chapter-by-chapter copy is kept as a private Textbook page in this section,
+visible only when the wiki is run locally.
+#+end_quote
+
+* Topics by Sleuth chapter
+
+| Chapter | Topic                                         | Where it shows up                                |
+|---------+-----------------------------------------------+--------------------------------------------------|
+| 9-11    | Multiple linear regression, model checking    | Lab 1, Lab 2 Practice                            |
+| 12      | Variable selection                            | Chapter 12 Activity, Lab 3, Homework 2 Part I    |
+| 13      | Two-way ANOVA, randomized blocks              | Lab 4, Lab 5, Homework 2 Part II                 |
+| 14      | Two-way ANOVA without replication             | Chapter 14 Activity                              |
+| --      | Linear mixed models (course notes)            | Labs 7-9, Homework 3                             |
+| 18-19   | Odds ratios, contingency tables               | Lecture Notes                                    |
+| 20-21   | Binary and binomial logistic regression       | Binary Intro Worksheet, Lab 10                   |
+| 23-24   | Study design, power, quantitative backdrops   | Final Project                                    |

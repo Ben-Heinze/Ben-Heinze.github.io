@@ -1,0 +1,224 @@
+#+TITLE: Chapter 14 Activity
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Two-way ANOVA without replication (Sleuth case 14.1, chimpanzees learning sign language): additive vs. interaction models, model-based vs. pure-error estimates of $\sigma$, and diagnostics.
+
+PDFs on this page:
+
+- [[file:chapter14-activity.pdf][Chapter 14 activity handout]]
+- [[file:recognize-split-plot-experiment.pdf][Recognizing a split-plot experiment]]
+
+/STAT X12: Ch 14 activity/
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE)
+options(show.signif.stars = FALSE)
+#+end_src
+
+*Case 1401 - Chimpanzees Learning Sign Language:* Researchers taught 10 signs of American Sign Language (ASL) to four chimpanzees. The study's goals were to investigate if some signs are more easily acquired than others, and if some chimps tend to learn signs more quickly than other chimps. Researchers recorded the times (in minutes) required to teach each sign to each subject --- i.e., the minutes until a chimp could successfully produce unprompted responses using the desired sign on five consecutive occasions.
+
+- What is the response? Provide the units.
+
+*The response is the time in minutes it took the chimps to learn a sign*
+
+- What are the explanatory variables? List all levels.
+
+*The explanatory variables are the signs (10 levels) and the chimps themselves (4 levels).*
+
+- Why is it impossible to have replication at the /sign/ by /chimp/ level of the model?
+
+*It is impossible to replicate the sign by chimp level of the model because the chimp already learned the sign, so it cannot start the learning process over.*
+
+* Analysis of the chimpanzee learning times study (14.3)
+
+These data are an example of a *repeated measures* data structure where each chimp learns 10 signs in ASL, and the levels of /sign/ are nested within /chimp/.
+
+0. The First step in modeling is always summarizing the data and EDA. Some data wrangling is done for you in the code chunk below. \_Work through the code line by line and discuss each line with your group. Add comments as you deem necessary.
+
+#+NAME: q1-summarize
+#+begin_src R
+library(Sleuth3)
+library(tidyverse)
+glimpse(case1401)
+
+# how many observations per group? 
+with(case1401, table(Sign, Chimp))
+
+# which signs are most difficult? 
+sign_diff <- case1401 |> 
+  group_by(Sign) |> 
+  summarise(avg_time = mean(Minutes), 
+            avg_ltime = mean(log(Minutes)),
+            sd_time = sd(Minutes), 
+            n = n()) |> 
+  arrange(avg_time)
+  
+sign_diff
+
+# lets relevel the sign variable to match the order of difficulty
+chimps <- case1401 |> 
+  mutate(Sign = factor(Sign, levels = sign_diff$Sign))
+
+# check that the order is right
+levels(chimps$Sign)
+#+end_src
+
+1. Create an appropriate raw-data visualization. (Hint, you can make a coded scatterplot similar to the graph in your text). Does there appear to be an interaction between ~Sign~ and ~Chimp~ as they relate to ~Minutes~? Briefly explain.
+
+#+NAME: q1-raw-data
+#+begin_src R
+ggplot(chimps, aes(x = Sign, y = Minutes)) +
+  geom_jitter(aes(color = Chimp), width = 0.2, size = 1.5, alpha = 0.7) +
+  labs(x = "Sign",
+       y = "Time (minutes)",
+       title= "Violin Plot of ...")
+#+end_src
+
+*There appears to be a interaction between chimpanzee and sign based on how times differed between signs and chimpanzees.*
+
+2. Fit the saturated model and create a Type I anova table for the model. Briefly explain why the F-tests are all ~NaN~
+
+#+NAME: q2-intmodel
+#+begin_src R
+lm_int <- lm(Minutes ~ Sign*Chimp, data=chimps)
+anova(lm_int)
+#+end_src
+
+*The F-values are all Nan because there was no repetition in this study, so you cannot calculate a pure error.*
+
+3. Fit an additive model to these data and create a Type I anova table for the model. Describe in the context of the problem where the residual degrees of freedom, sums of squares, and mean square come from and the /assumption you are making so that additive tests are available/.
+
+#+NAME: q3-addmodel
+#+begin_src R
+lm_add <- lm(Minutes ~ Sign+Chimp, data=chimps)
+anova(lm_add)
+#+end_src
+
+*The degrees of freedom come from the number of factors minus 1.*
+
+4. Why is $\widehat{\sigma}$ in (3) called a /model-based/ estimate of $\sigma^2$ vs. a /pure error/ estimate of $\sigma^2$? /Describe in your own words./
+
+*The* $\widehat{\sigma}$ *is called a model based estimate of* $\sigma^2$ *instead of a pure error estimate because we are using ...* (answer left unfinished)
+
+5. Create a suite of diagnostic plots for the additive model. Which assumption appears to be severely violated? Briefly explain referencing features of the plot.
+
+#+NAME: q5-diagnostics
+#+begin_src R
+par(mfrow = c(2,2))
+plot(lm_add, pch = 18)
+#+end_src
+
+*There is strong evidence against constant variance since the data points on the residuals vs fitted plot greatly fan out as the fitted values increase. There may be moderate evidence against linearity since the residuals vs fitted plot has a dip in the line.*
+
+6. Log-transformations of the response can be "variance stabilizing." Create a new raw-data visualization with the response variable log transformed.
+
+#+NAME: q6-eda-tranform
+#+begin_src R
+chimps$log_minutes <- log(chimps$Minutes)
+
+ggplot(chimps, aes(x = Sign, y = log_minutes)) +
+  geom_jitter(aes(color = Chimp), width = 0.2, size = 1.5, alpha = 0.7) +
+  labs(x = "Sign",
+       y = "Time log(minutes)",
+       title= "Violin Plot of ...")
+#+end_src
+
+7. Create an interaction plot for the log-transformed response. How does this plot compare to the plot you made in (6)? Does there appear to be an interaction between ~Chimp~ and ~Sign~ on ~log(Minutes)~? /Note you will first need to create a log_min variable in ~chimps~./
+
+#+NAME: q7-intplot
+#+begin_src R
+lm_log_int <- lm(log_minutes ~ Sign*Chimp, data=chimps)
+
+library(ggeffects)
+plot(ggpredict(lm_log_int, terms=c("Sign", "Chimp"))) + 
+  geom_line(lty=2)
+#+end_src
+
+*The plot looks the same as the plot in question 6. There does appear to be an interaction between sign and chimp.*
+
+8. To address the research questions we have to assume any differences in the relationship between log(Minutes) and Sign across the levels of Chimp are truly background noise. We would need to justify why we feel this is reasonable (maybe the researchers could help us out here!). Fit the additive model with the logged response and create a suite of diagnostic plots. Do any /other modeling assumptions/ appear to be severely violated? Briefly explain.
+
+#+begin_src R
+lm_log_add <- lm(log_minutes ~ Sign+Chimp, data=chimps)
+par(mfrow = c(2,2))
+plot(lm_log_add, pch = 18)
+#+end_src
+
+-----
+
+9. Use an appropriate anova table or another approach (i.e., two ESS F-tests) to run analyses to investigate (1) the relationship between log-learning-time and sign, after accounting for chimp, and (2) the relationship between log-learning-time and chimp, after accounting for sign. Use your results and write a summary of statistical findings for each research question.
+
+#+NAME: q9-main-effects
+#+begin_src R
+
+#+end_src
+
+Researchers were interested in, investigating if some signs are more easily acquired than others, and if some chimps tend to learn signs more quickly than other chimps. They had no hypotheses that led to pre-planned comparisons of any of the main effects and a Tukey-Kramer "all pairwise comparisons of means" is a reasonable followup. Write code to create a confidence interval plot of all pairwise comparisons and ~cld~ output for each set of followup tests.
+
+10. So which signs are different? There are $\binom{10}{2} = 45$ pairwise comparisons we can make between the signs (averaging over chimps) and we can use Tukey's HSD to address that many simultaneous inferences. The code below will do this for you and create ~cld~ output. Summarize the findings with a few sentences interpreting the ~cld~ output to address the research question of interest.
+
+#+NAME: q10-tukey
+#+begin_src R
+suppressMessages(library(multcomp))
+
+# replace @@@@ with the name of your additive model fit
+# and make sure to change this code chunk to eval = TRUE
+tukey_sign <- glht(@@@@, 
+                   linfct = mcp(Sign = "Tukey"))
+# confint(tukey_sign)
+# Simultaneous Confidence Intervals
+# 
+# Multiple Comparisons of Means: Tukey Contrasts
+# Fit: lm(formula = log(Minutes) ~ Chimp + Sign, data = chimps)
+# 
+# Quantile = 3.4391
+# 95% family-wise confidence level
+#  
+# 
+# Linear Hypotheses:
+#                      Estimate lwr      upr     
+# food - drink == 0     0.96866 -0.99765  2.93496
+# fruit - drink == 0    1.35652 -0.60978  3.32283
+# hat - drink == 0      1.85663 -0.10967  3.82294
+# key - drink == 0      0.12460 -1.84171  2.09091
+cld_sign <- cld(tukey_sign)
+
+# add cld output to summary df for signs for plotting
+cld_summ <- sign_diff |> 
+  mutate(cld = cld_sign$mcletters$Letters, 
+         Sign = factor(Sign, levels = sign_diff$Sign))
+
+# create effects plot for sign and add cld letters
+plot(ggeffects::ggeffect(lchimp_fit, terms = "Sign")) +
+  geom_label(data = cld_summ, aes(x = as.numeric(Sign), y = avg_ltime, 
+                                   label = cld))  
+#+end_src
+
+11. *Extra:* There was moderate evidence to suggest there was a difference in mean log-learning time among the chimps, after accounting for sign. Repeat the process done in 10 to conduct a Tukey-Kramer follow-up procedure for all $\binom{4}{2}$ = =r choose(4,2)= pairwise differences in chimps and summarize your findings. Why might something like this be valuable even if all chimps receive the same cld letter? (/Hint: think about HW1 and the information you get out of CIs/)!
+
+* Documents
+
+** Chapter 14 activity handout
+
+#+begin_export html
+<embed src="chapter14-activity.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
+
+** Recognizing a split-plot experiment
+
+#+begin_export html
+<embed src="recognize-split-plot-experiment.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

@@ -1,0 +1,388 @@
+#+TITLE: Lab 1
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Regression review with the =palmerpenguins= data: parallel slopes vs. interaction models and interpreting coefficients. The pre-lab assignment is on its own page: [[file:pre-lab-1.org][Pre-Lab 1 Assignment]].
+
+PDFs on this page:
+
+- [[file:pre-lab1-assignment.pdf][Pre-Lab 1 assignment]]
+
+/Lab 1: Regression Review/
+
+Author(s): Charlie, Ben, Clair
+
+Due: Friday, 1/30/26, 11:59pm
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+#+end_src
+
+* Tutorial
+
+Code repeated here for convenience while completing the lab, but should have been completed as part of the pre-assignment.
+
+#+NAME: tutorial
+#+begin_src R
+# load tidyverse 
+library(tidyverse)
+# load moderndive for geom_parallel_slopes
+library(moderndive) # note, may need to install
+# load penguins package to load dataset called penguins
+library(palmerpenguins) # note, may need to install
+# look at the dataset 
+penguins
+
+# RESEARCH CONTEXT
+# suppose I want to investigate the relationship between 
+# flipper length and bill length (specifically how changes in flipper
+# length associate with mean bill length), and if this relationship is 
+# different across species of the penguins. I may want to investigate 
+# three way interactions between sex, species, and flipper length 
+# and how they relate to bill length. 
+
+# I'm going to create a subset of the data set including
+# just the variables I want to investigate 
+penguins_sub <- penguins |> # note |> and %>% can be used interchangeably
+  select(species, sex, flipper_length_mm, bill_length_mm)
+penguins_sub
+
+# I notice some NAs in the 343 observations 
+# and if I'm comparing regression models with 
+# subsets of any of these variables, I'm going to want to use the same 
+# observations in all models, so I'm going to first make an assumption
+# that the missing observations are *missing completely at random* (MCAR)
+# and keep only the complete cases (observations with measurements for 
+# species, sex, flipper, and bill). I'm going to call this complete-case 
+# dataset df_penguin
+
+df_penguin <- penguins_sub |> 
+  drop_na()
+
+# DISCUSS: Try to put into your own words what the MCAR assumption really 
+# means about missingness. Does this seem reasonable? 
+
+# I can look at df_penguin with glimpse to learn more about these data, 
+# DISCUSS: how many observations were dropped? Hint: look at number of rows!
+# DISCUSS: what *types* (factor (categorical), double (quantitative), 
+# integer (could be treated as either, will need to choose), character 
+# (string)) of variables are in df_penguin? 
+glimpse(df_penguin)
+
+# now, let's make some plots to investigate the RQ. 
+# RQ: investigate the relationship between 
+# flipper length and bill length (specifically how changes in flipper
+# length associate with mean bill length), and if this relationship is 
+# different across species of the penguins. I also want to investigate 
+# three way interactions between sex, species, and flipper length 
+# and how they relate to bill length. 
+# RECOMMENDATION, run 1 line at a time to see each layer! 
+
+# take df_penguins THEN use in ggplot()
+df_penguin |> 
+  # aes() sets up ggplot object with x, y, according to X and Y vars of RQ
+  # and color encodings for species (another X var of interest)
+  ggplot(aes(x = flipper_length_mm, y = bill_length_mm, col = species)) +
+  # add pts and use translucency to avoid overplotting
+  geom_point(alpha = 0.6) + 
+  # facet by sex to explore 3-way interaction 
+  facet_wrap(~sex) + 
+  # make labels more professional
+  labs(x = "Flipper length (mm)", 
+       y = "Bill length (mm)", 
+       col = "Species")
+
+# I want to be able to add layers to this plot after I estimate the model
+# so I'm going to save the plot as the object "coded_scatter" 
+coded_scatter <- df_penguin |> 
+  # aes() sets up ggplot object with x, y, according to X and Y vars of RQ
+  # and color encodings for species (another X var of interest)
+  ggplot(aes(x = flipper_length_mm, y = bill_length_mm, col = species)) +
+  # add pts and use translucency to avoid overplotting
+  geom_point(alpha = 0.6) + 
+  # facet by sex to explore 3-way interaction 
+  facet_wrap(~sex) + 
+  # make labels more professional
+  labs(x = "Flipper length (mm)", 
+       y = "Bill length (mm)", 
+       col = "Species")
+
+# What happens when you call coded_scatter? Try it out! 
+coded_scatter
+
+# A tentative inferential model in Sleuth shorthand is: 
+# mu{bill|sex, flipper, spp} = flipper*SPECIES*SEX
+# var{bill|sex, flipper, spp} = sigma^2
+
+# We can plot the estimated 3way interaction on the coded scatter to 
+# help us think about what it really means...
+coded_scatter + 
+  # add *estimated regression* lines
+  geom_smooth(method = "lm", se = F)
+
+# DISCUSS: what does the 3-way interaction mean in the context of the 
+# problem? Do you expect a test of the 3-way interaction terms to result in 
+# strong evidence against a simpler model with just 2-way interactions? 
+
+# let's fit the model using the df_penguin (complete-case) dataset... 
+fit_3way <- lm(bill_length_mm ~ flipper_length_mm*species*sex, 
+               data = df_penguin)
+# estimated model + more 
+summary(fit_3way)
+
+# 321 residual df --- check that (df_reid = n - #betas in 3way) 
+fit_3way$df.residual
+
+# quick residual diagnostic plots 
+par(mfrow = c(1,4))
+plot(fit_3way, pch = 19, col = df_penguin$species)
+
+# note the groups in the residual plots could be due to island, we'd need to # keep that variable around (and it may change our complete-case dataset) to # investigate this further
+
+# none of the assumptions are severely violated though 
+# case 283 may need to be evaluated for influence 
+# Let's first scrutinize the 3-way interaction. 
+# We can use a ESS F-test  to compare the 3-way model to a model with 
+# all potential 2-way interactions... 
+fit_all2way <- lm(bill_length_mm ~ flipper_length_mm*species +
+                    flipper_length_mm*sex + sex*species, 
+               data = df_penguin)
+summary(fit_3way)
+
+# 323 residual df --- 2 betas were dropped from 3way model
+fit_all2way$df.residual 
+
+# ESS F-test setup
+# Full: 3way (n = 333, 12 betas, 321 df_full)
+# Reduced: 2way (n = 333, 10 betas, 323 df_red)
+anova(fit_all2way, fit_3way)
+
+# next steps would be to further refine inferential model using more 
+# informal ESS F-tests until we settled upon something that addresses 
+# the research question and is interpretable! 
+
+# BASIC WRANGLING with R
+# given that the intercept makes no sense in the context of this research 
+# let's center flipper length around the average flipper length of 
+# all penguins in df_penguin. We can do this with the tidyverse easily! 
+
+# take complete-case df and THEN
+df_penguin |> 
+  # create a centered flipper length var 
+  mutate(flipp_center = flipper_length_mm - mean(flipper_length_mm))
+
+# now let's save that as a new dataset
+
+df_final <- df_penguin |> 
+  # create a centered flipper length var 
+  mutate(flipp_center = flipper_length_mm - mean(flipper_length_mm))
+
+# DISCUSS: What do negative filpp_center values mean? positive? 0? 
+glimpse(df_final) 
+
+# now we can use the centered variable to aid in the interpretation in 
+# the intercept term! 
+
+# how about re-leveling a factor? 
+# If I want to make chinstrap the baseline level, I can do something like this... 
+df_final |> 
+  # re-level species to have chinstrap as baseline
+  mutate(species = factor(species, 
+                          levels = c("Chinstrap", "Adelie", "Gentoo"))) |>
+  # take a look at the new species variable
+  pull(species)
+
+# let's save this re-leveled species variable in our data frame df_final
+df_final2 <- df_final |> 
+  mutate(species = factor(species, 
+                          levels = c("Chinstrap", "Adelie", "Gentoo"))) 
+
+# DISCUSS: How does the population model change now that Chinstrap is the baseline? 
+# what indicators do you need to define? 
+
+# Let's fit a simpler model to investigate and compare how the estimated
+# model will change
+
+# fit separate lines model to centered flipper and re-leveled species
+fit_test <- lm(bill_length_mm ~ flipper_length_mm*species, 
+               data = df_final2)
+summary(fit_test)
+# compare to uncentered and old species variable with Adelie as baseline 
+
+fit_test2 <- lm(bill_length_mm ~ flipper_length_mm*species, 
+                data = df_final)
+summary(fit_test2)
+
+# DISCUSS: how do estimates and inferences compare? 
+#+end_src
+
+* Lab 1
+
+*Directions:* Complete the lab and turn in one assignment per group to GS before the deadline. You may change the YAML to knit to Word or .html if you do not have LaTeX, but you need to save your submission as a .pdf to turn it in to GS.
+
+*Data source:* Horst AM, Hill AP, Gorman KB (2020). ~palmerpenguins~: Palmer Archipelago (Antarctica) penguin data. R package version 0.1.0. [[https://allisonhorst.github.io/palmerpenguins/]]. <doi:10.5281/zenodo.3960218>.
+
+- Ecological Sexual Dimorphism and Environmental Variability within a Community of Antarctic Penguins (Genus Pygoscelis) Gorman KB, Williams TD, Fraser WR (2014) Ecological Sexual Dimorphism and Environmental Variability within a Community of Antarctic Penguins (Genus Pygoscelis). PLOS ONE 9(3): e90081. [[https://doi.org/10.1371/journal.pone.0090081][https://doi.org/10.1371/journal.pone.0090081]]. 
+
+Suppose researchers are still interested in the association between bill length (mm) and body mass (measured in g), and if this association is different for the different penguin species. Additionally, they are /particularly interested in characterizing the true difference in mean bill lengths between Chinstrap and Gentoo penguins with average body mass./ *Your task is to fit a regression model including all of the species available that allows you to address the specific questions of interest. This lab will guide you through some of the necessary steps to define the scope of inference, visualize data, and build your inferential model. Then you will write a brief report (similar to the __echolocating bats write up in Ch 10 pg. 288-289) providing context for the research, presenting raw-data visualizations, describes model refinement steps, and summarizes statistical findings that address the specific research question of interest in words and with at least one visualization.*).
+
+1. Create a centered mass variable and then create an appropriate raw-data visualization for investigating the research question. Compare your updated visualization to those we made in the class notes and comment on if the relationship between body mass and bill length appears different for any of the species in the study now that the body mass is centered. 
+
+#+NAME: q2-viz
+#+begin_src R
+
+library(palmerpenguins)
+
+penguins <- penguins
+
+df_q1 <- penguins |> 
+  select(species, sex, body_mass_g, bill_length_mm, island) |> 
+  drop_na() |> 
+  mutate(mass_center = body_mass_g - mean(body_mass_g))
+
+df_q1 |> 
+  ggplot(aes(x = mass_center, y = bill_length_mm, col = species)) +
+  geom_point() +
+  labs(x = "Average Body Mass g",
+       y = "Bill Length mm",
+       col = "Species")
+
+#+end_src
+
+- /The only difference between this raw data visualization and those we made in class is that the x-axis looks different in the scale. Other than that, all the points fall in the same relative to eachother./ 
+
+2. Re-level the species variable so that you can address the question of interest. /Hint there are two ways you could do this!/ Then, refit the separate lines model, parallel lines model, and rerun the ESS F-test that allows you to investigate if the association between centered body mass and bill length is different for the different species. No explanation necessary. 
+
+#+NAME: q2-reassess-big-picturerq
+#+begin_src R
+
+df_q1$relevel <- as.factor(df_q1$species) |> 
+  relevel(Adelie, ref = 3)
+
+seperate_lines <- lm(bill_length_mm ~ relevel*mass_center,
+                     data = df_q1)
+
+round(summary(seperate_lines)$coef, 4)
+
+parallel_lines <- lm(bill_length_mm ~ relevel + mass_center,
+                    data = df_q1)
+
+round(summary(parallel_lines)$coef, 4)
+
+anova(parallel_lines, seperate_lines)
+
+#+end_src
+
+3. Create a set of diagnostic plots and assess each modeling assumption. In your assessment, make reference to features in appropriate plot(s). For independence, discuss one way this assumption could be severely violated in the context of the research. That is, make up a scenario where independence would be severely violated using the context of the research question. 
+
+#+NAME: q3-diag
+#+begin_src R
+# split plotting window into 1 row, 4 cols 
+par(mfrow = c(1,4))
+plot(seperate_lines, pch = 19, col = df_q1$species)
+
+#+end_src
+
+- *Independence: Independence could be severely violated if the penguins sampled are only from one family within the species.*
+- *Linearity: There is weak evidence against linearity as there appears to be random vertical scatter around 0, but there do appear to be two distinct groups in the residuals vs. fitted plot. When observing the scatterplot there also appears to be linearity, but it isn't super strong and also appears to show different groups.* 
+- *Constant Variance: There appears to be constant vertical scatter in the residuals vs. fitted plot and the scale-location plot so we have weak evidence against the assumption of constant variance. However, there do appear to be two separate groups in both of these plots as well.* 
+- *Normality: We have weak evidence against normality as the residuals in the q-q residuals plot don't appear to deviate much from the line of normality.* 
+- *Influential points: There are no influential observations as no points have high leverage and a Cook's D over 0.5.* 
+
+4. Regardless of your answers to 3, what would you conclude about the portion of the research question you assessed in 2. 
+
+- *Because of the test run in question 2, I would conclude that the association between bill length and centered body mass isn't different for different species. This means it is best to use the additive model.* 
+
+5. Write out a tentative inferential model (population model) that allows you to investigate the specific research question of interest (knowing what you now know from 2-4). Identify the parameter(s) that allow to address the question and interpret it(them) in the context of the problem. /You may write this out by hand and include a picture of your handwritten work in your final document, or you may use math mode./
+
+$\mu\{\text{Bill length} \mid \text{Centered Body Mass, Species}\} = \beta_0 + \beta_1 x_{\text{Centered Body Mass}} + \beta_2 I_{Adelie} +\beta_3  I_{Chinstrap}$
+
+- *For the average body weight of a penguin, it is estimated that the bill length,_ $\beta_0$ _, will be 44.2438 mm for the Gentoo species. It is estimated that the bill length of an average weight Chinstrap penguin would increase by 6.3696 mm when compared to the Gentoo species. For each 1 gram increase in average weight it is estimated that bill length will increase by 0.0038 mm.*
+
+6. Estimate your model using R and report a summary of statistical findings addressing the specific research question of interest, including a CI for the parameter of interest. 
+
+#+NAME: q6-estimate-summarize
+#+begin_src R
+
+round(summary(parallel_lines)$coef, 4)
+
+anova(parallel_lines)
+confint(parallel_lines, level = 0.95)
+
+#+end_src
+
+- *We have strong evidence that there is a positive linear relationship between centered penguin body weight (g) and penguin bill length (mm) that is different for Chinstrap and Gentoo penguin species (point-estimate = 6.3696,* $t_329$ *=11.8357, p-value < 0.001). It is estimated that for the average penguin mass, the Chinstrap has a bill length about 5.3109 to 7.4283 mm longer than the Gentoo penguin.* 
+
+7. Compare visualizations, estimated models, and inferences to the inferences we made in the lecture notes. Then briefly address the following questions: What has changed? What has remained the same? What does this tell you about what happens to results of a regression when X-variables are centered or re-leveled? 
+
+- *The visualizations look about the same because the data itself hasn't changed, but the scale that the data is on has changed. This means that the model has different intercepts and predicted intercepts because the data has been pushed lower. When X-variables are centered or re-leveled, the y values don't change, but the way the they are reached changes.* 
+
+8. Now, suppose you want to include Island in your model. (Maybe this will help with the groups we see in the RvF and SL plots!). Create a visualization to investigate if there is a three way interaction between island, species, and mass as they relate to bill length. Briefly describe what you see.
+
+#+NAME: q8-visualize3way
+#+begin_src R
+
+df_q1 |> 
+  ggplot(aes(x = mass_center, y = bill_length_mm, col = island)) +
+  geom_point(aes(shape = species)) +
+  labs(x = "Average Body Mass g",
+       y = "Bill Length mm",
+       col = "Island",
+       shape = "Species")
+
+par(mfrow = c(1,4))
+plot(seperate_lines, col = df_q1$island, pch = 18)
+
+#+end_src
+
+- *Biscoe Island seems to show a strong linear relationship between average body mass and bill length while Torgersen Island shows moderate and Dream Island shows little to no linear relationship between average body mass and bill length. Some of this is explained by the locations of each penguin species, no Gentoos live on Dream Island or Torgersen Island and Torgersen Island only contains Adelie penguins.*
+
+9. Write up a brief statistical report providing information /similar to the echolocating bats write up in Ch 10 pg 288-289./ This should include describing the research questions and a tentative inferential model for addressing the question, any transformations of the data, providing raw data visualizations, explaining any intermediate steps (informal tests, big-picture results from residual analysis), and reporting on a final inferential model. Your reporting should include a summary of statistical findings and a visualization that helps you communicate your findings (this could be a plot of the estimated model with CIs for the mean of Y as a function of X, an effects plot). /Note that this can be just a few paragraphs, it should not be longer than 1 page of text!/ 
+
+*In the analysis between bill length and centered body mass across species, extra-sums-of-squares F-tests were implemented to test for a relationship in bill length and body mass across species. The research question asked whether there is a true difference in mean bill lengths between Chinstrap, Adelie, and Gentoo penguins with average body mass, specifically looking at the differences in bill length between Chinstrap and Gentoo.*
+
+*Data preprocessing began with centering body mass (g) on its average to better interpret the data. Next, we re-leveled the data to ensure we could directly compare Chinstrap and Gentoo penguins.*
+
+*Once the preprocessing was completed, an ESS F-test was run to compare the separate model with the parallel model’s performance. The parallel model was selected in the end because we had little evidence for the interaction (F=1.7093, p-value = 0.1826). Our additive model is:*
+
+$\mu\{\text{Bill length} \mid \text{Centered Body Mass, Species}\} = \beta_0 + \beta_1 x_{\text{Centered Body Mass}} + \beta_2 I_{Adelie} +\beta_3  I_{Chinstrap}$
+
+$$
+I_{Adelie} =
+\begin{cases}
+1, & \text{if penguin is Adelie} \\
+0, & \text{otherwise}
+\end{cases}
+$$
+$$
+I_{Chinstrap} =
+\begin{cases}
+1, & \text{if penguin is Chinstrap} \\
+0, & \text{otherwise}
+\end{cases}
+$$
+
+*Independence could be severely violated by accidental sampling of the same individual penguin across multiple years or sampling of penguins within a family that can tend to share similar body measurements. The Residuals vs Fitted plot shows no evident patterns or curvature, which provides weak evidence against linearity. The Residuals vs Fitted plot overall shows weak evidence against constant variance since the residuals appear to have a similar vertical spread across the plot. The Q-Q Residuals plot shows that the residual points closely follow the line of normality, so there is weak evidence against normality. The Residuals vs Leverage plot does not have any points falling outside of Cook's distance values greater than 0.5, as well as no high leverage values so we have weak evidence against the assumption of no influential points.*
+
+/_There is strong evidence against the null hypothesis of no difference across Chinstrap and Gentoo penguins between the relationship of average body mass and bill length (t = -11.8357, p-value <0.001). Therefore, we conclude there is a difference across the species. A 95% confidence interval (5.3109, 7.4283) indicates that we are 95% confident the estimated mean bill length for Gentoo penguins is between 5.3109 and 7.4283 mm longer than for Chinstrap penguins. _/
+
+* Documents
+
+** Pre-Lab 1 assignment
+
+#+begin_export html
+<embed src="pre-lab1-assignment.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export

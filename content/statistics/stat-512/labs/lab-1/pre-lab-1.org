@@ -1,0 +1,303 @@
+#+TITLE: Pre-Lab 1 Assignment
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+PROPERTY: header-args:R :session *stat512* :results output :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Pre-lab tutorial for [[file:index.org][Lab 1]].
+
+PDFs on this page:
+
+- [[file:pre-lab1-assignment.pdf][Pre-Lab 1 assignment]]
+
+/Pre-Lab1 assignment/
+
+#+NAME: setup
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+#+end_src
+
+*Directions:* /Prior to Friday, 1/23/26/, read the Tutorial section and work through the ~tutorial~ code independently (code is provided in a code chunk below the text in the .Rmd). Plan to discuss tutorial code questions with your group on Friday before completing the lab.
+
+* Tutorial
+
+*Data source:* Horst AM, Hill AP, Gorman KB (2020). ~palmerpenguins~: Palmer Archipelago (Antarctica) penguin data. R package version 0.1.0. [[https://allisonhorst.github.io/palmerpenguins/]]. <doi:10.5281/zenodo.3960218>.
+
+- Ecological Sexual Dimorphism and Environmental Variability within a Community of Antarctic Penguins (Genus Pygoscelis) Gorman KB, Williams TD, Fraser WR (2014) Ecological Sexual Dimorphism and Environmental Variability within a Community of Antarctic Penguins (Genus Pygoscelis). PLOS ONE 9(3): e90081. [[https://doi.org/10.1371/journal.pone.0090081]].
+
+In the class notes we used the ~penguins~ dataset from the ~{palmerpenguins}~ R package and motivating research question, /"investigate the association between bill length (mm) and body mass (measured in g), and if this association is different for the different penguin species,"/ to review MLR methods. We noted that the intercept term in the estimated models is an /extrapoloation/ and therefore uninterpreted.
+
+In Chapter 10 (10.2.3), your book discusses a few tricks for generating meaningful inferences from MLR models that you can implement easily in R.
+
+1. We can center a continuous $X$ variable to make the intercept more interpretable. When $x = 0$ represents the average value of $X$ for all observations in the dataset, the intercept can be interpreted as the estimated value for the mean response when $X$ is at its average value.
+2. We can re-assign baseline levels to factor variables to make quick inferences about differences between a baseline intercept and a specific category.
+
+The tutorial code below provides another example of MLR basics and provides relevant information about how to achieve 1 and 2 using R! Be sure to read through comments carefully!
+
+#+begin_src R
+# load tidyverse 
+library(tidyverse)
+# load moderndive for geom_parallel_slopes
+#install.packages('moderndive')
+library(moderndive) # note, may need to install
+# load penguins package to load dataset called penguins
+# install.packages('palmerpenguins')
+library(palmerpenguins) # note, may need to install
+# look at the dataset 
+penguins
+
+#+end_src
+
+#+begin_src R
+# RESEARCH CONTEXT
+# suppose I want to investigate the relationship between 
+# flipper length and bill length (specifically how changes in flipper
+# length associate with mean bill length), and if this relationship is 
+# different across species of the penguins. I may want to investigate 
+# three way interactions between sex, species, and flipper length 
+# and how they relate to bill length. 
+
+# I'm going to create a subset of the data set including
+# just the variables I want to investigate 
+penguins_sub <- penguins |> # note |> and %>% can be used interchangeably
+  select(species, sex, flipper_length_mm, bill_length_mm)
+penguins_sub
+
+# I notice some NAs in the 343 observations 
+# and if I'm comparing regression models with 
+# subsets of any of these variables, I'm going to want to use the same 
+# observations in all models, so I'm going to first make an assumption
+# that the missing observations are *missing completely at random* (MCAR)
+# and keep only the complete cases (observations with measurements for 
+# species, sex, flipper, and bill). I'm going to call this complete-case 
+# dataset df_penguin
+
+df_penguin <- penguins_sub |> 
+  drop_na()
+df_penguin
+
+# DISCUSS: Try to put into your own words what the MCAR assumption really 
+# means about missingness. Does this seem reasonable? 
+
+# ANSWER: The MCAR assumption basically assumes that those inputs were never gathered in the first place. We are assuming there is no bias or dependence between the missing values, so removing them would not create any bias in our filtered dataset. If the initial dataset was taken with random sampling, then randomly removing certain rows of the datset shouldn't effect the bias of the dataset.
+#+end_src
+
+#+begin_src R
+# I can look at df_penguin with glimpse to learn more about these data, 
+# DISCUSS: how many observations were dropped? Hint: look at number of rows!
+
+# ANSWER: 344-333 = 11 dropped rows.
+
+# DISCUSS: what *types* (factor (categorical), double (quantitative), 
+# integer (could be treated as either, will need to choose), character 
+# (string)) of variables are in df_penguin? 
+
+# ANSWER: The df_penguin dataset contains two factor variables (Species, sex), an integer variable (flipper length, which should be converted to quantitative), and a double quantitaive variable (Bill length).
+
+glimpse(df_penguin)
+#+end_src
+
+#+begin_src R
+# now, let's make some plots to investigate the RQ. 
+# RQ: investigate the relationship between 
+# flipper length and bill length (specifically how changes in flipper
+# length associate with mean bill length), and if this relationship is 
+# different across species of the penguins. I also want to investigate 
+# three way interactions between sex, species, and flipper length 
+# and how they relate to bill length. 
+# RECOMMENDATION, run 1 line at a time to see each layer! 
+
+# take df_penguins THEN use in ggplot()
+df_penguin |> 
+  # aes() sets up ggplot object with x, y, according to X and Y vars of RQ
+  # and color encodings for species (another X var of interest)
+  ggplot(aes(x = flipper_length_mm, y = bill_length_mm, col = species)) +
+  # add pts and use translucency to avoid overplotting
+  geom_point(alpha = 0.6) + 
+  # facet by sex to explore 3-way interaction 
+  facet_wrap(~sex) + 
+  # make labels more professional
+  labs(x = "Flipper length (mm)", 
+       y = "Bill length (mm)", 
+       col = "Species")
+
+#+end_src
+
+#+begin_src R
+# I want to be able to add layers to this plot after I estimate the model
+# so I'm going to save the plot as the object "coded_scatter" 
+coded_scatter <- df_penguin |> 
+  # aes() sets up ggplot object with x, y, according to X and Y vars of RQ
+  # and color encodings for species (another X var of interest)
+  ggplot(aes(x = flipper_length_mm, y = bill_length_mm, col = species)) +
+  # add pts and use translucency to avoid overplotting
+  geom_point(alpha = 0.6) + 
+  # facet by sex to explore 3-way interaction 
+  facet_wrap(~sex) + 
+  # make labels more professional
+  labs(x = "Flipper length (mm)", 
+       y = "Bill length (mm)", 
+       col = "Species")
+# What happens when you call coded_scatter? Try it out! 
+coded_scatter
+
+# ANSWER: It's the same plot, but stored in a variable
+
+# A tentative inferential model in Sleuth shorthand is: 
+# mu{bill|sex, flipper, spp} = flipper*SPECIES*SEX
+# var{bill|sex, flipper, spp} = sigma^2
+#+end_src
+
+#+begin_src R
+# We can plot the estimated 3way interaction on the coded scatter to 
+# help us think about what it really means...
+coded_scatter + 
+  # add *estimated regression* lines
+  geom_smooth(method = "lm", se = F)
+
+# DISCUSS: what does the 3-way interaction mean in the context of the 
+# problem? Do you expect a test of the 3-way interaction terms to result in 
+# strong evidence against a simpler model with just 2-way interactions? 
+
+# ANSWER: The 3-way interaction model provides evidence against a simpler 2-way interaction model since the slopes between the association of flipper length and bill length varies given a penguin species and a penguin's sex.
+#+end_src
+
+#+begin_src R
+# let's fit the model using the df_penguin (complete-case) dataset... 
+fit_3way <- lm(bill_length_mm ~ flipper_length_mm*species*sex, 
+               data = df_penguin)
+# estimated model + more 
+summary(fit_3way)
+#+end_src
+
+#+begin_src R
+# 321 residual df --- check that (df_reid = n - #betas in 3way) 
+fit_3way$df.residual
+
+#+end_src
+
+#+begin_src R
+# quick residual diagnostic plots 
+par(mfrow = c(1,4))
+plot(fit_3way, pch = 19, col = df_penguin$species)
+
+# note the groups in the residual plots could be due to island, we'd need to keep that variable around (and it may change our complete-case dataset) to investigate this further
+#+end_src
+
+#+begin_src R
+# none of the assumptions are severely violated though 
+# case 283 may need to be evaluated for influence 
+
+# Let's first scrutinize the 3-way interaction. 
+# We can use a ESS F-test to compare the 3-way model to a model with 
+# all potential 2-way interactions... 
+fit_all2way <- lm(bill_length_mm ~ flipper_length_mm*species +
+                    flipper_length_mm*sex + sex*species, 
+               data = df_penguin)
+summary(fit_all2way)
+#+end_src
+
+#+begin_src R
+# 323 residual df --- 2 betas were dropped from 3way model
+fit_all2way$df.residual 
+#+end_src
+
+#+begin_src R
+# ESS F-test setup
+# Full: 3way (n = 333, 12 betas, 321 df_full)
+# Reduced: 2way (n = 333, 10 betas, 323 df_red)
+anova(fit_all2way, fit_3way)
+#+end_src
+
+#+begin_src R
+# next steps would be to further refine inferential model using more 
+# informal ESS F-tests until we settled upon something that addresses 
+# the research question and is interpretable! 
+
+# BASIC WRANGLING with R
+# given that the intercept makes no sense in the context of this research 
+# let's center flipper length around the average flipper length of 
+# all penguins in df_penguin. We can do this with the tidyverse easily! 
+
+# take complete-case df and THEN
+df_penguin |> 
+  # create a centered flipper length var 
+  mutate(flipp_center = flipper_length_mm - mean(flipper_length_mm))
+
+# now let's save that as a new dataset
+
+df_final <- df_penguin |> 
+  # create a centered flipper length var 
+  mutate(flipp_center = flipper_length_mm - mean(flipper_length_mm))
+#+end_src
+
+#+begin_src R
+# DISCUSS: What do negative flipp_center values mean? positive? 0? 
+glimpse(df_final) 
+
+# ANSWER: A negative flip_center value means that the flipper length is below average for a pengiun (across all penguins), a positive value means the flipper length is above average for a penguin, and 0 means the flipper length is perfectly average.
+#+end_src
+
+#+begin_src R
+# now we can use the centered variable to aid in the interpretation in 
+# the intercept term! 
+
+# how about re-leveling a factor? 
+# If I want to make chinstrap the baseline level, I can do something like this... 
+df_final |> 
+  # re-level species to have chinstrap as baseline
+  mutate(species = factor(species, 
+                          levels = c("Chinstrap", "Adelie", "Gentoo"))) |>
+  # take a look at the new species variable
+  pull(species)
+
+# let's save this re-leveled species variable in our data frame df_final
+df_final2 <- df_final |> 
+  mutate(species = factor(species, 
+                          levels = c("Chinstrap", "Adelie", "Gentoo"))) 
+
+# DISCUSS: How does the population model change now that Chinstrap is the baseline?
+# what indicators do you need to define? 
+
+# Answer: The population Since chinstrap is now the baseline, we would need to define the Adelie and Gentoo indicators variables.
+
+#+end_src
+
+#+begin_src R
+# Let's fit a simpler model to investigate and compare how the estimated
+# model will change
+
+# fit separate lines model to centered flipper and re-leveled species
+fit_test <- lm(bill_length_mm ~ flipper_length_mm*species, 
+               data = df_final2)
+summary(fit_test)
+#+end_src
+
+#+begin_src R
+# compare to uncentered and old species variable with Adelie as baseline 
+
+fit_test2 <- lm(bill_length_mm ~ flipper_length_mm*species, 
+                data = df_final)
+summary(fit_test2)
+# DISCUSS: how do estimates and inferences compare? 
+
+# Answer: 
+#+end_src
+
+* Documents
+
+** Pre-Lab 1 assignment
+
+#+begin_export html
+<embed src="pre-lab1-assignment.pdf" width="100%" height="800px" type="application/pdf">
+#+end_export
