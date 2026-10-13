@@ -71,6 +71,10 @@
               {
                 "label": "7 Linear Models",
                 "href": "/ai/machine-learning/lecture-notes/7-linear-models/index.html"
+              },
+              {
+                "label": "8 Multilayer Networks",
+                "href": "/ai/machine-learning/lecture-notes/8-multilayer-networks/index.html"
               }
             ]
           },
