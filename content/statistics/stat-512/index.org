@@ -45,6 +45,7 @@ Build on STAT X11. By the end of the course, one should be able to:
 | [[file:labs/index.org][Labs]]             | Labs 1-10: regression review through binomial logistic regression and mixed models  |
 | [[file:homeworks/index.org][Homeworks]]        | Homeworks 2-4                                                                       |
 | [[file:final-project/index.org][Final Project]]    | Analysis plan for the ACTIVE cognitive-training / dementia study                    |
+| [[file:r-examples/index.org][R Examples]]       | The R I used most, by task: import, wrangle, plot, model, select, compare           |
 
 * Textbook
 

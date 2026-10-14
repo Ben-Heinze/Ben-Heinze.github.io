@@ -1,0 +1,443 @@
+#+TITLE: R Examples
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-13
+#+STARTUP: noindent
+#+TAGS: r, linear-regression
+#+PROPERTY: header-args:R :eval never :exports code
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The R I kept reaching for in STAT 512, copied from the labs, activities and
+homeworks. Each snippet notes where it came from. The blocks are marked
+=:eval never= because they come from different datasets.
+
+* Setup
+
+Hide significance stars and load the usual packages. In an Rmd, the =setup= chunk also sets chunk defaults. /(Lab 5)/
+
+#+begin_src R
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+options(show.signif.stars = FALSE) # suppresses significance stars in output
+
+library(tidyverse)
+library(Sleuth3)
+#+end_src
+
+* Importing data
+
+From a CSV next to the Rmd (=read_csv= is tidyverse, =read.csv= is base R). /(Labs 8, 3)/
+
+#+begin_src R
+subject <- read_csv("data/subject_level_information.csv")
+grip <- read_csv("data/grip_strength_experiment.csv")
+aqi_df <- read.csv("air-quality.csv")
+#+end_src
+
+From a package: Sleuth case studies are just objects, and other packages use =data()=. /(Chapter 12 Activity, Homework 2)/
+
+#+begin_src R
+sat <- case1201
+data(mammalsleep)   # library(faraway)
+#+end_src
+
+First look at the data. /(Labs 8, 3, Chapter 14 Activity)/
+
+#+begin_src R
+glimpse(grip)
+head(aqi_df)
+names(aqi_df)
+summary(df_subj)
+with(case1401, table(Sign, Chimp))   # observations per group
+#+end_src
+
+* Manipulating data frames
+
+** Subset rows and columns, drop missing values
+
+=drop_na()= keeps complete cases, which assumes the values are missing completely at random (MCAR). /(Lab 2 Practice, Homework 2)/
+
+#+begin_src R
+penguins_fem <- penguins |>
+  filter(sex == "female") |>
+  dplyr::select(bill_length_mm, flipper_length_mm, species) |>
+  drop_na()
+
+df_big <- df_biggie |>
+  filter(Place != "Drop")
+#+end_src
+
+** New variables with =mutate=
+
+Transformations, centering, and turning text into indicator factors. /(Homework 2, Lab 1, Binary Intro Worksheet, Lab 4)/
+
+#+begin_src R
+sleep_df <- mammalsleep |>
+  mutate(exposure_level = factor(ifelse(exposure == 1, "Low", "High")),
+         log_PS = log(dream + 0.05),   # +0.05 keeps the mammal with 0 PS
+         lbrain = log(brain),
+         lbody = log(body))
+
+df_final <- df_penguin |>
+  mutate(flipp_center = flipper_length_mm - mean(flipper_length_mm))
+
+df_donner <- donner_df |>
+  mutate(fem = factor(ifelse(Sex == "Female", 1, 0)),
+         surv = factor(ifelse(Status == "Survived", 1, 0)))
+
+# logit of a percentage
+df_grazers_logit <- df_grazers |>
+  mutate(CoverLogit = log(Cover/(100-Cover)))
+#+end_src
+
+** Factors: convert, re-level, collapse
+
+/(Lab 8, Lab 1, Chapter 14 Activity)/
+
+#+begin_src R
+# character columns -> factors
+df_subj <- subject |>
+  mutate(groupname = factor(groupname),
+         weights = factor(weights))
+
+# change the baseline level
+df_final2 <- df_final |>
+  mutate(species = factor(species,
+                          levels = c("Chinstrap", "Adelie", "Gentoo")))
+
+# order levels by another summary (here, average difficulty)
+chimps <- case1401 |>
+  mutate(Sign = factor(Sign, levels = sign_diff$Sign))
+levels(chimps$Sign)
+
+# merge messy spellings into clean levels
+df_subj_clean <- df_subj |>
+  mutate(weights_clean = fct_collapse(weights, no = c("no", "No"),
+                                      yes = c("yes", "Yes")))
+
+# a flattened treatment with one level per combination
+df_flat <- df_pyg |>
+  mutate(flat_trt = factor(interaction(Grade, Treatment)))
+#+end_src
+
+** Group summaries
+
+/(Chapter 14 Activity)/
+
+#+begin_src R
+sign_diff <- case1401 |>
+  group_by(Sign) |>
+  summarise(avg_time = mean(Minutes),
+            avg_ltime = mean(log(Minutes)),
+            sd_time = sd(Minutes),
+            n = n()) |>
+  arrange(avg_time)
+#+end_src
+
+** Cleaning and joining
+
+Find and drop bad rows, check IDs across tables, then merge. /(Lab 8 Data Cleaning)/
+
+#+begin_src R
+idx_na <- which(is.na(df_subj$groupname))
+df_subj <- df_subj[-idx_na, ]
+
+# one row per subject?
+df_subj |>
+  group_by(subjectID) |>
+  tally() |>
+  print(n = Inf)
+
+# which observation-level IDs have no subject-level row?
+sub_id <- df_subj |> select(subjectID) |> pull()
+obs_id <- grip |> select(subjectID) |> distinct() |> pull()
+obs_id[which(obs_id %in% sub_id == FALSE)]
+
+rename(df_subj_clean, height_in = height)
+joined_df <- merge(df_grip, df_subj_clean, by = "subjectID")
+#+end_src
+
+* Raw data plots
+
+** Coded scatterplot, faceted
+
+Saving the plot as an object lets you add the fitted lines later. /(Lab 1)/
+
+#+begin_src R
+coded_scatter <- df_penguin |>
+  ggplot(aes(x = flipper_length_mm, y = bill_length_mm, col = species)) +
+  geom_point(alpha = 0.6) +   # translucency avoids overplotting
+  facet_wrap(~sex) +
+  labs(x = "Flipper length (mm)",
+       y = "Bill length (mm)",
+       col = "Species")
+
+coded_scatter +
+  geom_smooth(method = "lm", se = F)   # separate fitted lines
+#+end_src
+
+** Pairs plot
+
+/(Chapter 12 Activity, Homework 2)/
+
+#+begin_src R
+library(GGally)
+ggpairs(sat[,c(8:2)])
+df_sleep |> select(gestation, body, brain, SWS) |> GGally::ggpairs()
+#+end_src
+
+** Groups: violin + jitter, pirateplot, interaction plot
+
+/(Lab 5, Lab 4)/
+
+#+begin_src R
+ggplot(df_pyg, aes(x = Grade_fact, y = Gain)) +
+  geom_violin() +
+  geom_jitter(aes(color = Treatment), width = 0.2, size = 1.5, alpha = 0.7) +
+  labs(x = "Grade", y = "Gain (post-pre)")
+
+library(yarrr)
+pirateplot(CoverLogit ~ Block + Treat, data = df_grazers_logit)
+
+library(catstats)   # remotes::install_github("greenwood-stat/catstats")
+intplot(CoverLogit ~ Treat * Block, data = df_grazers_logit)
+#+end_src
+
+** Group averages as lines
+
+/(Homework 2 Part II)/
+
+#+begin_src R
+summ_table |>
+  ggplot(aes(x = age_group, y = avg_time, group = Gender, colour = Gender)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Age Group", y = "Average Time (Min)")
+#+end_src
+
+** Plots side by side
+
+=patchwork= combines saved ggplots with =+= (side by side) or =/= (stacked). /(Chapter 12 Activity)/
+
+#+begin_src R
+library(patchwork)
+p1 <- ggplot(df_sat, aes(x = ltakers, y = SAT)) +
+  geom_point() +
+  theme_bw()
+p2 <- ggplot(df_sat, aes(x = Expend, y = SAT, label = State)) +
+  geom_smooth(method = "lm") +
+  geom_label(alpha = 0.5) +
+  theme_bw()
+p1 + p2
+#+end_src
+
+* Linear models
+
+** Fit and summarize
+
+=*= fits all interactions and =+= fits an additive model. /(Lab 1, Lab 4)/
+
+#+begin_src R
+fit_3way <- lm(bill_length_mm ~ flipper_length_mm*species*sex,
+               data = df_penguin)
+summary(fit_3way)
+fit_3way$df.residual
+
+parallel_lines <- lm(bill_length_mm ~ relevel + mass_center, data = df_q1)
+round(summary(parallel_lines)$coef, 4)
+confint(parallel_lines, level = 0.95)
+#+end_src
+
+** Diagnostic plots
+
+Plot all four panels at once and color the points by group. /(Labs 1, 4, Chapter 12 Activity)/
+
+#+begin_src R
+par(mfrow = c(2,2))
+plot(fit_int, pch = 18)
+
+par(mfrow = c(1,4))
+plot(fit_3way, pch = 19, col = df_penguin$species)
+
+# refit without a case (row 29 = Alaska)
+sat_red <- lm(SAT ~ log(Takers) + Rank + Income + Years + Public + Expend,
+              data = sat[-29, ])
+#+end_src
+
+** ESS F-tests and ANOVA tables
+
+=anova(reduced, full)= runs the extra-sum-of-squares F-test, and =anova(fit)= gives sequential (Type I) sums of squares. /(Lab 1, Lab 4, Homework 2)/
+
+#+begin_src R
+anova(fit_all2way, fit_3way)       # is the 3-way interaction needed?
+anova(biggie_add, biggie_int)      # additive vs. interaction
+anova(fit_int_logit)
+#+end_src
+
+** Collinearity
+
+/(Lab 3)/
+
+#+begin_src R
+car::vif(fit_firstorder)
+#+end_src
+
+* Variable selection
+
+** Stepwise with =step()=
+
+AIC is the default criterion. Forward selection starts from a small model and is bounded by =scope=. /(Homework 2, Chapter 12 Activity)/
+
+#+begin_src R
+sleep.step <- step(lm(SWS ~ 1, data = df_sleep),
+                   scope = SWS ~ lbody + lbrain + lgest + lifespan +
+                     predation + exposure + danger,
+                   direction = "forward")
+
+fit_backward <- step(lm(SAT ~ log(Takers) + Income + Years +
+                          Public + Expend + Rank, data = sat),
+                     direction = "backward")
+
+fit_step <- step(lm(SAT ~ log(Takers) + Rank, data = sat),
+                 scope = SAT ~ (log(Takers) + Income + Years +
+                                  Public + Expend + Rank),
+                 direction = "both")
+#+end_src
+
+** All subsets with =MuMIn=
+
+/(Chapter 12 Activity, Lab 3)/
+
+#+begin_src R
+library(MuMIn)
+options(na.action = "na.fail")   # all models must use the same data
+allSubsets_sat <- dredge(full_model, rank = "BIC")
+subset(allSubsets_sat, delta < 6)
+plot(subset(allSubsets_sat, delta < 6), labAsExpr = TRUE)
+#+end_src
+
+* Effects plots
+
+/(Lab 4, Lab 5)/
+
+#+begin_src R
+library(ggeffects)
+plot(ggpredict(fit_add_logit, terms = c("Block", "Treat"))) +
+  geom_line(lty = 2)
+
+library(effects)
+plot(effect("Grade_fact:Treatment", lm_int))
+#+end_src
+
+* Contrasts and multiple comparisons
+
+** Linear contrast with =emmeans=
+
+Contrast weights follow the order of =levels()=. /(Lab 5)/
+
+#+begin_src R
+library(emmeans)
+levels(case1301$Treat)
+emm_grazers_logit <- emmeans(lm_add, specs = ~Treat)
+f_int <- c(-.5, -.5, .5, 0, .5, 0)
+gam2 <- contrast(emm_grazers_logit, list(gamma2 = f_int))
+confint(gam2)
+#+end_src
+
+** Tukey HSD and compact letter display
+
+/(Lab 5)/
+
+#+begin_src R
+library(multcomp)
+pyg_pairs <- glht(pyg_oneway, linfct = mcp(flat_trt = "Tukey"))
+summary(pyg_pairs)
+plot(confint(pyg_pairs))
+
+# put the cld letters on an effects plot
+cld_label <- cld(pyg_pairs)$mcletters$Letters
+df_cld <- df_flat |>
+  group_by(flat_trt) |>
+  summarise(avg_gain = mean(Gain), n = n()) |>
+  mutate(cld = cld_label)
+
+plot(ggpredict(pyg_oneway, terms = c("flat_trt"))) +
+  geom_label(data = df_cld,
+             mapping = aes(x = as.numeric(flat_trt), y = avg_gain,
+                           label = cld_label))
+#+end_src
+
+* Logistic regression
+
+** Fit, compare, and get odds-scale CIs
+
+=anova(reduced, full)= on two =glm= fits is the likelihood ratio (drop-in-deviance) test. /(Binary Intro Worksheet)/
+
+#+begin_src R
+fit_donner <- glm(surv ~ Age + fem, data = df_donner, family = "binomial")
+fit_dint <- glm(surv ~ fem*Age, data = df_donner, family = "binomial")
+anova(fit_donner, fit_dint)
+exp(confint(fit_dint))   # odds scale
+#+end_src
+
+** Empirical logits for binomial counts
+
+/(Lab 10)/
+
+#+begin_src R
+df_plot <- df_beetle |>
+  mutate(pi_hat = Dead/m,
+         emp_logit = log(pi_hat/(1-pi_hat)))
+#+end_src
+
+** Predicted curve with a confidence band
+
+Predict on the logit scale with standard errors, then back-transform. /(Lab 10)/
+
+#+begin_src R
+new_x <- data.frame(conc = seq(from = 49.06, to = 76.54, length.out = 100))
+est_logit <- predict(fit_death, type = "link", newdata = new_x, se.fit = TRUE)
+
+df_pred <- tibble(est = est_logit$fit, se = est_logit$se.fit) |>
+  mutate(est_lower = est - 2*se,
+         est_upper = est + 2*se,
+         est_prob = exp(est)/(1 + exp(est)),
+         prob_lower = exp(est_lower)/(1 + exp(est_lower)),
+         prob_upper = exp(est_upper)/(1 + exp(est_upper)),
+         conc = new_x$conc)
+
+ggplot(data = df_pred, aes(x = conc, y = est_prob)) +
+  geom_point(data = df_plot, aes(x = conc, y = pi_hat),
+             alpha = 0.5, inherit.aes = FALSE) +
+  geom_line(alpha = 0.5) +
+  geom_ribbon(aes(ymin = prob_lower, ymax = prob_upper), alpha = 0.2) +
+  theme_bw()
+#+end_src
+
+* Linear mixed models
+
+A random intercept for each subject handles the repeated measures. /(Lab 8 and 9)/
+
+#+begin_src R
+library(lme4)
+fm1 <- lmer(grip_strength ~ position_clean * hand_clean + forearm + (1 | subjectID),
+            joined_df)
+summary(fm1)
+
+library(predictmeans)
+residplot(fm1)
+#+end_src
+
+* Small habits worth keeping
+
+- =|>= and =%>%= are interchangeable pipes. =pull()= turns a column into a vector, and =print(n = Inf)= shows every row of a tibble.
+- Use =dplyr::select= when another loaded package (like =MASS=) also has a =select=.
+- In a ggplot layer, =inherit.aes = FALSE= keeps it from picking up the plot's main aesthetics, which is useful when overlaying a second data frame.
+- =pander::pander(summ_table, caption = "...")= gives a clean table in a knitted document.
+- Use =round(summary(fit)$coef, 4)= to make the coefficient table readable.

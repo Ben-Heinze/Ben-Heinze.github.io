@@ -362,6 +362,10 @@
             "label": "Textbook",
             "href": "/statistics/stat-512/textbook/index.html",
             "private": true
+          },
+          {
+            "label": "R Examples",
+            "href": "/statistics/stat-512/r-examples/index.html"
           }
         ]
       }
