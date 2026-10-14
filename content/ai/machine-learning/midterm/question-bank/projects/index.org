@@ -514,3 +514,166 @@ mark indentation depth.
 :Q_UNIT: proj2
 :END:
 
+* Project 1 Code: Function by Function
+
+The actual helper and model functions in =project1.py=, one card per function.
+Loaders, CSV plumbing and the =main= driver are skipped -- the exam wants the
+mechanism, not file paths.
+
+** Write pseudocode for =minkowski_distance(x_vec, y_vec, p)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The general p-norm distance between two feature vectors.
+:Q_STEPS: distance = 0 | for each paired feature (x, y) in x_vec, y_vec: | .  distance += \|x - y\|^p | return distance^(1/p)
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for =hamming_distance(x_vec, y_vec)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Counts mismatched categorical features between two rows.
+:Q_STEPS: count = 0 | for each paired feature (x, y): | .  if x != y: count += 1 | return count
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for =get_knn(df, point, k, p)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Returns the k closest rows to a query point, sorted by distance.
+:Q_STEPS: split df into feature columns X and target column y | distance_list = [] | for each (row, target) in zip(X, y): | .  if p == 0: distance = hamming_distance(point, row) | .  else: distance = minkowski_distance(point, row, p) | .  append (row_index, distance, target) to distance_list | sort distance_list by distance, ascending | return the first k entries
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for =cross_validation(df)= (5x2 cross-validation).
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Builds the ten train/test fold pairs shared by both projects' pipelines.
+:Q_STEPS: results = [] | repeat 5 times: | .  shuffle df, split into two equal halves split1 and split2 | .  reset both halves' indices | .  append (split1, split2) to results | .  append (split2, split1) to results | return results
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for =minmax_normalization(df)= and =zscore_normalization(df)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The two normalization transforms applied column by column.
+:Q_STEPS: minmax: for each column, (value - column.min) / (column.max - column.min) | zscore: for each column, (value - column.mean) / column.std | return the transformed dataframe
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for =condensed_nn(df, p, epsilon, regression)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Builds the reduced exemplar set Z by keeping only points the current Z gets wrong.
+:Q_STEPS: Z = empty | repeat until a full pass over the data adds nothing to Z: | .  shuffle the data | .  for each row x: | .  .  if Z is empty: add x to Z | .  .  else: find x's single nearest neighbor within Z | .  .  .  classification: if nearest neighbor's class != x's class, add x to Z | .  .  .  regression: if \|nearest neighbor's target - x's target\| > epsilon and x not already in Z, add x to Z | return Z as a dataframe
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for =gaussian_kernel(distance, sigma)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Converts a distance into a weight that decays with a bandwidth sigma.
+:Q_STEPS: return exp( -(distance^2) / (2 * sigma^2) )
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for the two null models, =naive_cat(ds)= and =naive_reg(ds)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The classification and regression baselines that ignore every feature.
+:Q_STEPS: naive_cat: return the most frequent value of the target column | naive_reg: return the mean of the target column
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for =classification_knn(ds, ds_title, k, p)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The full classification experiment: 5x2 CV, condensing, k-NN voting, and scoring.
+:Q_STEPS: folds = cross_validation(ds) | for each (test, train) in folds: | .  train = condensed_nn(train, p, epsilon=0) | .  correct = 0 | .  for each row in test: | .  .  neighbors = get_knn(train, row, k, p) | .  .  tally each neighbor's class into a vote count | .  .  find the class(es) with the top vote count, breaking ties randomly | .  .  if the chosen class matches the row's true class: correct += 1 | .  record error rate, condensed size, and runtime for this fold | return the results for all folds
+:Q_UNIT: proj1
+:END:
+
+** Write pseudocode for =regression_knn(ds, ds_title, k, p, eps, sigma, use_minmax)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The full regression experiment: 5x2 CV, condensing, kernel-weighted k-NN, and scoring.
+:Q_STEPS: folds = cross_validation(ds) | for each (test, train) in folds: | .  train = condensed_nn(train, p, eps, regression=True) | .  mse_sum = 0, correct = 0 | .  for each row in test: | .  .  neighbors = get_knn(train, row, k, p) | .  .  weight each neighbor by gaussian_kernel(its distance, sigma) | .  .  prediction = weighted average of neighbor targets | .  .  if total weight is 0: fall back to the unweighted average of neighbor targets | .  .  error = prediction - true value; mse_sum += error^2 | .  .  if \|error\| <= eps: correct += 1 | .  record MSE, accuracy, condensed size, and runtime for this fold | return the results for all folds
+:Q_UNIT: proj1
+:END:
+
+* Project 2 Code: Function by Function
+
+The actual helper and model functions in =project2.py=, one card per function.
+Loaders, CSV plumbing and the =main= driver are skipped.
+
+** Write pseudocode for =build_tree(df, remaining_features, numeric_features)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The recursive tree-growing routine. The core algorithm of the project.
+:Q_STEPS: tally the target classes in df | if only one class remains: return a pure leaf predicting it | if remaining_features is empty: return a leaf predicting the majority class, breaking ties randomly | for each remaining feature: | .  if numeric: ratio, threshold = best_threshold(df, feature) | .  else: ratio = gain_ratio(df, feature), threshold = None | pick the feature with the highest ratio, breaking ties randomly | if the best ratio <= 0: return a leaf predicting the majority class, breaking ties randomly | if the winning feature has a threshold (numeric): | .  recurse on rows <= threshold and rows > threshold, feature stays available | else (categorical): | .  for each distinct value of the feature: recurse on the matching subset with that feature removed | return the internal node built from those children
+:Q_UNIT: proj2
+:END:
+
+** Write pseudocode for =best_threshold(df, feature)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Searches candidate numeric split points and scores each by gain ratio.
+:Q_STEPS: best_threshold = 0, best_ratio = 0 | for each candidate threshold: | .  split df into left (<= threshold) and right (> threshold) | .  if either side is empty: skip this threshold | .  compute the weighted entropy of left and right, and the gain versus the parent's entropy | .  compute the intrinsic value from the two branch weights | .  ratio = gain / intrinsic value | .  if ratio beats best_ratio: update best_ratio and best_threshold | return best_threshold, best_ratio
+:Q_UNIT: proj2
+:END:
+
+** Write pseudocode for =predict(node, row)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Walks a row down the tree from the root to a leaf's prediction.
+:Q_STEPS: current = root node | while current is not a leaf: | .  if current has a threshold: move to the <= or > child based on the row's value for current's feature | .  else: look up the child matching the row's value for current's feature; if that value was never seen, return current's prediction now | return current's prediction
+:Q_UNIT: proj2
+:END:
+
+** Write pseudocode for =prune_tree(root, pruning_set, baseline_error)= (reduced error pruning).
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Greedily collapses nodes to leaves wherever doing so does not hurt pruning-set error.
+:Q_STEPS: repeat until a full pass makes no change: | .  node_list = postorder(root) (children before parents) | .  for each node in node_list: | .  .  temporarily mark node as a leaf | .  .  new_error = get_error(pruning_set, root) | .  .  if new_error <= baseline_error: keep it pruned, baseline_error = new_error | .  .  else: revert node back to an internal node
+:Q_UNIT: proj2
+:END:
+
+** Write pseudocode for =postorder(node, node_list)= and =get_tree_size(node)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Two small recursive tree traversals used by pruning and reporting.
+:Q_STEPS: postorder: if node is a leaf, stop | else: recurse into every child first, then append node itself to node_list | return node_list || get_tree_size: if node is a leaf, return 1 | else: return 1 + the sum of get_tree_size(child) over every child
+:Q_UNIT: proj2
+:END:
+
+** Write pseudocode for =get_error(df, root)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Scores a tree's error rate against a held-out set.
+:Q_STEPS: correct = 0 | for each row in df: | .  if predict(root, row) matches the row's true label: correct += 1 | return 1 - (correct / len(df))
+:Q_UNIT: proj2
+:END:
+
+** Write pseudocode for =shannon_sum(feature_col)= (entropy / intrinsic value).
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The shared -sum(p log2 p) building block behind entropy, gain, and intrinsic value.
+:Q_STEPS: total = 0 | for each distinct value in feature_col: | .  p = (count of that value) / len(feature_col) | .  total += p * log2(p) | return -total
+:Q_UNIT: proj2
+:END:
+
+** Write pseudocode for =gain(df, feature)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Information gain: parent entropy minus the size-weighted entropy of the children.
+:Q_STEPS: entropy = shannon_sum(target column) | expectation = 0 | for each distinct value of feature: | .  weight = (rows with that value) / (total rows) | .  expectation += weight * shannon_sum(target restricted to that value) | return entropy - expectation
+:Q_UNIT: proj2
+:END:
+
+** Write pseudocode for =gain_ratio(df, feature)=.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Gain normalized by intrinsic value, so many-valued features stop winning for free.
+:Q_STEPS: gain_f = gain(df, feature) | iv_f = shannon_sum(feature column) | if iv_f > 0: return gain_f / iv_f | else: return 0
+:Q_UNIT: proj2
+:END:
+
