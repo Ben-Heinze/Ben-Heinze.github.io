@@ -1,0 +1,162 @@
+#+TITLE: High Priority Review
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-15
+#+TAGS: practice-test
+#+STARTUP: noindent
+#+QUIZ: t
+#+QUIZ_TEST: self
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+A curated cram list, not a new topic -- every question here is a duplicate of
+one already living in [[file:../question-bank/projects/][Question Bank: Projects]], copied onto its own page so
+=#+QUIZ_TEST: self= can isolate exactly this set regardless of unit. Flagged
+during a practice session on 2026-10-15 as the two specific places where the
+general textbook answer and the actual code diverge, or where a reused helper
+function's role is easy to blur:
+
+- *Numeric split selection* -- =best_threshold= hardcodes =range(1, 11)=
+  because it only has to work for the cancer dataset's known 1-10 ratings.
+  That is not the general algorithm, and it is worth being able to state both:
+  the hack your code actually runs, and the dataset-agnostic version (sort,
+  then test only where the label changes between adjacent points) that would
+  replace it on a truly continuous feature.
+- *=shannon_sum= doing three jobs* -- entropy, gain, and intrinsic value are
+  all the same function, called on a different column each time. The trap is
+  assuming only entropy touches a logarithm; intrinsic value runs through
+  =log2= exactly the same way, just on the feature column instead of the
+  target.
+- *The three core equations* -- Minkowski distance, Hamming distance, and
+  min-max normalization. Easy to describe in words, worth also being able to
+  write down cold.
+
+Work this page stand-alone until both go by memory, then fold back into the
+full [[file:../project-walkthroughs/][Project Walkthroughs]] deck (=#+QUIZ_TEST: proj1,proj2=), where these
+same cards also live under Project 2.
+
+* Numeric Split Selection
+
+** =best_threshold= doesn't sort the data or test midpoints between adjacent values. What does it do instead, and what does that assume about the feature?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It hardcodes the candidate thresholds as the integers 1 through 10 and tests only those. That assumes the feature's values are already known to be integers on a 1-10 scale -- true for the cancer dataset's ratings, but not a general numeric-split routine.
+:Q_UNIT: proj2
+:END:
+
+** =best_threshold= works correctly only because the cancer dataset's numeric features are known to be integers between 1 and __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 10
+:Q_ACCEPT: ten
+:Q_EXPLAIN: That range is the entire justification for hardcoding ten candidate thresholds instead of deriving them from the data -- the hack silently stops making sense on any feature outside it.
+:Q_UNIT: proj2
+:END:
+
+** As implemented in the project, =best_threshold= would correctly find a good split on a continuous feature with values like 3.7, 15.2, and 100.4.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It only ever tests the hardcoded integers 1 through 10. Most of those ten thresholds would put every row on one side of the split, so they would just get skipped, and the few that didn't would be close to meaningless for this feature's actual range.
+:Q_UNIT: proj2
+:END:
+
+** Describe the dataset-agnostic way to choose a numeric split threshold -- the one =best_threshold= skips by hardcoding its range -- and write its pseudocode.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sort by the feature, then only test the midpoint between adjacent sorted examples where the class label actually changes -- a split between two same-class neighbors can never improve purity. This scales to any range instead of assuming a known bounded scale.
+:Q_STEPS: sort the rows ascending by the feature's value | best_ratio = 0, best_threshold = none | for each adjacent pair of sorted rows: | .  if their class labels are the same: skip this pair | .  threshold = midpoint between the two rows' feature values | .  split the full data at threshold, compute gain ratio exactly as before | .  if this ratio beats best_ratio: record it as the new best | return best_threshold, best_ratio
+:Q_UNIT: proj2
+:END:
+
+* One Function, Three Jobs (=shannon_sum=)
+
+** =shannon_sum= gets called from three different places while growing a tree. Name what column is passed in each case, and what the result represents.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The target column alone -> the node's entropy. The target column restricted to one feature value -> that branch's local entropy, feeding into gain's weighted sum. The feature column itself -> intrinsic value, since treating each feature value like a class label is exactly what intrinsic value needs.
+:Q_UNIT: proj2
+:END:
+
+** Of entropy, information gain, and intrinsic value, the one computed by a plain subtraction with no new logarithm of its own is __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: information gain
+:Q_ACCEPT: gain
+:Q_EXPLAIN: gain(df, feature) is just entropy minus a weighted sum of child entropies -- the logs were already computed inside those shannon_sum calls, not added fresh by gain itself.
+:Q_UNIT: proj2
+:END:
+
+** Intrinsic value needs no logarithm, since it only counts branch sizes rather than class proportions.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Intrinsic value is shannon_sum applied to the feature column, so it runs through log2 exactly the way entropy does -- the only difference between the two is which column goes in, not whether a log is involved.
+:Q_UNIT: proj2
+:END:
+
+** =shannon_sum= never gets handed a raw numeric feature column, even though =gain_ratio= calls it on a feature column for intrinsic value. Explain the control flow that keeps that from happening.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: build_tree branches by feature type, not shannon_sum deciding anything: categorical features go to gain_ratio, which is the only place a raw feature column reaches shannon_sum. Numeric features go to best_threshold instead -- a separate implementation that still calls shannon_sum for entropy on the target column, but computes intrinsic value inline from the two branch weights, so shannon_sum never sees the numeric feature's own values at all.
+:Q_UNIT: proj2
+:END:
+
+* Core Equations (Minkowski, Hamming, Min-Max)
+
+** Write the Minkowski distance equation used in =get_knn=, and name what the exponent controls.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(d(x,y) = \left(\sum_i |x_i - y_i|^p\right)^{1/p}\). The exponent \(p\) is a parameter: \(p=1\) gives Manhattan distance, \(p=2\) gives Euclidean. In this code, \(p=0\) is not a real Minkowski exponent at all -- it is a sentinel value telling get_knn to use hamming_distance instead.
+:Q_UNIT: proj1
+:END:
+
+** Write the Hamming distance equation used for categorical rows.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(d(x,y) = \sum_i \mathbb{1}[x_i \neq y_i]\) -- count the positions where the two rows disagree, summed over every compared feature.
+:Q_UNIT: proj1
+:END:
+
+** Write the min-max normalization equation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(x' = \dfrac{x - \min(x)}{\max(x) - \min(x)}\), applied column by column. The min and max must both come from the training portion alone, then get applied unchanged to the test portion.
+:Q_UNIT: proj1
+:END:
+
+* Hand Calculation Practice
+
+Same three quantities, worked by hand with a calculator instead of described in
+pseudocode. =New test= re-rolls the numbers each time, so this does not run
+dry the way a fixed card would. These reuse the same generators already
+backing [[file:../question-bank/trees-and-rules/][Trees and Rules]] -- =gain_ratio='s own calculator lives there too
+(=Gain ratio over a 3-way split=), for once the three below are automatic.
+
+** Binary entropy
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: entropy
+:Q_UNIT: trees
+:END:
+
+** Information gain from a binary split
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: infogain
+:Q_UNIT: trees
+:END:
+
+** Intrinsic value
+:PROPERTIES:
+:Q_TYPE: calc
+:Q_GEN: iv
+:Q_UNIT: trees
+:END:

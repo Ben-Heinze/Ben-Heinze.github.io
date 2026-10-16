@@ -600,6 +600,29 @@ mechanism, not file paths.
 :Q_UNIT: proj1
 :END:
 
+* Marked Important: Core Equations (Minkowski, Hamming, Min-Max)
+
+** Write the Minkowski distance equation used in =get_knn=, and name what the exponent controls.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(d(x,y) = \left(\sum_i |x_i - y_i|^p\right)^{1/p}\). The exponent \(p\) is a parameter: \(p=1\) gives Manhattan distance, \(p=2\) gives Euclidean. In this code, \(p=0\) is not a real Minkowski exponent at all -- it is a sentinel value telling get_knn to use hamming_distance instead.
+:Q_UNIT: proj1
+:END:
+
+** Write the Hamming distance equation used for categorical rows.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(d(x,y) = \sum_i \mathbb{1}[x_i \neq y_i]\) -- count the positions where the two rows disagree, summed over every compared feature.
+:Q_UNIT: proj1
+:END:
+
+** Write the min-max normalization equation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(x' = \dfrac{x - \min(x)}{\max(x) - \min(x)}\), applied column by column. The min and max must both come from the training portion alone, then get applied unchanged to the test portion.
+:Q_UNIT: proj1
+:END:
+
 * Project 2 Code: Function by Function
 
 The actual helper and model functions in =project2.py=, one card per function.
@@ -674,6 +697,83 @@ Loaders, CSV plumbing and the =main= driver are skipped.
 :Q_TYPE: short
 :Q_ANSWER: Gain normalized by intrinsic value, so many-valued features stop winning for free.
 :Q_STEPS: gain_f = gain(df, feature) | iv_f = shannon_sum(feature column) | if iv_f > 0: return gain_f / iv_f | else: return 0
+:Q_UNIT: proj2
+:END:
+
+* Marked Important: Numeric Split Selection (Discrete Hack vs. General Case)
+
+Extra reps on =best_threshold= specifically -- it was flagged as a weak spot
+because its hardcoded approach is easy to mistake for the general textbook
+algorithm. These four come at it from different angles on purpose.
+
+** =best_threshold= doesn't sort the data or test midpoints between adjacent values. What does it do instead, and what does that assume about the feature?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It hardcodes the candidate thresholds as the integers 1 through 10 and tests only those. That assumes the feature's values are already known to be integers on a 1-10 scale -- true for the cancer dataset's ratings, but not a general numeric-split routine.
+:Q_UNIT: proj2
+:END:
+
+** =best_threshold= works correctly only because the cancer dataset's numeric features are known to be integers between 1 and __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 10
+:Q_ACCEPT: ten
+:Q_EXPLAIN: That range is the entire justification for hardcoding ten candidate thresholds instead of deriving them from the data -- the hack silently stops making sense on any feature outside it.
+:Q_UNIT: proj2
+:END:
+
+** As implemented in the project, =best_threshold= would correctly find a good split on a continuous feature with values like 3.7, 15.2, and 100.4.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: It only ever tests the hardcoded integers 1 through 10. Most of those ten thresholds would put every row on one side of the split, so they would just get skipped, and the few that didn't would be close to meaningless for this feature's actual range.
+:Q_UNIT: proj2
+:END:
+
+** Describe the dataset-agnostic way to choose a numeric split threshold -- the one =best_threshold= skips by hardcoding its range -- and write its pseudocode.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sort by the feature, then only test the midpoint between adjacent sorted examples where the class label actually changes -- a split between two same-class neighbors can never improve purity. This scales to any range instead of assuming a known bounded scale.
+:Q_STEPS: sort the rows ascending by the feature's value | best_ratio = 0, best_threshold = none | for each adjacent pair of sorted rows: | .  if their class labels are the same: skip this pair | .  threshold = midpoint between the two rows' feature values | .  split the full data at threshold, compute gain ratio exactly as before | .  if this ratio beats best_ratio: record it as the new best | return best_threshold, best_ratio
+:Q_UNIT: proj2
+:END:
+
+* Marked Important: One Function, Three Jobs (=shannon_sum=)
+
+The general definitions of entropy / gain / intrinsic value already have a deep
+bank under [[file:../trees-and-rules/][Trees and Rules]]. These three are narrower on purpose: the
+project-specific trap of mistaking "entropy is the only place logs show up."
+=shannon_sum= is one function; what changes between its three call sites is
+only which column gets handed to it.
+
+** =shannon_sum= gets called from three different places while growing a tree. Name what column is passed in each case, and what the result represents.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The target column alone -> the node's entropy. The target column restricted to one feature value -> that branch's local entropy, feeding into gain's weighted sum. The feature column itself -> intrinsic value, since treating each feature value like a class label is exactly what intrinsic value needs.
+:Q_UNIT: proj2
+:END:
+
+** Of entropy, information gain, and intrinsic value, the one computed by a plain subtraction with no new logarithm of its own is __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: information gain
+:Q_ACCEPT: gain
+:Q_EXPLAIN: gain(df, feature) is just entropy minus a weighted sum of child entropies -- the logs were already computed inside those shannon_sum calls, not added fresh by gain itself.
+:Q_UNIT: proj2
+:END:
+
+** Intrinsic value needs no logarithm, since it only counts branch sizes rather than class proportions.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Intrinsic value is shannon_sum applied to the feature column, so it runs through log2 exactly the way entropy does -- the only difference between the two is which column goes in, not whether a log is involved.
+:Q_UNIT: proj2
+:END:
+
+** =shannon_sum= never gets handed a raw numeric feature column, even though =gain_ratio= calls it on a feature column for intrinsic value. Explain the control flow that keeps that from happening.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: build_tree branches by feature type, not shannon_sum deciding anything: categorical features go to gain_ratio, which is the only place a raw feature column reaches shannon_sum. Numeric features go to best_threshold instead -- a separate implementation that still calls shannon_sum for entropy on the target column, but computes intrinsic value inline from the two branch weights, so shannon_sum never sees the numeric feature's own values at all.
 :Q_UNIT: proj2
 :END:
 
