@@ -1,0 +1,36 @@
+#+TITLE: 9 Deep Learning
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-19
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+Feedforward Networks are "fed forward" from the input nodes through each layer in the neural net. 
+
+
+Examples of Feedfoward Networks
+- MLP
+- Radian basis function networks
+- (Stacked) autoencoders
+- Convolutional Neural Networks
+- Competitive Learning Networks
+- Self-Organizing Maps
+
+/Kolmogorov (Feedfoward) Networks Theorem/: All you need is one hidden layer to approximate any smooth continuous function. That proof is in the limit: Assuming an infinite number of hidden nodes. 
+
+What if we had two hidden layers? With two layers, you can approximate *any* function.
+
+Deep hidden network: anything with 3 or more layers (input, middle, output).
+
+RBF Networks is an example of a feedfoward network. RBF is a simple model that gives you a good amount of representation power.
+
+
+* WARNING: Backpropagation question will be on the final. Study it.

@@ -71,6 +71,10 @@
               {
                 "label": "8 Multilayer Networks",
                 "href": "/ai/ml/lectures/8-multilayer-networks/index.html"
+              },
+              {
+                "label": "9 Deep Learning",
+                "href": "/ai/ml/lectures/9-deep-learning/index.html"
               }
             ]
           },

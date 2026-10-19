@@ -11,3 +11,188 @@
 # This is used to shrink the spacing between bullet points
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+
+* Introduction
+
+In a basic perceptron (2-layer), The first layer is feature extraction, and the
+second layer combines the features to predict the final output. The Multilayer
+perceptron is the same thing, but with hidden layers sandwiched between the two
+layers.
+
+/Multilayer Perceptron (MLP)/: A type of artificial neural network made up of an
+input layer, one or more hidden layers, and an output layer of interconnected
+nodes, in which each node applies a nonlinear activation function to the
+weighted sum of its inputs, allowing the network to learn complex patterns
+through training methods such as backpropagation.
+
+Long and thin" (many layers with a handful of nodes) has less parameters
+compared to "short and fat" (few layers, but lots of nodes in each layer), and
+it also achieves better generalization. This is the idea behind /deep neural
+network/: have a lot of hidden layers starting from the raw input, combine the
+values behind each layer to learn more complected abstractions, then learn the
+outputs from the abstractions.
+
+
+Deep learning is to learn feature levels of increasing abstraction with minimum human contribution. 
+
+** Problems with Deep Learning
+
+1. Deep networks are larger, has more weights, processing units, so it requires more memory and computation.
+2. Deep networks have more "free parameters" and training it is more difficult. This is because there is a more complicated error surface, and there re many hidden layers. Gradient descent requires chain rule for backpropagation. The chain rule must multiply the derivatives in every layer afterward, the gradient and vanish or explode.
+
+
+| Vanishing gradient | When gradients shrink toward zero as they're backpropagated through a deep network, causing early layers to learn extremely slowly or stop learning altogether.    |
+| Exploding gradient | When gradients grow exponentially large as they're backpropagated through a deep network, causing unstable, wildly oscillating weight updates that break training. |
+
+Neural networks are nice since they don't need much human intervention, you just need a lot of data and a good computer. 
+
+* How to Train Multiple Hidden Layers
+
+** Rectified Linear Unit (RELU)
+
+/ReLU/: An activation function for hidden units
+
+\(
+  ReLU(a) = \begin{cases}
+    a & \text{if } a > 0 \\
+    0 & otherwise
+  \end{cases}
+\)
+
+But ReLU isn't differentiable at a=0, but it gets used anyways. We use the left derivatives: 
+
+\(
+  ReLU(a) = \begin{cases}
+    1 & \text{if } a > 0 \\
+    0 & otherwise
+  \end{cases}
+\)
+
+Advantages:
+1. Does note saturate unlike sigmoid and tanh, updates can still be done for large positive $a$. 
+2. For some inputs, some hidden unit activation will be 0, which means we will have a sparse representation. sparse representations lead to faster training and they are easier to interpret. 
+
+Disadvantages:
+1. Since the derivative is zero for $a \leq 0$, there is no further training if, for a hidden unit, the weighted sum becomes negative. Users should be careful in initializing the weights so the initial activation for all hidden units is positive. 
+
+
+/Leaky ReLU/: Output is linear on the negative side but with a smaller slope just enough to make sure that there will be updates for negative activations:
+
+\(
+  \text{Leaky-ReLU}(a) = \begin{cases}
+    a & \text{if } a > 0 \\
+    \alpha a & otherwise
+  \end{cases}
+\)
+
+For example, $\alpha$ is taken as 0.01, which is the derivative for $\alpha \leq 0$.
+
+
+** Initialization
+
+For an application with tens of inputs and hidden units, the initial weight values can be chosen uniformly randomly from $[-0.01, 0.01]$. 
+For inputs from thousands+, the range should be scaled down correspondingly.
+
+The goal is the make sure we start with activations where the derivative is non-zero. Sigmoid and tanh should have a max at zero to prevent getting values less than $-5$ or greater that $5$. Rely needs non-negative values. Use something very close to zero.
+
+** Generlizing backpropagation to multiple hidden layers
+
+Each layer has hidden units receiving input from its preceding layer, taking a weighted sum with its own modifiable weights and giving out its value after passing the sum through the nonlinear activation function. 
+
+Lets say we have an MLP with two hidden layers, and let us say that this is a regression task with multiple outputs. Given input $\mathbf{x}^t$, we have:
+
+\[
+    z_{1h}^{t} = f(\mathbf{w}_{1h}^{T} \mathbf{x}^t) = f \left( \sum_{j=0}^{d} w_{1hj} x_j^t \right) \
+\]
+
+\[
+    z_{2l}^{t} = f(\mathbf{w}_{2l}^{T} \mathbf{z}_1^t) = f \left( \sum_{h=0}^{H_1} w_{2lh} z_{1h}^t \right) \
+\]
+
+\[
+    y_{i}^{t} = \mathbf{v}_{i}^{T} \mathbf{z}_2^t = \sum_{l=0}^{H_2} v_{il} z_{2l}^t + v_{i0} \
+\]
+
+|Term| Def|
+|$f$| activation function (sigmoid, tanh, ReLU, etc)|
+|$w_{1h}$ and $w_{2l}$| first and second-layer weights |
+|$z_{1h}$ and $z_{2h}$| units on the first and second layers with $H_1$ and $H_2$ hidden units |
+|$\mathbf{v}$| third-layer weights |
+
+Training such a network is similar except that, to train the first layer weights, we need to backpropagate over one more layer. 
+
+To minimize the sum of squared errors: 
+
+\[
+    E = \frac{1}{2} \sum_t \sum_{i=1}^{K}(r_i^t - y_i^t)^2
+\]
+
+There are $K$ outputs, and the range $t$ depends on whether we are doing online, minibatch, or batch learning. The error at output $i$ is: 
+\[
+    e_i^t = r_i^t - y_i^t
+\]
+and to update the weights to that output as:
+\[
+    \Delta v_{il} = \eta \sum_{t}{} e_i^tz_{2l}^t
+\]
+
+The error at hidden unit $l$ in the second hidden layer is the sum of the backpropagated errors each multiplied by the weight on its path, which indicates the total "responsibility" of the hidden unit:
+
+\[
+  e_{2l}^t = \sum_{i} e_i^t v_i
+\]
+
+and to update a weight to that hidden unit, we multiply this by the derivative of the activation function, and its input 
+
+\[
+  \Delta w_{2lh} = \eta \sum_t e_{2l}^t f'(z_{2l}^t) z_{1h}^t
+\]
+
+Similarly, the error at hidden unit $h$ in the first hidden layer is the sum of the backpropagated errors, each multiplied by the weight on its path 
+
+\[
+  e_{1h}^t = \sum_{l} e_{2l}^t w_{2lh}
+ \]
+and again to update a weight to that hidden unit, we multiply the backpropagated error, the derivative of the activation function, and its input is 
+
+\[
+  \Delta w_{1hj} = \eta \sum_t e_{1h}^t f'(z_{1h}^t) x_j^t
+\]
+
+
+|Fan-in|  The number of incoming connections to a node, whose weights each receive a gradient during the backward pass.
+|Fan-out| The number of outgoing connections from a node, whose gradients are summed to form that node's error signal during backpropagation.
+
+* Improving Training Convergence
+
+Gradient Descent advantages
+1. Simple 
+2. Local (change in a weight uses only the values of the presynaptic and postsynaptic units (units before and after the connection)) and the error
+3. When trained online, doesn't need to store training set and can adapt as the task to be learned changes 
+
+Gradient Descent Disadvantages:
+1. by itself, it converges slowly
+    - Methods like conjugate gradient and second-order methods are computationally intensive and can't easily be used with deep networks with a lot of weights 
+
+There are simple techniques to improve these issues 
+
+** Momentum
+
+
+Momentum accelerates gradient descent by accumulating an exponentially decaying average of past gradients, damping oscillations across steep directions and speeding progress along consistent ones.
+
+
+** Adaptive Learning Factor 
+
+
+An adaptive learning factor is a step size that changes during training instead of staying fixed, scaling each update according to the local behavior of the loss surface (e.g., gradient magnitude history, curvature, or whether the last step reduced the loss). Large steps are taken in flat, well-behaved regions to speed progress, while the factor shrinks in steep or oscillatory regions to prevent overshooting and divergence. This effectively equalizes the per-parameter scale of updates, which accelerates convergence on ill-conditioned problems where a single global rate would be either too slow or unstable. A common form (as in AdaGrad/RMSProp) accumulates squared gradients $v_t$ and divides by their root:
+
+
+where $\eta$ is the base rate, $\beta$ the decay factor, and $\epsilon$ a small constant for numerical stability.
+
+
+** Batch Normalization 
+
+
+

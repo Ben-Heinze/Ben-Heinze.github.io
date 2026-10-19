@@ -1199,3 +1199,31 @@ mistakes, the same margin-equals-easier-learning idea as in the SVM section. The
 "$n\delta$" and "$\le n$" bounds implicitly start from $\mathbf{w}_0 = \mathbf{0}$
 rather than a random vector; with a random start the bound picks up constant terms but
 stays finite.
+
+
+
+
+
+
+* TEST Objective Questions for reference
+
+1. which of the following is an example of preference bias? Maximum likelihood estimation. This is the 'how' a model is chosen.
+
+2. Which of the following is an example of representation bias? Univariate decisions. 
+
+3. Which one is bayes rule?
+
+4. Which best describes feature selection
+
+5. Which best describes PCA?
+
+6. What is a potential challenge for a density based clsutering method such as DBScan?
+
+7. Gain ratio something
+
+8. Parzen Window question
+
+9. Something
+
+10. Which of the following is an essential component of a first-order rule not included in a propositional rule? Includes variables
+
