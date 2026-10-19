@@ -428,12 +428,12 @@
             "href": "/operating-systems/lectures/1-memory-management/index.html"
           },
           {
-            "label": "2 Process Management",
-            "href": "/operating-systems/lectures/2-process-management/index.html"
+            "label": "2.1 Process Management",
+            "href": "/operating-systems/lectures/2-1-process-management/index.html"
           },
           {
-            "label": "3 Scheduling",
-            "href": "/operating-systems/lectures/3-scheduling/index.html"
+            "label": "2.2 Process Management",
+            "href": "/operating-systems/lectures/2-2-process-management/index.html"
           },
           {
             "label": "Handouts",

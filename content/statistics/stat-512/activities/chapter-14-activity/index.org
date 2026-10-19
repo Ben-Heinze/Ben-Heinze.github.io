@@ -60,7 +60,7 @@ with(case1401, table(Sign, Chimp))
 # which signs are most difficult? 
 sign_diff <- case1401 |> 
   group_by(Sign) |> 
-  summarise(avg_time = mean(Minutes), 
+  summarize(avg_time = mean(Minutes), 
             avg_ltime = mean(log(Minutes)),
             sd_time = sd(Minutes), 
             n = n()) |> 

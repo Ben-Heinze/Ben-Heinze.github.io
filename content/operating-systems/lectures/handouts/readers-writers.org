@@ -1,0 +1,79 @@
+#+TITLE: Readers/Writers Priority Algorithms
+#+TAGS: operating-systems, concurrency
+#+OPTIONS: toc:nil num:nil
+
+* Solution 1 --- Readers have priority
+
+** Algorithm 1: Readers have priority
+
+#+begin_src text
+ 1: readcount ← 0
+ 2: Semaphore read_lock = 1               ▷ Used for updating the readcount.
+ 3: Semaphore wsem = 1                    ▷ Used to make sure that only one writer can write at a given
+                                            time and make sure that writer cannot interfere with reader.
+ 4: function READER()
+ 5:     while true do
+ 6:         semWait(read_lock)            ▷ Locking the readcount before updating.
+ 7:         readcount ← readcount + 1
+ 8:         if readcount == 1 then
+ 9:             semWait(wsem)             ▷ Make sure that no writer can enter while the current reader is reading.
+10:         semSignal(read_lock)
+11:         READUNIT()
+12:         semWait(read_lock)
+13:         readcount ← readcount − 1
+14:         if readcount == 0 then        ▷ No reader is reading.
+15:             semSignal(wsem)           ▷ Writers can now access common read area.
+16:         semSignal(read_lock)
+17: function WRITER()
+18:     while true do
+19:         semWait(wsem)                 ▷ Requests the common area.
+20:         WRITEUNIT()
+21:         semSignal(wsem)               ▷ Leaves the common area.
+22: function MAIN()
+23:     readcount ← 0
+24:     parbegin(reader, writer)
+#+end_src
+
+* Algorithm 2: Writers have priority
+
+#+begin_src text
+ 1: readcount ← 0, writecount ← 0
+ 2: Mutex r_mutex, w_mutex                ▷ Used for updating readcount and writecount
+ 3: Semaphore readblock = 1, writeblock = 1, writepending = 1
+ 4: function READER()
+ 5:     while true do
+ 6:         semWait(writepending)
+ 7:         semWait(readblock)            ▷ If a reader is blocked at readblock then all the other
+                                            subsequent readers are blocked at writepending semaphore
+ 8:         r_mutex.lock()
+ 9:         readcount ← readcount + 1
+10:         if readcount == 1 then
+11:             semWait(writeblock)       ▷ First reader blocks writers for other readers.
+12:         r_mutex.unlock()
+13:         semSignal(readblock)          ▷ releases readblock so that other readers or writers can use it.
+14:         semSignal(writepending)       ▷ writepending = 1 again.
+15:         READUNIT()
+16:         r_mutex.lock()
+17:         readcount ← readcount − 1
+18:         if readcount == 0 then
+19:             semSignal(writeblock)     ▷ If no other readers are available then writeblock is released.
+20:         r_mutex.unlock()
+21: function WRITER()
+22:     while true do
+23:         w_mutex.lock()
+24:         writecount ← writecount + 1
+25:         if writecount == 1 then
+26:             semWait(readblock)
+27:         w_mutex.unlock()
+28:         semWait(writeblock)
+29:         WRITEUNIT()
+30:         semSignal(writeblock)
+31:         w_mutex.lock()
+32:         writecount ← writecount − 1
+33:         if writecount == 0 then
+34:             semSignal(readblock)
+35:         w_mutex.unlock()
+36: function MAIN()
+37:     readcount ← 0, writecount ← 0
+38:     parbegin(reader, writer)
+#+end_src

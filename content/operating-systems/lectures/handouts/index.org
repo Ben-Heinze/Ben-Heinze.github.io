@@ -18,6 +18,7 @@ than on the lecture pages because a handout rarely matches the deck it arrived
 with. Each one is its own file, grouped below by the lecture block it was handed
 out with.
 
-* 3 Scheduling
+* 2.2 Process Management
 
 #+INCLUDE: "deadlock-avoidance-and-detection.org" :minlevel 2
+#+INCLUDE: "readers-writers.org" :minlevel 2

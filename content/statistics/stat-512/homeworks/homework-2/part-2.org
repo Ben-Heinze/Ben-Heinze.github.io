@@ -77,7 +77,7 @@ glimpse(df_big)
 # lets look at some summary statistics
 summ_table <- df_big |> 
   group_by(age_group, Gender) |> 
-  summarise(
+  summarize(
     avg_time = mean(tot_time), 
     sd_time = mean(tot_time), 
     n_group = n()
@@ -90,7 +90,7 @@ pander::pander(summ_table, caption = "YOUR CAPTION HERE")
 
 # make a raw data and summary plots
 summ_table |> 
-  ggplot(aes(x = age_group, y = avg_time, group = Gender, colour = Gender)) + 
+  ggplot(aes(x = age_group, y = avg_time, group = Gender, color = Gender)) + 
   geom_line() +
   geom_point() + 
   labs(x = "Age Group",

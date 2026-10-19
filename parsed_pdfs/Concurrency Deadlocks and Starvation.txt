@@ -1,0 +1,1181 @@
+
+───── page 1/43 ─────
+[  54pt x   490] Concurrency:
+[  54pt x   487] Deadlock and
+[  54pt x   526] Starvation
+[  24pt x   512] Adiesha Liyana Ralalage
+
+───── page 2/43 ─────
+[  44pt x    73] Let’s look at the following scenario.
+[  26pt x    73] •
+[  26pt x    91] Suppose there is a narrow staircase.
+[  26pt x    73] •
+[  26pt x    91] Two people, one going down and one going up meets up in the middle.
+[  26pt x    73] •
+[  26pt x    91] Neither can move anywhere except go back.
+[  26pt x    73] •
+[  26pt x    91] Each of them are waiting for another person to move.
+[  22pt x   109] •
+[  22pt x   127] Deadlock
+[  26pt x    73] •
+[  26pt x    91] Suppose you have slightly wider staircase
+[  22pt x   109] •
+[  22pt x   127] What happens now?
+[  22pt x   109] •
+[  22pt x   127] If they try to move to opposite direction at the same time?
+[  19pt x   145] •
+[  19pt x   163] Livelock
+[  19pt x   145] •
+[  19pt x   163] Two or more processes or threads continuously change their states in response to each
+[  19pt x   163] other but make no actual progress.
+
+───── page 3/43 ─────
+[  44pt x    73] Deadlock
+[  28pt x    73] •
+[  28pt x    91] The
+[  28pt x   140] permanent
+[  28pt x   287] blocking of a set of processes that either
+[  28pt x    91] compete for system resources or communicate with each other
+[  28pt x    73] •
+[  28pt x    91] A set of processes is deadlocked when each process in the set is
+[  28pt x    91] blocked awaiting an event that can only be triggered by another
+[  28pt x    91] blocked process in the set
+[  28pt x    73] •
+[  28pt x    91] Permanent because none of the events is ever triggered.
+[  28pt x    73] •
+[  28pt x    91] No efficient solution in the general case
+
+───── page 4/43 ─────
+[  14pt x   152] 3
+[  14pt x   224] 2
+[  14pt x   549] 2
+[  18pt x   150] c
+[  18pt x   189] b
+[  14pt x   515] 3
+[  14pt x   551] 1
+[  14pt x   118] 4
+[  14pt x   513] 4
+[  18pt x   148] d
+[  18pt x   189] a
+[  14pt x   190] 1
+[  14pt x   115] (a) Deadlock possible
+[  14pt x   501] (b) Deadlock
+[  18pt x   156] https://www.cs.montana.edu/adiesha/animations/assets/os/deadlock-intersection.html
+[  18pt x   210] Figure 6.1 Illustration of Deadlock
+
+───── page 5/43 ─────
+[  44pt x    73] Let’s a look at another example
+[  28pt x    73] •
+[  28pt x    91] Suppose we have processes
+[  28pt x   438] 𝑃,𝑄
+[  28pt x   487] .
+[  27pt x   223] P
+[  20pt x   246] •
+[  20pt x   264] Get A
+[  20pt x   467] •
+[  20pt x   485] Get B
+[  27pt x   444] Q
+[  20pt x   246] •
+[  20pt x   264] Get B
+[  20pt x   467] •
+[  20pt x   485] Get A
+[  20pt x   246] •
+[  20pt x   264] Do work
+[  20pt x   467] •
+[  20pt x   485] Do work
+[  20pt x   246] •
+[  20pt x   264] Release A
+[  20pt x   467] •
+[  20pt x   485] Release B
+[  20pt x   246] •
+[  20pt x   264] Release B
+[  20pt x   467] •
+[  20pt x   485] Release A
+[  28pt x    73] •
+[  28pt x    91] Joint resource diagram.
+
+───── page 6/43 ─────
+[  14pt x   180] Progress
+[  14pt x   193] of Q
+[  18pt x   305] 1
+[  18pt x   359] 2
+[  14pt x   180] Release
+[  14pt x   198] A
+[  12pt x   398] P and Q
+[  12pt x   401] want A
+[  14pt x    86] A
+[  14pt x   180] Release
+[  14pt x    63] Required
+[  14pt x   198] B
+[  14pt x   187] Get A
+[  18pt x   329] 3
+[  12pt x   368] deadlock
+[  12pt x   464] P and Q
+[  14pt x   124] B
+[  12pt x   366] inevitable
+[  12pt x   466] want B
+[  14pt x   101] Required
+[  18pt x   572] 5
+[  14pt x   187] Get B
+[  18pt x   386] 4
+[  18pt x   572] 6
+[  14pt x   645] Progress
+[  14pt x   660] of P
+[  14pt x   335] Get A
+[  14pt x   402] Get BRelease ARelease B
+[  12pt x    90] = both P and Q want resource A
+[  14pt x   374] A
+[  12pt x    90] = both P and Q want resource B
+[  14pt x   351] Required
+[  14pt x   453] B Required
+[  12pt x    90] = deadlock-inevitable region
+[  12pt x   272] = possible progress path of P and Q.
+[  12pt x   282] Horizontal portion of path indicates P is executing and Q is waiting.
+[  12pt x   282] Vertical portion of path indicates Q is executing and P is waiting.
+[  18pt x   275] Figure 6.2 Example of Deadlock
+
+───── page 7/43 ─────
+[  14pt x   204] Progress
+[  14pt x   217] of Q
+[  18pt x   305] 1
+[  18pt x   359] 2
+[  18pt x   446] 3
+[  14pt x   180] Release
+[  14pt x   198] A
+[  18pt x   571] 4
+[  14pt x    86] A
+[  14pt x   180] Release
+[  12pt x   363] P and Q
+[  14pt x    63] Required
+[  12pt x   365] want AB
+[  12pt x   496] P and Q
+[  14pt x   187] Get A
+[  12pt x   498] want B
+[  14pt x   124] B
+[  14pt x   101] Required
+[  18pt x   573] 5
+[  14pt x   187] Get B
+[  18pt x   573] 6
+[  14pt x   645] Progress
+[  14pt x   660] of P
+[  14pt x   335] Get ARelease A
+[  14pt x   468] Get BRelease B
+[  14pt x   349] A Required
+[  14pt x   480] B Required
+[  12pt x   108] = both P and Q want resource A
+[  12pt x   412] = possible progress path of P and Q.
+[  12pt x   108] = both P and Q want resource B
+[  12pt x   422] Horizontal portion of path indicates P is executing and Q is waiting.
+[  12pt x   422] Vertical portion of path indicates Q is executing and P is waiting.
+[  18pt x   253] Figure 6.3 Example of No Deadlock
+
+───── page 8/43 ─────
+[  44pt x    73] Fatal Regions
+[  30pt x    73] •
+[  30pt x    91] Deadlock only occurs if two processes (or more) creates a
+[  30pt x    91] path that enters the fatal region.
+[  30pt x    73] •
+[  30pt x    91] What if there are more than 2 processes that shares
+[  30pt x    91] resources
+[  28pt x   109] •
+[  28pt x   127] We need joint progress diagrams that uses more than two
+[  28pt x   127] dimensions.
+
+───── page 9/43 ─────
+[  44pt x    73] Resource Categories
+[  20pt x   232] Reusable
+[  20pt x   657] Consumable
+[  16pt x    86] Can be safely used by only one process at a time and is One that can be created (produced) and destroyed
+[  16pt x    86] not depleted by that use
+[  16pt x   527] (consumed)
+[  16pt x    86] •
+[  16pt x    99] Processors, I/O channels, main and secondary
+[  16pt x   527] •
+[  16pt x   540] Interrupts, signals, messages, and information
+[  16pt x    99] memory, devices, and data structures such as files,
+[  16pt x   527] •
+[  16pt x   540] In I/O buffers
+[  16pt x    99] databases, and semaphores
+
+───── page 10/43 ─────
+[  44pt x    73] Memory Request example.
+[  28pt x    73] •
+[  28pt x    91] Space is available for allocation of
+[  28pt x   508] 200𝐾𝐵
+[  28pt x   593] , and the following
+[  28pt x    91] sequence of events occur:
+[  18pt x   291] 𝑃1
+[  18pt x   539] 𝑃2
+[  18pt x   295] …
+[  18pt x   543] …
+[  18pt x   243] 𝑅𝑒𝑞𝑢𝑒𝑠𝑡80𝐾𝐵
+[  18pt x   491] 𝑅𝑒𝑞𝑢𝑒𝑠𝑡70𝐾𝐵
+[  18pt x   295] …
+[  18pt x   543] …
+[  18pt x   244] 𝑅𝑒𝑞𝑢𝑒𝑠𝑡60𝐾𝐵
+[  18pt x   493] 𝑅𝑒𝑞𝑢𝑒𝑠𝑡80𝐾𝐵
+[  28pt x    73] •
+[  28pt x    91] Deadlock occur if both processes progress to their second
+[  28pt x    91] request.
+
+───── page 11/43 ─────
+[  44pt x    73] Consumable resources
+[  28pt x    73] •
+[  28pt x    91] Can you produce a scenario where attempting access
+[  28pt x    91] consumable resources by multiple processes ends up in a
+[  28pt x    91] deadlock?
+
+───── page 12/43 ─────
+[  44pt x    73] Consumable Resources Deadlock
+[  28pt x    73] •
+[  28pt x    91] Consider a pair of processes, in which each process attempts to
+[  28pt x    91] receive a message from the other process and then send a
+[  28pt x    91] message to the other process:
+[  28pt x    73] •
+[  28pt x    91] Deadlock occurs if the Receive is blocking.
+
+───── page 13/43 ─────
+[  44pt x    73] Resource Categories
+[  28pt x    73] •
+[  28pt x    91] Deadlocks with Reusable Resources: common and
+[  28pt x    91] straightforward.
+[  28pt x    73] •
+[  28pt x    91] Deadlocks with Consumable Resources:
+[  24pt x   109] •
+[  24pt x   127] Less typical but possible
+[  24pt x   109] •
+[  24pt x   127] If the production and consumption of resources are interdependent.
+[  20pt x   145] •
+[  20pt x   163] Such deadlocks might involve indirect circular waits.
+
+───── page 14/43 ─────
+[  44pt x    73] Conditions for Deadlock
+[  21pt x    80] Mutual Exclusion
+[  21pt x   300] Hold-and-Wait
+[  21pt x   513] No Pre-emption
+[  21pt x   743] Circular Wait
+[  21pt x    75] •
+[  21pt x    93] Only one
+[  21pt x   284] •
+[  21pt x   302] A process may
+[  21pt x   500] •
+[  21pt x   518] No resource
+[  21pt x   720] •
+[  21pt x   738] A closed chain
+[  21pt x    93] process may
+[  21pt x   302] hold allocated
+[  21pt x   518] can be forcibly
+[  21pt x   738] of processes
+[  21pt x    93] use a resource
+[  21pt x   302] resources while
+[  21pt x   518] removed from a
+[  21pt x   738] exists, such
+[  21pt x    93] at a time
+[  21pt x   302] awaiting
+[  21pt x   518] process holding
+[  21pt x   738] that each
+[  21pt x   302] assignment of
+[  21pt x   518] it
+[  21pt x   738] process holds
+[  21pt x    75] •
+[  21pt x    93] No process
+[  21pt x   302] other resources
+[  21pt x   738] at least one
+[  21pt x    93] may access a
+[  21pt x   738] resource
+[  21pt x    93] resource until
+[  21pt x   738] needed by the
+[  21pt x    93] that has been
+[  21pt x   738] next process in
+[  21pt x    93] allocated to
+[  21pt x   738] the chain
+[  21pt x    93] another
+[  21pt x    93] process
+
+───── page 15/43 ─────
+[  44pt x    73] How to model a deadlock?
+[  28pt x    73] •
+[  28pt x    91] Resource allocation graphs.
+[  28pt x    73] •
+[  28pt x    91] Directed graph that depicts a state of the system of resources and
+[  28pt x    91] processes.
+[  28pt x    73] •
+[  28pt x    91] Each process and each resource represented by a node.
+[  28pt x    73] •
+[  28pt x    91] Edge directed from a process to a resource indicates a resource
+[  28pt x    91] that has been requested by the process but not yet granted.
+[  28pt x    73] •
+[  28pt x    91] Edge directed from a reusable resource node dot to a process
+[  28pt x    91] indicates a request that has been granted.
+
+───── page 16/43 ─────
+[  10pt x   117] Requests
+[  10pt x   422] Held by
+[  14pt x   229] Ra
+[  14pt x   517] Ra
+[  14pt x    59] P1
+[  14pt x   347] P1
+[  12pt x    94] (a) Resouce is requested
+[  12pt x   393] (b) Resource is held
+[  14pt x   145] Ra
+[  14pt x   433] Ra
+[  10pt x   177] H
+[  10pt x   466] H
+[  10pt x   183] e
+[  10pt x   472] e
+[  10pt x   187] l
+[  10pt x   475] l
+[  10pt x   189] d
+[  10pt x   478] dss
+[  10pt x   120] t
+[  10pt x   408] t
+[  10pt x   117] s
+[  10pt x   196] b
+[  10pt x   405] s
+[  10pt x   484] b
+[  10pt x   113] e
+[  10pt x   401] ey
+[  10pt x   488] y
+[  10pt x   109] u
+[  10pt x   397] u
+[  10pt x   104] q
+[  10pt x   393] q
+[  10pt x   101] e
+[  10pt x   389] e
+[  10pt x    95] R
+[  10pt x   384] R
+[  14pt x    59] P1
+[  14pt x   239] P2
+[  14pt x   347] P1
+[  14pt x   527] P2
+[  10pt x   215] s
+[  10pt x   504] s
+[  10pt x   213] t
+[  10pt x   501] t
+[  10pt x   210] s
+[  10pt x   498] s
+[  10pt x   206] e
+[  10pt x   495] e
+[  10pt x   109] H
+[  10pt x   397] Hu
+[  10pt x   490] u
+[  10pt x   198] q
+[  10pt x   486] qee
+[  10pt x   194] e
+[  10pt x   482] ell
+[  10pt x   121] d
+[  10pt x   409] d
+[  10pt x   188] R
+[  10pt x   477] R
+[  10pt x   127] b
+[  10pt x   416] b
+[  10pt x   132] y
+[  10pt x   420] y
+[  14pt x   144] Rb
+[  14pt x   433] Rb
+[  12pt x   113] (c) Circular wait
+[  12pt x   403] (d) No deadlock
+[  18pt x   102] Figure 6.5 Examples of Resource Allocation Graphs
+
+───── page 17/43 ─────
+[  14pt x    90] P1
+[  14pt x   199] P2
+[  14pt x   307] P3
+[  14pt x   415] P4
+[  14pt x    89] Ra
+[  14pt x   197] Rb
+[  14pt x   306] Rc
+[  14pt x   413] Rd
+[  18pt x    38] Figure 6.6 Resource Allocation Graph for Figure 6.1b
+
+───── page 18/43 ─────
+[  44pt x    73] How to deal with
+[  28pt x   528] •
+[  28pt x   546] Deadlock avoidance
+[  44pt x    73] Deadlocks?
+[  20pt x   600] •
+[  20pt x   618] Do not grant a resource
+[  20pt x   618] request if this allocation
+[  28pt x    73] •
+[  28pt x    91] Can you think about an effective
+[  20pt x   618] might lead to deadlock
+[  28pt x    91] way to deal with deadlocks?
+[  28pt x    89] •
+[  28pt x   107] Deadlock prevention
+[  28pt x   528] •
+[  28pt x   546] Deadlock detection
+[  20pt x   161] •
+[  20pt x   179] Disallow one of the three
+[  20pt x   600] •
+[  20pt x   618] Grant resource requests,
+[  20pt x   179] necessary conditions for
+[  20pt x   618] when possible, but
+[  20pt x   179] deadlock occurrence, or
+[  20pt x   618] periodically check for the
+[  20pt x   179] prevent circular wait
+[  20pt x   618] presence of deadlock and
+[  20pt x   179] condition from happening
+[  20pt x   618] take action to recover
+
+───── page 19/43 ─────
+[  44pt x    73] Difference between deadlock prevention and
+[  44pt x    73] avoidance
+[  28pt x    73] •
+[  28pt x    91] Deadlock prevention
+[  28pt x   362] involves designing the system and its
+[  28pt x    91] resource allocation protocols to ensure that at least one of the
+[  28pt x    91] necessary conditions for deadlock cannot occur.
+[  24pt x   109] •
+[  24pt x   127] Using a resource allocation graph with specific rules to avoid circular
+[  24pt x   127] waits can help prevent deadlocks
+[  28pt x    73] •
+[  28pt x    91] Deadlock avoidance
+[  28pt x   356] involves dynamically examining the
+[  28pt x    91] resource allocation state of the system to ensure that each
+[  28pt x    91] resource request can be granted without leading to a deadlock.
+[  24pt x   109] •
+[  24pt x   127] When a process requests a resource, the system temporarily
+[  24pt x   127] pretends to allocate the resource and checks if this allocation keeps
+[  24pt x   127] the system in a safe state.
+
+───── page 20/43 ─────
+[  44pt x    73] Deadlock Prevention
+[  28pt x    73] •
+[  28pt x    91] Design a system in such a way that the possibility of deadlock is
+[  28pt x    91] excluded
+[  28pt x    73] •
+[  28pt x    91] We can remove one of the conditions of deadlock from the
+[  28pt x    91] system.
+[  28pt x    73] •
+[  28pt x    91] Two main methods:
+[  24pt x   109] •
+[  24pt x   127] Indirect
+[  20pt x   145] •
+[  20pt x   163] Prevent the occurrence of one of the three necessary conditions
+[  24pt x   109] •
+[  24pt x   127] Direct
+[  20pt x   145] •
+[  20pt x   163] Prevent the occurrence of a circular wait
+
+───── page 21/43 ─────
+[  44pt x    73] Deadlock Condition Prevention
+[  26pt x    73] •
+[  26pt x    91] Mutual exclusion
+[  22pt x   109] •
+[  22pt x   127] If access to a resource requires mutual exclusion, then mutual exclusion must
+[  22pt x   127] be supported by the OS.
+[  22pt x   109] •
+[  22pt x   127] Some resources, such as files, may allow multiple accesses for reads but only
+[  22pt x   127] exclusive access for writes.
+[  22pt x   109] •
+[  22pt x   127] Even in this case, deadlock can occur if more than one process requires write
+[  22pt x   127] permission.
+[  26pt x    73] •
+[  26pt x    91] Hold and wait
+[  22pt x   109] •
+[  22pt x   127] Can be prevented by requiring that a process request all of its required
+[  22pt x   127] resources at one time and blocking the process until all requests can be granted
+[  22pt x   127] simultaneously.
+[  19pt x   145] •
+[  19pt x   163] Process may wait for long time to acquire all the resources.
+[  19pt x   145] •
+[  19pt x   163] Resources allocated to process may not be used for considerable amount of time.
+[  19pt x   145] •
+[  19pt x   163] Process may not know the resources that it need in advance.
+
+───── page 22/43 ─────
+[  44pt x    73] Deadlock Condition Prevention
+[  28pt x    73] •
+[  28pt x    91] No Preemption
+[  24pt x   109] •
+[  24pt x   127] If a process holding certain resources is denied a further request, that
+[  24pt x   127] process must release its original resources and request them again.
+[  24pt x   109] •
+[  24pt x   127] Alternately, if a process request a resource that is held by another
+[  24pt x   127] process, OS may preempt the second process and require it to release its
+[  24pt x   127] resources
+[  28pt x    73] •
+[  28pt x    91] Circular Wait
+[  24pt x   109] •
+[  24pt x   127] The circular wait condition can be prevented by defining a linear ordering
+[  24pt x   127] of resource types.
+[  20pt x   145] •
+[  20pt x   163] Look at the intersection example.
+
+───── page 23/43 ─────
+[  44pt x    73] Deadlock Condition Prevention
+[  28pt x    73] •
+[  28pt x    91] Most of these prevention strategies are inefficient or unfavorable.
+
+───── page 24/43 ─────
+[  44pt x    73] Deadlock Avoidance
+[  28pt x    73] •
+[  28pt x    91] Allows the three necessary deadlock conditions but makes
+[  28pt x    91] resource-allocation decisions carefully to ensure that the system
+[  28pt x    91] never enters a deadlock state.
+[  28pt x    73] •
+[  28pt x    91] For each resource request, the OS dynamically determines
+[  28pt x    91] whether granting the request could potentially lead to deadlock.
+[  28pt x    73] •
+[  28pt x    91] A request is granted only if the resulting system state is
+[  28pt x    91] considered safe.
+[  28pt x    73] •
+[  28pt x    91] Requires information about processes’ possible future resource
+[  28pt x    91] requirements
+
+───── page 25/43 ─────
+[  44pt x    73] Two Approaches to Deadlock Avoidance
+[  26pt x   447] Deadlock
+[  26pt x   442] Avoidance
+[  22pt x   235] Resource
+[  22pt x   586] Process Initiation
+[  22pt x   235] Allocation Denial
+[  22pt x   586] Denial
+[  18pt x   235] •
+[  18pt x   249] Do not grant an
+[  18pt x   586] •
+[  18pt x   600] Do not start a
+[  18pt x   249] incremental resource
+[  18pt x   600] process if its
+[  18pt x   249] request to a process if
+[  18pt x   600] demands might lead
+[  18pt x   249] this allocation might
+[  18pt x   600] to deadlock
+[  18pt x   249] lead to deadlock
+
+───── page 26/43 ─────
+[  44pt x    73] Resource Allocation Denial
+[  26pt x    73] •
+[  26pt x    91] Referred to as the banker’s algorithm
+[  26pt x    73] •
+[  26pt x    91] State
+[  26pt x   159] of the system reflects the current allocation of resources to
+[  26pt x    91] processes
+[  26pt x    73] •
+[  26pt x    91] Safe state
+[  26pt x   215] is one in which there is at least one sequence of resource
+[  26pt x    91] allocations to processes that does not result in a deadlock.
+[  22pt x   109] •
+[  22pt x   127] A safe state is always deadlock free currently, and it is guaranteed to avoid
+[  22pt x   127] deadlock if the banker’s algorithm is followed for future resource allocations.
+[  26pt x    73] •
+[  26pt x    91] Unsafe state
+[  26pt x   246] is a state that is not safe.
+[  22pt x   109] •
+[  22pt x   127] Unsafe state does not mean there is a deadlock.
+[  22pt x   109] •
+[  22pt x   127] It means it might occur in the future.
+
+───── page 27/43 ─────
+[   9pt x    46] R1
+[   9pt x    81] R2
+[   9pt x   116] R3
+[   9pt x   218] R1
+[   9pt x   252] R2
+[   9pt x   287] R3
+[   9pt x   389] R1
+[   9pt x   423] R2
+[   9pt x   458] R3
+[   9pt x   392] 2
+[   9pt x   426] 2
+[   9pt x   461] 2P1322P1100P1
+[   9pt x   392] 0
+[   9pt x   426] 0
+[   9pt x   461] 1P2613P2612P2
+[   9pt x   392] 1
+[   9pt x   426] 0
+[   9pt x   461] 3P3314P3211P3
+[   9pt x   392] 4
+[   9pt x   426] 2
+[   9pt x   461] 0P4422P4002P4
+[   9pt x    58] Claim matrix
+[   9pt x   108] C
+[   9pt x   221] Allocation matrix
+[   9pt x   287] A
+[   9pt x   418] C
+[   9pt x   426]  ±
+[   9pt x   433] A
+[   9pt x   105] R1
+[   9pt x   140] R2
+[   9pt x   174] R3
+[   9pt x   269] R1
+[   9pt x   331] R2
+[   9pt x   365] R3
+[   9pt x   108] 9
+[   9pt x   143] 3
+[   9pt x   177] 6
+[   9pt x   309] 0
+[   9pt x   334] 1
+[   9pt x   368] 1
+[   9pt x   111] Resource vector
+[   9pt x   172] R
+[   9pt x   275] Available vector
+[   9pt x   337] V
+[   9pt x   212] (a) Initial state
+
+───── page 28/43 ─────
+[   9pt x    46] R1
+[   9pt x    81] R2
+[   9pt x   116] R3
+[   9pt x   218] R1
+[   9pt x   252] R2
+[   9pt x   287] R3
+[   9pt x   389] R1
+[   9pt x   423] R2
+[   9pt x   458] R3
+[   9pt x   392] 2
+[   9pt x   426] 2
+[   9pt x   461] 2P1322P1100P1
+[   9pt x    13] P2
+[   9pt x    50] 0
+[   9pt x    84] 0
+[   9pt x   119] 0
+[   9pt x   184] P2
+[   9pt x   221] 0
+[   9pt x   255] 0
+[   9pt x   290] 0
+[   9pt x   356] P2
+[   9pt x   392] 0
+[   9pt x   426] 0
+[   9pt x   461] 0
+[   9pt x   392] 1
+[   9pt x   426] 0
+[   9pt x   461] 3P3314P3211P3
+[   9pt x   392] 4
+[   9pt x   426] 2
+[   9pt x   461] 0P4422P4002P4
+[   9pt x    58] Claim matrix
+[   9pt x   108] C
+[   9pt x   221] Allocation matrix
+[   9pt x   287] A
+[   9pt x   418] C
+[   9pt x   426]  ±
+[   9pt x   433] A
+[   9pt x   131] R1
+[   9pt x   166] R2
+[   9pt x   201] R3
+[   9pt x   270] R1
+[   9pt x   304] R2
+[   9pt x   339] R3
+[   9pt x   134] 9
+[   9pt x   169] 3
+[   9pt x   204] 6
+[   9pt x   273] 6
+[   9pt x   307] 2
+[   9pt x   342] 3
+[   9pt x   137] Resource vector
+[   9pt x   198] R
+[   9pt x   276] Available vector
+[   9pt x   338] V
+[   9pt x   192] (b) P2 runs to completion
+
+───── page 29/43 ─────
+[   9pt x    35] R1
+[   9pt x    61] R2
+[   9pt x    88] R3
+[   9pt x   191] R1
+[   9pt x   248] R2
+[   9pt x   275] R3
+[   9pt x   379] R1
+[   9pt x   435] R2
+[   9pt x   461] R3
+[   9pt x     9] P1
+[   9pt x    38] 0
+[   9pt x    64] 0
+[   9pt x    91] 0
+[   9pt x   135] P1
+[   9pt x   230] 0
+[   9pt x   251] 0
+[   9pt x   278] 0
+[   9pt x   322] P1
+[   9pt x   418] 0
+[   9pt x   438] 0
+[   9pt x   464] 0
+[   9pt x     9] P2
+[   9pt x    38] 0
+[   9pt x    64] 0
+[   9pt x    91] 0
+[   9pt x   135] P2
+[   9pt x   194] 0
+[   9pt x   251] 0
+[   9pt x   278] 0
+[   9pt x   322] P2
+[   9pt x   382] 0
+[   9pt x   438] 0
+[   9pt x   464] 0
+[   9pt x   382] 1
+[   9pt x   438] 0
+[   9pt x   464] 3P3314P3211P3
+[   9pt x   382] 4
+[   9pt x   438] 2
+[   9pt x   464] 0P4422P4002P4
+[   9pt x    38] Claim matrix
+[   9pt x    88] C
+[   9pt x   187] Allocation matrix
+[   9pt x   253] A
+[   9pt x   399] C
+[   9pt x   408]  ±
+[   9pt x   415] A
+[   9pt x   105] R1
+[   9pt x   140] R2
+[   9pt x   174] R3
+[   9pt x   269] R1
+[   9pt x   331] R2
+[   9pt x   365] R3
+[   9pt x   108] 9
+[   9pt x   143] 3
+[   9pt x   177] 6
+[   9pt x   309] 7
+[   9pt x   334] 2
+[   9pt x   368] 3
+[   9pt x   111] Resource vector
+[   9pt x   172] R
+[   9pt x   275] Available vector
+[   9pt x   337] V
+[   9pt x     6] (c) P1 runs to completion
+
+───── page 30/43 ─────
+[   9pt x    41] R1
+[   9pt x    72] R2
+[   9pt x   103] R3
+[   9pt x   191] R1
+[   9pt x   222] R2
+[   9pt x   253] R3
+[   9pt x   370] R1
+[   9pt x   429] R2
+[   9pt x   459] R3
+[   9pt x    11] P1
+[   9pt x    44] 0
+[   9pt x    75] 0
+[   9pt x   106] 0
+[   9pt x   161] P1
+[   9pt x   194] 0
+[   9pt x   225] 0
+[   9pt x   256] 0
+[   9pt x   312] P1
+[   9pt x   409] 0
+[   9pt x   432] 0
+[   9pt x   462] 0
+[   9pt x    11] P2
+[   9pt x    44] 0
+[   9pt x    75] 0
+[   9pt x   106] 0
+[   9pt x   161] P2
+[   9pt x   194] 0
+[   9pt x   225] 0
+[   9pt x   256] 0
+[   9pt x   312] P2
+[   9pt x   373] 0
+[   9pt x   432] 0
+[   9pt x   462] 0
+[   9pt x    11] P3
+[   9pt x    44] 0
+[   9pt x    75] 0
+[   9pt x   106] 0
+[   9pt x   161] P3
+[   9pt x   194] 0
+[   9pt x   225] 0
+[   9pt x   256] 0
+[   9pt x   312] P3
+[   9pt x   373] 0
+[   9pt x   432] 0
+[   9pt x   462] 0
+[   9pt x   373] 4
+[   9pt x   432] 2
+[   9pt x   462] 0P4422P4002P4
+[   9pt x    48] Claim matrix
+[   9pt x    98] C
+[   9pt x   191] Allocation matrix
+[   9pt x   257] A
+[   9pt x   394] C
+[   9pt x   403]  ±
+[   9pt x   410] A
+[   9pt x   105] R1
+[   9pt x   140] R2
+[   9pt x   174] R3
+[   9pt x   269] R1
+[   9pt x   331] R2
+[   9pt x   365] R3
+[   9pt x   108] 9
+[   9pt x   143] 3
+[   9pt x   177] 6
+[   9pt x   309] 9
+[   9pt x   334] 3
+[   9pt x   368] 4
+[   9pt x   111] Resource vector
+[   9pt x   172] R
+[   9pt x   275] Available vector
+[   9pt x   337] V
+[   9pt x     6] (d) P3 runs to completion
+
+───── page 31/43 ─────
+[  28pt x    73] •
+[  28pt x    91] When a process requests resources, the system
+[  28pt x   674] simulates
+[  28pt x    91] granting the request
+[  28pt x   352] and checks whether the resulting state is
+[  28pt x    91] safe.
+[  28pt x    73] •
+[  28pt x    91] Safe state:
+[  28pt x   233] There exists an order in which all processes can
+[  28pt x    91] obtain their remaining required resources and complete.
+[  28pt x    73] •
+[  28pt x    91] If the resulting state is
+[  28pt x   360] safe
+[  28pt x   415] , the request is granted.
+[  28pt x    73] •
+[  28pt x    91] If the resulting state is
+[  28pt x   360] unsafe
+[  28pt x   447] , the request is postponed.
+
+───── page 32/43 ─────
+[  10pt x    34] R1
+[  10pt x    61] R2R3
+[  10pt x   190] R1
+[  10pt x   247] R2
+[  10pt x   275] R3
+[  10pt x   377] R1
+[  10pt x   435] R2R3
+[  10pt x     8] P1
+[  10pt x    37] 3
+[  10pt x    65] 2
+[  10pt x    91] 2
+[  10pt x   134] P1
+[  10pt x   193] 1
+[  10pt x   251] 0
+[  10pt x   278] 0
+[  10pt x   321] P1
+[  10pt x   417] 2
+[  10pt x   438] 2
+[  10pt x   464] 2
+[  10pt x     8] P2
+[  10pt x    37] 6
+[  10pt x    65] 1
+[  10pt x    91] 3
+[  10pt x   134] P2
+[  10pt x   229] 5
+[  10pt x   251] 1
+[  10pt x   278] 1
+[  10pt x   321] P2
+[  10pt x   381] 1
+[  10pt x   438] 0
+[  10pt x   464] 2
+[  10pt x     8] P3
+[  10pt x    37] 3
+[  10pt x    65] 1
+[  10pt x    91] 4
+[  10pt x   134] P3
+[  10pt x   193] 2
+[  10pt x   251] 1
+[  10pt x   278] 1
+[  10pt x   321] P3
+[  10pt x   381] 1
+[  10pt x   438] 0
+[  10pt x   464] 3
+[  10pt x     8] P4
+[  10pt x    37] 4
+[  10pt x    65] 2
+[  10pt x    91] 2
+[  10pt x   134] P4
+[  10pt x   193] 0
+[  10pt x   251] 0
+[  10pt x   278] 2
+[  10pt x   321] P4
+[  10pt x   381] 4
+[  10pt x   438] 2
+[  10pt x   464] 0
+[  10pt x    35] Claim matrix
+[  10pt x    91] C
+[  10pt x   182] Allocation matrix
+[  10pt x   256] A
+[  10pt x   398] C
+[  10pt x   407]  ±
+[  10pt x   415] A
+[  10pt x   104] R1
+[  10pt x   138] R2
+[  10pt x   173] R3
+[  10pt x   269] R1
+[  10pt x   331] R2
+[  10pt x   365] R3
+[  10pt x   108] 9
+[  10pt x   142] 3
+[  10pt x   177] 6
+[  10pt x   309] 1
+[  10pt x   334] 1
+[  10pt x   368] 2
+[  10pt x   107] Resource vector
+[  10pt x   175] R
+[  10pt x   271] Available vector
+[  10pt x   340] V
+[  10pt x   209] (a) Initial state
+[  10pt x    34] R1
+[  10pt x    61] R2R3
+[  10pt x   190] R1
+[  10pt x   247] R2
+[  10pt x   275] R3
+[  10pt x   377] R1
+[  10pt x   435] R2R3
+[  10pt x     8] P1
+[  10pt x    37] 3
+[  10pt x    65] 2
+[  10pt x    91] 2
+[  10pt x   134] P1
+[  10pt x   229] 2
+[  10pt x   251] 0
+[  10pt x   278] 1
+[  10pt x   321] P1
+[  10pt x   417] 1
+[  10pt x   438] 2
+[  10pt x   464] 1
+[  10pt x     8] P2
+[  10pt x    37] 6
+[  10pt x    65] 1
+[  10pt x    91] 3
+[  10pt x   134] P2
+[  10pt x   193] 5
+[  10pt x   251] 1
+[  10pt x   278] 1
+[  10pt x   321] P2
+[  10pt x   381] 1
+[  10pt x   438] 0
+[  10pt x   464] 2
+[  10pt x     8] P3
+[  10pt x    37] 3
+[  10pt x    65] 1
+[  10pt x    91] 4
+[  10pt x   134] P3
+[  10pt x   193] 2
+[  10pt x   251] 1
+[  10pt x   278] 1
+[  10pt x   321] P3
+[  10pt x   381] 1
+[  10pt x   438] 0
+[  10pt x   464] 3
+[  10pt x     8] P4
+[  10pt x    37] 4
+[  10pt x    65] 2
+[  10pt x    91] 2
+[  10pt x   134] P4
+[  10pt x   193] 0
+[  10pt x   251] 0
+[  10pt x   278] 2
+[  10pt x   321] P4
+[  10pt x   381] 4
+[  10pt x   438] 2
+[  10pt x   464] 0
+[  10pt x    35] Claim matrix
+[  10pt x    91] C
+[  10pt x   182] Allocation matrix
+[  10pt x   256] A
+[  10pt x   398] C
+[  10pt x   407]  ±
+[  10pt x   415] A
+[  10pt x   130] R1
+[  10pt x   165] R2
+[  10pt x   200] R3
+[  10pt x   269] R1
+[  10pt x   304] R2
+[  10pt x   339] R3
+[  10pt x   134] 9
+[  10pt x   169] 3
+[  10pt x   204] 6
+[  10pt x   273] 0
+[  10pt x   307] 1
+[  10pt x   342] 1
+[  10pt x   133] Resource vector
+[  10pt x   201] R
+[  10pt x   272] Available vector
+[  10pt x   341] V
+[  10pt x   149] (b) P1 requests one unit each of R1 and R3
+[  14pt x     6] Figure 6.8 Determination of an Unsafe State
+
+───── page 34/43 ─────
+[  44pt x    73] Deadlock avoidance-> Advantages
+[  28pt x    73] •
+[  28pt x    91] It is not necessary to preempt and rollback processes, as in
+[  28pt x    91] deadlock detection
+[  28pt x    73] •
+[  28pt x    91] It is less restrictive than deadlock prevention
+
+───── page 35/43 ─────
+[  44pt x    73] Deadlock avoidance: Restrictions
+[  24pt x   172] •
+[  24pt x   190] Maximum resource requirement for each process must be stated in
+[  24pt x   190] advance
+[  24pt x   172] •
+[  24pt x   190] Processes under consideration must be independent and with no
+[  24pt x   190] synchronization requirements
+[  24pt x   172] •
+[  24pt x   190] There must be a fixed number of resources to allocate
+[  24pt x   172] •
+[  24pt x   190] No process may exit while holding resources
+
+───── page 36/43 ─────
+[  44pt x    73] Deadlock strategies
+[  36pt x    82] Deadlock prevention strategies are very
+[  36pt x    82] conservative
+[  28pt x    92] •
+[  28pt x   115] Limit access to resources by imposing restrictions on
+[  28pt x   115] processes
+[  36pt x    82] Deadlock detection strategies do the opposite
+[  28pt x    92] •
+[  28pt x   115] Resource requests are granted whenever possible
+
+───── page 37/43 ─────
+[  44pt x    73] Deadlock detection algorithms
+[  28pt x   654] Advantages:
+[  22pt x   654] •
+[  22pt x   672] It leads to early
+[  28pt x    73] •
+[  28pt x    91] A check for deadlock can be
+[  22pt x   672] detection
+[  28pt x    91] made as frequently as each
+[  22pt x   654] •
+[  22pt x   672] The algorithm is
+[  28pt x    91] resource request
+[  28pt x   314] or,
+[  28pt x   351] less
+[  22pt x   672] relatively simple
+[  28pt x    91] frequently, depending on
+[  28pt x    91] how likely it is for a deadlock
+[  28pt x   694] Disadvantage
+[  28pt x    91] to occur.
+[  22pt x   694] •
+[  22pt x   712] Frequent checks
+[  28pt x    73] •
+[  28pt x    91] Coffman-Elphick-Shoshani
+[  22pt x   712] consume
+[  28pt x    91] algorithm (CES) algorithm.
+[  22pt x   712] considerable
+[  22pt x   712] processor time
+[  28pt x    73] •
+[  28pt x    91] Refer the handout.
+
+───── page 39/43 ─────
+[  28pt x    73] •
+[  28pt x    91] What are the deadlocked processes in the above example?
+[  24pt x   109] •
+[  24pt x   127] P1, P2
+[  28pt x    73] •
+[  28pt x    91] We could also use resource allocation graph and check for cycles
+[  28pt x    91] to detect deadlocks.
+[  24pt x   109] •
+[  24pt x   127] But when you have multiple-instance resources in the system you have to
+[  24pt x   127] create a node for each instance of that resource. (scalability issues)
+[  24pt x   109] •
+[  24pt x   127] Also, it is harder to handle resources like main memory, where varying
+[  24pt x   127] size partitions can be allocated to processes. (Dynamic and divisible
+[  24pt x   127] resources are harder to handle)
+
+───── page 40/43 ─────
+[  44pt x   305] Recovery Strategies
+[  28pt x    73] •
+[  28pt x    91] Abort all deadlocked processes.
+[  28pt x    73] •
+[  28pt x    91] Back up each deadlocked process to some previously defined
+[  28pt x    91] checkpoint and restart all processes.
+[  28pt x    73] •
+[  28pt x    91] Successively abort deadlocked processes until deadlock no
+[  28pt x    91] longer exists.
+[  28pt x    73] •
+[  28pt x    91] Successively preempt resources until deadlock no longer exists.
+
+───── page 41/43 ─────
+[  44pt x    73] Integrated Deadlock Strategy
+[  26pt x    73] •
+[  26pt x    91] It might be more efficient to use different strategies in different
+[  26pt x    91] situations
+[  22pt x   109] •
+[  22pt x   127] Group resources into a number of different resource classes
+[  22pt x   109] •
+[  22pt x   127] Use the linear ordering strategy defined previously for the prevention of circular
+[  22pt x   127] wait to prevent deadlocks between resource classes
+[  22pt x   109] •
+[  22pt x   127] Within a resource class, use the algorithm that is most appropriate for that class
+[  26pt x    73] •
+[  26pt x    91] Classes of resources
+[  22pt x   109] •
+[  22pt x   127] Swappable space
+[  19pt x   145] •
+[  19pt x   163] Blocks of memory on secondary storage for use in swapping processes
+[  22pt x   109] •
+[  22pt x   127] Process resources
+[  19pt x   145] •
+[  19pt x   163] Assignable devices, such as tape drives, and files
+[  22pt x   109] •
+[  22pt x   127] Main memory
+[  19pt x   145] •
+[  19pt x   163] Assignable to processes in pages or segments
+[  22pt x   109] •
+[  22pt x   127] Internal resources
+[  19pt x   145] •
+[  19pt x   163] Such as I/O channels
+
+───── page 42/43 ─────
+[  26pt x    73] •
+[  26pt x    91] Classes of resources
+[  22pt x   109] •
+[  22pt x   127] Swappable space
+[  19pt x   145] •
+[  19pt x   163] Blocks of memory on secondary storage for use in swapping processes.
+[  19pt x   145] •
+[  19pt x   163] Deadlock prevention
+[  19pt x   333] —
+[  19pt x   350] prevention of hold and wait.
+[  19pt x   145] •
+[  19pt x   163] Prevention of deadlocks by requiring that all of the required resources that may be used
+[  19pt x   163] be allocated at one time.
+[  19pt x   145] •
+[  19pt x   163] Reasonable if the maximum storage required is known.
+[  22pt x   109] •
+[  22pt x   127] Process resources
+[  19pt x   145] •
+[  19pt x   163] Assignable devices, such as tape drives, and files
+[  19pt x   145] •
+[  19pt x   163] Deadlock prevention
+[  19pt x   333] —
+[  19pt x   350] resource ordering.
+[  19pt x   145] •
+[  19pt x   163] Deadlock avoidance
+[  19pt x   330] —
+[  19pt x   347] reasonable to think that we can expect processes to know which
+[  19pt x   163] process resources are needed in ahead of time.
+[  22pt x   109] •
+[  22pt x   127] Main memory
+[  19pt x   145] •
+[  19pt x   163] Assignable to processes in pages or segments.
+[  19pt x   145] •
+[  19pt x   163] Deadlock Prevention
+[  19pt x   333] —
+[  19pt x   350] by preemption.
+[  17pt x   181] •
+[  17pt x   199] We can simply swap the process to secondary storage.
+[  22pt x   109] •
+[  22pt x   127] Internal resources
+[  19pt x   145] •
+[  19pt x   163] Such as I/O channels
+[  19pt x   145] •
+[  19pt x   163] Deadlock prevention
+[  19pt x   333] —
+[  19pt x   350] by resource ordering.
+
+───── page 43/43 ─────
+[  44pt x    73] In practice
+[  28pt x    73] •
+[  28pt x    91] Deadlock prevention
+[  24pt x   109] •
+[  24pt x   127] Resource ordering
+[  24pt x   109] •
+[  24pt x   127] Requiring all resources at once (though inefficient)
+[  28pt x    73] •
+[  28pt x    91] Deadlock detection + recovery
+[  24pt x   109] •
+[  24pt x   127] Allow deadlocks to happen, periodically check, and then resolve (e.g., kill
+[  24pt x   127] a process or preempt resources).
+[  28pt x    73] •
+[  28pt x    91] Ignore deadlocks
+[  24pt x   109] •
+[  24pt x   127] Many general-purpose OSs
+[  24pt x   411] (like Linux, Windows) just don’t handle it
+[  24pt x   127] explicitly because deadlocks are rare and usually handled at the
+[  24pt x   127] application level.

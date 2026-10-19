@@ -4,7 +4,7 @@
 
 A digital recreation of the class handout. This is Stallings Chapter 6 material
 (deadlock), not Chapter 9 scheduling --- it was handed out with the
-[[file:../3-scheduling/][3 Scheduling]] block of lectures.
+[[file:../2-2-process-management/][2.2 Process Management]] block of lectures.
 
 * Deadlock avoidance: the state
 

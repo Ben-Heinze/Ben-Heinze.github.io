@@ -1,4 +1,4 @@
-#+TITLE: 2 Process Management
+#+TITLE: 2.1 Process Management
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-09-21
 #+TAGS: operating-systems, scheduling
@@ -14,6 +14,8 @@
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
 Slides: [[file:Process Management.pdf][Process Management (PDF)]]
+
+*Textbook:* Stallings Chapter 3.
 
 * OS Management of Application Execution
 

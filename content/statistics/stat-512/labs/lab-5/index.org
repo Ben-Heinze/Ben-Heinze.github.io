@@ -226,7 +226,7 @@ cld_label <- cld(pyg_pairs)$mcletters$Letters
 # create df for cld letters
 df_cld <- df_flat |> 
   group_by(flat_trt) |> 
-  summarise(avg_gain = mean(Gain), n = n()) |> 
+  summarize(avg_gain = mean(Gain), n = n()) |> 
   mutate(cld = cld_label)
 
 # create effects plot and add cld letters

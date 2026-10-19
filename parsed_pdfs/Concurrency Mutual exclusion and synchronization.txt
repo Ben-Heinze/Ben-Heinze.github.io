@@ -1,0 +1,611 @@
+
+───── page 1/48 ─────
+[  56pt x    95] Concurrency:
+[  56pt x    56] Mutual exclusion
+[  56pt x   205] and
+[  56pt x    63] synchronization.
+
+───── page 2/48 ─────
+[  44pt x    73] Some key words
+[  28pt x    73] •
+[  28pt x    91] Multiprogramming
+[  24pt x   109] •
+[  24pt x   127] The management of multiple processes within a uniprocessor system.
+[  28pt x    73] •
+[  28pt x    91] Multiprocessing
+[  24pt x   109] •
+[  24pt x   127] The management of multiple processes within a multiprocessor.
+[  28pt x    73] •
+[  28pt x    91] Distributed processing:
+[  24pt x   109] •
+[  24pt x   127] The management of multiple processes executing on multiple, distributed
+[  24pt x   127] computer systems.
+
+───── page 3/48 ─────
+[  44pt x    73] Concurrency
+[  28pt x    73] •
+[  28pt x    91] Ability to run multiple processes or tasks simultaneously or in an
+[  28pt x    91] overlapping manner.
+[  28pt x    73] •
+[  28pt x    91] Concurrency and Parallelism are related concepts
+[  28pt x   699] but not the
+[  28pt x    91] same.
+[  28pt x    73] •
+[  28pt x    91] In parallel execution, processes are truly executed
+[  28pt x    91] simultaneously.
+[  28pt x    73] •
+[  28pt x    91] Parallelism is type of concurrency.
+
+───── page 4/48 ─────
+[  44pt x    73] Difficulties of Concurrency
+[  28pt x    73] •
+[  28pt x    91] Sharing of global resources.
+[  28pt x    73] •
+[  28pt x    91] Difficult for the OS to manage the allocation of resources
+[  28pt x    91] optimally.
+[  28pt x    73] •
+[  28pt x    91] Difficult to locate programming errors as results are not
+[  28pt x    91] deterministic and reproducible.
+
+───── page 5/48 ─────
+[  44pt x    73] Race Condition
+[  28pt x    73] •
+[  28pt x    91] Occurs when multiple processes or threads access shared data
+[  28pt x    91] concurrently, with at least one modifying it.
+[  28pt x    73] •
+[  28pt x    91] The final result depends on the timing or order of their execution.
+[  28pt x    73] •
+[  28pt x    91] Without proper synchronization, concurrent accesses may
+[  28pt x    91] produce unexpected or incorrect result
+
+───── page 6/48 ─────
+[  44pt x    73] Resource competition
+[  28pt x    73] •
+[  28pt x    91] Concurrent processes come into conflict when they are
+[  28pt x    91] competing for use of the same resource
+[  24pt x   109] •
+[  24pt x   127] For example: I/O devices, memory, processor time, clock
+[  28pt x   200] In the case of competing processes three
+[  28pt x   200] control problems must be faced:
+[  28pt x   287] •
+[  28pt x   317] The need for mutual exclusion.
+[  28pt x   287] •
+[  28pt x   317] Deadlocks.
+[  28pt x   287] •
+[  28pt x   317] Starvation.
+
+───── page 7/48 ─────
+[  44pt x    73] What is mutual exclusion?
+[  28pt x    73] •
+[  28pt x    91] The requirement that when one process is in a
+[  28pt x   648] critical section
+[  28pt x    91] that accesses shared resources, no other process may be in a
+[  28pt x    91] critical section that accesses any of those shared resources.
+[  28pt x    73] •
+[  28pt x    91] Critical section
+[  28pt x   286] : A section of code within a process that requires
+[  28pt x    91] access to shared resources, and that must not be executed while
+[  28pt x    91] another process is in a corresponding section of code.
+
+───── page 8/48 ─────
+[  44pt x    73] How to ensure mutual exclusion?
+[  26pt x    73] •
+[  26pt x    91] Concurrency control mechanisms.
+[  22pt x   109] •
+[  22pt x   127] Software based mechanisms.
+[  22pt x   109] •
+[  22pt x   127] Hardware based mechanisms.
+[  22pt x   109] •
+[  22pt x   127] OS and programming language support.
+[  26pt x    73] •
+[  26pt x    91] We assume there exist some sort of elementary mutual exclusion at
+[  26pt x    91] memory access level.
+[  22pt x   109] •
+[  22pt x   127] Simultaneous accesses (reading and/or writing) to the same location in main
+[  22pt x   127] memory are serializable by some sort of memory arbiter.
+[  19pt x   145] •
+[  19pt x   163] Specifically, if two processes try to read or write the same memory location
+[  19pt x   163] simultaneously, there is a memory arbiter (hardware logic in the memory system) that
+[  19pt x   163] ensures their accesses are serialized (happen one after another, never physically at the
+[  19pt x   163] same exact cycle).
+[  19pt x   145] •
+[  19pt x   163] Important: This does not guarantee fairness or a specific order
+[  19pt x   673] —
+[  19pt x   694] it only guarantees that
+[  19pt x   163] memory contents will not get corrupted by truly simultaneous writes.
+
+───── page 9/48 ─────
+[  44pt x    73] How to ensure mutual exclusion?
+[  28pt x    73] •
+[  28pt x    91] Software based approach
+[  28pt x    73] •
+[  28pt x    91] Hardware support
+[  24pt x   109] •
+[  24pt x   127] Interrupt disabling
+[  24pt x   109] •
+[  24pt x   127] Atomic Instructions
+[  20pt x   145] •
+[  20pt x   163] Compare&Swap
+[  20pt x   315] instruction.
+[  20pt x   145] •
+[  20pt x   163] Exchange Instruction.
+[  28pt x    73] •
+[  28pt x    91] OS and programming language support
+[  24pt x   109] •
+[  24pt x   127] Mutex
+[  24pt x   109] •
+[  24pt x   127] Semaphore
+[  24pt x   109] •
+[  24pt x   127] Monitor
+
+───── page 10/48 ─────
+[  44pt x    73] Software based solutions
+[  28pt x    73] •
+[  28pt x    91] At first glance, it seems like enforcing mutual exclusion is easy.
+[  28pt x    73] •
+[  28pt x    91] We will see why this is not the case.
+[  28pt x    73] •
+[  28pt x    91] We will look at
+[  28pt x   270] several incorrect solutions first.
+[  28pt x    73] •
+[  28pt x    91] As we saw earlier, every mutual exclusion mechanism needs
+[  28pt x    91] some type of hardware support.
+[  28pt x    73] •
+[  28pt x    91] Suppose we have that access to memory location is serialized.
+
+───── page 11/48 ─────
+[  44pt x    73] Software based solutions
+[  26pt x    73] •
+[  26pt x    91] Suppose, you have two processes
+[  26pt x   475] 𝑃0,𝑃1
+[  26pt x   551] trying to access a shared
+[  26pt x    91] resource.
+[  26pt x    73] •
+[  26pt x    91] Let’s create a global integer variable called
+[  26pt x   572] 𝒕𝒖𝒓𝒏
+[  26pt x   630] .
+[  22pt x   109] •
+[  22pt x   127] 𝑖𝑛𝑡𝑡𝑢𝑟𝑛=0
+[  22pt x   109] •
+[  22pt x   127] we initialize it
+[  22pt x   259] 0
+[  22pt x   276] in the beginning.
+[  26pt x    73] •
+[  26pt x    91] If the variable
+[  26pt x   248] 𝒕𝒖𝒓𝒏
+[  26pt x   311] is equal to the id of the process, then it can
+[  26pt x    91] proceed to access the resource otherwise it waits until the value of
+[  26pt x    91] turn is equal to its id.
+[  22pt x   109] •
+[  22pt x   127] This is called
+[  22pt x   254] 𝒃𝒖𝒔𝒚𝒘𝒂𝒊𝒕𝒊𝒏𝒈
+[  22pt x   396] , or
+[  22pt x   431] 𝒔𝒑𝒊𝒏𝒘𝒂𝒊𝒕𝒊𝒏𝒈
+[  22pt x   569] .
+[  26pt x    73] •
+[  26pt x    91] After a process gains access to the shared resource, and after it has
+[  26pt x    91] finished using the resource, it updates the turn variable to that of other
+[  26pt x    91] process.
+
+───── page 13/48 ─────
+[  44pt x    73] Implications
+[  28pt x    73] •
+[  28pt x    91] Does it guarantee mutual exclusion?
+[  24pt x   109] •
+[  24pt x   127] Yes
+[  28pt x    73] •
+[  28pt x    91] Drawbacks?
+[  24pt x   109] •
+[  24pt x   127] Process 1 cannot start using the resource at the beginning.
+[  24pt x   109] •
+[  24pt x   127] Processes must strictly alternate in their use of shared resource.
+[  20pt x   145] •
+[  20pt x   163] Slower process dictates the pace of execution.
+[  24pt x   109] •
+[  24pt x   127] If one process fails, then other process is permanently blocked.
+
+───── page 14/48 ─────
+[  44pt x    73] Second attempt
+[  26pt x    73] •
+[  26pt x    91] The problem of first attempt was that processes did not know the
+[  26pt x    91] intention of the other process to use the shared resource.
+[  26pt x    73] •
+[  26pt x    91] Also, we did not know the state of the process
+[  26pt x   601] —
+[  26pt x   625] whether it is failed or
+[  26pt x    91] not.
+[  26pt x    73] •
+[  26pt x    91] So, we keep track two Boolean flags
+[  26pt x   489] —
+[  26pt x   513] one for each process.
+[  22pt x   109] •
+[  22pt x   127] 𝑏𝑜𝑜𝑙𝑒𝑎𝑛𝑓𝑙𝑎𝑔2=
+[  22pt x   312] 0,0
+[  22pt x   109] •
+[  22pt x   127] 𝑃0ℎ𝑎𝑠𝑓𝑙𝑎𝑔0
+[  22pt x   109] •
+[  22pt x   127] 𝑃1ℎ𝑎𝑠𝑓𝑙𝑎𝑔[1]
+[  26pt x    73] •
+[  26pt x    91] Each process may examine the other’s flag but not alter it.
+[  26pt x    73] •
+[  26pt x    91] When ever process needs to access shared resource, it changes its
+[  26pt x    91] own flag to
+[  26pt x   218] true.
+
+───── page 15/48 ─────
+[  44pt x    73] Second attempt
+
+───── page 16/48 ─────
+[  44pt x    73] Implications?
+[  28pt x    73] •
+[  28pt x    91] If a process fails outside of the critical section, then the other
+[  28pt x    91] process can continue to use the shared resource.
+[  28pt x    73] •
+[  28pt x    91] Does this attempt provide mutual exclusion?
+[  24pt x   109] •
+[  24pt x   127] No.
+[  24pt x   109] •
+[  24pt x   127] At the beginning, both flags are set to
+[  24pt x   512] false.
+[  24pt x   109] •
+[  24pt x   127] What if both process continue to use the shared resource?
+[  28pt x    73] •
+[  28pt x    91] This program is incorrect.
+
+───── page 17/48 ─────
+[  44pt x    73] Third attempt
+[  28pt x    73] •
+[  28pt x    91] What if we initialize both flags to
+[  28pt x   482] true?
+
+───── page 19/48 ─────
+[  44pt x    73] Implications
+[  28pt x    73] •
+[  28pt x    91] Does it guarantee mutual exclusion?
+[  24pt x   109] •
+[  24pt x   127] Yes
+[  28pt x    73] •
+[  28pt x    91] But there is a bigger issue.
+[  24pt x   109] •
+[  24pt x   127] Neither of these processes can enter to the critical section since, they
+[  24pt x   127] both have set their flags to
+[  24pt x   403] true.
+[  24pt x   109] •
+[  24pt x   127] So, it is deadlocked.
+[  28pt x    73] •
+[  28pt x    91] Not a good solution.
+
+───── page 20/48 ─────
+[  44pt x    73] Fourth attempt
+[  28pt x    73] •
+[  28pt x    91] If a process cannot access the shared resource because of the
+[  28pt x    91] other process’s desire to use the resource. Then the process 1 is
+[  28pt x    91] prepared to reset their flag to defer to the other process.
+
+───── page 22/48 ─────
+[  44pt x    73] Implications
+[  28pt x    73] •
+[  28pt x    91] Does it guarantee mutual exclusion?
+[  24pt x   109] •
+[  24pt x   127] Yes.
+[  28pt x    73] •
+[  28pt x    91] But there could be
+[  28pt x   318] livelock
+[  28pt x   418] .
+
+───── page 23/48 ─────
+[  44pt x    73] Correct solution
+[  28pt x    73] •
+[  28pt x    91] The problem of fourth attempt was that there was no order of
+[  28pt x    91] activities of the two processes.
+[  28pt x    73] •
+[  28pt x    91] Hence, each process allows other process to move forward by
+[  28pt x    91] resetting their desire to use the shared resource.
+[  28pt x    73] •
+[  28pt x    91] Thus, we will use the
+[  28pt x   345] 𝑡𝑢𝑟𝑛
+[  28pt x   407] variable to indicate which process has
+[  28pt x    91] right to move to the critical section.
+
+───── page 25/48 ─────
+[  44pt x    73] Peterson’s algorithm
+[  28pt x    73] •
+[  28pt x    91] More elegant solution.
+
+───── page 27/48 ─────
+[  44pt x    73] Mutual Exclusion: Hardware Support
+[  26pt x    30] •
+[  26pt x    48] Interrupt Disabling
+[  26pt x   471] •
+[  26pt x   489] Disadvantages
+[  22pt x    66] •
+[  22pt x    84] In a uniprocessor system, concurrent
+[  22pt x   507] •
+[  22pt x   525] The efficiency of execution could be
+[  22pt x    84] processes cannot have overlapped
+[  22pt x   525] noticeably degraded because the
+[  22pt x    84] execution; they can only be interleavedprocessor is limited in its ability to
+[  22pt x   525] interleave processes
+[  22pt x    66] •
+[  22pt x    84] A process will continue to run until it
+[  22pt x    84] invokes an OS service or until it is
+[  22pt x   507] •
+[  22pt x   525] This approach will not work in a
+[  22pt x    84] interrupted
+[  22pt x   525] multiprocessor architecture
+[  22pt x    66] •
+[  22pt x    84] Therefore, to guarantee mutual
+[  22pt x    84] exclusion, it is sufficient to prevent a
+[  22pt x    84] process from being interrupted
+[  22pt x    66] •
+[  22pt x    84] This capability can be provided in the
+[  22pt x    84] form of primitives defined by the OS
+[  22pt x    84] kernel for disabling and enabling
+[  22pt x    84] interrupts
+
+───── page 29/48 ─────
+[  44pt x    73] Mutual Exclusion: Hardware Support
+[  28pt x    73] •
+[  28pt x    91] Compare&Swap
+[  28pt x   304] Instruction
+[  24pt x   109] •
+[  24pt x   127] Also called a “compare and exchange instruction”
+[  24pt x   109] •
+[  24pt x   127] A compare is made between a memory value and a test value
+[  24pt x   109] •
+[  24pt x   127] If the values are the same a swap occurs
+[  24pt x   109] •
+[  24pt x   127] Carried out atomically (not subject to interruption)
+
+───── page 30/48 ─────
+[  28pt x    73] •
+[  28pt x    91] Two version of this exist
+[  24pt x   109] •
+[  24pt x   127] It returns the old value.
+[  24pt x   109] •
+[  24pt x   127] Returns true if swap occurred, otherwise returns false.
+[  28pt x    73] •
+[  28pt x    91] This function returns the old value.
+[  24pt x   109] •
+[  24pt x   127] Remember this is an atomic instruction.
+
+───── page 31/48 ─────
+[  26pt x    73] •
+[  26pt x    91] Whichever process finds the
+[  26pt x   414] 𝑏𝑜𝑙𝑡=0
+[  26pt x   515] goes into the critical section and
+[  26pt x    91] sets the
+[  26pt x   186] 𝑏𝑜𝑙𝑡=1
+[  26pt x   281] .
+[  26pt x    73] •
+[  26pt x    91] All the other processes goes into busy waiting mode (or spin
+[  26pt x    91] waiting).
+[  22pt x   109] •
+[  22pt x   127] The term
+[  22pt x   215] busy waiting, or spin waiting
+[  22pt x   495] , refers to a technique in which a process
+[  22pt x   127] can do nothing until it gets permission to enter its critical section, but continues
+[  22pt x   127] to execute an instruction or set of instructions that tests the appropriate variable
+[  22pt x   127] to gain entrance.
+
+───── page 32/48 ─────
+[  44pt x    73] Implications
+[  24pt x    73] Advantages
+[  24pt x   493] Disadvantages
+[  28pt x    73] •
+[  28pt x    91] Easy to use.
+[  28pt x   493] •
+[  28pt x   511] Busy waiting is used
+[  28pt x   753] —
+[  28pt x   779] waste
+[  28pt x   511] CPU time.
+[  28pt x    73] •
+[  28pt x    91] Easy to see why this works.
+[  28pt x   493] •
+[  28pt x   511] Starvation is possible.
+[  28pt x    73] •
+[  28pt x    91] Can be extended to multiple
+[  24pt x   529] •
+[  24pt x   547] When more than one process is
+[  28pt x    91] critical sections
+[  28pt x   283] —
+[  28pt x   309] define a
+[  24pt x   547] waiting, the selection process is
+[  28pt x    91] variable for each critical
+[  24pt x   547] arbitrary.
+[  28pt x    91] section.
+[  28pt x   493] •
+[  28pt x   511] Deadlock is also possible.
+[  28pt x    73] •
+[  28pt x    91] Can be used in Uniprocessor
+[  28pt x    91] or Multiprocessor system for
+[  28pt x    91] any number of processes.
+
+───── page 33/48 ─────
+[  44pt x    73] OS and language support
+[  28pt x    73] •
+[  28pt x    91] Mutex
+[  28pt x    73] •
+[  28pt x    91] Semaphore
+[  28pt x    73] •
+[  28pt x    91] Monitors
+[  28pt x    73] •
+[  28pt x    91] Condition variable
+
+───── page 34/48 ─────
+[  44pt x    73] Semaphores
+[  28pt x    73] •
+[  28pt x    91] A semaphore may be initialized into a nonnegative value.
+[  28pt x    73] •
+[  28pt x    91] The semWaitoperation decrements the semaphore value.
+[  28pt x    73] •
+[  28pt x    91] The semSignaloperation increments the semaphore value.
+[  22pt x   110] A variable that has
+[  27pt x   320] •
+[  27pt x   338] There is no way to inspect or
+[  22pt x   123] an integer value
+[  22pt x   120] upon which only manipulate semaphores other
+[  22pt x   102] three operations are
+[  27pt x   338] than these three operations
+[  22pt x   159] defined:
+
+───── page 36/48 ─────
+[  44pt x    73] Consequences
+[  23pt x   364] There is no way to know
+[  23pt x    90] There is no way to know
+[  23pt x   644] You don’t know whether
+[  23pt x   389] which process will
+[  23pt x   123] before a process
+[  23pt x   372] continue immediately
+[  23pt x   671] another process is
+[  23pt x   138] decrements a
+[  23pt x   391] on a uniprocessor
+[  23pt x   653] waiting so the number
+[  23pt x   394] system when two semaphore whether it of unblocked processes
+[  23pt x   128] will block or not
+[  23pt x   370] processes are running may be zero or one
+[  23pt x   417] concurrently
+
+───── page 38/48 ─────
+[  44pt x    73] Strong/weak semaphores
+[  28pt x    73] •
+[  28pt x    91] A queue is used to hold processes waiting on the semaphore
+[  28pt x   179] Strong Semaphores
+[  23pt x   177] •
+[  23pt x   195] The process that has been blocked the longest is
+[  23pt x   195] released from the queue first (FIFO)
+[  28pt x   179] Weak Semaphores
+[  23pt x   177] •
+[  23pt x   195] The order in which processes are removed from the
+[  23pt x   195] queue is not specified
+
+───── page 39/48 ─────
+[  44pt x    73] Implementation of Semaphores
+[  28pt x    73] •
+[  28pt x    91] Imperative that the
+[  28pt x   323] semWait
+[  28pt x   442] and
+[  28pt x   494] semSignal
+[  28pt x   633] operations be
+[  28pt x    91] implemented as atomic primitives.
+[  28pt x    73] •
+[  28pt x    91] Can be implemented in hardware or firmware
+[  28pt x    73] •
+[  28pt x    91] Software schemes such as Dekker’s or Peterson’s algorithms can
+[  28pt x    91] be used
+[  28pt x    73] •
+[  28pt x    91] Another alternative is to use one of the hardware-supported
+[  28pt x    91] schemes for mutual exclusion
+
+───── page 41/48 ─────
+[  44pt x    73] Mutex (Mutual exclusion lock)
+[  28pt x    73] •
+[  28pt x    91] Binary semaphore and mutex are similar.
+[  28pt x    73] •
+[  28pt x    91] But they are not the same.
+[  28pt x    73] •
+[  28pt x    91] You have two operations.
+[  24pt x   109] •
+[  24pt x   127] Mutex.lock()
+[  24pt x   109] •
+[  24pt x   127] Mutex.unlock()
+[  28pt x    73] •
+[  28pt x    91] The process that locks the mutex should be the process that
+[  28pt x    91] unlocks the mutex as well.
+[  28pt x    73] •
+[  28pt x    91] In a binary semaphore, this is not the case.
+
+───── page 42/48 ─────
+[  44pt x    73] Monitors
+[  28pt x    73] •
+[  28pt x    91] Programming language construct
+[  28pt x   518] that provides equivalent
+[  28pt x    91] functionality to that of semaphores and is easier to control.
+[  28pt x    73] •
+[  28pt x    91] Implemented in a number of programming languages
+[  22pt x   145] •
+[  22pt x   163] Concurrent Pascal, Pascal-Plus, Modula-2, Modula-3, Java
+[  28pt x    73] •
+[  28pt x   100] Has also been implemented as a program library.
+[  28pt x    73] •
+[  28pt x   100] Software module consisting of one or more procedures, an
+[  28pt x   100] initialization sequence, and local data.
+[  28pt x    73] •
+[  28pt x    91] If you have a data structure that needs mutual exclusion, you can
+[  28pt x    91] wrap the data structure with a monitor.
+[  24pt x   109] •
+[  24pt x   127] In java you can use:
+[  20pt x   145] •
+[  20pt x   163] 𝑠𝑦𝑛𝑐ℎ𝑟𝑜𝑛𝑖𝑧𝑒𝑑𝑠𝑜𝑚𝑒𝑂𝑏𝑗𝑒𝑐𝑡𝑑𝑜
+[  20pt x   447] 𝑠𝑜𝑚𝑒𝑡ℎ𝑖𝑛𝑔
+
+───── page 43/48 ─────
+[  44pt x    73] Monitor characteristics
+[  28pt x    73] 1.
+[  28pt x   114] The local data variables are accessible only by the monitor’s
+[  28pt x   114] procedures and not by any external procedure.
+[  28pt x    73] 2.A process enters the monitor by invoking one of its procedures.
+[  28pt x    73] 3.Only one process may be executing in the monitor at a time;
+[  28pt x   114] any other processes that have invoked the monitor are blocked,
+[  28pt x   114] waiting for the monitor to become available
+
+───── page 44/48 ─────
+[  44pt x    73] Monitor characteristics
+[  25pt x    90] Local data variables are accessible only by the monitor’s procedures and
+[  25pt x   321] not by any external procedure
+[  25pt x   177] Process enters monitor by invoking one of its procedures
+[  25pt x   164] Only one process may be executing in the monitor at a time
+
+───── page 45/48 ─────
+[  44pt x    73] Synchronization
+[  28pt x    73] •
+[  28pt x    91] A monitor supports synchronization by the use of
+[  28pt x   683] condition
+[  28pt x    91] variables
+[  28pt x   214] that are contained within the monitor and accessible
+[  28pt x    91] only within the monitor
+[  26pt x   145] •
+[  26pt x   163] Condition variables are a special data type in monitors which are
+[  26pt x   163] operated on by two functions:
+[  22pt x   182] •
+[  22pt x   204] cwait(c)
+[  22pt x   310] : suspend execution of the calling process on condition
+[  22pt x   835] c.
+[  22pt x   204] Monitor is then available for use by another process.
+[  22pt x   182] •
+[  22pt x   204] csignal(c)
+[  22pt x   336] : resume execution of some process blocked after a
+[  22pt x   204] cwait
+[  22pt x   275] on the same condition.
+
+───── page 47/48 ─────
+[  44pt x    73] Condition variables
+[  26pt x    73] •
+[  26pt x    91] Allow threads to
+[  26pt x   277] wait for a condition on shared data
+[  26pt x   684] , such as a queue
+[  26pt x    91] becoming nonempty.
+[  26pt x    73] •
+[  26pt x    91] Used within a monitor or with a
+[  26pt x   442] mutex
+[  26pt x   522] that protects the shared data.
+[  26pt x    73] •
+[  26pt x    91] cwait()
+[  26pt x   176] atomically releases the lock and blocks the calling thread. The
+[  26pt x    91] thread must regain the lock before returning from wait().
+[  26pt x    73] •
+[  26pt x    91] csignal()
+[  26pt x   197] notifies a waiting thread;
+[  26pt x   477] broadcast()
+[  26pt x   617] notifies all waiting
+[  26pt x    91] threads.
+[  26pt x    73] •
+[  26pt x    91] Notifications are
+[  26pt x   282] not saved
+[  26pt x   397] : signaling when no threads are waiting has
+[  26pt x    91] no effect.
+[  26pt x    73] •
+[  26pt x    91] A condition variable does not store or test the condition
+[  26pt x   709] —
+[  26pt x   733] the program
+[  26pt x    91] checks the shared data.

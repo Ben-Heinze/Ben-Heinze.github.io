@@ -133,7 +133,7 @@ df_flat <- df_pyg |>
 #+begin_src R
 sign_diff <- case1401 |>
   group_by(Sign) |>
-  summarise(avg_time = mean(Minutes),
+  summarize(avg_time = mean(Minutes),
             avg_ltime = mean(log(Minutes)),
             sd_time = sd(Minutes),
             n = n()) |>
@@ -215,7 +215,7 @@ intplot(CoverLogit ~ Treat * Block, data = df_grazers_logit)
 
 #+begin_src R
 summ_table |>
-  ggplot(aes(x = age_group, y = avg_time, group = Gender, colour = Gender)) +
+  ggplot(aes(x = age_group, y = avg_time, group = Gender, color = Gender)) +
   geom_line() +
   geom_point() +
   labs(x = "Age Group", y = "Average Time (Min)")
@@ -364,7 +364,7 @@ plot(confint(pyg_pairs))
 cld_label <- cld(pyg_pairs)$mcletters$Letters
 df_cld <- df_flat |>
   group_by(flat_trt) |>
-  summarise(avg_gain = mean(Gain), n = n()) |>
+  summarize(avg_gain = mean(Gain), n = n()) |>
   mutate(cld = cld_label)
 
 plot(ggpredict(pyg_oneway, terms = c("flat_trt"))) +

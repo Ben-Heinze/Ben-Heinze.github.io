@@ -1,0 +1,1460 @@
+#+TITLE: 2.2 Process Management
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+TAGS: concurrency, deadlock, operating-systems, scheduling
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Uniprocessor scheduling.pdf][Uniprocessor Scheduling (PDF)]] · [[file:Windows_Linux_CPU_Scheduling.pdf][Windows and Linux CPU Scheduling (PDF)]] · [[file:Concurrency Mutual exclusion and synchronization.pdf][Concurrency: Mutual Exclusion and Synchronization (PDF)]] · [[file:Concurrency Deadlocks and Starvation.pdf][Concurrency: Deadlock and Starvation (PDF)]]: Adiesha Liyanage
+
+The first deck is a single-processor treatment: the three timescales a scheduler
+operates on, the criteria it is judged by, and six classic short-term policies run
+against one shared example. The second deck takes the same question to two real
+systems and shows that neither of them uses a textbook policy verbatim. The last
+two decks move from /which/ process runs to what happens when processes running
+together share things: mutual exclusion and synchronization, then deadlock and
+starvation.
+
+Textbook reading (Stallings) for each deck:
+
+| Deck                                             | Chapters                     |
+| Windows and Linux CPU Scheduling                 | Chapter 9                    |
+| Concurrency: Mutual Exclusion and Synchronization | §5.1--5.5, §5.7             |
+| Concurrency: Deadlock and Starvation             | §6.1--6.6, §6.8, §6.10       |
+
+There is an interactive animation of the policy comparison at
+[[https://www.cs.montana.edu/adiesha/animations/assets/os/scheduling-comparison.html][cs.montana.edu/adiesha/animations/.../scheduling-comparison.html]].
+
+The deadlock handout given out with these lectures is on the
+[[file:../handouts/][Handouts]] page:
+[[file:../handouts/deadlock-avoidance-and-detection.org][Deadlock Avoidance and Detection]].
+
+* Scheduling
+
+The aim of processor scheduling is to assign processes to be executed by the processor over time in a way that meets system objectives — response time, throughput, and processor efficiency.
+
+The key to multiprogramming /is/ scheduling: having several processes resident at
+once only buys you anything if something decides, moment to moment, which one runs.
+Everything on this page concerns a system with one processor.
+
+* Types of Scheduling
+
+Four decisions, distinguished by what they decide rather than by which component
+makes them:
+
+| Long-term     | The decision to add to the pool of processes to be executed                              |
+| Medium-term   | The decision to add to the number of processes partially or fully in main memory         |
+| Short-term    | The decision as to which available process will be executed by the processor             |
+| I/O           | The decision as to which process's pending I/O request is handled by an available device |
+
+In modern general-purpose desktop operating systems these are /not/ necessarily
+three separate scheduler components. The reason to learn them separately is that
+they make fundamentally different decisions:
+
+- *Long-term*: should this job/process enter the system at all?
+- *Medium-term*: should this process temporarily be removed from active execution?
+- *Short-term*: which ready thread should use the CPU now?
+
+Figure 9.1 in the deck overlays these onto the process state diagram: long-term
+scheduling drives the =New -> Ready= transition, medium-term scheduling drives the
+suspend transitions (=Ready/Suspend= and =Blocked/Suspend=), and short-term
+scheduling drives =Ready -> Running=. Figure 9.3 redraws the same thing as a
+queueing diagram: batch jobs and interactive users feed a long-term scheduler,
+which feeds the ready queue; the short-term scheduler pulls from the ready queue
+into the processor; and timeout, release, and event-wait edges carry work back out.
+
+** Long-Term Scheduling
+
+The long-term scheduler determines which programs are admitted to the system for
+processing. In doing so it controls the degree of multiprogramming:
+
+- The more processes created, the smaller the percentage of time each process gets
+  to execute.
+- So it may deliberately /limit/ admissions to provide satisfactory service to the
+  processes already in the system.
+
+Once admitted, a process is normally handed to the short-term scheduler. In some
+systems new programs are instead created as swapped-out processes, in which case
+they go to the medium-term scheduler.
+
+Two decisions, taken together (deck figure, p8):
+
+- *When* the OS can take on one or more additional processes — driven by the
+  current degree of multiprogramming.
+- *Which* jobs to accept and turn into processes — by FCFS, or by priority,
+  expected execution time, and I/O requirements.
+
+Interactive time-sharing systems behave differently: a process-creation request can
+be generated simply by a user attempting to connect. Time-sharing users are not
+queued up and kept waiting until the system can accept them — the OS accepts all
+authorized users until the system is saturated.
+
+** Medium-Term Scheduling
+
+Part of the swapping function. Swapping-in decisions are based on the need to
+manage the degree of multiprogramming, and take into account the memory
+requirements of the swapped-out processes.
+
+** Short-Term Scheduling
+
+Known as the /dispatcher/. It executes most frequently and makes the fine-grained
+decision of which process to execute next. It is invoked whenever an event occurs
+that may block the current process or create an opportunity to preempt it in favour
+of another:
+
+- Clock interrupts
+- I/O interrupts
+- Operating system calls
+- Signals (e.g. semaphores)
+
+The rest of this page is about short-term scheduling.
+
+* Short-Term Scheduling Criteria
+
+What are we trying to achieve? To allocate processor time to processes, and to do
+so in a way that optimizes one or more aspects of system behaviour. System
+behaviour can be viewed from two perspectives, and each splits again by whether it
+can be quantified:
+
+|                     | *User-oriented* — behaviour as perceived by the individual user or process | *System-oriented* — effective and efficient utilization of the processor |
+| *Performance-related* (quantitative, easily measured)    | Turnaround time, response time, deadlines | Throughput, processor utilization                     |
+| *Non-performance-related* (qualitative, hard to measure) | Predictability                            | Fairness, enforcing priorities, balancing resources   |
+
+User-oriented criteria are important on virtually all systems. System-oriented
+criteria are generally of minor importance on single-user systems.
+
+** User-oriented, performance-related
+
+- /Turnaround time/ --- the interval between the submission of a process and its
+  completion. Also written $T_r$.
+- /Response time/ --- for an interactive process, the time from submission of a
+  request until the response begins to be received.
+- /Deadline/ --- where process deadlines can be specified, the algorithm must meet
+  them, or at least meet some required percentage of them.
+
+** User-oriented, non-performance-related
+
+- /Predictability/ --- a given job should run in about the same amount of time and
+  at about the same cost regardless of the load on the system.
+
+** System-oriented, performance-related
+
+- /Throughput/ --- number of processes completed per unit of time.
+- /Processor utilization/ --- the percentage of time the processor is busy.
+
+** System-oriented, non-performance-related
+
+- /Fairness/ --- processes should be treated the same in the absence of user- or
+  system-supplied guidance.
+- /Enforcing priorities/ --- when processes are assigned priorities, the policy
+  should favour higher-priority processes.
+- /Balancing resources/ --- the policy should keep the system's resources busy.
+
+Note that several of these actively conflict: favouring high priority works against
+fairness, and maximizing throughput tends to work against response time.
+
+* Priority-Based Scheduling
+
+In many systems processes are assigned a priority, and the scheduler picks the
+ready process with the highest priority. The natural implementation is a
+priority-queuing approach: one ready queue per priority level, =RQ0= through
+=RQn=, with the dispatcher taking from the highest non-empty queue (Figure 9.4 in
+the deck).
+
+The problem with a *pure* priority scheme is starvation
+— lower-priority
+processes may never run as long as higher-priority work keeps arriving. The fix is
+to make priority a function of age and execution history rather than a fixed
+attribute, so a process that has waited drifts upward. Both the multilevel feedback
+policy below and the real Windows and Linux schedulers are versions of this idea.
+
+* Scheduling Policies
+
+Each policy is characterised by two things:
+
+- Selection function
+  --- determines which process, among the ready
+  processes, is selected next. It is written in terms of three quantities:
+  - $w$ = time spent in the system so far (waiting)
+  - $e$ = time spent in execution so far
+  - $s$ = total service time required by the process, including $e$
+- Decision mode
+  --- specifies the instants at which the selection
+  function is exercised:
+  - /Nonpreemptive/: once a process is running it continues until it terminates or
+    blocks itself.
+  - /Preemptive/: the currently running process may be interrupted and moved to the
+    ready state by the OS.
+
+** Nonpreemptive vs preemptive
+
+Preemptive policies incur greater overhead — every preemption is a context switch —
+but provide better service to the process population as a whole, because no single
+process can monopolize the processor. Efficient process switching, hardware
+support, and larger main memory all help preemptive policies run efficiently.
+
+Most general-purpose modern systems use preemptive scheduling. Some systems still
+use nonpreemptive policies, real-time operating systems among them.
+
+** The worked example
+
+Every policy in the deck is run against this one process set (Stallings Table 9.4):
+
+| Process      | A | B | C | D | E |
+| Arrival Time | 0 | 2 | 4 | 6 | 8 |
+| Service Time | 3 | 6 | 4 | 5 | 2 |
+
+And compared on turnaround time $T_r$ and normalized turnaround time $T_r/T_s$,
+where $T_s$ is the service time. The summary table (Stallings Table 9.5) is worth
+having in full, because the ranking is the point of the whole section:
+
+| Policy         | Metric          |    A |    B |    C |    D |    E |  Mean |
+| FCFS           | Finish Time     |    3 |    9 |   13 |   18 |   20 |       |
+|                | $T_r$           |    3 |    7 |    9 |   12 |   12 |  8.60 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.25 | 2.40 | 6.00 |  2.56 |
+| RR, $q = 1$    | Finish Time     |    4 |   18 |   17 |   20 |   15 |       |
+|                | $T_r$           |    4 |   16 |   13 |   14 |    7 | 10.80 |
+|                | $T_r/T_s$       | 1.33 | 2.67 | 3.25 | 2.80 | 3.50 |  2.71 |
+| RR, $q = 4$    | Finish Time     |    3 |   17 |   11 |   20 |   19 |       |
+|                | $T_r$           |    3 |   15 |    7 |   14 |   11 | 10.00 |
+|                | $T_r/T_s$       | 1.00 | 2.50 | 1.75 | 2.80 | 5.50 |  2.71 |
+| SPN            | Finish Time     |    3 |    9 |   15 |   20 |   11 |       |
+|                | $T_r$           |    3 |    7 |   11 |   14 |    3 |  7.60 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.75 | 2.80 | 1.50 |  1.84 |
+| SRT            | Finish Time     |    3 |   15 |    8 |   20 |   10 |       |
+|                | $T_r$           |    3 |   13 |    4 |   14 |    2 |  7.20 |
+|                | $T_r/T_s$       | 1.00 | 2.17 | 1.00 | 2.80 | 1.00 |  1.59 |
+| HRRN           | Finish Time     |    3 |    9 |   13 |   20 |   15 |       |
+|                | $T_r$           |    3 |    7 |    9 |   14 |    7 |  8.00 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.25 | 2.80 | 3.50 |  2.14 |
+| FB, $q = 1$    | Finish Time     |    4 |   20 |   16 |   19 |   11 |       |
+|                | $T_r$           |    4 |   18 |   12 |   13 |    3 | 10.00 |
+|                | $T_r/T_s$       | 1.33 | 3.00 | 3.00 | 2.60 | 1.50 |  2.29 |
+| FB, $q = 2^i$  | Finish Time     |    4 |   17 |   18 |   20 |   14 |       |
+|                | $T_r$           |    4 |   15 |   14 |   14 |    6 | 10.60 |
+|                | $T_r/T_s$       | 1.33 | 2.50 | 3.50 | 2.80 | 3.00 |  2.63 |
+
+Reading it: *SRT wins on both means* (7.20 and 1.59), SPN is next, and the two
+round-robin variants are the worst on mean turnaround. But notice E, the shortest
+job: under FCFS it waits behind everything and gets a normalized turnaround of
+6.00, while SRT gives it 1.00. That single column is the argument for knowing
+service times. And notice D, the longest job still in the system at the end: it
+sits at 2.80 under almost every policy, which is why "SRT is best" is a statement
+about means and not about any individual process.
+
+[Figure 9.5, a Gantt-chart comparison of all eight schedules over $t = 0..20$, is a
+slide image and is not reproduced here — see p41 of the PDF.]
+
+** First-Come-First-Served (FCFS)
+
+- Selection function: $\max w$
+- Decision mode: nonpreemptive
+
+The simplest policy. As each process becomes ready it joins the ready queue; when
+the running process ceases to execute, the process that has been in the queue
+longest is selected. Implementation is literally a queue.
+
+Its two biases:
+
+- *Performs much better for long processes than short ones.* A short job arriving
+  behind a long one inherits the long one's wait, which is catastrophic in relative
+  terms — hence E's 6.00 above.
+- *Favours processor-bound processes over I/O-bound ones.* A long CPU-bound process
+  occupies the processor while short I/O-bound processes wait behind it. The deck's
+  illustration: =P1= is CPU-bound and needs 100 ms of CPU; =P2= and =P3= are
+  I/O-bound and each need 2 ms of CPU before doing I/O. Behind =P1=, both I/O-bound
+  processes stall, and the I/O devices sit idle the whole time.
+
+** Round Robin
+
+- Selection function: constant (cycle through the queue)
+- Decision mode: preemptive, at a given time quantum $q$
+
+Preemption based on a clock, which is why it is also called /time slicing/. A clock
+interrupt is generated at periodic intervals; when it occurs, the running process is
+placed at the back of the ready queue and the next ready job is selected on an FCFS
+basis.
+
+The principal design issue is the length of the quantum:
+
+- If $q$ is very short, short processes move through the system relatively quickly.
+- But there is processing overhead in the clock interrupt and the scheduling itself,
+  so a very short quantum must be avoided.
+- Useful guide: the quantum should be slightly greater than the time required for a typical interaction or process function.
+
+Particularly effective in general-purpose time-sharing and transaction-processing
+systems. Its one drawback is again the relative treatment of processor-bound and
+I/O-bound processes: an I/O-bound process typically does /not/ use its full
+quantum — it blocks partway through — so it gets a smaller share of the processor
+than a CPU-bound process that consumes every quantum in full. (The fix, virtual
+round robin, gives a process that blocks early a preferential auxiliary queue so
+it reclaims the unused remainder.)
+
+** Shortest Process Next (SPN)
+
+- Selection function: $\min s$
+- Decision mode: nonpreemptive
+
+The process with the shortest expected processing time is selected next, so a short
+process jumps to the head of the queue. Implementation is a priority queue keyed on
+expected service time.
+
+The difficulty is that you need to know, or at least estimate, each process's
+required processing time. Either the OS uses previous statistics it has stored, or
+the user/programmer supplies the value. If the programmer's estimate is
+substantially under the actual running time the system may abort the job.
+
+Costs:
+
+- Possibility of starvation for longer processes, as long as there is a
+  steady supply of shorter ones.
+- Variability of response time is increased, so it is less predictable.
+- Not suitable for time-sharing systems.
+
+Useful for batch processing where user interaction is minimal — mainframes and
+early computers — and potentially in real-time or embedded systems.
+
+** Shortest Remaining Time (SRT)
+
+- Selection function: $\min(s - e)$
+- Decision mode: preemptive
+
+The preemptive version of SPN: the scheduler always chooses the process with the
+shortest expected /remaining/ processing time, re-deciding whenever a new process
+arrives.
+
+- Does not favour long processes, and should give superior turnaround performance to
+  SPN, because a short job gets immediate preference over a running longer job. The
+  table above bears this out — SRT is the best policy on both means.
+- Risk of starvation of longer processes remains.
+- Elapsed service time must be recorded for every process.
+- No additional interrupts are generated: the dispatcher is only invoked when a new
+  process enters the system, not on a clock tick, so the overhead is lower than
+  round robin's.
+
+** Highest Response Ratio Next (HRRN)
+
+- Selection function: $\max R$, where
+
+\[
+  R = \frac{w + s}{s}
+\]
+
+- Decision mode: nonpreemptive
+
+When the current process completes or blocks, choose the ready process with the
+greatest $R$. This is attractive because it accounts for the age
+of a
+process. Shorter jobs are still favoured — a small $s$ makes the ratio large — but
+aging without service increases $w$ and hence the ratio, so a longer process will
+eventually get past competing shorter jobs. That is starvation-freedom bought
+without giving up the preference for short jobs, and it lands HRRN between SPN and
+FCFS in the comparison table.
+
+** Multilevel Feedback
+
+- Decision mode: preemptive, at each time quantum
+
+An extension of FCFS for the case where we have /no/ indication of the relative
+length of the various processes — which is the normal case, and which rules out
+SPN, SRT and HRRN, all of which need $s$. Instead of service time, it focuses on
+time spent in execution so far, using a dynamic priority mechanism over a set of
+queues =RQ0=, =RQ1=, ..., =RQn= (Figure 9.10):
+
+- When a process first enters the system it is placed in the priority 0 queue.
+- After it is preempted, it is returned to the priority 1 queue.
+- Each subsequent time, it is placed in the next lower-priority queue.
+- In the lowest-priority queue, FCFS is used.
+- Selection always takes a ready process from the highest-priority non-empty queue,
+  moving down only when the queues above are empty.
+
+So a process that keeps using its full quantum sinks, and short interactive
+processes that block early stay near the top — it infers "this is a long job" from
+behaviour rather than being told. The cost: turnaround time for longer processes stretches out very fast, since a long process keeps sinking while new
+arrivals keep entering above it. Using a quantum that grows with depth
+($q = 2^i$ at level $i$) softens this, which is the =FB, q = 2^i= row in the table.
+
+[One slide in this section (p40) is a figure with no extractable text — see the PDF.]
+
+* Windows and Linux CPU Scheduling
+
+*Textbook:* Stallings Chapter 9.
+
+Three schedulers, three different answers to "who runs next":
+
+- *Windows*: select the highest current thread priority, with dynamic boosts.
+- *Linux CFS*: favour the smallest weighted virtual runtime.
+- *Linux EEVDF*: select the earliest virtual deadline among eligible tasks.
+
+All three balance responsiveness against other scheduling goals, and none of them
+is one of the textbook policies above in pure form.
+
+** Windows priority levels
+
+| Range  | Meaning                          |
+| 16--31 | Real-time priority range         |
+| 1--15  | Variable priority range          |
+| 0      | Reserved for the zero-page thread |
+
+Larger priority numbers receive preference. The zero-page thread clears free memory
+pages when no other thread needs the CPU.
+
+Base priority comes from combining a process class with a thread level:
+
+| Process class | Thread level | Base priority |
+| Normal        | Below normal |             7 |
+| Normal        | Normal       |             8 |
+| Normal        | Above normal |             9 |
+| High          | Normal       |            13 |
+
+*** Kernel execution and system threads
+
+- System threads have their own priorities, chosen for their work. Some run at high
+  priorities, but they need not all run at 31.
+- A system call enters kernel mode without automatically raising thread priority
+  — kernel mode and priority are independent.
+- Interrupt urgency is controlled separately by /interrupt request levels/ (IRQLs),
+  which the kernel uses to control which interrupts and kernel activities are
+  allowed to preempt the currently executing code.
+
+*** Selection and preemption
+
+- Choose a ready thread at the highest current priority.
+- At equal priority, distribute time slices using round robin.
+- A newly ready higher-priority thread preempts a lower-priority thread.
+- A /quantum/ is a time slice; its length depends on system settings.
+
+Worked example — one CPU, 4 ms quantum, fixed priorities, boosts disabled:
+
+| Time (ms) | Running thread | Reason                    |
+| 0--4      | A, priority 8  | First equal-priority turn |
+| 4--6      | B, priority 8  | Next turn                 |
+| 6--8      | C, priority 10 | Higher priority preempts B |
+
+At 8 ms, C blocks. A or B can resume under queue rules. Note that B is preempted
+mid-quantum at 6 ms: priority beats the round-robin turn.
+
+*** Dynamic priority boosts
+
+- Input events and completed waits can temporarily raise a thread's /dynamic/
+  priority, which helps a waking or interactive thread respond promptly.
+- After each full quantum the thread consumes, the boosted priority is
+  reduced by one level
+  until it returns to the thread's base priority.
+  So a thread that keeps running loses its boost, and one that keeps blocking
+  keeps it.
+- Threads whose base priority is in the real-time range 16--31 do /not/ receive
+  these normal dynamic boosts.
+
+*** Foreground applications and responsiveness
+
+- Windows tracks the foreground window and the thread/process associated with it.
+  Clicking a window or using $Alt+Tab$ can change which application is in the
+  foreground.
+- Foreground activity and user input can receive temporary scheduling preference to
+  improve responsiveness.
+- But simply having a visible GUI does not cause every thread in the application to
+  receive a higher priority.
+
+*** Starvation prevention and its limits
+
+- Windows can temporarily boost ready threads that have waited too long for CPU
+  time, helping them compete with higher-priority runnable threads.
+- Those temporary boosts later decay back toward the base priority.
+- Among threads at the same priority level, round-robin time slicing applies.
+- The limit: continuously runnable real-time threads can still prevent ordinary-priority threads from running.
+  Priority-based scheduling's starvation
+  problem is mitigated, not eliminated.
+
+** Linux scheduling policies
+
+- Ordinary tasks normally use =SCHED_OTHER=, also called =SCHED_NORMAL=. CFS and
+  EEVDF provide selection /within/ this fair scheduler.
+- =SCHED_FIFO= and =SCHED_RR= provide real-time priority policies.
+- =SCHED_DEADLINE= uses earliest-deadline-first with execution budgets and
+  admission control.
+
+[The slide following this one (p12) is a figure with no extractable text — see the PDF.]
+
+*** Weights and CPU entitlement
+
+A /weight/ expresses a task's relative claim on CPU service. A lower nice value
+gives a task a larger scheduling weight, increasing its target CPU share when tasks
+compete — informally, a lower nice value means the task is "less nice" to other
+tasks. For comparable runnable tasks the target share is approximately
+
+\[
+  \text{share}_i = \frac{w_i}{\sum_j w_j}
+\]
+
+where $w_i$ is task $i$'s weight. A task's /actual/ share changes dynamically as
+competing tasks block, sleep, wake up, or become runnable.
+
+Worked example — one CPU, all tasks runnable, same fair group, no CPU quota:
+
+| Task | Weight | Target share | CPU in 30 ms |
+| A    |      2 | 2 / 4 = 50%  | 15 ms        |
+| B    |      1 | 1 / 4 = 25%  | 7.5 ms       |
+| C    |      1 | 1 / 4 = 25%  | 7.5 ms       |
+
+If C blocks, A targets ⅔ of CPU time and B targets ⅓ — the denominator is the
+weight sum of the /runnable/ set, not of every task that exists.
+
+*** CFS virtual runtime
+
+Virtual runtime $v$ records CPU service after adjusting for weight. Let $\Delta t$
+be actual CPU time, $w$ the task's weight, and $w_0$ a reference weight. The
+increment is
+
+\[
+  \Delta v = \Delta t \times \frac{w_0}{w}
+\]
+
+A larger weight makes virtual runtime grow more slowly
+— which is the whole
+trick: the scheduler then just has to pick the smallest $v$, and the weighting falls
+out of the accounting rather than out of the selection rule.
+
+Worked selection example — reference weight 1, B runs for an illustrative 2 ms:
+
+| Task | Weight | Initial $v$ | $v$ after B runs 2 ms       |
+| A    |      2 |           6 | $6 = 6 + 0 \times (1/2)$    |
+| B    |      1 |           4 | $6 = 4 + 2 \times (1/1)$    |
+| C    |      1 |           5 | $5 = 5 + 0 \times (1/1)$    |
+
+First choice: B, which has the smallest $v$. Next choice in this model: C — B has
+caught up to A's 6, and C's 5 is now the smallest.
+
+Implementation and fairness:
+
+- Classic CFS organizes runnable entities in a red-black tree keyed by virtual
+  runtime and favours the entity with the smallest virtual runtime.
+- As a task runs its virtual runtime increases, allowing other tasks to catch up.
+- Granularity and wake-up placement balance fairness against responsiveness while
+  avoiding excessive context switches.
+
+*** EEVDF — earliest eligible virtual deadline first
+
+The newer selection rule for the same fair class. It adds the notion of /lag/:
+
+- Lag
+  measures CPU service owed relative to the fair allocation.
+- /Positive/ lag: the task has received less than its fair share.
+- /Negative/ lag: the task has received more than its fair share.
+- A runnable task with nonnegative lag is eligible
+  for selection.
+
+Virtual deadlines. Let $V$ be the scheduler's current virtual time, representing
+the fair-service progress of the runnable set; $v$ the task's current virtual
+runtime; $r$ its requested real CPU slice; $w$ its weight; and $w_0$ the reference
+weight. Then
+
+\[
+  d = v + r \times \frac{w_0}{w} \qquad \text{(virtual deadline)}
+\]
+
+A task is considered only when it is eligible — that is, when it is owed fair CPU
+service. Among eligible tasks, EEVDF selects the one with the smallest virtual
+deadline $d$. The task's lag is determined by how far its service position is
+behind or ahead of $V$.
+
+Worked selection example — equal weights, $V = 10$:
+
+| Task | $v$ | Slice $r$ | Deadline $d$ | Eligible? |
+| A    |   8 |         8 |           16 | Yes       |
+| B    |   9 |         5 |           14 | Yes       |
+| C    |  13 |       0.5 |         13.5 | No        |
+
+EEVDF chooses B. C has the earliest deadline but is ineligible
+— its
+$v = 13$ is ahead of $V = 10$, so it has already had more than its share. This is
+the example to remember, because it shows the eligibility test doing work that a
+pure earliest-deadline rule would get wrong.
+
+Responsiveness and fairness:
+
+- A shorter request gives an eligible task an earlier virtual deadline, so a task
+  that asks for little gets served soon. This is how latency-sensitive work is
+  accommodated without a priority.
+- Eligibility prevents a task that is already ahead from always winning.
+- When a request ends, accounting and the next request determine future choices.
+- Linux began the CFS-to-EEVDF transition in version 6.6.
+
+[One slide in this section (p21) is a shrunken slide image whose font carries no
+usable character map, so no text could be extracted — see the PDF.]
+
+*** CFS and EEVDF compared
+
+| Property            | Classic CFS              | EEVDF                        |
+| Main selection      | Smallest virtual runtime | Earliest eligible deadline   |
+| Fairness accounting | Weighted virtual runtime | Weighted runtime and lag     |
+| Latency mechanism   | Granularity and wakeups  | Request length and deadlines |
+| Fixed round robin?  | No                       | No                           |
+
+** Preemption and multiple CPUs
+
+- Both Windows and Linux support preemptive thread scheduling.
+- Kernel execution can temporarily disable or defer preemption while critical
+  kernel work is in progress.
+- /CPU affinity/ restricts the set of processors on which a thread is allowed to
+  run.
+- /Load balancing/ tries to distribute runnable work across CPUs while also
+  considering cache locality, NUMA effects, and available CPU capacity.
+
+** Windows and Linux side by side
+
+| Question                 | Windows                       | Linux fair class            |
+| Who runs next?           | Highest dynamic priority      | CFS $v$ or EEVDF $d$        |
+| How is preference set?   | Process class + thread level  | Nice and group weights      |
+| Interactive response     | Temporary boosts              | Wakeups and fair accounting |
+| Equal treatment          | Round robin at same priority  | Equal target CPU shares     |
+
+The structural difference: Windows expresses preference as a /priority/ and patches
+the resulting starvation with temporary boosts, while Linux expresses preference as
+a /weight/ and gets starvation-freedom from the fairness accounting itself. Neither
+is a textbook policy — but Windows at the same priority level is round robin, and
+Linux's fair class is closest in spirit to the aging idea behind HRRN.
+
+* Concurrency: Mutual Exclusion and Synchronization
+
+*Textbook:* Stallings Chapter 5 --- §5.1--5.5 and §5.7.
+
+** Some key words
+
+- /Multiprogramming/: the management of multiple processes within a uniprocessor system
+- /Multiprocessing/: the management of multiple processes within a multiprocessor
+- /Distributed processing/: the management of multiple processes executing on multiple, distributed computer systems
+
+** Concurrency
+
+- The ability to run multiple processes or tasks simultaneously or in an overlapping manner
+- Concurrency and parallelism are related concepts, but not the same
+  - In parallel execution, processes are truly executed simultaneously
+  - Parallelism is a type of concurrency
+
+Concurrency on one processor means interleaving; parallelism needs more than one.
+Every problem on this page shows up under plain interleaving, so none of it goes
+away on a uniprocessor.
+
+** Difficulties of Concurrency
+
+- Sharing of global resources
+- Difficult for the OS to manage the allocation of resources optimally
+- Difficult to locate programming errors, as results are not deterministic and reproducible
+
+** Race Condition
+
+- Occurs when multiple processes or threads access shared data concurrently, with at least one modifying it
+- The final result depends on the timing or order of their execution
+- Without proper synchronization, concurrent accesses may produce unexpected or incorrect results
+
+** Resource Competition
+
+- Concurrent processes come into conflict when they are competing for use of the same resource
+  - For example: I/O devices, memory, processor time, clock
+- In the case of competing processes, three control problems must be faced:
+  - The need for mutual exclusion
+  - Deadlock
+  - Starvation
+
+The first is the subject of this section; the other two are the next section.
+
+** What is Mutual Exclusion?
+
+- {{{hl(green,/Mutual exclusion/: the requirement that when one process is in a critical section that accesses shared resources\, no other process may be in a critical section that accesses any of those shared resources)}}}
+- /Critical section/: a section of code within a process that requires access to shared resources, and that must not be executed while another process is in a corresponding section of code
+
+** How to Ensure Mutual Exclusion?
+
+Concurrency control mechanisms come in three families:
+
+- Software-based approaches
+- Hardware support
+  - Interrupt disabling
+  - Atomic instructions: the compare&swap instruction, the exchange instruction
+- OS and programming-language support
+  - Mutex
+  - Semaphore
+  - Monitor
+
+All of them assume some elementary mutual exclusion already exists at the
+memory-access level: simultaneous accesses (reading and/or writing) to the same
+location in main memory are serialized by a /memory arbiter/ --- hardware logic in
+the memory system that makes two accesses to one location happen one after
+another, never in the same exact cycle.
+
+- Important: the arbiter does *not* guarantee fairness or a specific order --- it only guarantees that memory contents are not corrupted by truly simultaneous writes
+
+** Software-Based Solutions
+
+At first glance enforcing mutual exclusion looks easy. The deck shows why it isn't
+by walking through several incorrect solutions first. Every mutual-exclusion
+mechanism needs some hardware support; here that support is only the serialized
+memory access above.
+
+The setup throughout: two processes $P_0$ and $P_1$ trying to access one shared
+resource.
+
+*** First attempt: a shared =turn= variable
+
+- Create a global integer =int turn = 0=, initialized to 0
+- If =turn= equals the process's id, it may proceed to the resource; otherwise it waits until =turn= equals its id
+  - Waiting by repeatedly testing a variable is called /busy waiting/, or /spin waiting/
+- After using the resource, the process hands =turn= to the other process
+
+#+begin_src c
+/* PROCESS 0 */                  /* PROCESS 1 */
+while (turn != 0)                while (turn != 1)
+    /* do nothing */ ;               /* do nothing */ ;
+/* critical section */;          /* critical section */;
+turn = 1;                        turn = 0;
+#+end_src
+
+- Does it guarantee mutual exclusion? *Yes*
+- Drawbacks:
+  - Process 1 cannot start using the resource at the beginning
+  - Processes must strictly alternate in their use of the shared resource
+    - The slower process dictates the pace of execution
+  - If one process fails, the other is permanently blocked
+
+*** Second attempt: one flag per process, checked first
+
+The first attempt's problem was that neither process knew whether the other
+/intended/ to use the resource, nor whether the other had failed. So keep one
+Boolean flag per process:
+
+- =boolean flag[2] = {0, 0}= --- $P_0$ has =flag[0]=, $P_1$ has =flag[1]=
+- Each process may examine the other's flag but not alter it
+- When a process needs the shared resource, it sets its own flag to =true=
+
+#+begin_src c
+enum boolean (false = 0; true = 1);
+boolean flag[2] = 0, 0
+
+/* PROCESS 0 */                  /* PROCESS 1 */
+while (flag[1])                  while (flag[0])
+    /* do nothing */;                /* do nothing */;
+flag[0] = true;                  flag[1] = true;
+/* critical section */;          /* critical section */;
+flag[0] = false;                 flag[1] = false;
+#+end_src
+
+- If a process fails /outside/ its critical section, the other can carry on using the resource
+- Does it provide mutual exclusion? *No*
+  - Both flags start =false=. Each process can pass its =while= check before the other sets its flag, and both enter the critical section
+- The program is incorrect
+
+*** Third attempt: set the flag before checking
+
+What if each process sets its flag to =true= /before/ checking the other's?
+
+#+begin_src c
+/* PROCESS 0 */                  /* PROCESS 1 */
+flag[0] = true;                  flag[1] = true;
+while (flag[1])                  while (flag[0])
+    /* do nothing */;                /* do nothing */;
+/* critical section */;          /* critical section */;
+flag[0] = false;                 flag[1] = false;
+#+end_src
+
+- Does it guarantee mutual exclusion? *Yes*
+- But there is a bigger issue: if both set their flags to =true= before either checks, neither can ever enter the critical section
+  - So it is {{{hl(red,deadlocked)}}}
+- Not a good solution
+
+*** Fourth attempt: defer to the other process
+
+If a process cannot get the resource because the other process also wants it,
+it is prepared to reset its flag for a moment to defer to the other:
+
+#+begin_src c
+/* PROCESS 0 */                  /* PROCESS 1 */
+flag[0] = true;                  flag[1] = true;
+while (flag[1]) {                while (flag[0]) {
+    flag[0] = false;                 flag[1] = false;
+    /* delay */;                     /* delay */;
+    flag[0] = true;                  flag[1] = true;
+}                                }
+/* critical section */;          /* critical section */;
+flag[0] = false;                 flag[1] = false;
+#+end_src
+
+- Does it guarantee mutual exclusion? *Yes*
+- But there can be {{{hl(red,livelock)}}}: if the two run in lockstep, each keeps setting, deferring and resetting forever, and neither enters
+
+*** Correct solution: Dekker's algorithm
+
+The fourth attempt's problem is that the two processes' activities have no order:
+each lets the other go forward by withdrawing its own claim. So bring back the
+=turn= variable, this time only to decide /who has the right/ to enter when both
+want to:
+
+#+begin_src text
+boolean flag[2]
+int turn
+
+function P0()
+    while true do
+        flag[0] ← true
+        while flag[1] do
+            if turn == 1 then
+                flag[0] ← false
+                while turn == 1 do      ▷ do nothing
+                flag[0] ← true
+        /* access the shared resource */
+        turn ← 1
+        flag[0] ← false
+
+function P1()
+    while true do
+        flag[1] ← true
+        while flag[0] do
+            if turn == 0 then
+                flag[1] ← false
+                while turn == 0 do      ▷ do nothing
+                flag[1] ← true
+        /* access the shared resource */
+        turn ← 0
+        flag[1] ← false
+
+function main()
+    flag[0] ← false
+    flag[1] ← false
+    turn ← 1
+    parbegin(P0, P1)
+#+end_src
+
+The flags say who wants in; =turn= only breaks the tie. Only the process whose turn
+it isn't backs off, so the lockstep livelock of the fourth attempt can't happen.
+
+*** Peterson's algorithm
+
+A more elegant solution to the same problem:
+
+#+begin_src text
+boolean flag[2]
+int turn
+
+function P0()
+    while true do
+        flag[0] ← true
+        turn ← 1
+        while flag[1] ∧ (turn == 1) do  ▷ do nothing
+        /* access the shared resource */
+        flag[0] ← false
+        /* remainder */
+
+function P1()
+    while true do
+        flag[1] ← true
+        turn ← 0
+        while flag[0] ∧ (turn == 0) do  ▷ do nothing
+        /* access the shared resource */
+        flag[1] ← false
+        /* remainder */
+
+function main()
+    flag[0] ← false
+    flag[1] ← false
+    parbegin(P0, P1)
+#+end_src
+
+Each process announces it wants in, then politely gives the turn away. If both
+arrive together, whichever wrote =turn= /last/ is the one that waits.
+
+** Mutual Exclusion: Hardware Support
+
+*** Interrupt disabling
+
+- In a uniprocessor system, concurrent processes cannot have overlapped execution; they can only be interleaved
+- A process will continue to run until it invokes an OS service or until it is interrupted
+- Therefore, to guarantee mutual exclusion, it is sufficient to prevent a process from being interrupted
+- This capability can be provided in the form of primitives defined by the OS kernel for disabling and enabling interrupts
+
+#+begin_src c
+while (true) {
+    /* disable interrupts */;
+    /* critical section */;
+    /* enable interrupts */;
+    /* remainder */;
+}
+#+end_src
+
+Disadvantages:
+
+- The efficiency of execution could be noticeably degraded, because the processor is limited in its ability to interleave processes
+- This approach will not work in a multiprocessor architecture --- disabling interrupts on one processor does nothing to the others
+
+*** Compare&swap instruction
+
+- Also called a "compare and exchange instruction"
+- A compare is made between a memory value and a test value
+- If the values are the same, a swap occurs
+- {{{hl(green,Carried out atomically (not subject to interruption))}}}
+
+#+begin_src c
+int compare_and_swap (int *word, int testval, int newval)
+{
+    int oldval;
+    oldval = *word;
+    if (oldval == testval) *word = newval;
+    return oldval;
+}
+#+end_src
+
+- Two versions of this exist:
+  - One returns the old value
+  - One returns true if the swap occurred, otherwise false
+- The function above returns the old value
+  - Remember this is an atomic instruction --- the C is only a description of what the hardware does in one step
+
+Mutual exclusion built on it:
+
+#+begin_src text
+const int n ← # of processes
+int bolt
+
+function P(int i)
+    while true do
+        while compare_and_swap(bolt, 0, 1) == 1 do
+            /* do nothing */
+        /* access the shared resource */
+        bolt ← 0
+        /* remainder */
+
+function main()
+    bolt ← 0
+    parbegin(P(0), P(1), ..., P(n))
+#+end_src
+
+- Whichever process finds $bolt = 0$ goes into the critical section and sets $bolt = 1$
+- All the other processes go into busy waiting (spin waiting) mode
+  - /Busy waiting/, or /spin waiting/, refers to a technique in which a process can do nothing until it gets permission to enter its critical section, but continues to execute an instruction or set of instructions that tests the appropriate variable to gain entrance
+
+| Advantages                                                                   | Disadvantages                                                                       |
+| Easy to use                                                                  | Busy waiting is used --- wastes CPU time                                            |
+| Easy to see why this works                                                   | Starvation is possible: when more than one process is waiting, the selection is arbitrary |
+| Extends to multiple critical sections --- define a variable for each one     | Deadlock is also possible                                                           |
+| Works on a uniprocessor or multiprocessor, for any number of processes      |                                                                                     |
+
+{{{hl(orange,⚠ NEEDS CHECKING)}}}: the deck names the /exchange/ instruction in its
+overview list but has no slide on it. The description here is from the textbook,
+not the lecture: it atomically swaps a register with a memory word and is used
+the same way as compare&swap.
+
+** OS and Language Support
+
+Four mechanisms: mutex, semaphore, monitor, and condition variable.
+
+*** Semaphores
+
+A /semaphore/ is a variable that has an integer value upon which only three
+operations are defined:
+
+1. A semaphore may be initialized to a nonnegative value
+2. The =semWait= operation decrements the semaphore value
+3. The =semSignal= operation increments the semaphore value
+
+There is no way to inspect or manipulate a semaphore other than these three
+operations.
+
+#+begin_src c
+struct semaphore {
+    int count;
+    queueType queue;
+};
+void semWait(semaphore s)
+{
+    s.count--;
+    if (s.count < 0) {
+        /* place this process in s.queue */;
+        /* block this process */;
+    }
+}
+void semSignal(semaphore s)
+{
+    s.count++;
+    if (s.count <= 0) {
+        /* remove a process P from s.queue */;
+        /* place process P on ready list */;
+    }
+}
+#+end_src
+
+(Stallings Figure 5.6, A Definition of Semaphore Primitives.) A negative count is
+the number of processes waiting on the queue.
+
+Consequences of being allowed only those three operations:
+
+- There is no way to know, before a process decrements a semaphore, whether it will block or not
+- There is no way to know which process will continue immediately on a uniprocessor system when two processes are running concurrently
+- You don't know whether another process is waiting, so the number of unblocked processes may be zero or one
+
+A /binary semaphore/ may only take the values 0 and 1:
+
+#+begin_src c
+struct binary_semaphore {
+    enum {zero, one} value;
+    queueType queue;
+};
+void semWaitB(binary_semaphore s)
+{
+    if (s.value == one)
+        s.value = zero;
+    else {
+        /* place this process in s.queue */;
+        /* block this process */;
+    }
+}
+void semSignalB(semaphore s)
+{
+    if (s.queue is empty())
+        s.value = one;
+    else {
+        /* remove a process P from s.queue */;
+        /* place process P on ready list */;
+    }
+}
+#+end_src
+
+(Stallings Figure 5.7, A Definition of Binary Semaphore Primitives.)
+
+*** Strong and weak semaphores
+
+A queue is used to hold the processes waiting on the semaphore. What differs is
+the order they leave it:
+
+- *Strong semaphores*: the process that has been blocked the longest is released from the queue first (FIFO)
+- *Weak semaphores*: the order in which processes are removed from the queue is not specified
+
+A strong semaphore guarantees freedom from starvation; a weak one does not.
+
+*** Implementation of semaphores
+
+- It is imperative that the =semWait= and =semSignal= operations be implemented as atomic primitives
+- Can be implemented in hardware or firmware
+- Software schemes such as Dekker's or Peterson's algorithms can be used
+- Another alternative is to use one of the hardware-supported schemes for mutual exclusion
+
+Stallings Figure 5.17 shows two such implementations:
+
+#+begin_src c
+/* (a) Compare and Swap Instruction */
+semWait(s)
+{
+    while (compare_and_swap(s.flag, 0, 1) == 1)
+        /* do nothing */;
+    s.count--;
+    if (s.count < 0) {
+        /* place this process in s.queue */;
+        /* block this process (must also set s.flag to 0) */;
+    }
+    s.flag = 0;
+}
+semSignal(s)
+{
+    while (compare_and_swap(s.flag, 0, 1) == 1)
+        /* do nothing */;
+    s.count++;
+    if (s.count <= 0) {
+        /* remove a process P from s.queue */;
+        /* place process P on ready list */;
+    }
+    s.flag = 0;
+}
+
+/* (b) Interrupts */
+semWait(s)
+{
+    inhibit interrupts;
+    s.count--;
+    if (s.count < 0) {
+        /* place this process in s.queue */;
+        /* block this process and allow interrupts */;
+    }
+    else
+        allow interrupts;
+}
+semSignal(s)
+{
+    inhibit interrupts;
+    s.count++;
+    if (s.count <= 0) {
+        /* remove a process P from s.queue */;
+        /* place process P on ready list */;
+    }
+    allow interrupts;
+}
+#+end_src
+
+The busy waiting hasn't gone away in (a), but it now only guards the few
+instructions inside =semWait= / =semSignal=, not the whole critical section.
+
+*** Mutex (mutual exclusion lock)
+
+- Binary semaphores and mutexes are similar, but they are not the same
+- Two operations: =Mutex.lock()= and =Mutex.unlock()=
+- {{{hl(green,The process that locks the mutex must be the process that unlocks it)}}}
+- In a binary semaphore, this is not the case --- any process may signal it
+
+*** Monitors
+
+- A programming-language construct that provides equivalent functionality to that of semaphores and is easier to control
+- Implemented in a number of programming languages
+  - Concurrent Pascal, Pascal-Plus, Modula-2, Modula-3, Java
+- Has also been implemented as a program library
+- A software module consisting of one or more procedures, an initialization sequence, and local data
+- If you have a data structure that needs mutual exclusion, you can wrap it in a monitor
+  - In Java: =synchronized (someObject) { doSomething(); }=
+  - {{{hl(orange,⚠ NEEDS CHECKING)}}}: this snippet's font didn't extract cleanly (it came out as /synchronized someObject do something/), so the exact syntax on the slide (p42) is reconstructed
+
+Monitor characteristics:
+
+1. The local data variables are accessible only by the monitor's procedures and not by any external procedure
+2. A process enters the monitor by invoking one of its procedures
+3. Only one process may be executing in the monitor at a time; any other processes that have invoked the monitor are blocked, waiting for the monitor to become available
+
+Stallings Figure 5.18 (Structure of a Monitor) draws this as a box with a single
+entrance, fronted by a /queue of entering processes/. Inside are the local data,
+the condition variables, procedures 1 through $k$, and the initialization code.
+Beside it is a /monitor waiting area/: one queue per condition $c_1 \ldots c_n$,
+which processes join on =cwait(c_i)=, plus an /urgent queue/ fed by =csignal=.
+
+*** Synchronization with condition variables
+
+- A monitor supports synchronization through /condition variables/ that are contained within the monitor and accessible only within the monitor
+- Condition variables are a special data type in monitors, operated on by two functions:
+  - =cwait(c)=: suspend execution of the calling process on condition $c$. The monitor is then available for use by another process
+  - =csignal(c)=: resume execution of some process blocked after a =cwait= on the same condition
+
+More generally:
+
+- Condition variables let threads /wait for a condition on shared data/, such as a queue becoming nonempty
+- Used within a monitor, or with a mutex that protects the shared data
+- =cwait()= atomically releases the lock and blocks the calling thread. The thread must regain the lock before returning from =wait()=
+- =csignal()= notifies a waiting thread; =broadcast()= notifies all waiting threads
+- {{{hl(red,Notifications are not saved)}}}: signaling when no threads are waiting has no effect
+- A condition variable does not store or test the condition --- the program checks the shared data
+
+That last pair is the difference from a semaphore: a semaphore's count
+remembers a signal nobody was waiting for, a condition variable forgets it.
+
+** Glossary
+
+| Term             | Definition                                                                                                                                                                                                                                                                                                       |
+| atomic operation | A function or action implemented as a sequence of one or more instructions that appears to be indivisible; that is, no other process can see an intermediate state or interrupt the operation. The sequence is guaranteed to execute as a group, or not execute at all, having no visible effect on system state. Atomicity guarantees isolation from concurrent processes. |
+| critical section | A section of code within a process that requires access to shared resources and that must not be executed while another process is in a corresponding section of code.                                                                                                                                       |
+| deadlock         | A situation in which two or more processes are unable to proceed because each is waiting for one of the others to do something.                                                                                                                                                                                   |
+| livelock         | A situation in which two or more processes continuously change their states in response to changes in the other process(es) without doing any useful work.                                                                                                                                                      |
+| mutual exclusion | The requirement that when one process is in a critical section that accesses shared resources, no other process may be in a critical section that accesses any of those shared resources.                                                                                                                       |
+| race condition   | A situation in which multiple threads or processes read and write a shared data item and the final result depends on the relative timing of their execution.                                                                                                                                                    |
+| starvation       | A situation in which a runnable process is overlooked indefinitely by the scheduler; although it is able to proceed, it is never chosen.                                                                                                                                                                         |
+
+* Concurrency: Deadlock and Starvation
+
+*Textbook:* Stallings Chapter 6 --- §6.1--6.6, §6.8 and §6.10.
+
+** Deadlock and Livelock, on a Staircase
+
+- A narrow staircase. Two people, one going down and one going up, meet in the middle
+  - Neither can move anywhere except back, and each waits for the other to move
+  - That is {{{hl(red,deadlock)}}}
+- Now a slightly wider staircase. What if both try to step aside in the same direction at the same time --- and keep doing it?
+  - That is {{{hl(red,livelock)}}}: two or more processes or threads continuously change their states in response to each other but make no actual progress
+
+** Deadlock
+
+- {{{hl(green,The /permanent/ blocking of a set of processes that either compete for system resources or communicate with each other)}}}
+- A set of processes is deadlocked when each process in the set is blocked awaiting an event that can only be triggered by another blocked process in the set
+- Permanent, because none of the events is ever triggered
+- No efficient solution in the general case
+
+Stallings Figure 6.1 (Illustration of Deadlock) is four cars at a four-way
+intersection, each wanting the quadrant ahead of it: in (a) deadlock is possible,
+in (b) each car has entered its first quadrant and is waiting on the next, which
+another car holds. There is an animation at
+[[https://www.cs.montana.edu/adiesha/animations/assets/os/deadlock-intersection.html][cs.montana.edu/adiesha/animations/.../deadlock-intersection.html]].
+
+** Joint Progress Diagrams
+
+Two processes $P$ and $Q$ share resources $A$ and $B$:
+
+| P         | Q         |
+| Get A     | Get B     |
+| Get B     | Get A     |
+| Do work   | Do work   |
+| Release A | Release B |
+| Release B | Release A |
+
+A /joint progress diagram/ plots the progress of $P$ on the horizontal axis
+against the progress of $Q$ on the vertical axis. A horizontal stretch of a path
+means $P$ is executing and $Q$ waiting; a vertical stretch means $Q$ executes and
+$P$ waits. Regions where both want $A$, or both want $B$, are forbidden.
+
+- *Figure 6.2 (Example of Deadlock)*: the two forbidden regions overlap in a way that leaves a /fatal region/ beside them. A path that enters it (P has A, Q has B) can only go on into a forbidden region, so deadlock is inevitable. Of the six paths drawn, paths 3 and 4 enter it
+- *Figure 6.3 (Example of No Deadlock)*: if $P$ instead does Get A, Release A, Get B, Release B --- never holding both --- the forbidden regions no longer form a fatal region and every path gets through
+
+Fatal regions:
+
+- Deadlock only occurs if two (or more) processes create a path that enters the fatal region
+- With more than two processes sharing resources, we need joint progress diagrams with more than two dimensions
+
+** Resource Categories
+
+| Reusable                                                                                                   | Consumable                                                           |
+| Can be safely used by only one process at a time and is not depleted by that use                           | One that can be created (produced) and destroyed (consumed)          |
+| Processors, I/O channels, main and secondary memory, devices, and data structures such as files, databases, and semaphores | Interrupts, signals, messages, and information in I/O buffers |
+
+*** Reusable resources: memory request example
+
+200 KB is available for allocation, and the following sequence of events occurs:
+
+| P1             | P2             |
+| ...            | ...            |
+| Request 80 KB  | Request 70 KB  |
+| ...            | ...            |
+| Request 60 KB  | Request 80 KB  |
+
+Deadlock occurs if both processes progress to their second request: after the
+first two, 50 KB is left, and neither second request fits.
+
+*** Consumable resources deadlock
+
+Can attempting to access consumable resources deadlock? Consider a pair of
+processes, each of which tries to receive a message from the other and then send
+one to it:
+
+| P1               | P2               |
+| ...              | ...              |
+| Receive (P2);    | Receive (P1);    |
+| ...              | ...              |
+| Send (P2, M1);   | Send (P1, M2);   |
+
+Deadlock occurs if =Receive= is blocking.
+
+- Deadlocks with reusable resources: common and straightforward
+- Deadlocks with consumable resources:
+  - Less typical, but possible
+  - If the production and consumption of resources are interdependent
+    - Such deadlocks might involve indirect circular waits
+
+** Conditions for Deadlock
+
+| Mutual exclusion                                                                                          | Hold-and-wait                                                              | No preemption                                                        | Circular wait                                                                                              |
+| Only one process may use a resource at a time. No process may access a resource that has been allocated to another process | A process may hold allocated resources while awaiting assignment of other resources | No resource can be forcibly removed from a process holding it | A closed chain of processes exists, such that each process holds at least one resource needed by the next process in the chain |
+
+The first three are /necessary/ for deadlock but not sufficient; circular wait is
+what actually happens when deadlock occurs. All four together are necessary and
+sufficient.
+
+** Resource Allocation Graphs
+
+How do we model a deadlock? With a /resource allocation graph/:
+
+- A directed graph that depicts a state of the system of resources and processes
+- Each process and each resource is represented by a node
+- An edge directed from a process to a resource indicates a resource that has been requested by the process but not yet granted
+- An edge directed from a reusable resource's dot to a process indicates a request that has been granted
+  - Each dot inside a resource node is one instance of that resource
+
+Stallings Figure 6.5 (Examples of Resource Allocation Graphs):
+
+- (a) Resource is requested: $P_1 \to R_a$
+- (b) Resource is held: $R_a \to P_1$
+- (c) Circular wait: $P_1$ holds $R_b$ and requests $R_a$; $P_2$ holds $R_a$ and requests $R_b$. With a single instance of each, this cycle is a deadlock
+- (d) No deadlock: the same request pattern, but $R_a$ has three instances and $R_b$ two, so the outstanding requests can be satisfied
+
+Stallings Figure 6.6 is the graph for the intersection of Figure 6.1b: four
+processes $P_1 \ldots P_4$ and four resources $R_a \ldots R_d$ in one cycle --- each
+$P_i$ holds one quadrant and requests the next.
+
+** How to Deal with Deadlocks?
+
+| Strategy            | Idea                                                                                                        |
+| Deadlock prevention | Disallow one of the three necessary conditions for deadlock, or prevent the circular wait condition from happening |
+| Deadlock avoidance  | Do not grant a resource request if this allocation might lead to deadlock                                    |
+| Deadlock detection  | Grant resource requests when possible, but periodically check for the presence of deadlock and take action to recover |
+
+*** Prevention vs avoidance
+
+- /Deadlock prevention/ designs the system and its resource allocation protocols so that at least one of the necessary conditions for deadlock cannot occur
+  - Using a resource allocation graph with specific rules to avoid circular waits can help prevent deadlocks
+- /Deadlock avoidance/ dynamically examines the resource allocation state of the system to make sure each resource request can be granted without leading to deadlock
+  - When a process requests a resource, the system temporarily pretends to allocate it and checks whether this allocation keeps the system in a safe state
+
+** Deadlock Prevention
+
+- Design the system so that the possibility of deadlock is excluded, by removing one of the conditions for deadlock
+- Two main methods:
+  - *Indirect*: prevent the occurrence of one of the three necessary conditions
+  - *Direct*: prevent the occurrence of a circular wait
+
+*** Condition by condition
+
+- *Mutual exclusion*
+  - If access to a resource requires mutual exclusion, then mutual exclusion must be supported by the OS --- this one generally can't be designed away
+  - Some resources, such as files, may allow multiple accesses for reads but only exclusive access for writes
+  - Even then, deadlock can occur if more than one process requires write permission
+- *Hold and wait*
+  - Can be prevented by requiring that a process request all of its required resources at one time, blocking the process until all requests can be granted simultaneously
+  - Problems:
+    - A process may wait a long time to acquire all of its resources
+    - Resources allocated to a process may go unused for a considerable amount of time
+    - A process may not know in advance which resources it will need
+- *No preemption*
+  - If a process holding certain resources is denied a further request, it must release its original resources and request them again
+  - Alternatively, if a process requests a resource held by another process, the OS may preempt the second process and require it to release its resources
+- *Circular wait*
+  - Can be prevented by defining a linear ordering of resource types --- every process requests resources in increasing order
+  - Look at the intersection example: if every car had to claim quadrants in one fixed order, no cycle could form
+
+Most of these prevention strategies are inefficient or unfavorable.
+
+** Deadlock Avoidance
+
+- Allows the three necessary deadlock conditions, but makes resource-allocation decisions carefully so the system never enters a deadlock state
+- For each resource request, the OS dynamically determines whether granting it could potentially lead to deadlock
+- A request is granted only if the resulting system state is considered /safe/
+- Requires information about processes' possible future resource requirements
+
+Two approaches:
+
+| Approach                    | Rule                                                                                  |
+| Resource allocation denial  | Do not grant an incremental resource request to a process if this allocation might lead to deadlock |
+| Process initiation denial   | Do not start a process if its demands might lead to deadlock                          |
+
+*** Resource allocation denial: the banker's algorithm
+
+- The /state/ of the system reflects the current allocation of resources to processes
+- A {{{hl(green,/safe state/ is one in which there is at least one sequence of resource allocations to processes that does not result in a deadlock)}}}
+  - A safe state is deadlock-free now, and is guaranteed to stay deadlock-free if the banker's algorithm is followed for future allocations
+- An /unsafe state/ is a state that is not safe
+  - An unsafe state does not mean there is a deadlock
+  - It means one might occur in the future
+
+The state is the resource vector $R$, the available vector $V$, the claim matrix
+$C$ and the allocation matrix $A$; $C - A$ is what each process may still ask for.
+These, the data structures and code of Figure 6.9, and the worked safe-state
+example (Figure 6.7, where $P_2, P_1, P_3, P_4$ all run to completion) are written
+out on the handout:
+[[file:../handouts/deadlock-avoidance-and-detection.org][Deadlock Avoidance and Detection]].
+
+How it is applied:
+
+- When a process requests resources, the system /simulates/ granting the request and checks whether the resulting state is safe
+- Safe state: there exists an order in which all processes can obtain their remaining required resources and complete
+- If the resulting state is *safe*, the request is granted
+- If the resulting state is *unsafe*, the request is postponed
+
+*** Determination of an unsafe state (Figure 6.8)
+
+$R = (9, 3, 6)$. The initial state:
+
+| Process | $C$: R1 | R2 | R3 | $A$: R1 | R2 | R3 | $C-A$: R1 | R2 | R3 |
+| P1      |       3 |  2 |  2 |       1 |  0 |  0 |         2 |  2 |  2 |
+| P2      |       6 |  1 |  3 |       5 |  1 |  1 |         1 |  0 |  2 |
+| P3      |       3 |  1 |  4 |       2 |  1 |  1 |         1 |  0 |  3 |
+| P4      |       4 |  2 |  2 |       0 |  0 |  2 |         4 |  2 |  0 |
+
+$V = (1, 1, 2)$. This state is safe: $P_2$ can finish with $V$, and so on.
+
+Now $P_1$ requests one unit each of R1 and R3. Pretend to grant it:
+
+| Process | $A$: R1 | R2 | R3 | $C-A$: R1 | R2 | R3 |
+| P1      |       2 |  0 |  1 |         1 |  2 |  1 |
+| P2      |       5 |  1 |  1 |         1 |  0 |  2 |
+| P3      |       2 |  1 |  1 |         1 |  0 |  3 |
+| P4      |       0 |  0 |  2 |         4 |  2 |  0 |
+
+$V = (0, 1, 1)$. Every process still needs at least one unit of R1, and none is
+available, so no process is guaranteed to finish: {{{hl(red,the state is unsafe)}}},
+and the request is postponed. Nothing is deadlocked yet --- if $P_1$ happened to
+release resources first it would all work out --- but the OS can't count on that.
+
+*** Advantages and restrictions
+
+Advantages:
+
+- It is not necessary to preempt and roll back processes, as in deadlock detection
+- It is less restrictive than deadlock prevention
+
+Restrictions:
+
+- The maximum resource requirement for each process must be stated in advance
+- The processes under consideration must be independent, with no synchronization requirements
+- There must be a fixed number of resources to allocate
+- No process may exit while holding resources
+
+** Deadlock Detection
+
+- Deadlock prevention strategies are very conservative
+  - Limit access to resources by imposing restrictions on processes
+- Deadlock detection strategies do the opposite
+  - Resource requests are granted whenever possible
+
+*** Detection algorithms
+
+- A check for deadlock can be made as frequently as each resource request or, less frequently, depending on how likely it is for a deadlock to occur
+- The algorithm the deck uses is the Coffman--Elphick--Shoshani (CES) algorithm --- refer to the handout: [[file:../handouts/deadlock-avoidance-and-detection.org][Deadlock Avoidance and Detection]], which also works the example of Figure 6.10
+
+| Advantages                    | Disadvantage                                  |
+| It leads to early detection   | Frequent checks consume considerable processor time |
+| The algorithm is relatively simple |                                          |
+
+For Figure 6.10, the deadlocked processes are {{{hl(red,P1 and P2)}}}: $P_4$ holds
+nothing and is marked straight away, $P_3$'s request fits the available vector so
+it is marked and its allocation returned, and after that neither $P_1$ nor $P_2$'s
+request can be met.
+
+- We could also use a resource allocation graph and check for cycles to detect deadlocks
+  - But with multiple-instance resources, you have to create a node for each instance of that resource (scalability issues)
+  - It is also harder to handle resources like main memory, where varying-size partitions can be allocated to processes (dynamic and divisible resources are harder to handle)
+
+*** Recovery strategies
+
+In roughly increasing order of sophistication:
+
+- Abort all deadlocked processes
+- Back up each deadlocked process to some previously defined checkpoint, and restart all processes
+- Successively abort deadlocked processes until deadlock no longer exists
+- Successively preempt resources until deadlock no longer exists
+
+** Integrated Deadlock Strategy
+
+It might be more efficient to use different strategies in different situations:
+
+- Group resources into a number of different resource classes
+- Use the linear ordering strategy defined previously for preventing circular wait to prevent deadlocks /between/ resource classes
+- Within a resource class, use the algorithm that is most appropriate for that class
+
+| Resource class     | What it is                                                         | Strategy                                                                                                                       |
+| Swappable space    | Blocks of memory on secondary storage for use in swapping processes | Prevention of hold-and-wait: all required resources that may be used are allocated at one time. Reasonable if the maximum storage required is known |
+| Process resources  | Assignable devices, such as tape drives, and files                 | Prevention by resource ordering, or avoidance --- it is reasonable to expect processes to declare ahead of time which of these they need |
+| Main memory        | Assignable to processes in pages or segments                       | Prevention by preemption --- we can simply swap the process out to secondary storage                                          |
+| Internal resources | Such as I/O channels                                               | Prevention by resource ordering                                                                                                 |
+
+** In Practice
+
+- *Deadlock prevention*
+  - Resource ordering
+  - Requiring all resources at once (though inefficient)
+- *Deadlock detection + recovery*
+  - Allow deadlocks to happen, periodically check, and then resolve (e.g., kill a process or preempt resources)
+- *Ignore deadlocks*
+  - Many general-purpose OSs (like Linux, Windows) just don't handle it explicitly, because deadlocks are rare and usually handled at the application level
+
+* References
+
+Microsoft Learn, =learn.microsoft.com/en-us/windows/win32/procthread/= --- Scheduling
+Priorities, Priority Boosts, Context Switches, Multiple Processors.
+
+Linux kernel documentation, =docs.kernel.org/scheduler/= --- CFS Scheduler, EEVDF
+Scheduler, Scheduler Nice Design, Deadline Task Scheduling, Control Group v2.
