@@ -63,7 +63,7 @@ right answer and the worked steps, and you mark your own. Every test also has a
 Work through this and look up anything you cannot state from memory. Each line
 links to the notes it comes from.
 
-** [[file:../lecture-notes/1-intro-to-ml/][Week 1: Intro to ML]]
+** [[file:../lectures/1-intro-to-ml/][Week 1: Intro to ML]]
 - Mitchell's and Alpaydin's definitions of learning
 - Supervised (critic / learner / actor), unsupervised, reinforcement, semi-supervised; online vs offline vs active
 - *Winnow-2*: model, threshold rule, promotion, demotion, the weight trace, linear representation bias
@@ -73,7 +73,7 @@ links to the notes it comes from.
 - The risk function and its seven symbols; the five loss functions
 - The bias-variance decomposition, both steps; what \(\lambda\) controls
 
-** [[file:../lecture-notes/2-nonparametric-learning/][Week 2: Nonparametric Learning]]
+** [[file:../lectures/2-nonparametric-learning/][Week 2: Nonparametric Learning]]
 - Classification as density estimation
 - Parzen windows; the Parzen-versus-k-NN duality; Voronoi diagrams
 - The four metric axioms; Minkowski with \(p = 1, 2, \infty\); VDM
@@ -83,7 +83,7 @@ links to the notes it comes from.
 - Edited NN v1 and v2, condensed NN, KD-trees and the pruning test
 - Regressogram, running mean and kernel smoothers; null models
 
-** [[file:../lecture-notes/3-density-estimation/][Week 3: Density Estimation]]
+** [[file:../lectures/3-density-estimation/][Week 3: Density Estimation]]
 - LOF and one-class classification; the four sources of NN error
 - Filter vs wrapper; stepwise forward and backward selection
 - Hill climbing (simple and stochastic), simulated annealing, genetic algorithms
@@ -91,7 +91,7 @@ links to the notes it comes from.
 - Fisher's LDA: \(J(w)\), \(S_B\), \(S_W\), and \(w = S_W^{-1}(m_1 - m_2)\)
 - EM for clustering: the E step and the M step; k-means; k-means++ and its theorem
 
-** [[file:../lecture-notes/4-learning-theory/][Week 4: Learning Theory]]
+** [[file:../lectures/4-learning-theory/][Week 4: Learning Theory]]
 - k-medoids, PAM, fuzzy c-means, leader clustering
 - Cohesion and separation; SSE and SSB; pseudo-F; silhouette; Rand and ARI; Dunn
 - Version spaces, the \(S\)/\(G\) representation, candidate elimination, the EnjoySport trace
@@ -102,7 +102,7 @@ links to the notes it comes from.
 - VC dimension, shattering, the VC table, both sample-complexity bounds, the triple tradeoff
 - Risk minimization, 0/1 loss, \(h_{MAP}\) and \(h_{ML}\)
 
-** [[file:../lecture-notes/5-tree-learning/][Week 5: Tree Learning]]
+** [[file:../lectures/5-tree-learning/][Week 5: Tree Learning]]
 - Expected value as one operation: entropy, expected entropy and intrinsic value are each a weighted sum, differing only in what sits in the value slot
 - ID3, entropy, expected entropy, information gain; the Quinlan weather numbers
 - Gain ratio and intrinsic value; why unique identifiers break plain gain, and why \(IV = \lg n\) for \(n\) singleton branches
@@ -114,7 +114,7 @@ links to the notes it comes from.
 - FOL, quantifiers, unification, Skolem constants; resolution theorem proving
 - Sequential covering; FoilGain; rule pruning and IREP
 
-** [[file:../lecture-notes/6-ensembles/][Week 6: Ensembles]]
+** [[file:../lectures/6-ensembles/][Week 6: Ensembles]]
 - Rule pruning: predicates subsume whole rules; grow on 2/3 and prune on 1/3; the PruneRule metric \((p-n)/(p+n)\)
 - RIPPER: replace vs revise; MDL as the MAP criterion rewritten in bits, \(L(h) + L(D \mid h)\)
 - Why ensembles: inductive bias is hard to pick; bias and variance reduced together, but the tradeoff and No Free Lunch still hold
@@ -129,10 +129,10 @@ links to the notes it comes from.
 - Clustering: polythetic vs monothetic; the four linkage rules including Ward; DBSCAN's \(\varepsilon\), minPts and core/border/noise; association analysis and \(\phi_{jk}\)
 
 ** Textbook
-- [[file:../textbook-notes/1-intro-to-ml/][Ch. 1]] -- association rules, discriminants, predictive vs descriptive models
-- [[file:../textbook-notes/7-clustering/][Ch. 7]] -- mixture densities, vector quantization, spectral and hierarchical clustering, linkage, choosing \(k\)
-- [[file:../textbook-notes/8-nonparametric-methods/][Ch. 8]] -- the parametric/nonparametric contrast, kernel estimators, curse of dimensionality
-- [[file:../textbook-notes/20-designs-and-experiments/][Ch. 20]] -- the four cautions, strategies of experimentation, randomization/replication/blocking, K-fold, 5x2, bootstrap, ROC and AUC
+- [[file:../textbook/1-intro-to-ml/][Ch. 1]] -- association rules, discriminants, predictive vs descriptive models
+- [[file:../textbook/7-clustering/][Ch. 7]] -- mixture densities, vector quantization, spectral and hierarchical clustering, linkage, choosing \(k\)
+- [[file:../textbook/8-nonparametric-methods/][Ch. 8]] -- the parametric/nonparametric contrast, kernel estimators, curse of dimensionality
+- [[file:../textbook/20-designs-and-experiments/][Ch. 20]] -- the four cautions, strategies of experimentation, randomization/replication/blocking, K-fold, 5x2, bootstrap, ROC and AUC
 
 ** [[file:../projects/][Projects]]
 - Null models; min-max vs z-score; why normalization precedes the metric
@@ -144,7 +144,7 @@ links to the notes it comes from.
 * Not on this material
 
 Two gaps worth knowing about, so you do not go looking for practice that is not
-here. [[file:../lecture-notes/6-ensembles/][Week 6]] is a stub -- it has the
+here. [[file:../lectures/6-ensembles/][Week 6]] is a stub -- it has the
 rule-pruning and IREP material, which is covered under Trees and Rules, but no
 bagging, boosting, random forests or stacking. And the PAM pseudocode is missing
 from the Week 4 notes, because that slide is an image with no text layer; the

@@ -1,0 +1,1201 @@
+#+TITLE: 8 Multilayer Networks
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-12
+#+TAGS: kernels, logistic-regression, machine-learning, perceptron, rbf-networks, svm, week-8
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Week 8 Notes.pdf][Week 8: Linear Networks (PDF)]]
+
+The deck (titled "Linear Networks") picks up where
+[[file:../7-linear-models/index.org][7 Linear Models]] left off: it finishes logistic
+regression with gradient descent, regularization, and the multi-class/softmax version,
+then moves through four other linear models. Those are the support vector machine
+(maximum margin, soft margin, the dual, and support vector regression), kernels as a
+way to make a linear method handle nonlinear data, radial basis function networks, and
+the two early single-layer neural networks, the perceptron and Adaline. It closes with
+the perceptron convergence proof. Several slides are figures only (scatter plots,
+network diagrams, fitted curves); those are noted below and are easier to read off the
+PDF.
+
+* In class: midterm format
+
+The midterm covers "everything up to dealing with logic."
+
+| Section   | Format                                                                                      |
+|-----------+---------------------------------------------------------------------------------------------|
+| Section 1 | 10 objective-style questions (true/false)                                                   |
+| Section 2 | 2 short answer (open ended, algorithm-based questions)                                      |
+| Section 3 | Write book-style procedural pseudocode for what you put in your project. Know your code.   |
+
+* Logistic Regression, Continued
+
+** Gradient descent for logistic regression
+
+- The classic approach to solving logistic regression is gradient descent.
+- We seek $\mathbf{w}$ such that, for all $w_j$,
+
+\[
+  \frac{\partial \ell(\mathbf{w})}{\partial w_j} = 0
+\]
+
+- Note that
+
+\[
+  \frac{\partial \ell(\mathbf{w})}{\partial w_j}
+    = \sum_k x_j^k \big( C^k - \hat{P}(C^k = 1 \mid \mathbf{w}) \big)
+\]
+
+- Weight update rule:
+
+\[
+  w_j \leftarrow w_j + \eta \sum_k x_j^k \big( C^k - \hat{P}(C^k = 1 \mid \mathbf{w}) \big)
+\]
+
+Here $k$ indexes the training examples, $C^k \in \{0, 1\}$ is the true class of
+example $k$, and $\hat{P}(C^k = 1 \mid \mathbf{w})$ is the model's predicted
+probability. Each example pushes $w_j$ in proportion to how wrong the prediction was,
+scaled by the feature value $x_j^k$. There is no closed-form solution to
+$\partial \ell / \partial w_j = 0$ here, which is why an iterative method is needed.
+Because $\ell$ is a log likelihood being /maximized/, the update adds the gradient
+(gradient ascent on $\ell$, or equivalently descent on $-\ell$).
+
+** Regularization
+
+- Avoid learning noise, which would lead to overfitting.
+- Penalize large weights:
+
+\[
+  \mathbf{w} = \operatorname*{argmax}_{\mathbf{w}}
+    \sum_k \ln P(C^k \mid \mathbf{x}^k, \mathbf{w}) - \frac{\lambda}{2} \lVert \mathbf{w} \rVert^2
+\]
+
+- New gradient:
+
+\[
+  \frac{\partial \ell(\mathbf{w})}{\partial w_j}
+    = \sum_k x_j^k \big( C^k - \hat{P}(C^k = 1 \mid \mathbf{w}) \big) - \lambda w_j
+\]
+
+- New update:
+
+\[
+  w_j \leftarrow w_j + \eta \sum_k x_j^k \big( C^k - \hat{P}(C^k = 1 \mid \mathbf{w}) \big) - \eta \lambda w_j
+\]
+
+The extra $-\eta\lambda w_j$ term shrinks every weight toward zero on each step (often
+called /weight decay/), so a weight only stays large if the data keeps pushing it
+there.
+
+In class: L1 regularization is /lasso/ and L2 regularization is /ridge/. The
+$\frac{\lambda}{2}\lVert \mathbf{w} \rVert^2$ penalty on this slide is the L2 (ridge)
+form.
+
+** Two-class logistic regression pseudocode
+
+#+begin_example
+For j = 0, ..., d
+    w_j <- rand(-0.01, 0.01)
+Repeat
+    For j = 0, ..., d
+        Δw_j <- 0
+    For t = 1, ..., N
+        o <- 0
+        For j = 0, ..., d
+            o <- o + w_j * x_j^t
+        y <- sigmoid(o)
+        Δw_j <- Δw_j + (r^t - y) * x_j^t
+    For j = 0, ..., d
+        w_j <- w_j + η * Δw_j
+Until convergence
+#+end_example
+
+This is batch gradient descent: the $\Delta w_j$ are accumulated over all $N$ examples
+before any weight changes. $r^t$ is the target (0 or 1) for example $t$, and $x_0^t = 1$
+so $w_0$ acts as the bias. The update line inside the $t$ loop is applied for every $j$
+(the slide leaves that inner loop implicit).
+
+** Multi-class classification
+
+- Extend the log likelihood function.
+- For $i = 1, \ldots, K - 1$:
+
+\[
+  P(C = c_i \mid \mathbf{x})
+    = \frac{\exp\!\big(w_0 + \sum_{j=1}^{d} w_j x_j\big)}
+           {1 + \sum_{c=1}^{K-1} \exp\!\big(w_{c0} + \sum_{j=1}^{d} w_j x_j\big)}
+\]
+
+- For $i = K$:
+
+\[
+  P(C = c_i \mid \mathbf{x})
+    = \frac{1}{1 + \sum_{c=1}^{K} \exp\!\big(w_{c0} + \sum_{j=1}^{d} w_j x_j\big)}
+\]
+
+- Update rule:
+
+\[
+  w_{ji} \leftarrow w_{ji} +
+    \eta \sum_k x_j^i \big( \delta(C = c_k) - \hat{P}(C = c_k \mid \mathbf{x}^i, \mathbf{w}) \big) -
+    \eta \lambda w_{ji}
+\]
+
+The idea is that class $K$ serves as a reference class: each of the other $K-1$
+classes gets its own weight vector, and class $K$'s probability is whatever is left
+over. The formulas above are transcribed as they appear on the slide; in the usual
+form of this model the weights inside each exponential are class-specific
+($w_{i0}, w_{ij}$ in the numerator and $w_{c0}, w_{cj}$ in the sum), and the sum in
+both denominators runs to $K-1$, so that the $K$ probabilities add to 1.
+
+** Classification with softmax
+
+- In logistic regression (and similar models), probabilistic classification is often
+  done via the /softmax/ function (based on the logistic sigmoid function):
+
+\[
+  y_i = P(C_i \mid \mathbf{x})
+      = \frac{\exp\!\big[\mathbf{w}_i^\top \mathbf{x} + w_{i0}\big]}
+             {\sum_{j=1}^{K} \exp\!\big[\mathbf{w}_j^\top \mathbf{x} + w_{j0}\big]}.
+\]
+
+- This assumes we treat /all/ of the classes uniformly.
+- We assume a multinomial class distribution,
+  $\mathbf{r}^t \mid \mathbf{x}^t \sim \mathrm{Mult}_K(\mathbf{y}^t)$, where
+  $y_i^t \equiv P(C_i \mid \mathbf{x}^t)$.
+
+"Uniformly" is the contrast with the previous slide: instead of singling out class $K$
+as a reference, every class gets its own weight vector and they are all normalized
+together. With $K = 2$, softmax reduces to the ordinary sigmoid.
+
+** Cross-entropy loss
+
+- Using softmax, the sample likelihood of the weights given the data is
+
+\[
+  L(\{\mathbf{w}_i, w_{i0}\} \mid \mathcal{X}) = \prod_t \prod_i \big(y_i^t\big)^{r_i^t}.
+\]
+
+- To learn the parameters $\mathbf{w}_i^\top$ for each class $C_i$, we minimize the
+  /cross-entropy loss/, defined as the negative log of the likelihood:
+
+\[
+  \ell(\{\mathbf{w}_i, w_{i0}\} \mid \mathcal{X}) = -\sum_t \sum_i r_i^t \log y_i^t
+\]
+
+Since $\mathbf{r}^t$ is one-hot (a 1 for the true class and 0 elsewhere), only the
+predicted probability of the correct class survives the inner sum. The loss for one
+example is just $-\log$ of the probability the model gave the right answer.
+
+** Gradient descent for softmax
+
+- We use gradient descent to learn the weights.
+- We can show that for $y_i = \exp(a_i) / \sum_j \exp(a_j)$,
+
+\[
+  \frac{\partial y_i}{\partial a_j} = y_i \big( \delta_{ij} - y_j \big),
+\]
+
+  where
+
+\[
+  \delta_{ij} = \begin{cases} 1 & i = j \\ 0 & i \neq j \end{cases}.
+\]
+
+** Update rule
+
+- Based on this, we can derive the update rule as follows:
+
+\[ \begin{aligned}
+  \Delta \mathbf{w}_j
+    &= \eta \sum_t \sum_i \frac{r_i^t}{y_i^t}\, y_i^t \big( \delta_{ij} - y_j^t \big) \mathbf{x}^t \\
+    &= \eta \sum_t \sum_i r_i^t \big( \delta_{ij} - y_j^t \big) \mathbf{x}^t \\
+    &= \eta \sum_t \Big[ \sum_i r_i^t \delta_{ij} - y_j^t \sum_i r_i^t \Big] \mathbf{x}^t \\
+    &= \eta \sum_t \big( r_j^t - y_j^t \big)\, \mathbf{x}^t. \end{aligned}
+\]
+
+- For the bias term,
+
+\[
+  \Delta w_{j0} = \eta \sum_t \big( r_j^t - y_j^t \big)
+\]
+
+  since, by definition, $x_0^t = 1$.
+
+The last step uses two facts about the one-hot target: $\sum_i r_i^t \delta_{ij} = r_j^t$,
+and $\sum_i r_i^t = 1$. The result has the same "target minus prediction, times input"
+shape as the two-class rule.
+
+** Multi-class pseudocode
+
+#+begin_example
+For i = 1, ..., K
+    For j = 0, ..., d
+        w_ij <- rand(-0.01, 0.01)
+Repeat
+    For i = 1, ..., K
+        For j = 0, ..., d
+            Δw_ij <- 0
+    For t = 1, ..., N
+        For i = 1, ..., K
+            o_i <- 0
+            For j = 0, ..., d
+                o_i <- o_i + w_ij * x_j^t
+        For i = 1, ..., K
+            y_i <- exp(o_i) / Σ_k exp(o_k)
+        For i = 1, ..., K
+            For j = 0, ..., d
+                Δw_ij <- Δw_ij + (r_i^t - y_i) * x_j^t
+    For i = 1, ..., K
+        For j = 0, ..., d
+            w_ij <- w_ij + η * Δw_ij
+Until convergence
+#+end_example
+
+* Support Vector Machines
+
+** Many separating lines
+
+- *A Data Set* (p11) --- a figure only: a 2-D scatter plot of two classes (filled and
+  hollow points) that can be separated by a line.
+- *A Data Set* (p12) --- the same plot with many different lines drawn through the gap,
+  each of which separates the two classes perfectly.
+
+The point of the pair is that a linearly separable data set usually has infinitely many
+perfect separators, so "zero training error" alone doesn't pick one. The SVM's answer
+is to pick the separator with the widest margin.
+
+** Structural risk minimization
+
+- *Theorem:* The class of optimal linear separators has VC dimension $h$, bounded from
+  above as
+
+\[
+  h \le \min\left\{ \left\lceil \frac{D^2}{\rho^2} \right\rceil, m_0 \right\} + 1,
+\]
+
+  where $\rho$ is the margin, $D$ is the diameter of the smallest sphere that can
+  enclose all of the training examples, and $m_0$ is the dimensionality of the input
+  space.
+- *Interpretation:* The margin corresponds to the width of the band (or
+  hyper-rectangle), and is the widest the band can be without including one of the
+  data points.
+
+This ties back to the VC dimension from
+[[file:../4-learning-theory/index.org][4 Learning Theory]]. A plain linear separator in
+$m_0$ dimensions has VC dimension $m_0 + 1$. Requiring a large margin $\rho$ can cap the
+capacity /below/ that, independent of the dimension. Lower capacity means a tighter
+generalization bound, which is the formal reason for preferring the widest-margin
+separator.
+
+** Margin and support vectors
+
+- *Margin* (p14) --- a figure only: the same data with a single separating line and a
+  shaded band around it, widened until it touches points from each class.
+- *Support Vectors* (p15) --- a figure only: the same picture with arrows marking the
+  three points that lie on the edges of the band, labeled "Support Vectors."
+
+The support vectors are the training points that touch the margin. They alone determine
+the separator: moving or deleting any other point (without crossing the band) leaves
+the solution unchanged.
+
+** Finding the support vectors
+
+- Recall that a linear discriminant can be represented as
+  $y = \mathbf{w}^\top \mathbf{x} + b$.
+- Assuming two-class classification, we can use this as
+
+\[
+  \mathit{class}(\mathbf{x}) = \begin{cases}
+      +1 & \mathbf{w}^\top \mathbf{x} + b \ge 0 \\
+      -1 & \text{otherwise} \end{cases}
+\]
+
+- Rewrite the decision rule as
+
+\[
+  \mathit{class}(\mathbf{x}) = \begin{cases}
+      +1 & \mathbf{w}^\top \mathbf{x} + b \ge +1 \\
+      -1 & \mathbf{w}^\top \mathbf{x} + b \le -1 \end{cases}
+\]
+
+- Margin width:
+
+\[
+  \rho = \frac{2}{\sqrt{\mathbf{w}^\top \mathbf{w}}}
+\]
+
+The slide's figure shows three parallel lines: $\mathbf{w}^\top\mathbf{x} + b = 1$
+(edge of the "predict class $= +1$" zone), $\mathbf{w}^\top\mathbf{x} + b = 0$ (the
+decision boundary), and $\mathbf{w}^\top\mathbf{x} + b = -1$ (edge of the "predict
+class $= -1$" zone). Scaling $\mathbf{w}$ and $b$ doesn't change the boundary, so we fix
+the scale by requiring the closest points to sit at $\pm 1$. The distance between the
+two outer lines is then $2 / \lVert \mathbf{w} \rVert$, which is $\rho$.
+
+** Maximizing the margin
+
+- Objective function:
+
+\[
+  \max \rho = \max \left\{ 2 \big/ \sqrt{\mathbf{w}^\top \mathbf{w}} \right\}
+\]
+
+- Alternatively,
+
+\[
+  \min \left\{ \mathbf{w}^\top \mathbf{w} \right\}
+\]
+
+- This is a "quadratic programming" problem with $k = 1, \ldots, n$ constraints:
+
+\[ \begin{aligned}
+  &\text{if } y_k = +1 \text{ then } \mathbf{w}^\top \mathbf{x} + b \ge +1 \\
+  &\text{if } y_k = -1 \text{ then } \mathbf{w}^\top \mathbf{x} + b \le -1 \end{aligned}
+\]
+
+Maximizing $2/\lVert\mathbf{w}\rVert$ is the same as minimizing $\lVert\mathbf{w}\rVert$,
+and minimizing its square $\mathbf{w}^\top\mathbf{w}$ gives a smooth quadratic
+objective with linear constraints, one per training example. The two constraints can be
+written together as $y_k(\mathbf{w}^\top \mathbf{x}_k + b) \ge 1$.
+
+** A limitation
+
+- We are working with a simple linear discriminant.
+- This means we are assuming the data is "linearly separable."
+- What if it isn't?
+- Two perspectives:
+  - Separability breaks down because of noise.
+  - Separability breaks down because classes really aren't linearly separable.
+
+The first case is handled by the soft margin below. The second is handled by kernels
+(see [[*Kernels][Kernels]]).
+
+** Handling noise
+
+There are three possible approaches to handling noise.
+
+1. Minimize $\mathbf{w}^\top \mathbf{w}$ and error simultaneously: a multi-objective
+   optimization problem.
+2. Minimize $\mathbf{w}^\top \mathbf{w} + C(\#\mathit{error}_{\mathit{train}})$: the
+   second term is an integer.
+3. Minimize $\mathbf{w}^\top \mathbf{w} + C\big(\mathit{dist}(\mathbf{x}_{\mathit{err}}, \mathit{plane})\big)$:
+   a continuous objective function.
+
+The third method has the nice property that the objectives don't compete directly and
+can be solved via quadratic programming.
+
+In class: the second option adds an integer term, which turns the problem from a
+linear program (LP) into an integer linear program (ILP), and ILP is NP-hard. The third
+option avoids that by measuring /how far/ each error is on the wrong side rather than
+/how many/ errors there are.
+
+** Soft margin
+
+- Minimizing the distance of erroneous points to the correct side leads to the
+  "soft margin."
+- We can then solve the optimization problem by introducing "slack variables."
+- Denote the slack variable for example $\mathbf{x}_k$ as $\xi_k$.
+- New objective function:
+
+\[
+  \text{minimize } \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \sum_{k=1}^{n} \xi_k
+\]
+
+  subject to
+
+\[ \begin{aligned}
+  \mathbf{w}^\top \mathbf{x} + b &\ge 1 - \xi_k \quad (y_k = +1) \\
+  \mathbf{w}^\top \mathbf{x} + b &\ge -1 + \xi_k \quad (y_k = -1) \\
+  \forall k \;\; \xi_k &\ge 0 \end{aligned}
+\]
+
+The slide's figure shows a separating line with its two margin lines and three points
+on the wrong side of their margin; dashed arrows labeled $\varepsilon_2$, $\varepsilon_7$,
+and $\varepsilon_{11}$ show the slack distance each point would have to move to reach
+its correct side.
+
+Each $\xi_k$ measures how far point $k$ violates its margin ($\xi_k = 0$ for points that
+are fine). $C$ trades margin width against total violation: a large $C$ punishes
+violations heavily (closer to a hard margin), a small $C$ tolerates them in exchange for
+a wider margin. The second constraint is as printed on the slide; the standard form for
+negative examples is $\mathbf{w}^\top \mathbf{x} + b \le -1 + \xi_k$.
+
+** The Lagrangian (dual) method
+
+- Improve efficiency.
+- Identify support vectors more easily through a dual formulation:
+
+\[
+  \text{maximize } \sum_{k=1}^{n} \alpha_k -
+    \frac{1}{2} \sum_{k=1}^{n} \sum_{\ell=1}^{n} \alpha_k \alpha_\ell Q_{k\ell}
+\]
+
+  where
+
+\[
+  Q_{k\ell} = y_k y_\ell \big( \mathbf{x}_k^\top \mathbf{x}_\ell \big)
+\]
+
+- The corresponding constraints become
+
+\[
+  \forall k \;\; 0 \le \alpha_k \le C
+  \qquad
+  \sum_{k=1}^{n} \alpha_k y_k = 0
+\]
+
+- Can solve via quadratic programming or via gradient descent.
+
+There is one Lagrange multiplier $\alpha_k$ per training example. Notice that the data
+enter the dual /only/ through the dot products $\mathbf{x}_k^\top \mathbf{x}_\ell$, which
+is what makes the kernel trick possible later.
+
+** Lagrange multipliers
+
+- We note that the support vectors correspond to the data points where $\alpha_k > 0$.
+- We can recover the weights from these support vectors.
+- First, let $K = \operatorname*{argmax}_k \alpha_k$.
+- Then
+
+\[
+  b = y_K (1 - \xi_k) - \mathbf{x}_K^\top \mathbf{w}
+\]
+
+  and
+
+\[
+  \mathbf{w} = \sum_{k=1}^{n} \alpha_k y_k \mathbf{x}_k
+\]
+
+- Finally,
+
+\[
+  \mathit{class}(\mathbf{x}') = \operatorname{sgn}\big( \mathbf{w}^\top \mathbf{x} - b \big)
+\]
+
+Most $\alpha_k$ come out to zero, so $\mathbf{w}$ is a weighted sum over just the
+support vectors. The formulas are transcribed as on the slide. Note that the slack in
+the $b$ formula is meant to be that of the chosen point ($\xi_K$), and the sign on $b$
+in the final rule differs from the $\mathbf{w}^\top\mathbf{x} + b$ convention used
+earlier in the deck.
+
+** Support vector regression (\(\epsilon\)-SVR)
+
+- Let $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{n} \subset \mathcal{X} \times \mathbb{R}$.
+- Find a function of the form $f(x) = \mathbf{w}^\top \mathbf{x} + b$.
+- Minimize $\lVert \mathbf{w} \rVert^2 = \mathbf{w}^\top \mathbf{w}$.
+- New optimization problem:
+
+\[
+  \text{minimize } \frac{1}{2} \mathbf{w}^\top \mathbf{w}
+\]
+
+  subject to
+
+\[ \begin{aligned}
+  y_i - (\mathbf{w}^\top \mathbf{x}_i + b) &\le \epsilon \\
+  (\mathbf{w}^\top \mathbf{x}_i + b) - y_i &\le \epsilon \end{aligned}
+\]
+
+For regression the roles flip: instead of keeping points /out/ of a band, we want every
+point /inside/ a tube of half-width $\epsilon$ around the regression line, using the
+flattest function (smallest $\mathbf{w}$) that does so.
+
+** \(\epsilon\)-SVR with soft margin
+
+Minimize
+
+\[
+  \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \sum_{k=1}^{n} \big( \xi_i + \xi_i^* \big)
+\]
+
+subject to
+
+\[ \begin{aligned}
+  y_i - (\mathbf{w}^\top \mathbf{x} + b) &\le \epsilon + \xi_i \\
+  (\mathbf{w}^\top \mathbf{x} + b) - y_i &\le \epsilon + \xi_i^* \\
+  \xi_i, \xi_i^* &\ge 0 \end{aligned}
+\]
+
+Slack cost:
+
+\[
+  \lvert \xi \rvert_\epsilon = \begin{cases}
+      0 & \text{if } \lvert \xi \rvert \le \epsilon \\
+      \lvert \xi \rvert - \epsilon & \text{otherwise} \end{cases}
+\]
+
+The figure shows a regression line with a shaded tube between $+\varepsilon$ and
+$-\varepsilon$. Most points sit inside the tube, and one point above it has its slack
+$\xi$ drawn as a dashed line. $\xi_i$ covers points above the tube and $\xi_i^*$ points
+below it. The slack cost is the "\(\epsilon\)-insensitive" loss: errors smaller than
+$\epsilon$ are free, and larger errors cost only the amount beyond $\epsilon$.
+
+* Kernels
+
+** Limitation of the SVM
+
+- SVMs are linear classifiers.
+- A linearly separable problem: a figure of 1-D points on a line, filled points to the
+  left and hollow points to the right, with a green "positive plane" and a red
+  "negative plane" marking the margin between them.
+- A nonlinearly separable problem: the same line, but with filled points on /both/
+  ends and hollow points in the middle, so no single threshold separates them.
+
+** Cover's theorem
+
+*Theorem:* There are $C(N, d)$ homogeneous linear dichotomies of $N$ points in general
+position in Euclidean \(d\)-space, where
+
+\[
+  C(N, d) = 2 \sum_{k=0}^{d-1} \binom{N-1}{k}.
+\]
+
+- When $N \le d + 1$, exponential growth suggests increasing likelihood of linear
+  separability.
+- When $N > d + 1$, subexponential growth suggests decreasing likelihood of linear
+  separability.
+
+*Theorem (informal):* In a classification problem, if the data is cast into a high
+dimensional space nonlinearly, as long as the resulting space is not densely populated,
+the data becomes more likely to be linearly separable than in the lower-dimensional
+space.
+
+A "dichotomy" is a split of the $N$ points into two labeled groups; there are $2^N$
+possible splits. When $N \le d$, the sum covers every term and $C(N, d) = 2^N$, so
+every labeling is linearly achievable. Past that point, the fraction of labelings a
+hyperplane can realize drops off. Adding dimensions raises $d$, which is the lever the
+kernel methods below pull.
+
+** Increasing dimensionality
+
+A figure only (p27): the nonlinearly separable 1-D data from p25 is mapped to 2-D with
+$\mathbf{z}_k = (x_k, x_k^2)$. The points now lie on a parabola, with the filled points
+on its two arms high up and the hollow points near the bottom. A pair of parallel
+straight lines (green and red) now separates the two classes.
+
+** The kernel trick
+
+- Most linear classifiers rely on dot products.
+- This often relies on a distance-based calculation.
+- A kernel is defined as a function of two vectors:
+
+\[
+  K(\mathbf{x}_i, \mathbf{x}_j) = \mathbf{x}_i^\top \mathbf{x}_j
+\]
+
+- Consider mapping to a higher dimensional space: $\phi : \mathbf{x} \to \phi(\mathbf{x})$.
+- The corresponding dot product becomes:
+
+\[
+  K_\phi(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^\top \phi(\mathbf{x}_j)
+\]
+
+The "trick" is that $K_\phi$ can often be computed directly from $\mathbf{x}_i$ and
+$\mathbf{x}_j$ without ever building $\phi(\mathbf{x})$. Since the SVM dual only needs
+dot products, swapping $\mathbf{x}_k^\top \mathbf{x}_\ell$ for $K(\mathbf{x}_k, \mathbf{x}_\ell)$
+trains a linear separator in the high-dimensional space at roughly the cost of working
+in the original one.
+
+** Mercer's theorem
+
+*Definition:* A positive semi-definite matrix $\mathbf{M}$ is a matrix such that, for
+all non-zero vectors $\mathbf{z} \in \mathbb{R}^n$, $\mathbf{x}^\top \mathbf{M} \mathbf{x} \ge 0$.
+Equivalently, a positive semi-definite matrix $\mathbf{M}$ has all non-zero
+eigenvalues.
+
+*Definition:* A positive semi-definite kernel $K$ on a set $\mathbf{S}$ is a function
+$K : \mathbf{S} \times \mathbf{S} \to \mathbb{R}$ such that
+$\forall n \in \mathbb{N}, \forall x_i \in \mathbf{S}$,
+
+\[
+  \mathbf{C} = \begin{bmatrix}
+      c_{11} & \cdots & c_{1n} \\
+      \vdots & \ddots & \vdots \\
+      c_{n1} & \cdots & c_{nn} \end{bmatrix},
+  \qquad c_{ij} = K(x_i, x_j)
+\]
+
+(is positive semi-definite).
+
+*Theorem:* Any continuous, symmetric, positive semi-definite kernel function
+$K(\mathbf{x}, \mathbf{y})$ can be expressed as a dot product in a higher-dimensional
+space.
+
+Combined with Cover's theorem: linearize a nonlinear problem by using a kernel to
+transform to a higher-dimensional space, thus increasing the probability of the data
+being linearly separable.
+
+The definitions are transcribed as on the slide. In the usual statement the quadratic
+form uses the same vector as the quantifier ($\mathbf{z}^\top \mathbf{M} \mathbf{z} \ge 0$),
+and the eigenvalue condition is that all eigenvalues are /non-negative/. Mercer's
+theorem is what lets you check a candidate kernel without finding $\phi$. If the Gram
+matrix $\mathbf{C}$ is always positive semi-definite, some feature map $\phi$ exists.
+
+** An example
+
+- Suppose we have vectors of the form $\mathbf{x} = [x_1 \; x_2]^\top$.
+- Suppose our kernel is $K(\mathbf{x}_i, \mathbf{x}_j) = \big(1 + \mathbf{x}_i^\top \mathbf{x}_j\big)^2$.
+- Need to show that $K(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^\top \phi(\mathbf{x}_j)$.
+
+\[ \begin{aligned}
+  K(\mathbf{x}_i, \mathbf{x}_j)
+    &= \big(1 + \mathbf{x}_i^\top \mathbf{x}_j\big)^2 \\
+    &= \big(1 + x_{i1}^2 x_{j1}^2 + 2 x_{i1} x_{j1} x_{i2} x_{j2} + x_{i2}^2 x_{j2}^2
+            + 2 x_{i1} x_{j1} + 2 x_{i2} x_{j2}\big) \\
+    &= \begin{bmatrix} 1 & x_{i1}^2 & \sqrt{2}\, x_{i1} x_{i2} & x_{i2}^2 & \sqrt{2}\, x_{i1} & \sqrt{2}\, x_{i2} \end{bmatrix}^\top \\
+    &\quad \times \begin{bmatrix} 1 & x_{j1}^2 & \sqrt{2}\, x_{j1} x_{j2} & x_{j2}^2 & \sqrt{2}\, x_{j1} & \sqrt{2}\, x_{j2} \end{bmatrix} \end{aligned}
+\]
+
+- Then $K(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^\top \phi(\mathbf{x}_j)$, where
+
+\[
+  \phi(x) = \begin{bmatrix} 1 & x_1^2 & \sqrt{2}\, x_1 x_2 & x_2^2 & \sqrt{2}\, x_1 & \sqrt{2}\, x_2 \end{bmatrix}.
+\]
+
+The slide's expanded second line omits the $x_{i1}^2 x_{j1}^2$ term; it is included
+above, since the vector form on the next line needs it. Computing $K$ directly takes
+one 2-D dot product, a +1, and a square. Going through $\phi$ means building two
+6-dimensional vectors first. The gap grows quickly with input dimension and kernel
+degree.
+
+** Standard kernels
+
+- Polynomial kernel:
+
+\[
+  K_d(\mathbf{x}_i, \mathbf{x}_j) = \big(1 + \mathbf{x}_i^\top \mathbf{x}_j\big)^d
+\]
+
+- Gaussian kernel:
+
+\[
+  K_{\mathcal{G}}(\mathbf{x}_i, \mathbf{x}_j)
+    = \exp\left( -\frac{(\mathbf{x}_i - \mathbf{x}_j)^2}{2\sigma^2} \right)
+\]
+
+- Sigmoid kernel:
+
+\[
+  K_\sigma(\mathbf{x}_i, \mathbf{x}_j) = \tanh\big( \kappa\, \mathbf{x}_i^\top \mathbf{x}_j - \delta \big)
+\]
+
+** Kernel-based objective
+
+- The basic objective function is the same:
+
+\[
+  L_p = \frac{1}{2} \lVert \mathbf{w} \rVert^2 + C \sum_t \xi^t
+\]
+
+- The constraints change:
+
+\[
+  r^t \mathbf{w}^\top \boldsymbol{\phi}(\mathbf{x}^t) \ge 1 - \xi^t
+\]
+
+- The resulting Lagrangian then becomes:
+
+\[
+  L_p = \frac{1}{2} \lVert \mathbf{w} \rVert^2 + C \sum_t \xi^t -
+        \sum_t \alpha^t \big[ r^t \mathbf{w}^\top \boldsymbol{\phi}(\mathbf{x}^t) - 1 + \xi^t \big] -
+        \sum_t \mu^t \xi^t
+\]
+
+- With the dual:
+
+\[
+  L_d = \sum_t \alpha^t - \frac{1}{2} \sum_t \sum_s \alpha^t \alpha^s r^t r^s\,
+        \boldsymbol{\phi}(\mathbf{x}^t)^\top \boldsymbol{\phi}(\mathbf{x}^s)
+\]
+
+- Shown with kernel:
+
+\[
+  L_d = \sum_t \alpha^t - \frac{1}{2} \sum_t \sum_s \alpha^t \alpha^s r^t r^s\,
+        K(\mathbf{x}^t, \mathbf{x}^s).
+\]
+
+This is the soft-margin SVM again, in the notation $r^t \in \{-1, +1\}$ for labels and
+$t, s$ for examples. The $\alpha^t$ and $\mu^t$ are Lagrange multipliers for the margin
+and $\xi^t \ge 0$ constraints. The final line is the earlier dual with
+$Q_{k\ell}$'s dot product replaced by a kernel.
+
+* Radial Basis Function Networks
+
+** RBF network diagram
+
+A figure only (p33): input nodes $x_1, x_2, \ldots, x_n$ at the bottom, each connected
+to every node in a middle layer of bell-curve (Gaussian) units, which all feed a single
+summation node $\Sigma$ at the top.
+
+** The radial basis function
+
+- A symmetric function with "radial" symmetry.
+- Modeled on the "on center, off surround" property of the visual cortex.
+
+\[
+  f(\mathbf{x}) = G\big( \lVert \mathbf{x} - \boldsymbol{\mu} \rVert \big)
+\]
+
+- Gaussian kernel:
+
+\[
+  G(y) = \exp\left( -\frac{y^2}{\sigma^2} \right), \qquad \text{where } \sigma \text{ is spread}
+\]
+
+- Usually, this is represented as
+
+\[
+  K(\mathbf{x}, \boldsymbol{\mu})
+    = \exp\big( -\gamma \lVert \mathbf{x} - \boldsymbol{\mu} \rVert^2 \big)
+    = \exp\left( -\frac{\lVert \mathbf{x} - \boldsymbol{\mu} \rVert^2}{2\sigma^2} \right),
+  \qquad \text{where } \gamma = \frac{1}{2\sigma^2}
+\]
+
+"Radial" means the output depends only on the /distance/ from the center
+$\boldsymbol{\mu}$, not on direction. The unit fires strongly near its center and fades
+to nothing far away.
+
+** Spread and selectivity
+
+A figure (p35) comparing two Gaussians centered at $c$:
+
+| Spread       | Shape           | Behavior      |
+|--------------+-----------------+---------------|
+| Small spread | narrow, peaked  | selective     |
+| Large spread | wide, flat      | not selective |
+
+The next three slides are figures only. Each shows the same 1-D training set (targets
+plotted as "+" against input $P$ from $-1$ to $1$) and the curve an RBF network fits to it:
+
+- *Small spread* (p36) --- the fitted curve is a row of narrow spikes, one at each
+  training point, dropping back to 0 in between. It memorizes the points and does not
+  interpolate (overfits).
+- *Large spread* (p37) --- the curve is smooth but too stiff, cutting through the
+  middle of the data and missing the peaks and troughs (underfits).
+- *Ideal spread* (p38) --- the curve passes smoothly through essentially every
+  training point.
+
+** RBF network
+
+- Bridges the gap between
+  - Neural networks (e.g., feedforward networks)
+  - Kernel machines (e.g., SVMs)
+  - Nonparametric/instance-based learning (e.g., nearest neighbor)
+- Setting the spread
+  - Tune a global parameter
+  - Clustering the data and estimating cluster distributions
+  - Train via gradient descent
+- Linear combiner --- gradient descent
+
+The instance-based connection is to [[file:../2-nonparametric-learning/index.org][2 Nonparametric Learning]]:
+with one hidden node per training example, an RBF network looks a lot like a Parzen
+window or a distance-weighted nearest-neighbor vote, except that the output weights are
+learned.
+
+** Network architecture
+
+Three layers:
+
+1. Input layer: one node per feature.
+2. Hidden layer: $k \le n$ nodes applying the RBF kernel.
+3. Output layer:
+   - Classification: one class per node.
+   - Regression: single node.
+
+- The RBF kernel:
+
+\[
+  K_j(\mathbf{x}, \boldsymbol{\mu}_j)
+    = \exp\left( -\frac{1}{2\sigma_j^2} \lVert \mathbf{x} - \boldsymbol{\mu}_j \rVert^2 \right)
+\]
+
+- Then
+
+\[
+  f(x) \approx \sum_{j=1}^{k} w_j K_j(\mathbf{x}, \boldsymbol{\mu}_j)
+\]
+
+The hidden layer is the nonlinear part; the output is just a linear model on the
+hidden activations. Once the centers and spreads are fixed, learning the $w_j$ is the
+same linear problem as before.
+
+** Training RBF parameters: centers from data
+
+- Apply \(k\)-means clustering, /or/
+- Associate one hidden node per example.
+- The center $\boldsymbol{\mu}_j$ is the centroid of the cluster or the individual
+  example $\mathbf{x}_j$.
+- Once again, this yields
+
+\[
+  K_j(\mathbf{x}, \boldsymbol{\mu}_j)
+    = \exp\left( -\frac{1}{2\sigma_j^2} \lVert \mathbf{x} - \boldsymbol{\mu}_j \rVert^2 \right)
+\]
+
+(\(k\)-means came up in [[file:../4-learning-theory/index.org][4 Learning Theory]] alongside
+\(k\)-medoids.)
+
+** Training RBF parameters: gradient descent
+
+- Apply gradient descent to learn the centers $\mu_{hj}$ and spreads $\sigma_h$.
+- We can find the derivatives with respect to the centers and spreads using the chain
+  rule and a process that looks like backpropagation (see later in the course).
+
+\[ \begin{aligned}
+  \Delta \mu_{hj} &= \eta \sum_t \Big[ \sum_i \big( r_i^t - y_i^t \big) w_{ih} \Big]
+                     p_h^t \, \frac{x_j^t - \mu_{hj}}{\sigma_h^2} \\
+  \Delta \sigma_h &= \eta \sum_t \Big[ \sum_i \big( r_i^t - y_i^t \big) w_{ih} \Big]
+                     p_h^t \, \frac{\lVert \mathbf{x}^t - \boldsymbol{\mu}_h \rVert_2^2}{\sigma_h^3} \end{aligned}
+\]
+
+Here $p_h^t$ is the activation of hidden unit $h$ on example $t$, and $w_{ih}$ is the
+weight from hidden unit $h$ to output $i$. The bracketed term is the output error sent
+back through the output weights to hidden unit $h$. That is the "looks like
+backpropagation" part.
+
+** RBF output
+
+- Loss function:
+  - For classification: cross entropy
+    - $\mathcal{L} = r^t \log y^t + (1 - r^t) \log (1 - y^t)$
+  - For regression: squared error
+    - $\mathcal{L} = (r^t - y^t)^2$
+- The update rule is based on $\partial \mathcal{L} / \partial w$.
+  - For classification:
+    - $\Delta w = \eta (r^t - y^t) p_h$
+  - For regression:
+    - $\Delta w = \eta (r^t - y^t) p_h$
+
+The two updates being identical isn't a typo. A sigmoid output with cross-entropy loss
+and a linear output with squared error both give a gradient of the form
+"(target $-$ output) $\times$ input to the weight" (the factor of 2 from the square gets
+absorbed into $\eta$). The cross-entropy expression is written as on the slide, without
+the leading minus sign; as a loss to minimize it should be negated.
+
+* The Perceptron
+
+** The perceptron: early linear neural network
+
+- Recall the notion of function approximation:
+  - $f : \mathbf{X} \subset \mathbb{R}^m \to \mathbf{Y} \subset \mathbb{R}^n$
+  - $\mathcal{D} = \{(\mathbf{x}^t, \mathbf{y}^t)\}_{t=1}^{|\mathcal{D}|}$
+  - $\mathbf{y}^t = f(\mathbf{x}^t)$ indicates the "target"
+- The model representation is a network (artificial neural network):
+  - Neurons
+  - Nodes
+- Activation function:
+
+\[
+  y_k = \phi\left( \sum_{i=1}^{m} w_{ki} x_i \right)
+\]
+
+The slide's diagram shows inputs $x_0, \ldots, x_m$ with weights $w_0, \ldots, w_m$
+feeding a single summation node $\Sigma$, whose result passes through $\phi$ to give
+the output $y$.
+
+** The loss function
+
+- The perceptron is generally used for classification.
+- Even so, the loss function used is mean squared error.
+- The network encodes a function $\hat{f}_{\mathbf{w}}(\mathbf{x}) \approx f(\mathbf{x})$.
+- Minimize
+
+\[
+  \mathit{MSE}(\mathbf{w}) = \frac{1}{|\mathcal{D}|} \sum_{\mathbf{x} \in \mathcal{D}}
+    \big( f(\mathbf{x}) - \hat{f}_{\mathbf{w}}(\mathbf{x}) \big)^2
+\]
+
+- We find $\mathbf{w}^* = \operatorname*{argmin}_{\mathbf{w}} \mathit{MSE}(\mathbf{w})$.
+
+** The perceptron network
+
+- Two layers of neurons/nodes:
+  - One distributes the inputs.
+  - One applies the activation function to the weighted sum.
+
+\[
+  \phi(y) = \phi\left( \sum_{i=1}^{d} w_i x_i - \theta \right)
+          = \operatorname{sgn}\left( \sum_{i=1}^{d} w_i x_i - \theta \right)
+\]
+
+  where
+
+\[
+  \operatorname{sgn}(x) = \begin{cases} +1 & x > 0 \\ -1 & x \le 0 \end{cases}
+\]
+
+- Activation is a step function (a.k.a. hard limiter or Heaviside function).
+
+$\theta$ is a threshold: the unit outputs $+1$ only when the weighted sum exceeds it.
+
+** Perceptron training
+
+- Let
+  - $\mathbf{w} = [w_1, \ldots, w_d]^\top$
+  - $\mathbf{x} = [x_1, \ldots, x_d]^\top$
+  - $z = \operatorname{sgn}(\mathbf{w}^\top \mathbf{x})$
+  - $\mathbf{F} = \mathbf{F}^+ \cup \mathbf{F}^-$
+- $\mathbf{F}$ is the training set:
+  - $\mathbf{F}^+$ denotes positive examples
+  - $\mathbf{F}^-$ denotes negative examples
+
+#+begin_example
+1. Choose initial weight vector w at random
+2. Choose some example x ∈ F
+3. Consider the class(x)
+     - If x ∈ F+ and sgn(wᵀx) ≤ 0, then  w <- w + x
+     - If x ∈ F- and sgn(wᵀx) > 0, then  w <- w - x
+     - Otherwise, do nothing (class is correct)
+4. Repeat steps 2 and 3 until convergence
+#+end_example
+
+The weights only change on a mistake. Adding $\mathbf{x}$ to $\mathbf{w}$ raises
+$\mathbf{w}^\top \mathbf{x}$ by $\lVert \mathbf{x} \rVert^2$, so the update rotates the
+boundary toward classifying that example correctly. Subtracting does the reverse.
+
+** Example: logical OR
+
+| $x_1$ | $x_2$ | $x_1 \vee x_2$ |
+|-------+-------+----------------|
+|     0 |     0 |              0 |
+|     0 |     1 |              1 |
+|     1 |     0 |              1 |
+|     1 |     1 |              1 |
+
+Train:
+
+- Initial weight vector $\mathbf{w} = [0 \; 0]^\top$.
+- For $(0,0)$, $\operatorname{sgn} \mathbf{w} = 0$: no change in weights.
+- For $(0,1)$, $\operatorname{sgn} \mathbf{w} = 0$: update $\mathbf{w} = [0 \; 1]^\top$.
+- For $(1,0)$, $\operatorname{sgn} \mathbf{w} = 0$: update $\mathbf{w} = [1 \; 1]^\top$.
+- For $(1,1)$, $\operatorname{sgn} \mathbf{w} = 1$: no change in weights.
+
+Try again:
+
+- For $(0,0)$, $\operatorname{sgn} \mathbf{w} = 0$: no change in weights.
+- For $(0,1)$, $\operatorname{sgn} \mathbf{w} = 1$: no change in weights.
+- For $(1,0)$, $\operatorname{sgn} \mathbf{w} = 1$: no change in weights.
+- For $(1,1)$, $\operatorname{sgn} \mathbf{w} = 1$: no change in weights.
+
+Here "$\operatorname{sgn} \mathbf{w}$" is shorthand for the unit's output on that input,
+$\operatorname{sgn}(\mathbf{w}^\top \mathbf{x})$, with outputs written as 0/1 to match
+the truth table. On $(0,1)$ the output is 0 but the target is 1, so
+$\mathbf{w} \leftarrow \mathbf{w} + \mathbf{x} = [0 \; 1]^\top$. On $(1,0)$,
+$\mathbf{w}^\top \mathbf{x} = 0$ is again wrong, giving $[1 \; 1]^\top$. The second pass
+makes no mistakes, so training has converged.
+
+* Adaline
+
+** What is Adaline?
+
+- What is Adaline?
+  - *Ada*-ptive *Li*-near *Ne*-uron (Adaptive Linear Neuron)
+  - *Ada*-ptive *Lin*-ear *E*-lement (Adaptive Linear Element)
+- Similar to the perceptron:
+  - Let $\mathbf{w} = [w_1, \ldots, w_d]^\top$ be a weight vector.
+  - Let $\mathbf{x} = [x_1, \ldots, x_d]^\top$ be an input vector.
+  - Let $\theta$ be a threshold.
+- Compute
+
+\[
+  y = \sum_{i=1}^{d} w_i x_i - \theta
+\]
+
+- Note: $x_0 = -1$ and $w_0 = \theta$.
+
+The note means the threshold can be folded into the weights: add a constant input
+$x_0 = -1$ with weight $w_0 = \theta$, and then $y = \sum_{i=0}^{d} w_i x_i$. The key
+difference from the perceptron is that Adaline /learns/ from the raw linear output $y$
+rather than the thresholded $\pm 1$.
+
+** Adaline circuit diagram
+
+A figure only (p50): Widrow's original hardware diagram. Input pattern switches
+($+1$/$-1$) feed adjustable gains $a_1, a_2, a_3, \ldots$ and a "level" gain $a_0$ into a
+summer $\Sigma$. The sum goes to a quantizer (a $\pm 1$ step) to produce the output, and
+is also compared against a reference switch (the desired output) at a second $\Sigma$
+to produce an error signal.
+
+Source: B. Widrow, /An Adaptive "Adaline" Neuron Using Chemical "Memristors"/,
+Technical Report No. 1553-2, Stanford University, October 17, 1960.
+
+** Adaline training
+
+- Let
+  - $y$: network output $= \hat{f}_{\mathbf{w}}(\mathbf{x})$
+  - $d$: desired output $= f(\mathbf{x})$
+- Minimize squared error: $\mathit{Err} = (d - y)^2$
+- Apply a learning rate $\eta \in (0, 1)$.
+- Then the weight update rule is
+
+\[
+  \mathbf{w}_{t+1} \leftarrow \mathbf{w}_t + \eta (d - y) \mathbf{x}
+\]
+
+** Widrow-Hoff rule
+
+- The function we are learning: $\hat{f}_{\mathbf{w}}(\mathbf{x}) = \mathbf{w}^\top \mathbf{x}$
+- Mean squared error:
+
+\[
+  \mathit{MSE}(\mathbf{w})
+    = \frac{1}{|\mathcal{D}|} \sum_{i=1}^{|\mathcal{D}|} \big( f(\mathbf{x}_i) - \mathbf{w}^\top \mathbf{x}_i \big)^2
+    = \frac{1}{|\mathcal{D}|} \sum_{i=1}^{|\mathcal{D}|} (d_i - y_i)^2
+\]
+
+- Calculating the gradient:
+
+\[
+  \nabla_{\mathbf{w}} \mathit{MSE}(\mathbf{w})
+    = -\frac{2}{|\mathcal{D}|} \sum_{i=1}^{|\mathcal{D}|} \big( f(\mathbf{x}_i) - \mathbf{w}^\top \mathbf{x}_i \big) \mathbf{x}_i
+\]
+
+- Weight update:
+
+\[
+  \mathbf{w}_{t+1} \leftarrow \mathbf{w}_t + \eta \nabla_{\mathbf{w}} \mathit{MSE}(\mathbf{w}_t)
+    = \mathbf{w}_t + \eta \frac{1}{|\mathcal{D}|} \sum_{i=1}^{|\mathcal{D}|}
+        \big( f(\mathbf{x}_i) - \mathbf{w}_t^\top \mathbf{x}_i \big) \mathbf{x}_i
+\]
+
+This is also called the /delta rule/ or the /LMS (least mean squares) rule/. The middle
+expression is as written on the slide. Since we are minimizing, the step really goes
+against the gradient, $\mathbf{w}_t - \eta \nabla_{\mathbf{w}} \mathit{MSE}$. The
+right-hand expression is the correct result once the minus sign and the factor of 2
+are absorbed.
+
+** Adaline vs. perceptron
+
+| Adaline                                                                                                 | Perceptron                                                     |
+|---------------------------------------------------------------------------------------------------------+----------------------------------------------------------------|
+| Batch updating                                                                                          | Incremental updating                                           |
+| $\mathbf{w}_{t+1} \leftarrow \mathbf{w}_t + \eta (f(\mathbf{x}_i) - \mathbf{w}_t^\top \mathbf{x}_i) \mathbf{x}_i$ | $\mathbf{w}_{t+1} \leftarrow \mathbf{w}_t \pm \mathbf{x}$      |
+
+Plugging $\pm 1$ outputs into the Adaline rule recovers the perceptron rule:
+
+When correct:
+
+\[ \begin{aligned}
+  \text{Positive:} &\quad \mathbf{w}_{t+1} \leftarrow \mathbf{w}_t + \eta\big(+1 - (+1)\big)\mathbf{x}_i = \mathbf{w}_t \\
+  \text{Negative:} &\quad \mathbf{w}_{t+1} \leftarrow \mathbf{w}_t + \eta\big(-1 - (-1)\big)\mathbf{x}_i = \mathbf{w}_t \end{aligned}
+\]
+
+When incorrect:
+
+\[ \begin{aligned}
+  \text{Should be positive:} &\quad \mathbf{w}_{t+1} \leftarrow \mathbf{w}_t + \tfrac{1}{2}\big(+1 - (-1)\big)\mathbf{x}_i = \mathbf{w}_t + \mathbf{x}_i \\
+  \text{Should be negative:} &\quad \mathbf{w}_{t+1} \leftarrow \mathbf{w}_t + \tfrac{1}{2}\big(-1 - (+1)\big)\mathbf{x}_i = \mathbf{w}_t - \mathbf{x}_i \end{aligned}
+\]
+
+So with $\eta = \tfrac{1}{2}$ and the error measured on the /thresholded/ output, the
+Adaline update is exactly the perceptron update. The real difference is what the error
+is computed from: the perceptron uses $\operatorname{sgn}(\mathbf{w}^\top\mathbf{x})$,
+which only changes on mistakes. Adaline uses the raw $\mathbf{w}^\top\mathbf{x}$, so it
+keeps nudging the weights even on correctly classified points that sit close to the
+boundary.
+
+* Perceptron Convergence
+
+** Perceptron training (recap)
+
+- Recall the training set $\mathbf{F} = \mathbf{F}^+ \cup \mathbf{F}^-$.
+- Start by considering $\mathbf{x} \in \mathbf{F}^-$: $\mathbf{x} \leftarrow -\mathbf{x}$.
+
+#+begin_example
+1. Choose initial weight vector w at random
+2. Choose some example x ∈ F
+3. Consider the class(x)
+     - If sgn(wᵀx) ≤ 0, then  w <- w + x
+     - Otherwise, do nothing (class is correct)
+4. Repeat steps 2 and 3 until convergence
+#+end_example
+
+Negating every negative example is a bookkeeping trick. A negative $\mathbf{x}$ is
+classified correctly when $\mathbf{w}^\top \mathbf{x} \le 0$, which is the same as
+$\mathbf{w}^\top(-\mathbf{x}) \ge 0$. After the flip, "correct" means
+$\mathbf{w}^\top \mathbf{x} > 0$ for /every/ example, and there is only one update case,
+which simplifies the proof.
+
+** Perceptron convergence theorem
+
+*Theorem:* Let $\mathbf{F}$ be a set of unit-length vectors, and let $\mathbf{w}$ be an
+initial weight vector. If there exists a unit vector $\mathbf{w}'$ and a number
+$\delta > 0$ such that $\mathbf{w}'^\top \mathbf{x} > \delta$ for all
+$\mathbf{x} \in \mathbf{F}$, then the perceptron learning rule will update $\mathbf{w}$
+only a finite number of times to find such a $\mathbf{w}'$.
+
+In words: if the (sign-flipped) data is linearly separable with some margin $\delta$,
+the perceptron stops making mistakes after finitely many updates. It finds /a/
+separator, not necessarily $\mathbf{w}'$ itself and not the maximum-margin one.
+
+** Convergence proof
+
+*Numerator.*
+
+- Recall that $\mathbf{w}'$ is an arbitrary weight vector.
+- Since it's a unit vector, $\lVert \mathbf{w}' \rVert = 1$.
+- Define $g(\mathbf{w}) = \dfrac{\mathbf{w}'^\top \mathbf{w}}{\lVert \mathbf{w} \rVert} \le 1$.
+- Assume, without loss of generality, we have misclassified a negative example.
+- Consider, first, the numerator of $g(\mathbf{w})$.
+
+\[ \begin{aligned}
+  \mathbf{w}'^\top \mathbf{w}_{t+1} &= \mathbf{w}'^\top (\mathbf{w}_t + \mathbf{x}) \\
+                                    &= \mathbf{w}'^\top \mathbf{w}_t + \mathbf{w}'^\top \mathbf{x} \end{aligned}
+\]
+
+- Then $\mathbf{w}'^\top \mathbf{x} > \delta \implies \mathbf{w}'^\top \mathbf{w}_{t+1} > \mathbf{w}'^\top \mathbf{w}_t + \delta$.
+- Then for $n$ updates, $\mathbf{w}'^\top \mathbf{w}_{t+1} > n\delta$.
+
+*Denominator.*
+
+- Now consider the denominator of $g(\mathbf{w})$.
+- We only update when $\mathbf{w}^\top \mathbf{x} \le 0$.
+- Thus
+
+\[ \begin{aligned}
+  \lVert \mathbf{w}_{t+1} \rVert^2 &= \mathbf{w}_{t+1}^\top \mathbf{w}_{t+1} \\
+    &= (\mathbf{w}_t + \mathbf{x})^\top (\mathbf{w}_t + \mathbf{x}) \\
+    &= \lVert \mathbf{w}_t \rVert^2 + 2 \mathbf{w}_t^\top \mathbf{x} + \lVert \mathbf{x} \rVert^2. \end{aligned}
+\]
+
+- Since $\mathbf{w}_t^\top \mathbf{x} \le 0$ and $\lVert \mathbf{x} \rVert^2 \le 1$, we
+  must also have that $\lVert \mathbf{w}_{t+1} \rVert^2 \le \lVert \mathbf{w}_t \rVert^2 + 1$.
+- Again, after $n$ updates,
+  $\lVert \mathbf{w}_n \rVert^2 \le n \implies \dfrac{1}{\lVert \mathbf{w}_n \rVert^2} \ge \dfrac{1}{n}$.
+
+*Combining.*
+
+- Combining the results for the numerator and the denominator:
+
+\[ \begin{aligned}
+  g(\mathbf{w}_n) &= \frac{\mathbf{w}'^\top \mathbf{w}_n}{\lVert \mathbf{w}_n \rVert} \\
+                  &> \frac{n\delta}{\sqrt{n}} \\
+                  &= \delta \sqrt{n}. \end{aligned}
+\]
+
+- Since $g(\mathbf{w}_n) \le 1$, this requires that $\delta\sqrt{n} \le 1$.
+- This gives us
+
+\[
+  n \le \frac{1}{\delta^2}. \qquad \text{Q.E.D.}
+\]
+
+The shape of the argument: every mistake pushes $\mathbf{w}$'s alignment with the good
+direction $\mathbf{w}'$ up by at least $\delta$ (linear growth in $n$), while its length
+grows by at most 1 in squared norm (so $\lVert \mathbf{w}_n \rVert \le \sqrt{n}$). The
+cosine $g$ therefore grows like $\sqrt{n}$, but a cosine can never exceed 1, so the
+number of mistakes is capped at $1/\delta^2$. A bigger margin $\delta$ means fewer
+mistakes, the same margin-equals-easier-learning idea as in the SVM section. The
+"$n\delta$" and "$\le n$" bounds implicitly start from $\mathbf{w}_0 = \mathbf{0}$
+rather than a random vector; with a random start the bound picks up constant terms but
+stays finite.

@@ -462,28 +462,41 @@ A **page** is a directory with an `index.org`; a top-level page is a section. Yo
 ```bash
 just new-page "Physics"                            # new top-level section
 just new-page "Kinematics" physics                 # nested under Physics
-just new-page "Gradient Descent" ai/machine-learning
+just new-page "Gradient Descent" ai/ml
 ```
 
-The title becomes both the nav label and the URL slug (`"Gradient Descent"` → `gradient-descent`). The command:
+By default the title becomes both the nav label and the URL slug (`"Gradient Descent"` → `gradient-descent`). The command:
 
 1. Scaffolds `content/<parent>/<slug>/index.org` with the standard page header (title, author, date, and the LaTeX/`hl` macro setup).
 2. Appends the entry to `nav.json` — under the parent you named, or at the top level if you omit it.
 3. Runs a full rebuild, so the new page appears in the sidebar **and** in the homepage section index on every page.
 
-The parent argument is a `content/` path (e.g. `ai/machine-learning`); omit it for a top-level section. The parent page must already exist. Navigation is sorted alphabetically by label at every level at build time (Home always first), so the order of entries in `nav.json` doesn't matter — just their nesting.
+The parent argument is a `content/` path (e.g. `ai/ml`); omit it for a top-level section. The parent page must already exist. Navigation is sorted alphabetically by label at every level at build time (Home always first), so the order of entries in `nav.json` doesn't matter — just their nesting.
+
+**Title vs. path**
+
+A page has two names that are independent of each other: its **title** (the `#+TITLE:` and nav label — what the sidebar, page heading, breadcrumbs and tag graph show) and its **slug** (its directory under `content/`, which is also its URL — what you type in `just` commands). Usually the slug is just the slugified title, but a long title can live at a short path: "Machine Learning" lives at `ai/ml`.
+
+```bash
+just new-page "Operating Systems" "" "" os        # pick the slug up front (4th argument)
+just set-slug ai/machine-learning ml              # change only the slug of an existing page
+```
+
+`rename-page` respects that choice: it re-derives the slug from the new title only when the current slug was derived from the old title. A hand-picked slug is kept across renames unless you pass a new one as a third argument. Slugs must already be in canonical form (lowercase letters, digits and single hyphens). Changing a slug changes the page's URL, and that changes its quiz question ids too. `question-ratings.json` is carried over automatically. Spaced-repetition history held in a browser's localStorage is not, so those cards start over.
 
 **Rename, move, or delete a page**
 
 Each of these takes the page's `content/` path and rewrites `nav.json`, the source under `content/`, and the already-built output under `public/`, then rebuilds:
 
 ```bash
-just rename-page statistics/likelihood "Maximum Likelihood"   # new title → new slug + #+TITLE:
+just rename-page statistics/likelihood "Maximum Likelihood"   # new title (+ slug, if it was title-derived)
+just rename-page ai/ml "Statistical Learning" stat-learning   # new title and an explicit slug
+just set-slug    ai/ml machine-learning                       # new slug only
 just move-page   statistics/likelihood ai                     # reparent (omit parent for top level)
-just delete-page ai/machine-learning                          # remove the page and everything nested under it
+just delete-page ai/ml                          # remove the page and everything nested under it
 ```
 
-Any pages nested under the target move, rename, or delete along with it, and their internal links and nav entries are updated accordingly.
+Any pages nested under the target move, rename, or delete along with it, and their nav entries are updated accordingly. Moves and renames also rewrite relative `[[file:...]]` links in every `.org` file, both links into the moved pages from elsewhere and links out of them, so cross-references keep resolving.
 
 **Why this is the only thing you touch**
 
@@ -507,10 +520,10 @@ A page declares its tags with one keyword in its `.org` source:
 You don't have to write that line by hand:
 
 ```bash
-just tag-page ai/machine-learning/lecture-notes/5-tree-learning week-5 entropy
+just tag-page ai/ml/lectures/5-tree-learning week-5 entropy
 just tag-page algorithms/fibonacci dynamic-programming,memoization
-just untag-page ai/machine-learning/lecture-notes/5-tree-learning entropy
-just new-page "Gradient Descent" ai/machine-learning "optimization, week-3"
+just untag-page ai/ml/lectures/5-tree-learning entropy
+just new-page "Gradient Descent" ai/ml "optimization, week-3"
 ```
 
 The path is a `content/` path, and unlike the page recipes it accepts both shapes of page: a directory holding an `index.org`, and a standalone snippet page like `algorithms/fibonacci` that is `#+INCLUDE`d elsewhere but also publishes on its own.
@@ -521,7 +534,7 @@ Tags are slugs, normalized the same way page titles are — lowercased, with run
 
 ```bash
 just list-tags              # every tag and how many pages use it, most-used first
-just list-tags ai/machine-learning   # one page's tags
+just list-tags ai/ml   # one page's tags
 just list-tags --untagged   # every page with no tags yet — the backfill worklist
 ```
 
@@ -548,7 +561,7 @@ depth 4  ●Kruskal's Algorithm  ●Prim's Algorithm  ●5 Tree Learning  …  (
 
 Scroll in and each group splits into its subsections, then into the pages themselves; scroll out and they fold back. Clicking a grouped vertex opens just that one up. Children unfold from wherever their group was standing, so the picture stays recognisable across a level change instead of rearranging itself.
 
-The levels come from the `content/` path — `ai/machine-learning/lecture-notes/5-tree-learning` is four deep, so there are four levels — which means this keeps working as the wiki grows: at 300 pages the top level is still a handful of sections. Grouped vertices are titled from `nav.json`, so a section reads "AI" and "NISL" rather than a de-slugified "Ai" and "Nisl".
+The levels come from the `content/` path — `ai/ml/lectures/5-tree-learning` is four deep, so there are four levels — which means this keeps working as the wiki grows: at 300 pages the top level is still a handful of sections. Grouped vertices are titled from `nav.json`, so a section reads "AI" and "NISL" rather than a de-slugified "Ai" and "Nisl".
 
 It is drawn by `static/tags.js` from `public/tag-index.json` — a small force-directed layout on a canvas, written out rather than pulled from a library, so `static/` stays dependency-free and the graph inherits the site's light/dark variables instead of fighting them.
 
@@ -565,8 +578,8 @@ So rather than trust all of them, `wiki-assert-no-private-leak` runs last and au
 Typos are what quietly break this: `week5` and `week-5` become two unrelated subjects, and the pages you meant to link stay unlinked. So a tag that closely resembles one already in use stops and asks, since the near miss is almost certainly what you meant:
 
 ```
-$ just tag-page ai/machine-learning/lecture-notes/4-learning-theory week5
-content/ai/machine-learning/lecture-notes/4-learning-theory/index.org
+$ just tag-page ai/ml/lectures/4-learning-theory week5
+content/ai/ml/lectures/4-learning-theory/index.org
   "week5" looks like "week-5" (1 page) — nothing changed.
   Use the existing tag, or re-run with --new to keep it separate.
 ```

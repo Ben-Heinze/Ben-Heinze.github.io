@@ -25,17 +25,23 @@
   function text(tag, cls, s) { var e = el(tag, cls); e.textContent = s; return e; }
   function note(s) { return text('p', 'tag-note', s); }
 
-  // "/ai/machine-learning/lecture-notes/5-tree-learning/index.html"
-  //   -> "ai / machine-learning / lecture-notes"
-  // Deliberately the raw slugs: title-casing them would render "ai" as "Ai",
-  // and the page's real title is already the prominent line.
+  // Nav labels by content path (the manifest's "sections"), set by render().
+  var SECTIONS = {};
+
+  // "/ai/ml/lectures/5-tree-learning/index.html"
+  //   -> "AI / Machine Learning / Lecture Notes"
+  // Each level is titled from its nav label, since a directory slug can be a
+  // short alias ("ml") rather than the name; a level missing from the nav falls
+  // back to its raw slug rather than a title-cased guess ("ai" as "Ai").
   function crumb(href) {
     var parts = href.replace(/^\//, '').split('/');
     parts.pop();                                     // index.html / fibonacci.html
     // A page dir holds its own index.html, so drop that too; a standalone
     // snippet page (fibonacci.html) already sits in its parent's dir.
     if (parts.length && /\/index\.html$/.test(href)) parts.pop();
-    return parts.join(' / ');
+    return parts.map(function (slug, i) {
+      return SECTIONS[parts.slice(0, i + 1).join('/')] || slug;
+    }).join(' / ');
   }
 
   // The route: '' (all tags), 'graph', or a tag name. decodeURIComponent is
@@ -51,6 +57,7 @@
   var teardown = null;
 
   function render(pages, sections) {
+    SECTIONS = sections || {};
     var byTag = {};
     pages.forEach(function (p) {
       (p.tags || []).forEach(function (t) { (byTag[t] = byTag[t] || []).push(p); });
@@ -169,15 +176,15 @@
   // naive O(n²) repulsion is a few thousand operations per frame.
 
   // ── Hierarchy ──
-  // Pages already sit in a tree — content/ai/machine-learning/lecture-notes/… —
+  // Pages already sit in a tree — content/ai/ml/lectures/… —
   // so the graph reuses it as levels of detail rather than inventing clusters of
   // its own. Zoomed out, every page under a section collapses to a single vertex
   // and their edges merge into one thick one; zooming in splits each group into
   // its subsections, and finally into the pages themselves. The same picture
   // then works at 37 pages and at 300.
 
-  // "/ai/machine-learning/lecture-notes/5-tree-learning/index.html"
-  //   -> "ai/machine-learning/lecture-notes/5-tree-learning"
+  // "/ai/ml/lectures/5-tree-learning/index.html"
+  //   -> "ai/ml/lectures/5-tree-learning"
   // "/algorithms/fibonacci.html" -> "algorithms/fibonacci"
   function pathKey(href) {
     return (href || '').replace(/^\//, '')

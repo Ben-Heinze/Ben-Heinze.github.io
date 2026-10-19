@@ -19,3 +19,5 @@
 | Week 4 (Sep 18) | 4 Learning Theory --- cluster evaluation, version spaces, PAC, VC dimension  |
 | Week 5 (Sep 21) | 5 Tree Learning --- decision trees, ID3, regression trees                    |
 | Week 6 (Sep 28) | 6 Ensembles --- rule pruning, RIPPER, bagging, boosting, stacking, HAC, DBSCAN |
+| Week 7 (Oct 5)  | 7 Linear Models --- Naive Bayes, TAN, gradient descent, linear and logistic regression |
+| Week 8 (Oct 12) | 8 Multilayer Networks --- softmax regression, SVMs, kernels, RBF networks, perceptron, Adaline |

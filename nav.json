@@ -18,165 +18,165 @@
     "children": [
       {
         "label": "Machine Learning",
-        "href": "/ai/machine-learning/index.html",
+        "href": "/ai/ml/index.html",
         "children": [
           {
             "label": "Projects",
-            "href": "/ai/machine-learning/projects/index.html"
+            "href": "/ai/ml/projects/index.html"
           },
           {
             "label": "K-Nearest Neighbor",
-            "href": "/ai/machine-learning/k-nearest-neighbor/index.html"
+            "href": "/ai/ml/k-nearest-neighbor/index.html"
           },
           {
             "label": "Classification and Linear Regresssion",
-            "href": "/ai/machine-learning/classification-and-linear-regresssion/index.html"
+            "href": "/ai/ml/classification-and-linear-regresssion/index.html"
           },
           {
             "label": "Lecture Notes",
-            "href": "/ai/machine-learning/lecture-notes/index.html",
+            "href": "/ai/ml/lectures/index.html",
             "children": [
               {
                 "label": "1 Intro to ML",
-                "href": "/ai/machine-learning/lecture-notes/1-intro-to-ml/index.html"
+                "href": "/ai/ml/lectures/1-intro-to-ml/index.html"
               },
               {
                 "label": "3 Density Estimation",
-                "href": "/ai/machine-learning/lecture-notes/3-density-estimation/index.html"
+                "href": "/ai/ml/lectures/3-density-estimation/index.html"
               },
               {
                 "label": "2 Nonparametric Learning",
-                "href": "/ai/machine-learning/lecture-notes/2-nonparametric-learning/index.html"
+                "href": "/ai/ml/lectures/2-nonparametric-learning/index.html"
               },
               {
                 "label": "4 Learning Theory",
-                "href": "/ai/machine-learning/lecture-notes/4-learning-theory/index.html"
+                "href": "/ai/ml/lectures/4-learning-theory/index.html"
               },
               {
                 "label": "5 Tree Learning",
-                "href": "/ai/machine-learning/lecture-notes/5-tree-learning/index.html"
+                "href": "/ai/ml/lectures/5-tree-learning/index.html"
               },
               {
                 "label": "6 Ensembles",
-                "href": "/ai/machine-learning/lecture-notes/6-ensembles/index.html"
+                "href": "/ai/ml/lectures/6-ensembles/index.html"
               },
               {
                 "label": "6.1 presentation",
-                "href": "/ai/machine-learning/lecture-notes/6-1-presentation/index.html"
-              },
-              {
-                "label": "7 GLMs",
-                "href": "/ai/machine-learning/lecture-notes/7-glms/index.html"
+                "href": "/ai/ml/lectures/6-1-presentation/index.html"
               },
               {
                 "label": "7 Linear Models",
-                "href": "/ai/machine-learning/lecture-notes/7-linear-models/index.html"
+                "href": "/ai/ml/lectures/7-linear-models/index.html"
               },
               {
                 "label": "8 Multilayer Networks",
-                "href": "/ai/machine-learning/lecture-notes/8-multilayer-networks/index.html"
+                "href": "/ai/ml/lectures/8-multilayer-networks/index.html"
               }
             ]
           },
           {
             "label": "Textbook Notes",
-            "href": "/ai/machine-learning/textbook-notes/index.html",
+            "href": "/ai/ml/textbook/index.html",
             "children": [
               {
                 "label": "1 Intro to ML",
-                "href": "/ai/machine-learning/textbook-notes/1-intro-to-ml/index.html"
+                "href": "/ai/ml/textbook/1-intro-to-ml/index.html"
               },
               {
                 "label": "20 Designs and Experiments",
-                "href": "/ai/machine-learning/textbook-notes/20-designs-and-experiments/index.html"
+                "href": "/ai/ml/textbook/20-designs-and-experiments/index.html"
               },
               {
                 "label": "7 Clustering",
-                "href": "/ai/machine-learning/textbook-notes/7-clustering/index.html"
+                "href": "/ai/ml/textbook/7-clustering/index.html"
               },
               {
                 "label": "8 Nonparametric Methods",
-                "href": "/ai/machine-learning/textbook-notes/8-nonparametric-methods/index.html"
+                "href": "/ai/ml/textbook/8-nonparametric-methods/index.html"
               },
               {
                 "label": "9 Decision Trees",
-                "href": "/ai/machine-learning/textbook-notes/9-decision-trees/index.html"
+                "href": "/ai/ml/textbook/9-decision-trees/index.html"
+              },
+              {
+                "label": "12 Deep Learning",
+                "href": "/ai/ml/textbook/12-deep-learning/index.html"
               }
             ]
           },
           {
             "label": "Midterm",
-            "href": "/ai/machine-learning/midterm/index.html",
+            "href": "/ai/ml/midterm/index.html",
             "children": [
               {
                 "label": "Question Bank",
-                "href": "/ai/machine-learning/midterm/question-bank/index.html",
+                "href": "/ai/ml/midterm/question-bank/index.html",
                 "children": [
                   {
                     "label": "Foundations and Theory",
-                    "href": "/ai/machine-learning/midterm/question-bank/foundations-and-theory/index.html"
+                    "href": "/ai/ml/midterm/question-bank/foundations-and-theory/index.html"
                   },
                   {
                     "label": "Nonparametric Methods",
-                    "href": "/ai/machine-learning/midterm/question-bank/nonparametric-methods/index.html"
+                    "href": "/ai/ml/midterm/question-bank/nonparametric-methods/index.html"
                   },
                   {
                     "label": "Clustering and Dimensionality",
-                    "href": "/ai/machine-learning/midterm/question-bank/clustering-and-dimensionality/index.html"
+                    "href": "/ai/ml/midterm/question-bank/clustering-and-dimensionality/index.html"
                   },
                   {
                     "label": "Trees and Rules",
-                    "href": "/ai/machine-learning/midterm/question-bank/trees-and-rules/index.html"
+                    "href": "/ai/ml/midterm/question-bank/trees-and-rules/index.html"
                   },
                   {
                     "label": "Experiments and Evaluation",
-                    "href": "/ai/machine-learning/midterm/question-bank/experiments-and-evaluation/index.html"
+                    "href": "/ai/ml/midterm/question-bank/experiments-and-evaluation/index.html"
                   },
                   {
                     "label": "Projects",
-                    "href": "/ai/machine-learning/midterm/question-bank/projects/index.html"
+                    "href": "/ai/ml/midterm/question-bank/projects/index.html"
                   },
                   {
                     "label": "Ensembles",
-                    "href": "/ai/machine-learning/midterm/question-bank/ensembles/index.html"
+                    "href": "/ai/ml/midterm/question-bank/ensembles/index.html"
                   }
                 ]
               },
               {
                 "label": "Practice Test",
-                "href": "/ai/machine-learning/midterm/practice-test/index.html"
+                "href": "/ai/ml/midterm/practice-test/index.html"
               },
               {
                 "label": "Foundations and Theory",
-                "href": "/ai/machine-learning/midterm/foundations-and-theory/index.html"
+                "href": "/ai/ml/midterm/foundations-and-theory/index.html"
               },
               {
                 "label": "Nonparametric Methods",
-                "href": "/ai/machine-learning/midterm/nonparametric-methods/index.html"
+                "href": "/ai/ml/midterm/nonparametric-methods/index.html"
               },
               {
                 "label": "Clustering and Dimensionality",
-                "href": "/ai/machine-learning/midterm/clustering-and-dimensionality/index.html"
+                "href": "/ai/ml/midterm/clustering-and-dimensionality/index.html"
               },
               {
                 "label": "Trees and Rules",
-                "href": "/ai/machine-learning/midterm/trees-and-rules/index.html"
+                "href": "/ai/ml/midterm/trees-and-rules/index.html"
               },
               {
                 "label": "Experiments and Evaluation",
-                "href": "/ai/machine-learning/midterm/experiments-and-evaluation/index.html"
+                "href": "/ai/ml/midterm/experiments-and-evaluation/index.html"
               },
               {
                 "label": "Project Walkthroughs",
-                "href": "/ai/machine-learning/midterm/project-walkthroughs/index.html"
+                "href": "/ai/ml/midterm/project-walkthroughs/index.html"
               },
               {
                 "label": "Ensembles",
-                "href": "/ai/machine-learning/midterm/ensembles/index.html"
+                "href": "/ai/ml/midterm/ensembles/index.html"
               },
               {
                 "label": "High Priority Review",
-                "href": "/ai/machine-learning/midterm/high-priority-review/index.html"
+                "href": "/ai/ml/midterm/high-priority-review/index.html"
               }
             ]
           }
@@ -413,77 +413,77 @@
   },
   {
     "label": "Operating Systems",
-    "href": "/operating-systems/index.html",
+    "href": "/os/index.html",
     "children": [
       {
         "label": "Lectures",
-        "href": "/operating-systems/lectures/index.html",
+        "href": "/os/lectures/index.html",
         "children": [
           {
             "label": "0 Computer System Overview",
-            "href": "/operating-systems/lectures/0-computer-system-overview/index.html"
+            "href": "/os/lectures/0-computer-system-overview/index.html"
           },
           {
             "label": "1 Memory Management",
-            "href": "/operating-systems/lectures/1-memory-management/index.html"
+            "href": "/os/lectures/1-memory-management/index.html"
           },
           {
             "label": "2.1 Process Management",
-            "href": "/operating-systems/lectures/2-1-process-management/index.html"
+            "href": "/os/lectures/2-1-process-management/index.html"
           },
           {
             "label": "2.2 Process Management",
-            "href": "/operating-systems/lectures/2-2-process-management/index.html"
+            "href": "/os/lectures/2-2-process-management/index.html"
           },
           {
             "label": "Handouts",
-            "href": "/operating-systems/lectures/handouts/index.html"
+            "href": "/os/lectures/handouts/index.html"
           }
         ]
       },
       {
         "label": "Textbook",
-        "href": "/operating-systems/textbook/index.html",
+        "href": "/os/textbook/index.html",
         "children": [
           {
             "label": "7 Memory Management",
-            "href": "/operating-systems/textbook/7-memory-management/index.html"
+            "href": "/os/textbook/7-memory-management/index.html"
           },
           {
             "label": "8 Virtual Memory",
-            "href": "/operating-systems/textbook/8-virtual-memory/index.html"
+            "href": "/os/textbook/8-virtual-memory/index.html"
           }
         ]
       },
       {
         "label": "Quiz 1",
-        "href": "/operating-systems/quiz-1/index.html",
+        "href": "/os/quiz-1/index.html",
         "children": [
           {
             "label": "Answer Key",
-            "href": "/operating-systems/quiz-1/answer-key/index.html"
+            "href": "/os/quiz-1/answer-key/index.html"
           },
           {
             "label": "Practice Quiz",
-            "href": "/operating-systems/quiz-1/practice-quiz/index.html"
+            "href": "/os/quiz-1/practice-quiz/index.html"
           }
         ]
       },
       {
         "label": "Test 1",
-        "href": "/operating-systems/test-1/index.html",
+        "href": "/os/test-1/index.html",
         "children": [
           {
             "label": "Practice Test",
-            "href": "/operating-systems/test-1/practice-test/index.html"
+            "href": "/os/test-1/practice-test/index.html"
           },
           {
             "label": "Question Bank",
-            "href": "/operating-systems/test-1/question-bank/index.html"
+            "href": "/os/test-1/question-bank/index.html"
           },
           {
             "label": "Calculation Practice",
-            "href": "/operating-systems/test-1/calculations/index.html"
+            "href": "/os/test-1/calculations/index.html"
           }
         ]
       }

@@ -1,4 +1,4 @@
-"""Local dev server for the wiki, plus the new-page/delete-page/move-page CLI
+"""Local dev server for the wiki, plus the new-page/delete-page/move-page/set-slug CLI
 (see the `just` recipes). Creating a page scaffolds a generic index.org,
 appends the entry to nav.json, and rebuilds the site so the new page appears
 everywhere.
@@ -660,11 +660,130 @@ def page_visibility_tab(href, visibility):
     return {'ok': True, 'href': href, 'visibility': visibility}
 
 
-def create_tab(label, parent_href, tags=''):
+def validate_slug(slug):
+    """A hand-picked URL slug (`ml` for "Machine Learning") must already be in
+    canonical form, so the path you type is exactly the path you get."""
+    slug = (slug or '').strip()
+    if not slug:
+        raise ValueError('slug is empty')
+    if slugify(slug) != slug:
+        raise ValueError('slug must be lowercase letters, digits and single hyphens '
+                         '(did you mean %r?)' % slugify(slug))
+    return slug
+
+
+ORG_FILE_LINK_RE = re.compile(r'\[\[file:([^\]]+)\]')
+
+
+def rewrite_org_links(old_dir, new_dir):
+    """Fix relative [[file:...]] links after content/old_dir moved to new_dir.
+
+    Run after the move. Every .org file is checked: links from elsewhere that
+    pointed into old_dir are pointed at new_dir, and links from inside the moved
+    tree that pointed outward are re-relativized from its new depth. Each link
+    is resolved from where its file used to live, mapped through the move, and
+    re-expressed relative to where the file lives now. Returns files changed.
+    """
+    content = os.path.join(ROOT, 'content')
+
+    def moved(rel):
+        if rel == old_dir or rel.startswith(old_dir + '/'):
+            return new_dir + rel[len(old_dir):]
+        return rel
+
+    changed = 0
+    for dirpath, _, files in os.walk(content):
+        for name in files:
+            if not name.endswith('.org'):
+                continue
+            full = os.path.join(dirpath, name)
+            here_new = os.path.relpath(dirpath, content)
+            here_new = '' if here_new == '.' else here_new
+            # Where this file's directory was before the move.
+            here_old = here_new
+            if here_new == new_dir or here_new.startswith(new_dir + '/'):
+                here_old = old_dir + here_new[len(new_dir):]
+
+            def fix(m):
+                target = m.group(1)
+                path, sep, search = target.partition('::')
+                if not path or path.startswith(('/', '~')) or '://' in path:
+                    return m.group(0)
+                was = os.path.normpath(os.path.join(here_old, path))
+                if was.startswith('..'):
+                    return m.group(0)
+                now = os.path.relpath(moved(was), here_new or '.')
+                if path.endswith('/'):
+                    now += '/'
+                if os.path.normpath(os.path.join(here_new, now)) == \
+                        os.path.normpath(os.path.join(here_new, path)):
+                    return m.group(0)               # still resolves; leave as written
+                return '[[file:' + now + sep + search + ']'
+
+            with open(full) as f:
+                body = f.read()
+            new_body = ORG_FILE_LINK_RE.sub(fix, body)
+            if new_body != body:
+                with open(full, 'w') as f:
+                    f.write(new_body)
+                changed += 1
+    return changed
+
+
+def remap_rating_ids(old_dir, new_dir):
+    """Carry question-ratings.json over a page move.
+
+    Quiz ids are sha1(href + heading) (wiki-stable-card-id in publish.el), so
+    changing a page's URL mints new ids and would orphan its ratings. Each
+    rating stores its question text, which is the heading, so the old id can be
+    re-derived for every nav href under old_dir and rekeyed to the new href.
+    """
+    if not os.path.isfile(RATINGS):
+        return 0
+    import hashlib
+
+    def card_id(href, q):
+        return 'lh_' + hashlib.sha1((href + '\x1f' + q).encode()).hexdigest()[:12]
+
+    with open(NAV) as f:
+        nav = json.load(f)
+    hrefs = []
+
+    def walk(items):
+        for e in items:
+            hrefs.append(e['href'])
+            walk(e.get('children', []))
+    walk(nav)
+    old_prefix, new_prefix = '/' + old_dir + '/', '/' + new_dir + '/'
+    # nav already points at new_dir by the time this runs; recover the old hrefs.
+    moved = [old_prefix + h[len(new_prefix):] for h in hrefs if h.startswith(new_prefix)]
+
+    with _ratings_lock:
+        with open(RATINGS) as f:
+            ratings = json.load(f)
+        out, n = {}, 0
+        for rid, r in ratings.items():
+            q = r.get('q')
+            for href in moved if q else ():
+                if card_id(href, q) == rid:
+                    rid = card_id(new_prefix + href[len(old_prefix):], q)
+                    r = dict(r, id=rid)
+                    n += 1
+                    break
+            out[rid] = r
+        if n:
+            tmp = RATINGS + '.tmp'
+            with open(tmp, 'w') as f:
+                json.dump(out, f, indent=2, sort_keys=True)
+            os.replace(tmp, RATINGS)
+    return n
+
+
+def create_tab(label, parent_href, tags='', slug=''):
     label = (label or '').strip()
     if not label:
         raise ValueError('a name is required')
-    slug = slugify(label)
+    slug = validate_slug(slug) if (slug or '').strip() else slugify(label)
     if not slug:
         raise ValueError('name has no usable characters')
 
@@ -810,6 +929,7 @@ def move_tab(from_href, to_parent_href):
         raise ValueError('already exists: content/' + new_dir)
 
     shutil.move(abs_old, abs_new)
+    rewrite_org_links(old_dir, new_dir)
 
     # org-publish-all does not prune stale files, so the old built output must
     # go explicitly or the page would linger at its old URL too.
@@ -832,6 +952,7 @@ def move_tab(from_href, to_parent_href):
     with open(NAV, 'w') as f:
         json.dump(nav, f, indent=2)
         f.write('\n')
+    remap_rating_ids(old_dir, new_dir)
 
     # Full rebuild: descendant pages' internal nav links and the site-wide
     # preamble all need to reflect the new location.
@@ -842,11 +963,16 @@ def move_tab(from_href, to_parent_href):
     return {'ok': True, 'from': from_href, 'to': entry['href']}
 
 
-def rename_tab(from_href, new_label):
-    """Rename a page: change its title, nav label, URL slug, and content dir.
+def rename_tab(from_href, new_label=None, new_slug=None):
+    """Rename a page: change its title/nav label, its URL slug, or both.
 
-    Keeps the page under the same parent (use move_tab to change parent). The
-    slug/dir is re-derived from new_label, so the page's URL changes and any
+    The title and the slug (the page's directory name, i.e. its URL) are
+    independent: "Machine Learning" can live at ai/ml. Rules for the slug:
+      - new_slug given: use it (set-slug, or rename-page's third argument).
+      - otherwise, if the current slug is the one derived from the old title,
+        re-derive it from the new title, so plain renames keep URLs readable.
+      - otherwise the page has a hand-picked slug; keep it.
+    Keeps the page under the same parent (use move_tab to change parent); any
     pages nested under it move with it. Mirrors move_tab's nav.json + content/
     + public/ manipulation, plus rewriting the #+TITLE: in the index.org and a
     full rebuild.
@@ -855,19 +981,14 @@ def rename_tab(from_href, new_label):
     if not from_href:
         raise ValueError('a page path is required')
 
-    new_label = (new_label or '').strip()
-    if not new_label:
-        raise ValueError('a new name is required')
-    new_slug = slugify(new_label)
-    if not new_slug:
-        raise ValueError('name has no usable characters')
+    new_label = (new_label or '').strip() or None
+    new_slug = validate_slug(new_slug) if (new_slug or '').strip() else None
+    if new_label is None and new_slug is None:
+        raise ValueError('a new name or slug is required')
 
     old_dir = from_href.strip('/').rsplit('/', 1)[0]  # ".../index.html" -> dir
     if not old_dir:
         raise ValueError('refusing to rename the site root')
-
-    parent_dir = old_dir.rsplit('/', 1)[0] if '/' in old_dir else ''
-    new_dir = os.path.join(parent_dir, new_slug)
 
     with open(NAV) as f:
         nav = json.load(f)
@@ -875,6 +996,18 @@ def rename_tab(from_href, new_label):
     entry = find_entry(nav, from_href)
     if entry is None:
         raise ValueError('page not found in nav: ' + from_href)
+
+    old_label = entry.get('label', '')
+    if new_label is None:
+        new_label = old_label
+    old_slug = old_dir.rsplit('/', 1)[-1]
+    if new_slug is None:
+        new_slug = slugify(new_label) if old_slug == slugify(old_label) else old_slug
+        if not new_slug:
+            raise ValueError('name has no usable characters')
+
+    parent_dir = old_dir.rsplit('/', 1)[0] if '/' in old_dir else ''
+    new_dir = os.path.join(parent_dir, new_slug)
 
     abs_old = os.path.join(ROOT, 'content', old_dir)
     if not os.path.isdir(abs_old):
@@ -887,6 +1020,7 @@ def rename_tab(from_href, new_label):
         if os.path.exists(abs_new):
             raise ValueError('already exists: content/' + new_dir)
         shutil.move(abs_old, abs_new)
+        rewrite_org_links(old_dir, new_dir)
 
         # org-publish-all does not prune stale files, so the old built output
         # must go explicitly or the page would linger at its old URL too.
@@ -907,6 +1041,8 @@ def rename_tab(from_href, new_label):
     with open(NAV, 'w') as f:
         json.dump(nav, f, indent=2)
         f.write('\n')
+    if new_dir != old_dir:
+        remap_rating_ids(old_dir, new_dir)
 
     # Update the page's own title so it matches the nav label. The #+TITLE:
     # keyword drives the rendered heading and the <title> element.
@@ -1023,12 +1159,14 @@ def main():
 
     if len(sys.argv) > 1 and sys.argv[1] == 'new-page':
         # Scaffolds the page, updates nav.json, and rebuilds the site. The
-        # optional third arg is a comma/space separated tag list.
+        # optional third arg is a comma/space separated tag list; the optional
+        # fourth is a URL slug, when it should differ from the title's.
         label = sys.argv[2] if len(sys.argv) > 2 else ''
         parent = sys.argv[3] if len(sys.argv) > 3 else ''
         tags = sys.argv[4] if len(sys.argv) > 4 else ''
+        slug = sys.argv[5] if len(sys.argv) > 5 else ''
         try:
-            result = create_tab(label, path_to_href(parent), tags)
+            result = create_tab(label, path_to_href(parent), tags, slug)
         except Exception as e:
             print('error: ' + str(e), file=sys.stderr)
             sys.exit(1)
@@ -1102,16 +1240,34 @@ def main():
 
     if len(sys.argv) > 1 and sys.argv[1] == 'rename-page':
         # Rename a page: takes its content/ path (e.g. "statistics/likelihood")
-        # and a new title. Re-derives the slug/dir + href from the title and
-        # updates the page's own #+TITLE:, keeping it under the same parent.
+        # and a new title, plus an optional slug. Updates the page's own
+        # #+TITLE: and keeps it under the same parent; see rename_tab for when
+        # the slug/dir follows the title and when a hand-picked one is kept.
         path = sys.argv[2] if len(sys.argv) > 2 else ''
         new_label = sys.argv[3] if len(sys.argv) > 3 else ''
+        new_slug = sys.argv[4] if len(sys.argv) > 4 else ''
+        if not new_label.strip():
+            print('error: a new name is required', file=sys.stderr)
+            sys.exit(1)
         try:
-            result = rename_tab(path_to_href(path), new_label)
+            result = rename_tab(path_to_href(path), new_label, new_slug)
         except Exception as e:
             print('error: ' + str(e), file=sys.stderr)
             sys.exit(1)
         print('renamed ' + result['from'] + ' -> ' + result['to'])
+        return
+
+    if len(sys.argv) > 1 and sys.argv[1] == 'set-slug':
+        # Change only a page's URL slug (its directory name), keeping its title
+        # and nav label: "ai/machine-learning" + "ml" -> content/ai/ml/.
+        path = sys.argv[2] if len(sys.argv) > 2 else ''
+        slug = sys.argv[3] if len(sys.argv) > 3 else ''
+        try:
+            result = rename_tab(path_to_href(path), None, slug)
+        except Exception as e:
+            print('error: ' + str(e), file=sys.stderr)
+            sys.exit(1)
+        print('moved ' + result['from'] + ' -> ' + result['to'])
         return
 
     if len(sys.argv) > 1 and sys.argv[1] == 'page-visibility':

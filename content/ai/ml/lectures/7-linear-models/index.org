@@ -1,0 +1,794 @@
+#+TITLE: 7 Linear Models
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+TAGS: gradient-descent, linear-regression, logistic-regression, machine-learning, naive-bayes, week-7
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Week 7 Notes.pdf][Week 7: Linear Models (PDF)]]
+
+The deck covers three blocks. It opens with Naive Bayes --- the discrete version, a
+worked example, smoothing, the Gaussian version for real-valued features, and Tree
+Augmented Naive Bayes, which relaxes the independence assumption. It then steps back
+to treat learning as optimization and introduces gradient descent in its batch,
+incremental and mini-batch forms. It finishes with linear models proper: linear
+regression (closed form, gradient descent, $R^2$) and logistic regression. Several
+slides are figures (the TAN diagrams, two scatter plots, the logistic curve and the
+final pseudocode); those are described below, and the pseudocode is transcribed.
+
+* Naive Bayes
+
+** Bayesian classification
+
+- In classification, we want to maximize $P(f_h \mid \mathcal{D})$.
+- Using the results from Bayesian decision theory (see
+  [[file:../4-learning-theory/index.org][4 Learning Theory]]), this means we want
+
+\[
+  \mathit{class} = \arg\max_{c \in \mathcal{C}} P(c \mid f_1, \ldots, f_d).
+\]
+
+- As we did with Bayes decision theory, we apply Bayes rule:
+
+\[
+  P(c \mid f_1, \ldots, f_d) = \frac{P(f_1, \ldots, f_d \mid c)\, P(c)}{P(f_1, \ldots, f_d)}.
+\]
+
+- This looks like it's expensive!
+
+** Complexity
+
+- Assume the random variables $c, f_1, \ldots, f_d$ are all Boolean.
+- There are a total of $d + 1$ random variables.
+- Consider the distribution $P(f_1, \ldots, f_d \mid c)$.
+- Fully parameterizing it will require $2^{d+1}$ probabilities.
+- Problems:
+  - Storage
+  - Computational time
+  - Excessively large number of parameters to estimate
+
+The last problem is the real one: even with plenty of memory, there is never enough
+data to estimate an exponential number of joint probabilities reliably.
+
+** Conditional independence
+
+*Def:* two random variables $X, Y$ are /conditionally independent/ given a third
+random variable $Z$, denoted $(X \perp Y \mid Z)$, if any of the following hold:
+
+\begin{align*}
+  P(X, Y \mid Z) &= P(X \mid Z)\, P(Y \mid Z) \\
+  P(X \mid Y, Z) &= P(X \mid Z) \\
+  P(Y \mid X, Z) &= P(Y \mid Z)
+\end{align*}
+
+All of these are equivalent. For our classifier, assume
+$\forall i, j,\ i \neq j,\ (f_i \perp f_j \mid c)$. Then
+
+\[
+  P(c \mid f_1, \ldots, f_d) = \frac{P(f_1 \mid c) \times \cdots \times P(f_d \mid c)\, P(c)}{P(f_1, \ldots, f_d)}
+\]
+
+\[
+  \mathit{class} = \arg\max_{c \in \mathcal{C}} P(c) \prod_{i=1}^{d} P(f_i \mid c).
+\]
+
+The denominator is dropped in the second line because it is the same for every
+class. The parameter count falls from $2^{d+1}$ to roughly $2d$ per class.
+
+*In class:* this was flagged as a test question. The Naive Bayes assumption is that
+the features are /conditionally independent given the class/ --- not that "the
+features are independent". Those are different statements: features can be strongly
+correlated overall and still be independent once the class is known.
+
+** Example
+
+Training data (10 examples, 5 Boolean features):
+
+| Class | F1 | F2 | F3 | F4 | F5 |
+|-------+----+----+----+----+----|
+|     0 |  1 |  1 |  1 |  0 |  0 |
+|     0 |  0 |  1 |  1 |  1 |  0 |
+|     0 |  0 |  0 |  1 |  1 |  1 |
+|     0 |  1 |  0 |  0 |  1 |  0 |
+|     0 |  0 |  1 |  1 |  0 |  1 |
+|     1 |  0 |  1 |  0 |  1 |  0 |
+|     1 |  1 |  0 |  0 |  0 |  0 |
+|     1 |  0 |  1 |  0 |  0 |  0 |
+|     1 |  1 |  0 |  1 |  0 |  1 |
+|     1 |  0 |  1 |  0 |  1 |  0 |
+
+Estimate $P(c)$:
+
+\[
+  P(c = 0) = \frac{5}{10} = 0.5 \qquad P(c = 1) = \frac{5}{10} = 0.5
+\]
+
+Estimate $P(F1 = 0 \mid c = 0)$ --- three of the five class-0 rows have $F1 = 0$:
+
+\[
+  P(F1 = 0 \mid c = 0) = \frac{3}{5} = 0.6
+\]
+
+Doing the same for every feature and class gives the full set of estimates
+(with $P(C=0) = P(C=1) = 0.5$):
+
+|                       |  F1 |  F2 |  F3 |  F4 |  F5 |
+|-----------------------+-----+-----+-----+-----+-----|
+| $P(F_i = 0 \mid C=0)$ | 0.6 | 0.4 | 0.2 | 0.4 | 0.6 |
+| $P(F_i = 1 \mid C=0)$ | 0.4 | 0.6 | 0.8 | 0.6 | 0.4 |
+| $P(F_i = 0 \mid C=1)$ | 0.6 | 0.4 | 0.8 | 0.6 | 0.8 |
+| $P(F_i = 1 \mid C=1)$ | 0.4 | 0.6 | 0.2 | 0.4 | 0.2 |
+
+Classify $[1\ 1\ 0\ 1\ 0]$:
+
+\begin{align*}
+  C = 0&: \quad 0.5 \times 0.4 \times 0.6 \times 0.2 \times 0.6 \times 0.6 = 0.00864 \\
+  C = 1&: \quad 0.5 \times 0.4 \times 0.6 \times 0.8 \times 0.4 \times 0.8 = \mathbf{0.03072}
+\end{align*}
+
+Decide $C = 1$. The deciding factor is $F3 = 0$: it has probability 0.2 under class 0
+but 0.8 under class 1, and the other features nearly cancel.
+
+** Subtleties
+
+- Naive Bayes can only solve /linearly separable/ problems exactly.
+- A problem arises if any of the conditional probabilities equals zero
+  $\Longrightarrow$ smooth.
+- m-estimate:
+
+\[
+  P(f \mid c) \approx \frac{n_{f,c} + m p}{n_c + m}
+\]
+
+- Example: suppose $m = 1$ and $p = 0.001$. Then for a feature value never seen with
+  class $c$,
+
+\[
+  \frac{0 + 0.001}{n_c + 1} \neq 0
+\]
+
+A single zero factor wipes out the entire product regardless of the other features;
+the m-estimate behaves like $m$ "virtual" examples distributed according to the
+prior $p$, so no estimate is ever exactly zero.
+
+*In class:* Naive Bayes is a linear model at its core. Multiplying many
+probabilities together drives the product toward zero, so in practice you take logs
+and sum them instead:
+
+\[
+  \log P(c) + \sum_{i=1}^{d} \log P(f_i \mid c)
+\]
+
+That is a weighted sum of (indicator) feature terms --- a linear function --- which
+is exactly why Naive Bayes can only solve linearly separable problems exactly. The
+deck comes back to this point in [[*Linear Models][Linear Models]] below.
+
+** Gaussian Naive Bayes
+
+- Focused on working with continuous (real-valued) features.
+- Still assumes discrete classes (i.e., not used for regression).
+- Prior class probability: $P(\mathit{class})$.
+- Variable distribution is Gaussian:
+
+\[
+  X \sim \mathcal{N}(\mu, \sigma^2) = \frac{1}{\sigma\sqrt{2\pi}}
+     \exp\!\left(-\frac{(x - \mu)^2}{2\sigma^2}\right)
+\]
+
+- Assume $d$ random variables $X_1, \ldots, X_d$ and class variable $Y$.
+- Our goal is to estimate:
+
+\begin{align*}
+  \mu_{ik}      &= E[X_i \mid Y = y_k] \\
+  \sigma_{ik}^2 &= E[(X_i - \mu_{ik})^2 \mid Y = y_k]
+\end{align*}
+
+So there is one mean and one variance per (feature, class) pair.
+
+*** Maximum likelihood estimation
+
+MLE estimate for the mean:
+
+\[
+  \hat{\mu}_{ik} = \frac{1}{\sum_j \delta(Y^j = y_k)} \sum_j X_i^j\, \delta(Y^j = y_k)
+\]
+
+where
+
+\[
+  \delta(Y^j = y_k) = \begin{cases} 1 & Y^j = y_k \\ 0 & \text{otherwise} \end{cases}
+\]
+
+MLE estimate for the variance:
+
+\[
+  \hat{\sigma}_{ik}^2 = \frac{1}{\sum_j \delta(Y^j = y_k)} \sum_j \big(X_i^j - \hat{\mu}_{ik}\big)^2 \delta(Y^j = y_k)
+\]
+
+unbiased:
+
+\[
+  \hat{\sigma}_{ik}^2 = \frac{1}{\big(\sum_j \delta(Y^j = y_k)\big) - 1} \sum_j \big(X_i^j - \hat{\mu}_{ik}\big)^2 \delta(Y^j = y_k)
+\]
+
+The $\delta$ just restricts each sum to the training examples of class $y_k$: these
+are the ordinary sample mean and variance computed within one class.
+
+*** GNB rule
+
+The Gaussian Naive Bayes rule then becomes
+
+\[
+  \mathit{class} = \arg\max_{c \in C} P(c) \prod_{i=1}^{d} P(f_i \mid c)
+\]
+
+and substituting in the Gaussians gives us
+
+\[
+  \mathit{class} = \arg\max_{c \in C} P(c) \prod_{i=1}^{d} \mathcal{N}(\hat{\mu}_{ic}, \hat{\sigma}_{ic}).
+\]
+
+Here $\mathcal{N}(\hat{\mu}_{ic}, \hat{\sigma}_{ic})$ means the Gaussian density
+with those parameters evaluated at the observed value $f_i$.
+
+** Tree Augmented Naive Bayes
+
+(The in-class heading for this part was /semi-naive Bayes/: models that keep the
+Naive Bayes structure but relax its independence assumption.)
+
+The slides here are diagrams. Plain Naive Bayes, drawn as a Bayesian network, is a
+class node $C$ (labeled $P(C)$) with an arrow to each feature $F_1, \ldots, F_4$, each
+labeled $P(F_i \mid C)$. No feature has any other parent.
+
+Tree Augmented Naive Bayes (TAN) keeps those arrows but also lets each feature have
+/one/ other feature as a parent, so that the feature-to-feature edges form a tree.
+The example on the slide:
+
+- $F_4$ is the root of the feature tree: $P(F_4 \mid C)$
+- $F_4 \to F_1$: $P(F_1 \mid F_4, C)$
+- $F_4 \to F_2$: $P(F_2 \mid F_4, C)$
+- $F_2 \to F_3$: $P(F_3 \mid F_2, C)$
+
+*** Classification rule
+
+To classify using the augmented structure:
+
+\[
+  \mathit{class} = \arg\max_{c \in C} P(c)\, P(f_{\mathrm{root}} \mid c)
+     \prod_{(f_i, f_j) \in \mathit{TAN}} P(f_i \mid f_j, c)
+\]
+
+To decide which feature-to-feature edges to keep, use conditional mutual information:
+
+\[
+  I(F_i, F_j \mid C) = \sum_{F_i, F_j, C} P(F_i, F_j, C)
+     \log \frac{P(F_i, F_j \mid C)}{P(F_i \mid C)\, P(F_j \mid C)}
+\]
+
+$I(F_i, F_j \mid C)$ is zero exactly when $F_i \perp F_j \mid C$, so it measures how
+badly the Naive Bayes assumption fails for that pair.
+
+*** Building a TAN
+
+The four "Building a TAN" slides are a picture sequence:
+
+1. Start from the plain Naive Bayes network.
+2. Connect every pair of features with an undirected edge weighted by
+   $I(F_i, F_j \mid C)$.
+3. Fill in the weights. The example values:
+
+   | Edge            | $I(F_i, F_j \mid C)$ |
+   |-----------------+----------------------|
+   | $F_1$ -- $F_2$  |                 1.32 |
+   | $F_1$ -- $F_3$  |                0.032 |
+   | $F_1$ -- $F_4$  |                 2.32 |
+   | $F_2$ -- $F_3$  |                 3.32 |
+   | $F_2$ -- $F_4$  |                 4.12 |
+   | $F_3$ -- $F_4$  |                 0.23 |
+
+4. Keep a tree of the strongest edges and direct it away from a chosen root, giving
+   the TAN shown above.
+
+The kept edges are the three heaviest that don't form a cycle --- 4.12 ($F_2$--$F_4$),
+3.32 ($F_2$--$F_3$) and 2.32 ($F_1$--$F_4$) --- i.e. a maximum-weight spanning tree
+over the features. Rooting it at $F_4$ yields the directions on the final slide.
+
+* Gradient Descent
+
+** Optimization
+
+- To this point, we have been approaching machine learning as an optimization
+  problem.
+- Specifically, we seek to find model parameters $\mathbf{\Theta}$ such that some loss
+  function $\mathcal{L}(f(\mathcal{D}, \mathbf{\Theta}))$ is minimized over data set
+  $\mathcal{D}$.
+- If we know the functional form of the model to be learned, we can apply analytical
+  methods for optimization:
+
+\[
+  \mathbf{\Theta} = \arg\min_{\boldsymbol{\theta} \in \mathbf{\Theta}^*} \mathcal{L}(f(\mathcal{D}, \boldsymbol{\theta}))
+\]
+
+\[
+  \nabla_{\mathbf{\Theta}}\, \mathcal{L}(f(\mathcal{D}, \mathbf{\Theta})) = 0
+\]
+
+Solve for $\mathbf{\Theta}$.
+
+** Why gradient descent
+
+- Generally, we do not know the complete functional form of the loss function due to
+  its dependence on the model's functional form $f(\mathcal{D}, \mathbf{\Theta})$.
+- Furthermore, the resulting function is likely to be highly nonlinear, resulting in
+  - Several critical points (minima and saddle points)
+  - Some critical points worse than others (local minima)
+- Finding the global optimum is therefore intractable.
+- Therefore, we approximate the solution by computing a local gradient of the loss
+  $\mathcal{L}(f(\mathcal{D}, \mathbf{\Theta}))$ and following the gradient to the
+  nearest local optimum.
+
+** One-step gradient descent
+
+#+begin_example
+Select an initial point in the search space: θ⁰
+Repeat
+    t ← t + 1
+    Calculate the gradient of the loss at that point: ∇θ L(f(D, θ))
+    Update the parameters: θᵗ ← θᵗ⁻¹ − η ∇θ L(f(D, θᵗ⁻¹))
+Until some convergence property is met
+#+end_example
+
+Here $\eta \in (0, 1)$ is a /learning rate/, corresponding to the "step size" of the
+update. The minus sign is the whole idea: the gradient points uphill, so stepping
+against it decreases the loss.
+
+** Types of gradient descent
+
+- Generally, three types of gradient descent are employed:
+  - Batch gradient descent
+  - Incremental (stochastic) gradient descent
+  - Mini-batch (stochastic) gradient descent
+- Technically, the incremental approach is a type of mini-batch where the batch size
+  is set equal to one.
+- Key to mini-batch gradient descent is randomization; this is the stochastic part.
+
+The three differ only in how many examples contribute to each parameter update: all
+of them, one, or a random subset.
+
+*** Batch gradient descent
+
+Assume we have a training set
+$\mathcal{D} = \{\mathbf{x}^i, y^i\}_{i=1}^{|\mathcal{D}|}$.
+
+#+begin_example
+Initialize parameters θ⁰
+Repeat
+    t ← t + 1
+    Δθ ← 0
+    For i = 1, |D| do
+        Δθ ← Δθ − ηₜ ∇θ L(f(xⁱ, θᵗ⁻¹))
+    End For
+    θᵗ ← θᵗ⁻¹ + (1/|D|) Δθ
+Until some convergence property is met
+#+end_example
+
+One update per pass over the data, using the average gradient over every example.
+
+*** Incremental gradient descent
+
+Assume we have a training set
+$\mathcal{D} = \{\mathbf{x}^i, y^i\}_{i=1}^{|\mathcal{D}|}$.
+
+#+begin_example
+Initialize parameters θ⁰
+Repeat
+    Generate a random permutation of D
+    For i = 1, |D| do
+        t ← t + 1
+        Δθ ← −ηₜ ∇θ L(f(xⁱ, θᵗ⁻¹))
+        θᵗ ← θᵗ⁻¹ + Δθ
+    End For
+Until some convergence property is met
+#+end_example
+
+Note that $t \leftarrow t + 1$ has moved inside the loop: every example produces its
+own update, so there are $|\mathcal{D}|$ updates per pass, and the random permutation
+is what makes it stochastic.
+
+*** Mini-batch gradient descent
+
+Assume we have a training set
+$\mathcal{D} = \{\mathbf{x}^i, y^i\}_{i=1}^{|\mathcal{D}|}$.
+
+#+begin_example
+Initialize parameters θ⁰
+Repeat
+    t ← t + 1
+    Let Bᵗ ~ U(D) be a randomly generated mini-batch of some size |Bᵗ| < |D|
+    Δθ ← 0
+    For i = 1, |Bᵗ| do
+        Δθ ← Δθ − ηₜ ∇θ L(f(xⁱ, θᵗ⁻¹))
+    End For
+    θᵗ ← θᵗ⁻¹ + (1/|Bᵗ|) Δθ
+Until some convergence property is met
+#+end_example
+
+This is the batch algorithm run on a uniformly sampled subset $\mathcal{B}^t$ instead
+of all of $\mathcal{D}$. (The slide writes the last step with $\delta\boldsymbol{\theta}$;
+it is the same accumulated $\Delta\boldsymbol{\theta}$.)
+
+*In class:* the three types were listed as batch, incremental (stochastic) and
+mini-batch (stochastic) gradient descent --- the same three as the slide.
+
+** The learning rate
+
+- Much of the behavior of gradient descent is driven by the selected learning rate.
+- It is critical that the learning rate be tuned.
+- Inappropriate learning rates can have negative results:
+  - Too small --- slow convergence
+  - Too large --- unstable convergence due to oscillation (over-shooting)
+- Ideally:
+  - Want the learning rate to be large when we have long, shallow gradients
+  - Want the learning rate to be small when we have short, steep gradients
+- Gradient magnitudes are determined directly, but the length is difficult to
+  determine.
+- One approach to handling this is to set the initial learning rate large and
+  gradually reduce it over time (referred to as "annealing").
+- Adaptive learning rate methods exist (e.g., Adam) but still need a starting point.
+
+"Length" here means how far the slope continues before it changes --- something the
+local gradient cannot tell you. The name "annealing" is borrowed from the same
+cooling-schedule idea as simulated annealing in
+[[file:../3-density-estimation/index.org][3 Density Estimation]].
+
+** Convergence
+
+- Gradient descent, in all of its forms, is an iterative search process.
+- As such, we need to have a way to determine when to stop the search.
+- There are a number of common approaches that can be considered:
+  - Pre-set a maximum number of iterations and stop when that number is reached
+    (difficult to manage over-fitting or under-fitting; should be tuned).
+  - Keep track of a recent history of updates; when the magnitudes of the updates
+    appear to stagnate, stop (can lead to getting trapped on a ridge or plateau, or
+    can lead to overfitting).
+  - Track performance against a separate, held-out data set; stop when performance
+    starts to degrade on this data set (manages over/under fitting but requires some
+    level of smoothing to manage noise).
+
+The third option is what is usually called /early stopping/.
+
+* Linear Models
+
+- So far, we have considered learning methods that are not linear:
+  - Nonparametric learning such as nearest neighbor
+    ([[file:../2-nonparametric-learning/index.org][2 Nonparametric Learning]])
+  - Decision trees and rules ([[file:../5-tree-learning/index.org][5 Tree Learning]],
+    [[file:../6-ensembles/index.org][6 Ensembles]])
+- Here we take a step back and consider only linear models. (Recall: Naive Bayes is
+  linear.)
+
+\[
+  f(\mathbf{x}) = w_0 + \sum_{i=1}^{d} w_i x_i
+\]
+
+- The objective is to learn the weights
+  $\boldsymbol{\theta} = \mathbf{w} = [w_0, w_1, \ldots, w_d]^\top$.
+- We provide this as a foundation for more powerful models to follow.
+- We begin by considering the regression problem.
+
+** Linear regression
+
+[Slide 28 is a figure: a scatter plot of $y$ against $x$ on $[0, 10]$ with a fitted
+red line rising from about 2.5 to about 17.5.]
+
+- The task is to learn the weights $\mathbf{w}$ in a linear model.
+- The typical loss function is mean squared error:
+
+\[
+  \mathcal{L}(f(\mathcal{D}, \mathbf{w})) = \frac{1}{|\mathcal{D}|}
+     \sum_{i=1}^{|\mathcal{D}|} \big(y^i - f(\mathbf{x}^i, \mathbf{w})\big)^2
+\]
+
+- Since the model is linear, this becomes
+
+\[
+  \mathcal{L}(f(\mathcal{D}, \mathbf{w})) = \frac{1}{|\mathcal{D}|}
+     \sum_{i=1}^{|\mathcal{D}|} \left(y^i - w_0 - \sum_{j=1}^{d} w_j x_j^i\right)^2
+\]
+
+- This can be solved analytically:
+
+\[
+  \mathbf{w} = (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{X}^\top \mathbf{y}
+\]
+
+  where $\mathbf{X}$ is the data matrix (augmented by a vector of 1's for the
+  intercept) and $\mathbf{y}$ is the response vector.
+
+This is the "know the functional form, set the gradient to zero, solve" route from
+[[*Optimization][Optimization]]: the closed form is what you get by solving
+$\nabla_{\mathbf{w}} \mathcal{L} = 0$ for squared error.
+
+*** Assumptions
+
+- The error (residual) terms are independent.
+- The error (residual) terms all have the same variance across the entire regression
+  function (homoscedastic).
+- The errors all have a conditional mean of zero.
+- The covariates (i.e., features) are linearly independent.
+- Sometimes it is assumed that the errors are normally distributed.
+
+Linear independence of the features is what makes $\mathbf{X}^\top \mathbf{X}$
+invertible in the closed form above.
+
+*** Linear regression by gradient descent
+
+- Solving the linear regression problem involves inverting the matrix
+  $\mathbf{X}^\top \mathbf{X}$.
+- For a large data set, this can be very expensive.
+- Given the assumptions just presented, the loss function is convex, but note that
+  some of the assumptions (e.g., equal variance and Gaussian residuals) can be
+  relaxed.
+- Therefore, applying gradient descent will find the globally optimal set of weights,
+  under the added assumption that the data is truly linear.
+- Any of the three methods (iterative, batch, or mini-batch) can be used; however,
+  the full batch approach is typically applied for stability.
+- Here,
+
+\[
+  \nabla_{\mathbf{w}} \mathcal{L} = \big(y_i - (\mathbf{w}^t)^\top \mathbf{x}_i\big)\, \mathbf{x}_i.
+\]
+
+Strictly, that expression is the /negative/ gradient of the squared error (up to a
+constant factor of 2), which is why the update below /adds/ it rather than
+subtracting it. Convexity is the important point: unlike the general case in
+[[*Why gradient descent][Why gradient descent]], there are no bad local minima to get
+stuck in.
+
+*** Batch gradient descent (reminder)
+
+Assume we have a training set
+$\mathcal{D} = \{\mathbf{x}_i, r_i\}_{i=1}^{|\mathcal{D}|}$.
+
+#+begin_example
+Initialize parameters w⁰
+Repeat
+    t ← t + 1
+    Δw ← 0
+    For i = 1, |D| do
+        Δw ← Δw + η (yᵢ − (wᵗ)ᵀ xᵢ) xᵢ
+    End For
+    wᵗ ← wᵗ⁻¹ + (1/|D|) Δw
+Until some convergence property is met
+#+end_example
+
+(The slide names the targets $r_i$ in the training set and $y_i$ in the update; they
+are the same thing.) Each example nudges $\mathbf{w}$ in the direction of
+$\mathbf{x}_i$, scaled by how wrong the current prediction is.
+
+*** Coefficient of determination
+
+- In addition to considering mean squared error, it is common to evaluate the results
+  of linear regression using the /coefficient of determination/ (i.e., $R^2$).
+- Note that $R^2$ is only valid for /linear/ relationships.
+- Reflects the proportion of the variation in the dependent (response) variable
+  predictable by the covariates (features).
+- Define $e^i = y^i - f^i$ as the "residual" of a prediction.
+  - Residual sum of squares:
+    $\mathit{SS}_{\mathit{res}} = \sum_i (y^i - f^i)^2 = \sum_i (e^i)^2$
+  - Total sum of squares:
+    $\mathit{SS}_{\mathit{tot}} = \sum_i (y^i - \bar{y})^2$
+  - Coefficient of determination:
+
+\[
+  R^2 = 1 - \frac{\mathit{SS}_{\mathit{res}}}{\mathit{SS}_{\mathit{tot}}}
+\]
+
+$\mathit{SS}_{\mathit{tot}}$ is the error of the trivial model that always predicts
+$\bar{y}$, so $R^2$ is the fraction of that baseline error the regression removes:
+1 is a perfect fit, 0 is no better than the mean.
+
+*** Using $R^2$
+
+[Slide 34 is a figure from A. Rasheed, M. Usman, M. Zain, and N. Iqbal,
+"Machine Learning-based Fragility Assessment of Reinforced Concrete Building,"
+/Computational Intelligence and Neuroscience/, Vol. 2022, 5504283. It plots model
+predictions against targets (global drift, %) with the fitted line
+$y = 0.9177x + 0.0707$ and $R^2 = 0.9384$.]
+
+Plotting predictions against targets and reporting $R^2$ of that fit is a common way
+to summarize a regression model: points on the diagonal are perfect predictions.
+
+*** A neural network view
+
+Looking ahead, linear regression can be represented in a network form. [Slide 35 is
+a diagram: input nodes $1, x_1^t, x_2^t, \ldots, x_d^t$, each connected to a single
+output node $y^t$ by an edge with weight $w_0, w_1, w_2, \ldots, w_d$.]
+
+The output is just $y^t = w_0 \cdot 1 + \sum_i w_i x_i^t$; the constant input 1 is
+how the bias $w_0$ fits the picture. This single unit is the building block for
+[[file:../8-multilayer-networks/index.org][8 Multilayer Networks]].
+
+** Logistic regression
+
+*** Discriminant function
+
+- Maximize posterior probability: $P(c \mid \mathbf{x})$.
+- Consider the two-class classification problem, where $c \in \{0, 1\}$.
+- We seek to find $P(c = 1 \mid \mathbf{x})$ and $P(c = 0 \mid \mathbf{x})$.
+- We use the logit distribution
+
+\[
+  \operatorname{logit}(P) = \log \frac{P}{1 - P}
+\]
+
+- Suppose we consider the natural log. Then we derive the logistic function:
+
+\[
+  \operatorname{logit}^{-1}(P) = \frac{1}{1 + \exp(-P)} = \frac{\exp(P)}{1 + \exp(P)}
+\]
+
+$\operatorname{logit}(P)$ is the log-odds; it maps a probability in $(0, 1)$ to the
+whole real line, and its inverse maps any real number back to a probability. That is
+what lets a linear function stand in for a probability.
+
+*** Logistic function
+
+[Slide 37 is a figure: the plot of $\frac{1}{1 + e^{-z}}$ for $z$ from $-7$ to $7$,
+an S-shaped curve from 0 to 1 crossing 0.5 at $z = 0$ (dashed red line), with
+$z = \beta_0 + \beta_1 x_1 + \cdots + \beta_n x_n$.]
+
+*** Estimating the posteriors
+
+From the logistic function, we get
+
+\begin{align*}
+  P(c = 1 \mid \mathbf{x}) &= \frac{\exp\big(w_0 + \sum_{i=1}^{d} w_i x_i\big)}{1 + \exp\big(w_0 + \sum_{i=1}^{d} w_i x_i\big)} \\
+  P(c = 0 \mid \mathbf{x}) &= \frac{1}{1 + \exp\big(w_0 + \sum_{i=1}^{d} w_i x_i\big)}
+\end{align*}
+
+Then we choose $c = 1$ if
+
+\[
+  1 < \frac{P(c = 1 \mid \mathbf{x})}{P(c = 0 \mid \mathbf{x})}
+    = \frac{\exp\big(w_0 + \sum_{i=1}^{d} w_i x_i\big) \big/ \big(1 + \exp\big(w_0 + \sum_{i=1}^{d} w_i x_i\big)\big)}
+           {1 \big/ \big(1 + \exp\big(w_0 + \sum_{i=1}^{d} w_i x_i\big)\big)}
+\]
+
+(the slide writes a second $<$ where this is an equality). Note that this is the same
+as saying
+
+\[
+  1 < \exp\left(w_0 + \sum_{i=1}^{d} w_i x_i\right)
+\]
+
+and taking the log of both sides yields
+
+\[
+  0 < w_0 + \sum_{i=1}^{d} w_i x_i.
+\]
+
+Notice that this is the /linear discriminant function/. So although logistic
+regression outputs a nonlinear (sigmoid) probability, its decision boundary is the
+hyperplane $w_0 + \sum_i w_i x_i = 0$ --- it is a linear classifier, like Naive Bayes
+and Fisher's linear discriminant from
+[[file:../3-density-estimation/index.org][3 Density Estimation]].
+
+*** Learning the weights
+
+The goal is to find weights such that
+
+\[
+  \mathbf{w} = \arg\max_{\mathbf{w}} \prod_k P(C^k \mid \mathbf{x}^k, \mathbf{w})
+\]
+
+It is customary to work in log space since probabilities can be quite small, yielding
+
+\[
+  \mathbf{w} = \arg\max_{\mathbf{w}} \sum_k \ln P(C^k \mid \mathbf{x}^k, \mathbf{w})
+\]
+
+Find the conditional log likelihood as
+
+\begin{align*}
+  \ell(\mathbf{w})
+    &= \sum_k \Big( C^k \ln P(C^k = 1 \mid \mathbf{x}^k, \mathbf{w})
+        + (1 - C^k) \ln P(C^k = 0 \mid \mathbf{x}^k, \mathbf{w}) \Big) \\
+    &= \sum_k \left( C^k \ln \frac{P(C^k = 1 \mid \mathbf{x}^k, \mathbf{w})}{P(C^k = 0 \mid \mathbf{x}^k, \mathbf{w})}
+        + \ln P(C^k = 0 \mid \mathbf{x}^k, \mathbf{w}) \right) \\
+    &= \sum_k \left[ C^k \left( w_0 + \sum_{j=1}^{d} w_j x_j^k \right)
+        - \ln\left( 1 + \exp \sum_{j=1}^{d} w_j x_j^k \right) \right].
+\end{align*}
+
+$C^k \in \{0, 1\}$ acts as a switch selecting which log-probability each example
+contributes. The last line uses the two facts from
+[[*Estimating the posteriors][Estimating the posteriors]]: the log-odds is the linear
+function, and $\ln P(c = 0 \mid \mathbf{x}) = -\ln(1 + \exp(\cdot))$. (The slide drops
+$w_0$ inside the final $\exp$; read the sums as starting at $j = 0$ with $x_0 = 1$.)
+
+*** Gradient descent
+
+- The classic approach to solve is via gradient descent.
+- We seek $\mathbf{w}$ such that for all $w_j$
+
+\[
+  \frac{\partial \ell(\mathbf{w})}{\partial w_j} = 0
+\]
+
+- Note that
+
+\[
+  \frac{\partial \ell(\mathbf{w})}{\partial w_j}
+    = \sum_k x_j^k \big( C^k - \hat{P}(C^k = 1 \mid \mathbf{w}) \big)
+\]
+
+- Weight update rule:
+
+\[
+  w_j \leftarrow w_j + \eta \sum_k x_j^k \big( C^k - \hat{P}(C^k = 1 \mid \mathbf{w}) \big)
+\]
+
+Unlike linear regression, setting this gradient to zero has no closed-form solution,
+so an iterative method is required. Since $\ell$ is being /maximized/, the update adds
+the gradient (gradient ascent on $\ell$, equivalently descent on $-\ell$). The form
+mirrors the linear regression update: (target $-$ prediction) $\times$ input.
+
+*** Regularization
+
+- Avoiding learning noise, which would lead to overfitting.
+- Penalize large weights.
+
+\[
+  \mathbf{w} = \arg\max_{\mathbf{w}} \sum_k \ln P(C^k \mid \mathbf{x}^k, \mathbf{w})
+     - \frac{\lambda}{2} \|\mathbf{w}\|^2
+\]
+
+- New gradient
+
+\[
+  \frac{\partial \ell(\mathbf{w})}{\partial w_j}
+    = \sum_k x_j^k \big( C^k - \hat{P}(C^k = 1 \mid \mathbf{w}) \big) - \lambda w_j
+\]
+
+- New update
+
+\[
+  w_j \leftarrow w_j + \eta \sum_k x_j^k \big( C^k - \hat{P}(C^k = 1 \mid \mathbf{w}) \big) - \eta \lambda w_j
+\]
+
+The extra $-\eta\lambda w_j$ term shrinks every weight toward zero a little on each
+step ("weight decay"); $\lambda$ controls how hard.
+
+*** Two-class logistic regression
+
+[Slide 43 is the pseudocode as an image, transcribed here.]
+
+#+begin_example
+For j = 0, ..., d
+    wⱼ ← rand(−0.01, 0.01)
+Repeat
+    For j = 0, ..., d
+        Δwⱼ ← 0
+    For t = 1, ..., N
+        o ← 0
+        For j = 0, ..., d
+            o ← o + wⱼ xⱼᵗ
+        y ← sigmoid(o)
+        Δwⱼ ← Δwⱼ + (rᵗ − y) xⱼᵗ
+    For j = 0, ..., d
+        wⱼ ← wⱼ + η Δwⱼ
+Until convergence
+#+end_example
+
+This is batch gradient ascent on $\ell(\mathbf{w})$: $r^t$ is the 0/1 label,
+$y = \operatorname{sigmoid}(o)$ is $\hat{P}(C = 1)$, and the inner loop over $j$
+starts at 0, so $x_0^t = 1$ carries the bias. The $\Delta w_j$ update applies for
+every $j = 0, \ldots, d$. The weights start at small random values rather than zero.
