@@ -182,17 +182,104 @@ There are simple techniques to improve these issues
 
 Momentum accelerates gradient descent by accumulating an exponentially decaying average of past gradients, damping oscillations across steep directions and speeding progress along consistent ones.
 
+For each weight $w_i$, we keep an additional value $s_i$ (originally 0) that keeps a running average of the past gradients and that's how much we update:
+
+ \[
+   s_{i}^t = \alpha s_i^{t-1} + (1-\alpha) \frac{\partial E^t}{\partial w_i}
+\]
+\[
+  \Delta w_i^t = -\eta s_i^t
+\]
+The hyperparameter $0 < \alpha < 1$ is the decay or forgetting parameter. It's generally 0.9.
+
+Its disadvantage is that the $s_i$ values should be stored in extra memory. Momentum is especially uiseful when online or minibatch learning is used.
 
 ** Adaptive Learning Factor 
 
 
-An adaptive learning factor is a step size that changes during training instead of staying fixed, scaling each update according to the local behavior of the loss surface (e.g., gradient magnitude history, curvature, or whether the last step reduced the loss). Large steps are taken in flat, well-behaved regions to speed progress, while the factor shrinks in steep or oscillatory regions to prevent overshooting and divergence. This effectively equalizes the per-parameter scale of updates, which accelerates convergence on ill-conditioned problems where a single global rate would be either too slow or unstable. A common form (as in AdaGrad/RMSProp) accumulates squared gradients $v_t$ and divides by their root:
+An adaptive learning factor is a step size that changes during training instead
+of staying fixed, scaling each update according to the local behavior of the
+loss surface (e.g., gradient magnitude history, curvature, or whether the last
+step reduced the loss). Large steps are taken in flat, well-behaved regions to
+speed progress, while the factor shrinks in steep or oscillatory regions to
+prevent overshooting and divergence. This effectively equalizes the
+per-parameter scale of updates, which accelerates convergence on ill-conditioned
+problems where a single global rate would be either too slow or unstable. A
+common form (as in AdaGrad/RMSProp) accumulates squared gradients $v_t$ and
+divides by their root.
+
+in GD, the learning factor $\eta$ determines the magnitude of change to be made in the parameter. Making it adaptive keeps large which learning takes place and decreases when learning slows down. Basically, you increase $eta$ by a constant amount if the error in the training set decreases, and decreases $\eta$ if the error increases.
 
 
-where $\eta$ is the base rate, $\beta$ the decay factor, and $\epsilon$ a small constant for numerical stability.
+*Adaptive Learning Rates: Adagrad and RMSProp*
 
+
+| Term    | Explanation                                                                                                                   |
+|---------+-------------------------------------------------------------------------------------------------------------------------------|
+| AdaGrad | Scales each parameter's learning rate by 1/(sum of all past squared gradients); rates shrink monotonically and can stall.     |
+| RMSProp | Same idea but uses an exponentially decaying average of squared gradients, so old gradients fade and the rate doesn't vanish. |
+
+with $\gamma \approx 0.9$, keeping steps responsive to recent gradient magnitudes.
+
+ADAM: Adaptive Moments
 
 ** Batch Normalization 
+/Batch normalization/: Normalize hidden unit values /before/  applying the activation function. This is helpful since some attributes may be clustered in some small range and normalization spreads them out. Initializing them in the same range or using the same learning rate makes sense.
+
+\[
+  \tilde{a}_j = \frac{a_j - m_j}{s_j}
+\]
+
+| Character     | Meaning                                                                               |
+|---------------+---------------------------------------------------------------------------------------|
+| $a_j$         | Pre-activation value of hidden unit $j$ (before the activation function)              |
+| $m_j$         | Mean of $a_j$ over the current mini-batch                                             |
+| $s_j$         | Standard deviation of $a_j$ over the mini-batch (plus small $\epsilon$ for stability) |
+| $\tilde{a}_j$ | Normalized pre-activation, passed on (after scale/shift) to the activation function   |
+
+We can map these to have arbitrary mean $\gamma_j$ and scale $\beta_j$
+
+\[
+  \hat{a}_j = \gamma_j \tilde{a}_j+ \beta_j
+\] 
+then we apply the activation function.
+
+$\gamma$ and $\beta$ are initialized and updated with gradient descent.
+
+Batch normalization is helpful for allowing better use of the range. 
+
+/Covariate Shift/: The change in a layer's input distribution during training (caused by updates to preceding layers), which batch normalization mitigates by renormalizing each layer's inputs to stable statistics.
+
+* Regularization
+
+This section talks about howe we can regularize deep neural networks.
+
+** Hints
+/Hints/ are properties of the target function that are known to us independent of the training samples. For example, a rotated image of the letter 'A' is still an 'A'. This can be used to perturb training examples to help train the model. This is especially useful when the training dataset is limited. Calls these /virtual examples/.
+
+Tangent prop is also a thing.
 
 
+** Weight Decay
+Give me a little section about weight decay in regularizing deep neural network modesl, and ridge regression, L2 Regularization, and L1 Regularization.
+
+**Weight decay and norm penalties**
+
+Weight decay regularizes a network by shrinking parameters toward zero at each update, discouraging large weights that let the model fit noise. In plain SGD it is equivalent to adding an L2 penalty $\frac{\lambda}{2}\|w\|_2^2$ to the loss, giving the update $w \leftarrow (1-\eta\lambda)w - \eta\nabla L$. (In adaptive optimizers the two differ, which is why AdamW decouples decay from the gradient.)
+
+/Ridge regression (L2)/: minimizes $\|y - Xw\|_2^2 + \lambda\|w\|_2^2$. The penalty is smooth and strictly convex, so it shrinks all coefficients proportionally, stabilizes ill-conditioned or collinear problems, and keeps weights small but nonzero.
+
+/L1 (lasso)/: adds $\lambda\|w\|_1$. Its corners at zero drive many coefficients exactly to zero, producing sparse, feature-selecting models; useful for compression and interpretability but non-differentiable at the origin and less stable under correlated features.
+
+Larger $\lambda$ means stronger shrinkage: lower variance, higher bias. Elastic net combines both penalties.
+
+** Dropout
+
+Dropout is a regularization method that randomly deactivates a fraction *p* of units in a layer during each training step, zeroing their activations and blocking their gradients. Because no neuron can rely on the presence of any particular partner, the network is forced to learn redundant, distributed representations rather than brittle co-adaptations.
+
+Training with dropout approximates an ensemble of exponentially many thinned subnetworks sharing weights. At inference time dropout is switched off and activations are rescaled  either by multiplying by (1  *p*) at test time or, more commonly, by dividing by (1  *p*) during training ("inverted dropout")  so that expected activations match between the two regimes.
+
+Typical rates are 0.5 for fully connected layers and 0.10.2 for convolutional or input layers. Dropout is most effective on large, overparameterized models; it interacts awkwardly with batch normalization and is often replaced or supplemented by weight decay, data augmentation, or stochastic depth in modern architectures.
+
+* Convolutional Layers 
 
