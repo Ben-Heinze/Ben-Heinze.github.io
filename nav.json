@@ -105,6 +105,10 @@
               {
                 "label": "12 Deep Learning",
                 "href": "/ai/ml/textbook/12-deep-learning/index.html"
+              },
+              {
+                "label": "11 Multilayer Perceptrons",
+                "href": "/ai/ml/textbook/11-multilayer-perceptrons/index.html"
               }
             ]
           },

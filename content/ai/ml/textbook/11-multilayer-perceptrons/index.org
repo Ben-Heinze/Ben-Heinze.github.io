@@ -1,0 +1,88 @@
+#+TITLE: 11 Multilayer Perceptrons
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-20
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Perceptron
+/Perceptron/: basic processing element (basically a neuron). Inputs can be from environment or other perceptrons. It has an associated weight (connected weight/synaptic weight) and an output. The simplest case is a weighted sum of inputs:
+\[
+  y = \sum_{j=1}^{d} w_j x_j + w_{0}
+\]
+This simple perceptron defines a hyperplane. To implement a linear discriminant function, you can separate two classes with a /threshold function/ to separate positive and negative outputs.
+
+\(
+  s(a) = \begin{cases}
+    1 & \text{if } a > 0 \\
+    0 & otherwise
+  \end{cases}
+\)
+
+then,     
+\(
+  choose \begin{cases}
+    C_{1} & \text{if } s(\mathbf{w^T x}) > 0 \\
+    C_{2} & otherwise
+  \end{cases}
+\)
+
+
+--------------------------
+
+
+Output of the perceptron as a dot product:
+$y = \mathbf{w}^T \mathbf{x}$
+| $\mathbf{w}$ | $[w_{0}, w_{1}, \dots, w_d]^T$ |
+| $\mathbf{x}$ | $[1, x_{1}, \ldots, x_d]^T$    |
+
+We need to learn the weights $\mathbf{w}$. 
+
+We can use the sigmoid function at the output as
+
+\[
+  o = \mathbf{w}^T \mathbf{x}
+\]
+\[
+  y = sigmoid(o) = \frac{1}{1+ \exp[- \mathbf{w}^T \mathbf{x}]}
+\]
+
+With $K>2$ outputs, there are $k$ perceptrons, each of which has a weight vector $w_i$ 
+
+\[
+  y_i = \sum_{j=1}^{d} w_{ij}x_{j} + w_{i0} = \mathbf{w}_i^T \mathbf{x}
+\]
+\[
+  \mathbf{y} = \mathbf{Wx}
+\]
+
+where $w_i$ is the weight from the input $x_j$ to output $y_i$. Choose $C_i$ if $y_i =   \underset{k}{\max} (y_k)$ 
+
+Implementing this has first calculates the weights, then the second calculates the softmax values, but this is denoted in a single layer:
+$o_i = \mathbf{w}_i^T \mathbf{x}$
+$y_i = \frac{\exp o_i}{\sum_{k} \exp o_k}$
+
+
+
+* Training a Perceptron
+** Stochastic Gradient Descent
+When you have a fixed training set and you pick instances one by onein a random order is a part of stochastic gradient descent.
+
+Update rules can be derived for classification problems by using logistic discrimination where updates are done after each pattern, instead of summing them and doing the update after a complete pass over the training set. 
+
+** Logistic Regression for Classification 
+
+
+
+
+
+
+
+
