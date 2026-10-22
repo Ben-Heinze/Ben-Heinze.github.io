@@ -34,3 +34,116 @@ RBF Networks is an example of a feedfoward network. RBF is a simple model that g
 
 
 * WARNING: Backpropagation question will be on the final. Study it.
+
+* Training Process
+Typically, feedforward neural network (FFNN) are trained in two phases
+1. Forward phase
+  - propagates input signal forward
+  - weights of networks are kept fixed
+2. Backward phase
+  - Calculate an error signal
+  - Propagate error signal from output back towards input
+  - Update weights as error signal is propagated back
+  
+
+
+* Credit Assignment
+Assign credit or blame to each weight based on its impact on performance. Also, adjust weights to reinforce credit or mitigate blame
+
+Form leads to "Hebbian learning":
+\[
+  w_{ji} \approx f(x_i \cdot x_j)
+\]
+
+Leads to "credit assignment problem".
+
+Problem is particularly difficult to weights on edges entering the hidden nodes
+
+* Solving Credit Assignment
+- Needed for networks with /nonlinear/ hidden nodes
+- A network of all linear nodes is equivalent to a simple perceptron/adaline network 
+
+/Potential test question: What do you get out of these hidden layers? What do you need in the hidden layers for them to be effective?/
+These nodes must implement a non-linear function. This makes the learning problem challenging
+
+
+* Calculating Node "Activation"
+
+\[
+   z = \emptyset  ( \mathbf{w}^T \mathbf{x}) = \emptyset \left( \sum_i w_i \cdot x_i \right)
+\]
+
+" The core is a linear combo if the inputs to the node
+
+The function $\emptyset(\cdot)$ is called an "activation function" and is nonlinear
+
+Types of activation functions:
+- Sigmoid
+- Gaussian Basis Function
+- Rectified Linear Units (ReLU) 
+
+* Sigmoid Activation Functions
+
+Logistic Function:
+\[
+  z = \frac{1}{1+\e^{-x}} \implies \frac{dz}{dx} = z(1-z)  
+\]
+
+Hyperbolic Tangent Function:
+
+\[
+  z = tanh \text{ } x = \frac{e^x - e^{-x}}{e^x + e^{-x}} \imples \frac{dz}{dx} = sech^2 x = \frac{4}{(e^x+e^{-x})^2}
+\]
+
+* Backpropagation Algorithm
+
+Weight update:
+
+\[
+  \Delta w_{ji} = -\eta \frac{\partial Err_x}{\partial w_{ji}}
+\]
+\[
+Err_x(\mathbf{w}) = \frac{1}{2} \sum_{k \in Outputs} (d_k - o_k)^2
+\]
+
+Notation:
+
+| $x_{ji}$        | $i^{th}$ input to unit j                     |
+| $w_{ji}$        | weight of $i^{th}$ input to unit j           |
+| $net_j$         | $\sum_j w_{ji} x_{ji}$                       |
+| $o_j$           | output of unit $j$                           |
+| $d_j$           | target output for unit $j$                   |
+| $\sigma(\cdot)$ | sigmoid activation (logistic)                |
+|outputs:        | units in final layer                         |
+| downstream(j)   | units whose inputs are the outputs of unit j |
+
+
+* Autoencoder
+
+/Autoencoder/: Feedforward network trained to reproduce the input at the output. The goal is to train a network that reproduces the input at the output.
+- Encoder
+- Decoder
+
+The goal is to minimize the reconstruction loss
+
+\[
+  \min \mathcal{L} \left( \mathbf{x}, f(g(\mathbf{x}))  \right)
+\]
+Reconstruction loss is typically defined as
+
+\[
+ \mathcal{L} \left( \mathbf{x}, f(g(\mathbf{x}))  \right) = ||\mathbf{x} - || 
+\]
+
+/under-complete auto-encoder/: An autoencoder where the hidden layer is less than the input. This prevents learning just the identify function
+
+If the decoder is linear: learns same subspace as PCA
+Nonlinear encoders and decoders, similar to kernel PCA
+
+
+
+
+
+
+
+

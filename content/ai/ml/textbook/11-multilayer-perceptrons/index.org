@@ -79,10 +79,42 @@ Update rules can be derived for classification problems by using logistic discri
 
 ** Logistic Regression for Classification 
 
+-------------------------
 
+* Backpropagation Algorithm
 
+Pick example, propagate it to the hidden layer.
+Take that, then propagate it to the output layer.
+Calculate weight updates.
 
+Backpropj
 
+# Coding question for final
+#+begin_pseudocode
+\text{Initialize all } v_{ih} \text{ and } w_{hj} \text{ to rand}(-0.01, 0.01)
+\textbf{Repeat}
 
+\quad \text{For all} (\mathbf{x}^t, \mathbf{r}^t) \in \chi \text{ in random order}
+
+\qquad \text{For } h=1, \ldots, H
+\quad \qquad z_h \gets sigmoid(\mathbf{w}_h^T \mathbf{x}^t)
+
+\qquad \text{For } i=1, \ldots, K
+\quad \qquad y_i = \mathbf{v}_i^T \mathbf{z}
+
+//\text{backprop heret}
+\qquad \text{For } i=1, \ldots, K
+\quad \qquad \Delta \mathbf{v}_i = \eta(\mathbf{r}_i^t - y_i^t) \mathbf{z}
+
+\qquad \text{For } i=1, \ldots, H
+\quad \qquad \Delta \mathbf{w}_h = \eta (\sum_i (\mathbf{r}_i^t - y_i^t) v_{ih})z_h(1-z_h)\mathbf{x}^t 
+
+\qquad \text{For } i=1, \ldots, K
+\quad \qquad \mathbf{v}_i \gets \mathbf{v}_i + \Delta \mathbf{v}_i
+
+\qquad \text{For } h=1, \ldots, H
+\quad \qquad \mathbf{w}_h \gets \mathbf{w}_h + \Delta \mathbf{w}_h
+\text{Until Convergence}
+#+end_pseudocode
 
 

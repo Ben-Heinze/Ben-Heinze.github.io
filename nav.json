@@ -550,5 +550,15 @@
         "href": "/recipes/pico-de-gallo/index.html"
       }
     ]
+  },
+  {
+    "label": "Coding Languages",
+    "href": "/coding-languages/index.html",
+    "children": [
+      {
+        "label": "C",
+        "href": "/coding-languages/c/index.html"
+      }
+    ]
   }
 ]
