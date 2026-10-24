@@ -187,6 +187,16 @@
                 "href": "/ai/ml/midterm/high-priority-review/index.html"
               }
             ]
+          },
+          {
+            "label": "Examples",
+            "href": "/ai/ml/examples/index.html",
+            "children": [
+              {
+                "label": "Backpropagation Algorithm for Multilayer Perceptron for Regression",
+                "href": "/ai/ml/examples/backpropagation-algorithm-for-multilayer-perceptron-for-regression/index.html"
+              }
+            ]
           }
         ]
       }
@@ -446,6 +456,10 @@
           {
             "label": "Handouts",
             "href": "/os/lectures/handouts/index.html"
+          },
+          {
+            "label": "3 File Management",
+            "href": "/os/lectures/3-file-management/index.html"
           }
         ]
       },

@@ -117,4 +117,46 @@ Backpropj
 \text{Until Convergence}
 #+end_pseudocode
 
+| Term             | Definition                                                              |  |  |
+| $j, \ldots, d$   | Node index for first layer. j=0 has a value = 1                         |  |  |
+| $h, \ldots, H$   | Node index for the hidden layer                                         |  |  |
+| $i,\ldots, K$    | Node index for the output layer                                         |  |  |
+| $\mathbf{w}_h$   | All weights coming into hidden unit $(w_{h0}, w_{h1}, \ldots,  w_{hd})$ |  |  |
+| $\mathbf{w}_h^T$ | Transposed weigh column coming into hidden node h                       |  |  |
+ $h$           |  |  |
+| $w_{hj}$                       | Weight into hidden node $h$, from input  node $j$ |  |  |
+| $w_{destination, source}$      | This is the convention for the subscripts         |  |  |
+| $v_{ih}$                       | Weight into output node $i$, from hidden node $h$ |  |  |
+| $\mathbf{v}_i$                 | all weights coming into output unit $i$           |  |  |
+| $\mathbf{x}^t$                 | input vector from training example $t$(features)  |  |  |
+| $\mathbf{r}^t$                 | target vector from traning example $t$ (output)   |  |  |
+| $(\mathbf{x}^t, \mathbf{r}^t)$ | Training pair (features, output) from one example |  |  |
+
+
+
+
+
+This pseudocode is assuming a three layer graph (input, hidden, output). 
+Here is essentially what the pseudocode is saying:
+
+1. Randomly assign every weight a values from $(-0.01,0.01)$. 
+  - This is necessary since equal weights wouldn't update properly. They are small to avoid saturation
+2. Repeat the following until convergence:
+  1. Loop through the entire training set, selecting one at a time randomly.
+    1. For every hidden node $h$ in $H$, $z_h$ is the sigmoid of the dot product of the weight vector into h ($w_h$), and the training example’s feature vector ($x$ with $x_0 = 1$ for the bias).
+    2. For every node in the output layer $i = 1, \dots, K$, the prediction $y_i$ is the dot product of that unit’s incoming weight vector $\mathbf{v}_i$ with the hidden-layer outputs $\mathbf{z}$, i.e. $y_i = \mathbf{v}_i^T \mathbf{z} = \sum_{h=0}^{H} v_{ih} z_h$, with no activation function since this is regression.
+    3. For each output unit $i = 1, \dots, K$, the weight change is $\Delta \mathbf{v}_i = \eta \, (r_i^t - y_i^t)\, \mathbf{z}$, so each weight $v_{ih}$ moves in proportion to the learning rate $\eta$, the output error $(r_i^t - y_i^t)$, and the output $z_h$ of the hidden unit it connects from.
+    4. For each hidden unit $h$, it computes the weight change $\Delta \mathbf{w}_h$ by sending the output errors back through the weights $v_{ih}$, scaling by the sigmoid’s slope $z_h(1 - z_h)$, and multiplying by the learning rate $\eta$ and the input $\mathbf{x}^t$.
+       - For each hidden unit $h = 1, \dots, H$, the change to its incoming weights is
+
+    $$\Delta \mathbf{w}_h = \eta \left( \sum_{i=1}^{K} (r_i^t - y_i^t)\, v_{ih} \right) z_h (1 - z_h)\, \mathbf{x}^t$$
+        - Hidden units have no target value of their own, so we estimate their “share of the blame” by passing the output errors backward: each output error $(r_i^t - y_i^t)$ is weighted by $v_{ih}$, the strength of the connection from $h$ to that output, and these are summed over all outputs. That blame is then multiplied by $z_h(1 - z_h)$, the derivative of the sigmoid, which measures how sensitive $h$’s output is to a change in its input (large near $z_h = 0.5$, near zero when saturated at 0 or 1). Finally, multiplying by the input $\mathbf{x}^t$ and the learning rate $\eta$ gives each weight $w_{hj}$ a nudge proportional to how much its input $x_j^t$ contributed. This backward flow of error is what gives backpropagation its name.
+    5. For each out node, update the weights going into it by adding the change calculated earlier
+    6. For each node in the hidden layer, update the weight going into it by adding the change (delta) calculated earlier.
+
+
+
+
+
+
 

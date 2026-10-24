@@ -1460,4 +1460,10 @@ Linux kernel documentation, =docs.kernel.org/scheduler/= --- CFS Scheduler, EEVD
 Scheduler, Scheduler Nice Design, Deadline Task Scheduling, Control Group v2.
 
 
+--------------------------
 
+Practice: 
+1. practice using the deadlock detection algorithm to identify deadlock processes
+2. Draw a corresponding resource allocation graph, and identify which processes are being deadlocked 
+  - Crate nodes for processes and resources, the number of nodes for the resources is determined by the total resource vector. Then use the request matrix to draw connections from process to resource, then use the allocation matrix to determine edges from resource to process.
+  - You find deadlocks in the graph by identifying cycles

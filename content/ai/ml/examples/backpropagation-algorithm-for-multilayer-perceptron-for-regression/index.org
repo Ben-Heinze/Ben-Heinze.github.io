@@ -1,0 +1,295 @@
+#+TITLE: Backpropagation Algorithm for Multilayer Perceptron for Regression
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-23
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+This is a walkthrough from the backpropagation pseudocode in ai/ml/textbook/11-multilayer-perceptrons.
+
+
+Sidenote: Parallel Distributed Processing is a good book apparently
+
+
+* General Idea 
+
+#+begin_pseudocode
+\text{Initialize all } v_{ih} \text{ and } w_{hj} \text{ to rand}(-0.01, 0.01)
+\textbf{Repeat}
+
+\quad \text{For all} (\mathbf{x}^t, \mathbf{r}^t) \in \chi \text{ in random order}
+
+\qquad \text{For } h=1, \ldots, H
+\quad \qquad z_h \gets sigmoid(\mathbf{w}_h^T \mathbf{x}^t)
+
+\qquad \text{For } i=1, \ldots, K
+\quad \qquad y_i \gets \mathbf{v}_i^T \mathbf{z}
+
+//\text{backprop here}
+\qquad \text{For } i=1, \ldots, K
+\quad \qquad \Delta \mathbf{v}_i = \eta(r_i^t - y_i^t) \mathbf{z}
+
+\qquad \text{For } h=1, \ldots, H
+\quad \qquad \Delta \mathbf{w}_h = \eta (\sum_i (r_i^t - y_i^t) v_{ih})z_h(1-z_h)\mathbf{x}^t 
+
+\qquad \text{For } i=1, \ldots, K
+\quad \qquad \mathbf{v}_i \gets \mathbf{v}_i + \Delta \mathbf{v}_i
+
+\qquad \text{For } h=1, \ldots, H
+\quad \qquad \mathbf{w}_h \gets \mathbf{w}_h + \Delta \mathbf{w}_h
+\text{Until Convergence}
+#+end_pseudocode
+
+| Term                           | Definition                                                                    |
+| $j = 0, \ldots, d$             | Node index for the input layer. $x_0 = 1$ is the bias input                   |
+| $h = 0, \ldots, H$             | Node index for the hidden layer. $z_0 = 1$ is the bias unit                   |
+| $i = 1, \ldots, K$             | Node index for the output layer                                               |
+| $\mathbf{w}_h$                 | All weights coming into hidden unit $h$: $(w_{h0}, w_{h1}, \ldots, w_{hd})$   |
+| $\mathbf{w}_h^T$               | Transposed weight column coming into hidden unit $h$                          |
+| $w_{hj}$                       | Weight into hidden node $h$, from input node $j$                              |
+| $w_{destination, source}$      | This is the convention for the subscripts                                     |
+| $v_{ih}$                       | Weight into output node $i$, from hidden node $h$                             |
+| $\mathbf{v}_i$                 | All weights coming into output unit $i$: $(v_{i0}, v_{i1}, \ldots, v_{iH})$   |
+| $\mathbf{z}$                   | Hidden-layer outputs $(z_0, z_1, \ldots, z_H)$, with $z_0 = 1$                |
+| $\mathbf{x}^t$                 | Input vector from training example $t$ (features)                             |
+| $\mathbf{r}^t$                 | Target vector from training example $t$ (output)                             |
+| $(\mathbf{x}^t, \mathbf{r}^t)$ | Training pair (features, output) from one example                             |
+
+
+
+
+
+This pseudocode is assuming a three layer graph (input, hidden, output). 
+Here is essentially what the pseudocode is saying:
+
+1. Randomly assign every weight a values from $(-0.01,0.01)$. 
+  - This is necessary since equal weights wouldn't update properly. They are small to avoid saturation
+2. Repeat the following until convergence:
+  1. Loop through the entire training set, selecting one at a time randomly.
+    1. For every hidden node $h$ in $H$, $z_h$ is the sigmoid of the dot product of the weight vector into h ($w_h$), and the training example’s feature vector ($x$ with $x_0 = 1$ for the bias).
+    2. For every node in the output layer $i = 1, \dots, K$, the prediction $y_i$ is the dot product of that unit’s incoming weight vector $\mathbf{v}_i$ with the hidden-layer outputs $\mathbf{z}$, i.e. $y_i = \mathbf{v}_i^T \mathbf{z} = \sum_{h=0}^{H} v_{ih} z_h$ (where $z_0 = 1$ is the hidden-layer bias), with no activation function since this is regression.
+    3. For each output unit $i = 1, \dots, K$, the weight change is $\Delta \mathbf{v}_i = \eta \, (r_i^t - y_i^t)\, \mathbf{z}$, so each weight $v_{ih}$ moves in proportion to the learning rate $\eta$, the output error $(r_i^t - y_i^t)$, and the output $z_h$ of the hidden unit it connects from.
+    4. For each hidden unit $h$, it computes the weight change $\Delta \mathbf{w}_h$ by sending the output errors back through the weights $v_{ih}$, scaling by the sigmoid’s slope $z_h(1 - z_h)$, and multiplying by the learning rate $\eta$ and the input $\mathbf{x}^t$.
+       - For each hidden unit $h = 1, \dots, H$, the change to its incoming weights is
+
+    $$\Delta \mathbf{w}_h = \eta \left( \sum_{i=1}^{K} (r_i^t - y_i^t)\, v_{ih} \right) z_h (1 - z_h)\, \mathbf{x}^t$$
+        - Hidden units have no target value of their own, so we estimate their “share of the blame” by passing the output errors backward: each output error $(r_i^t - y_i^t)$ is weighted by $v_{ih}$, the strength of the connection from $h$ to that output, and these are summed over all outputs. That blame is then multiplied by $z_h(1 - z_h)$, the derivative of the sigmoid, which measures how sensitive $h$’s output is to a change in its input (large near $z_h = 0.5$, near zero when saturated at 0 or 1). Finally, multiplying by the input $\mathbf{x}^t$ and the learning rate $\eta$ gives each weight $w_{hj}$ a nudge proportional to how much its input $x_j^t$ contributed. This backward flow of error is what gives backpropagation its name.
+    5. For each output node, update the weights going into it by adding the change calculated earlier.
+    6. For each node in the hidden layer, update the weights going into it by adding the change (delta) calculated earlier.
+       - Note that both $\Delta \mathbf{v}_i$ and $\Delta \mathbf{w}_h$ are computed /before/ any weights are updated, so $\Delta \mathbf{w}_h$ uses the old values of $v_{ih}$.
+
+
+* Regression Example
+** Starting data
+Let's say we are trying to predict how many hours we will play outside, based on how many hours of sunshine there are that day. Here is our simple training set:
+
+| index ($t$) | Hours of sunshine ($x$) | Hours played ($r$) |
+| 1           | 8                       | 4                  |
+| 2           | 5                       | 2.5                |
+| 3           | 2                       | 1.5                |
+| 4           | 0                       | 0                  |
+
+
+** Network Creation
+
+Next, we need our three-layer neural network. 
+- layer 1: Input layer $j,\ldots,d$
+  - Bias node = 1
+  - Node to represent hours of sunshine
+- Layer 2: Hidden layer $h,\ldots,H$
+  - Bias node = 1 (no node in the previous layer connects to this, but this connects to every node on the next layer except the following bias node)
+  - Hidden node 1 
+  - Hidden node 2
+  - Note: the number of hidden nodes is a tunable hyperparameter. This example will stick with 2.
+- Layer 3: Output layer $i,\ldots, K$
+  - Output node
+
+The input layer and every hidden layer will always have a node to represent bias, which is treated as the intercept. This is alwaus a value of 1, and the weights get updated throughout too. 
+
+In this example, our layers consist of two nodes in the input layer, three nodes in the hidden layer, and one node for the output layer. 
+
+[Insert diagram of graph without weights assigned.]
+
+** Assign weights to graph
+In this particular graph, there are two sets of weights: the $w_{hj}$ (input → hidden) and the $v_{ih}$ (hidden → output).
+
+$w_{hj}$ represents the weight to hidden node $h$, coming from input node $j$.
+$v_{ih}$ represents the weight to output node $i$, coming from hidden node $h$.
+
+In the graph, you can see the weights being labeled in black.
+
+[Insert diagram of graph with weight labels]
+
+$\mathbf{w}_h$ is the weight vector coming into hidden node $h$:
+\[
+\mathbf{w}_1 = \begin{bmatrix} w_{10} \\ w_{11} \end{bmatrix}, \quad
+\mathbf{w}_2 = \begin{bmatrix} w_{20} \\ w_{21} \end{bmatrix}
+\]
+
+$\mathbf{v}_i$ is the weight vector coming into output node $i$. Since $K = 1$, there is only $\mathbf{v}_1$:
+\[
+\mathbf{v}_1 = \begin{bmatrix} v_{10} \\ v_{11} \\ v_{12} \end{bmatrix}
+\]
+
+Now that we have identified all of the weights, we are going to assign every weight a random value between $(-0.01, 0.01)$
+
+\[
+\mathbf{w}_1 = \begin{bmatrix} w_{10} \\ w_{11} \end{bmatrix} =  \begin{bmatrix} 0.008 \\ 0.002 \end{bmatrix}
+,\quad
+\mathbf{w}_2 = \begin{bmatrix} w_{20} \\ w_{21} \end{bmatrix} = \begin{bmatrix} -0.003 \\ 0.010 \end{bmatrix}
+\]
+
+\[
+\mathbf{v}_1 = \begin{bmatrix} v_{10} \\ v_{11} \\ v_{12} \end{bmatrix} = \begin{bmatrix} 0.009 \\ -0.007 \\ -0.005 \end{bmatrix}
+\]
+
+Now that we have the graph and the weights, we can begin training. 
+
+* Loop Until Convergence
+
+Do the following for every training example, selecting a training example at random:
+$(\mathbf{x}^t, \mathbf{r}^t)$ = (feature vector, response vector) for training example $t$. 
+In our case, 
+- $\mathbf{x}^t$ = /hours of sunshine/ for example $t$
+- $\mathbf{r}^t$ = /hours of play/ for example $t$
+Let's say we randomly selected $t=3$ for the rest of this example
+
+** For h=1,...,H
+
+This loop calculates $z$ values. Don't forget about $z_0 =1$
+
+\[z_h \gets sigmoid(\mathbf{w}_h^T \mathbf{x}^t)\]
+
+Equation 11.12 in the Alpaydin book specifies:
+\[
+  z_h = \text{sigmoid}(\mathbf{w}_h^T \mathbf{x}) = \frac{1}{1+\exp\left[- \left( \sum_{j=1}^{d} w_{hj} x_j + w_{h0} \right) \right]}, \quad h=1,\ldots, H
+\]
+
+
+
+First, let's calculate $\mathbf{w}_h^T \mathbf{x}^t$ for $t=3$:
+
+| $t$ | index of selected training example |
+| $T$ | linear algebra transpose operation |
+ 
+ Training example:
+| $t=3$ | $sunshine=2$ | $play=1.5$ |
+
+\[ 
+  \mathbf{w}_h^T \mathbf{x}^t =  \sum_{j=1}^{d} w_{hj} x_j + w_{h0}
+\]
+| $w_{hj}$ | weight from input node $j$ to hidden node $h$                        |
+| $x_j$    | feature value from trianing example $t$. For $t=3$, sunshine $x_j=2$ |
+| $w_{h0}$ | bias weight into hidden node                                         |
+
+The for loop does not matter in this case since we only have one feature node for the input, but if you had more, you'd some them all up. We repeat this process for every node
+\[
+  z_0 = 1
+\]
+\[ 
+  \mathbf{w}_1^T \mathbf{x}^3 =  \sum_{j=1}^{d} w_{1j} x_j + w_{10} = \left( 0.002(2) + 0.008  \right)
+\]
+\[
+  z_1 = \text{sigmoid}(\mathbf{w}_h^T \mathbf{x}) = \frac{1}{1+\exp\left[- \left( 0.012 \right) \right]} = 0.503
+\]
+
+\[ 
+  \mathbf{w}_2^T \mathbf{x}^3 =  \sum_{j=1}^{d} w_{2j} x_j + w_{20} = \left(0.010(2) - 0.003  \right) = 0.017
+\]
+\[
+  z_2 = \text{sigmoid}(\mathbf{w}_h^T \mathbf{x}) = \frac{1}{1+\exp\left[- \left( 0.017 \right) \right]} = 0.504
+\]
+
+Great, now that we have our $z$ values!
+- $z_0 = 1$
+- $z_1 = 0.503$
+- $z_2 = 0.504$
+
+\[
+\mathbf{z} = \begin{bmatrix} 1 \\ 0.503 \\ 0.504 \end{bmatrix}
+\]
+
+** Calculate the prediction value for the ouput layer
+
+For every node in the output layer, we are going to multiple the weights from the hidden layer to the output layer by the $z$ values we calculated in the last step.
+
+\[
+  y_i \gets \mathbf{v}_i^T \mathbf{z}
+\]
+
+\[
+  y_i = \mathbf{v}_i^T \mathbf{z} = \left(\sum_{h=1}^{H} v_{ih}z_h \right)+v_{i0}
+\]
+
+\[
+  y_i = ((-0.007\times0.503) + (-0.005\times 0.504))+ 0.009 \approx 0.003
+\]
+
+
+Our official algorithm's guess for playtime given sunshine=2 is 0.003 hours of playtime. Next, we will use backpropagation to assign credit/blame to the weights and update them.
+
+** Calculate weight update for each output node
+
+For every node in the output layer, 
+$\Delta \mathbf{v}_i = \eta(r_i^t - y_i^t) \mathbf{z}$
+| $\eta$  | learning rate hyperparameter                                    |
+| $r_i^t$ | true target value for output node $i$ from training example $t$ |
+| $y_i^t$ | Predicted value for output node $i$ from training example $t$   |
+
+For this example, here are these values:
+- $\eta = 0.01$ (This is a hyperparameter. This example set it arbitrarily)
+- $r_1^3 = 1.5$ (training example)
+- $y_1^t = 0.003$ (Calculated prediction)
+
+\[
+  \Delta \mathbf{v}_1 = 0.01(1.5-0.003) \begin{bmatrix} 1 \\ 0.503 \\ 0.504 \end{bmatrix} \approx \begin{bmatrix} 0.0 \\ 0.0 \\ 0.0 \end{bmatrix}
+\]
+
+
+
+** Calculate weight updates for each hidden node
+
+For every hidden node (excluding bias node):
+\[
+  \Delta \mathbf{w}_h = \eta \left(\sum_i (r_i^t - y_i^t) v_{ih} \right)z_h(1-z_h)\mathbf{x}^t
+\]
+
+| $\eta$  | learning rate hyperparameter                                    |
+| $r_i^t$ | true target value for output node $i$ from training example $t$ |
+| $y_i^t$ | Predicted value for output node $i$ from training example $t$   |
+
+
+- $\eta = 0.01$ 
+- $r_1^3 = 1.5$
+- $y_1^t = 0.011$
+- $\mathbf{x}^t = 2$
+- $h=1$:
+  - $v_{i1} = -0.007$ 
+  - $z_1 = 0.503$
+- $h=2$: 
+  - $v_{i1} = -0.005$ 
+  - $z_1 = 0.504$ 
+
+\[
+  \Delta \mathbf{w}_1 = 0.01 \left[ (1.5-0.011)(-0.007) \right]\times (0.503\times(1-0.503))\times 2 = -5.21\times10^{-5}
+\]
+\[
+  \Delta \mathbf{w}_2 = 0.01 \left[ (1.5-0.011)(-0.005) \right]\times (0.504\times(1-0.504))\times 2 = -3.72\times10^{-5}
+\]
+
+
+
+
+
+
+
+
+
+
