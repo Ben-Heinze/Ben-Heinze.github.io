@@ -1,0 +1,87 @@
+#+TITLE: 10 Deep Learning
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-26
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+* Hopfield Networks
+
+
+Auto-associative network with symmetric weights. There are no self-recurrent loops. Every edge 
+
+
+one-shot learning: If you take a particular pattern, take its outer product, then subtract the identity matrix, you'll get a new matrix
+
+\[
+  \mathbf{w}_p = \mathbf{x}_p \mathbf{x}_p^T  - \text{Identity matrix}
+\]
+\[
+  \mathbf{W} = \sum_{p \in \mathcal{P}} \mathbf{w}_p
+\]
+
+
+He lectures about training a hopfield network by using pattern vectors for x. Refer to slides
+
+* Energy in hopfield networks
+
+- let $h_i$ be the activation level of node $i$
+- the activation levels are calcualted as:
+\[
+  h_i = \sum_{j} w_{ij} x_j
+\]
+
+
+Define energy of a node $i$ as:
+
+\[
+  E_i = - \frac{1}{2} h_i x_i
+\]
+
+Energy of the network is then
+
+\[
+  E(x) = \sum_{i} E_i = - \sum_{i} \frac{1}{2} h_i x_i = - \frac{1}{2} \sum_{ij} w_{ij} x_i x_j - \sum_{i} \theta_i x_i
+\]
+
+Hebbian learning: if you have two connected nodes that agree on a state, increase the strength of that state. If they disagree, decrease the weight. 
+The outer product has a Hebbian learning aspect to it: high weights when nodes agree, low weights when nodes disagree
+
+* Boltzmann Machine
+
+A generalization of the Hopfield Network
+
+represents a joint probability distribution
+
+Two categories of nodes:
+- Visible nodes
+- hidden nodes (latent variables)
+
+Graph is fully connected
+
+
+
+* Restricted Boltzmann Machine (w/ bias nodes)
+
+
+
+bipartite graph thats still interpretable as a probability distribution
+
+
+* Deep Belief Network
+Stacking RBM Layers on top of each other
+
+Why don't we hav the vanishing gradient problem here?
+- We first train one RBM layer, generate samples at the hidden layer, then train that until convergece, repeat.
+
+
+
+
+

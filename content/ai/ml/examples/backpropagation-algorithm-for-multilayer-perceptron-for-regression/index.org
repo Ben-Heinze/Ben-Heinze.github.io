@@ -357,3 +357,19 @@ Treat the inputs as layer 0 ($z_{0j}^t \equiv x_j^t$).
 Run forward from $k=1$ to the output layer, then backward from the output to the first hidden layer. As before, compute every $\Delta$ before updating any weights. (The book writes each $\Delta$ with a $\sum_t$ for batch/minibatch learning; it's dropped here since this example is online.)
 
 Note: strictly by the chain rule, the error passed back through a hidden layer should also include that layer's activation slope, i.e. $e_{1h}^t = \sum_l e_{2l}^t f'(z_{2l}^t)\, w_{2lh}$. The book's form leaves this factor out.
+
+** Implementing it for any number of layers
+A repeatable way to code this is to store an error term $\delta$ on every non-input, non-bias node, filled in backward one layer at a time. This uses the chain-rule form, so $f'$ is included at every hidden layer.
+
+1. Output layer (linear, so no $f'$):
+   \[ \delta_i = r_i^t - y_i^t \]
+2. Hidden layers, from the last back to the first. Sum over the non-bias nodes $l$ that $h$ feeds into:
+   \[ \delta_{kh} = f'(z_{kh}) \sum_l \delta_{k+1,l}\, w_{k+1,lh} \]
+   - For sigmoid, $f'(z_{kh}) = z_{kh}(1-z_{kh})$
+   - Bias nodes get no $\delta$
+3. Weight change for every edge $j \to h$ into layer $k$, where $z_{k-1,0} = 1$ (bias) and $z_{0j} = x_j^t$:
+   \[ \Delta w_{khj} = \eta\, \delta_{kh}\, z_{k-1,j} \]
+4. Only after every $\delta$ is computed, apply $w_{khj} \gets w_{khj} + \Delta w_{khj}$
+
+With one hidden layer this reduces to the example above: $\delta_1 = r_1^t - y_1^t$, $\Delta \mathbf{v}_1 = \eta\, \delta_1 \mathbf{z}$, and $\Delta \mathbf{w}_h = \eta\, (\delta_1 v_{1h})\, z_h(1-z_h)\, \mathbf{x}^t$.
+
