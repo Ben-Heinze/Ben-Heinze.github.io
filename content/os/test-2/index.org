@@ -1,0 +1,532 @@
+#+TITLE: Test 2
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-29
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+One readable page compiling everything for Test 2: *Threads*, *Scheduling*,
+*Concurrency* (mutual exclusion, synchronization, the classic problems),
+*Deadlock*, and *File Management*. Everything here comes from the lecture notes
+([[file:../lectures/2-2-process-management/][2.2]], [[file:../lectures/2-3-threads/][2.3]], [[file:../lectures/3-file-management/][3]], and the [[file:../lectures/handouts/][Handouts]]). Terms in /italic/ are the ones to memorize;
+the *Learn* button (top-right) turns them into flashcards. Self-test on the
+[[file:practice-test/][Practice Test]], which draws from the [[file:question-bank/][Question Bank]].
+
+*To print*: [[file:cheat-sheet.pdf][Cheat Sheet (PDF)]]: this page compressed onto one letter
+sheet, front and back. (Source: =cheat-sheet.html= in this folder; re-print it
+from a browser after editing.)
+
+* Test logistics
+
+- *Cheat sheet*: one letter-sized sheet, both sides, written or typed.
+- *Coverage*: everything after Test 1 (which ended with 2.1 Process Management,
+  Stallings Ch. 3). Test 2 is all new content.
+- *The professor's announcement*:
+  - Understand concepts related to /threads/, /processes/, /concurrency/,
+    /mutual exclusion/, /deadlocks/, and /file management/.
+  - {{{hl(red,There will be a question on the deadlock detection algorithm and
+    resource allocation graphs.)}}}
+  - Understand /bit tables/.
+  - Understand /indexed sequential file/ calculations.
+- *Likely layout* (inferred from Test 1): about 15 quick-write questions, answer 10,
+  each a one-sentence answer (definitions, differences between methods); then a
+  couple of math questions (deadlock detection, banker's safety, indexed
+  sequential, bit tables, scheduling); then a couple of conceptual/algorithmic
+  questions (tracing a semaphore solution, explaining why an attempt fails).
+- Scheduling is not named in the announcement, but it was taught after Test 1,
+  so it is included here at lighter weight.
+
+* PART I: Threads and Processes
+
+** Two characteristics of a process
+
+A process has two separable characteristics. /Resource ownership/: a virtual
+address space holding its code, data, and stacks, protected by the OS from other
+processes. /Scheduling/execution/: an execution state (Ready, Running, Blocked)
+and a priority; its execution may be interleaved with other processes. These are
+distinct responsibilities that modern OSs manage /independently/: a blocked
+process can hold a file lock without running, and the OS can allocate resources
+whether or not the process is running.
+
+** Process vs. thread
+
+- The unit of /dispatching/ is a /thread/ (or /lightweight process/).
+- The unit of /resource ownership/ is a /process/ (or /task/).
+- /Multithreading/: the OS supports multiple concurrent paths of execution within
+  one process.
+- A process is "the unit of resource allocation and a unit of protection": it has
+  a virtual address space holding the process image and protected access to
+  processors, other processes (IPC), files, and I/O resources.
+
+/Multithreading approaches/ (Figure 4.1): one process/one thread (the
+/single-threaded approach/, thread not recognized), one process/many threads
+(a /Java run-time environment/ is the slide's example), many processes/one
+thread each, many processes/many threads each.
+
+** What each thread has
+
+Each thread has an execution state, a /saved thread context/ when not running, an
+/execution stack/, some per-thread static storage for local variables, and
+access to its process's memory and resources, /shared/ with every other thread in
+the process. In the multithreaded model (Figure 4.2) the process keeps one
+/process control block/ and one /user address space/; each thread adds its own
+/thread control block/, /user stack/, and /kernel stack/.
+
+** Benefits and uses
+
+Benefits: less time to /create/ a thread than a process, less time to
+/terminate/ one, less time to /switch/ between two threads than two processes,
+and more efficient /communication/ (shared memory, no kernel involvement). Uses in
+a single-user system: foreground/background work, asynchronous processing,
+speeding up execution, and modular program structure.
+
+** Threads and the OS
+
+Scheduling and dispatching are done /per thread/, and most execution state lives
+in thread-level structures. But /suspending/ a process suspends all its threads
+(they share one address space), and /terminating/ a process terminates all its
+threads. Thread states: /Running/, /Ready/, /Blocked/; normally /no suspend state/
+(suspension is a process concept). State-change operations: /Spawn/, /Block/,
+/Unblock/, /Finish/.
+
+* PART II: Scheduling
+
+** Types of scheduling
+
+| Type        | Decides                                                                                  |
+|-------------+------------------------------------------------------------------------------------------|
+| Long-term   | Whether to add a process to the pool to be executed (admission; degree of multiprogramming) |
+| Medium-term | Whether to add to the number of processes partially/fully in main memory (part of swapping) |
+| Short-term  | Which available process runs next on the processor (the /dispatcher/)                     |
+| I/O         | Which pending I/O request an available device handles                                    |
+
+Long-term drives New→Ready, medium-term the suspend transitions, short-term
+Ready→Running. The short-term scheduler runs most often and is invoked on /clock
+interrupts/, /I/O interrupts/, /OS calls/, and /signals/ (e.g. semaphores).
+
+** Criteria
+
+|                         | User-oriented                             | System-oriented                                    |
+|-------------------------+-------------------------------------------+----------------------------------------------------|
+| Performance-related     | /Turnaround time/, /response time/, /deadlines/ | /Throughput/, /processor utilization/             |
+| Non-performance-related | /Predictability/                           | /Fairness/, /enforcing priorities/, /balancing resources/ |
+
+/Turnaround time/ $T_r$ = submission to completion. /Response time/ = submission of
+a request until the response begins. /Throughput/ = processes completed per unit
+time.
+
+** Selection function and decision mode
+
+Selection uses $w$ (time waiting in the system so far), $e$ (time executing so far),
+$s$ (total service time, including $e$). /Nonpreemptive/: the running process
+continues until it terminates or blocks. /Preemptive/: the OS may interrupt it and
+move it to Ready: more overhead (context switches), better service overall.
+A pure priority scheme risks /starvation/ of low-priority processes; the fix is to
+let priority grow with age.
+
+** The six policies
+
+| Policy | Selection       | Mode                     | Key points                                                                          |
+|--------+-----------------+--------------------------+-------------------------------------------------------------------------------------|
+| FCFS   | $\max w$        | Nonpreemptive            | Simple queue; bad for short jobs; favors CPU-bound over I/O-bound                   |
+| RR     | constant        | Preemptive (quantum $q$) | /Time slicing/; $q$ slightly larger than a typical interaction; I/O-bound jobs get less CPU |
+| SPN    | $\min s$        | Nonpreemptive            | Needs estimates of $s$; starvation of long jobs; less predictable                     |
+| SRT    | $\min(s-e)$     | Preemptive (on arrival)  | Best mean turnaround; starvation possible; no extra clock interrupts               |
+| HRRN   | $\max R$, $R=\frac{w+s}{s}$ | Nonpreemptive | Favors short jobs but /aging/ prevents starvation                                   |
+| FB     | (queue level)   | Preemptive (quantum)     | No knowledge of $s$ needed; demote after each preemption; lowest queue FCFS; long jobs stretch out |
+
+*** Formulas (made explicit)
+
+- /Turnaround/ $T_r$ = finish time − arrival time.
+- /Normalized turnaround/ = $T_r / T_s$ (1.0 is ideal; larger = worse relative wait).
+- /Response ratio/ $R = (w + s)/s$, where $w$ = time waiting so far.
+
+On the class example (A–E arriving 0, 2, 4, 6, 8 with service 3, 6, 4, 5, 2),
+mean $T_r$ / mean $T_r/T_s$: FCFS 8.60/2.56, RR q=1 10.80/2.71, RR q=4 10.00/2.71,
+SPN 7.60/1.84, {{{hl(green,SRT 7.20/1.59 (best))}}}, HRRN 8.00/2.14, FB q=1
+10.00/2.29, FB $q=2^i$ 10.60/2.63.
+
+** Windows and Linux scheduling
+
+- /Windows/: run the highest current thread priority; priorities 16–31
+  /real-time/, 1–15 /variable/, 0 the /zero-page thread/. Base priority = process
+  class + thread level (Normal/Normal = 8). Round robin among equal priorities; a
+  newly ready higher-priority thread preempts. /Dynamic boosts/ on input/completed
+  waits decay by one level per full quantum; real-time threads get no boosts.
+  Starvation is mitigated, not eliminated.
+- /Linux/: =SCHED_OTHER= (normal, fair class), =SCHED_FIFO= / =SCHED_RR=
+  (real-time), =SCHED_DEADLINE= (EDF). Lower /nice/ = larger /weight/; target share
+  $w_i/\sum w_j$ over the runnable set.
+- /CFS/: pick the smallest /virtual runtime/; $\Delta v = \Delta t \cdot w_0/w$ (bigger
+  weight, slower growth); red-black tree keyed by $v$.
+- /EEVDF/ (Linux 6.6+): among /eligible/ tasks (nonnegative /lag/, i.e. owed
+  service), pick the earliest /virtual deadline/ $d = v + r \cdot w_0/w$.
+- Windows expresses preference as /priority/ and patches starvation with boosts;
+  Linux expresses it as /weight/ and gets fairness from the accounting.
+
+* PART III: Mutual Exclusion and Synchronization
+
+** Vocabulary
+
+- /Multiprogramming/ (many processes, one processor), /multiprocessing/ (a
+  multiprocessor), /distributed processing/ (multiple distributed computers).
+- /Concurrency/: overlapping execution; /parallelism/ (truly simultaneous) is one
+  type of it. On one CPU, concurrency is interleaving, and all the problems still
+  occur.
+- /Race condition/: multiple processes/threads access shared data, at least one
+  writes, and the result depends on the timing.
+- Competing processes face three control problems: /mutual exclusion/,
+  /deadlock/, /starvation/.
+- /Critical section/: code that accesses shared resources and must not run while
+  another process is in a corresponding section.
+- /Mutual exclusion/: when one process is in a critical section on shared
+  resources, no other may be in a critical section on those resources.
+- /Atomic operation/: appears indivisible; no one sees an intermediate state.
+- /Livelock/: processes keep changing state in response to each other without
+  progress. /Starvation/: a runnable process is overlooked indefinitely.
+- /Busy waiting/ (/spin waiting/): repeatedly testing a variable until allowed in.
+- The /memory arbiter/ serializes simultaneous accesses to one memory location,
+  but guarantees no fairness or order.
+
+** Software attempts (two processes)
+
+| Attempt                      | Mutual exclusion? | Problem                                                       |
+|------------------------------+-------------------+---------------------------------------------------------------|
+| 1: shared =turn=             | Yes               | Strict alternation; slower process sets pace; one fails → other blocked forever |
+| 2: check other flag, then set own | {{{hl(red,No)}}} | Both pass the check before either sets its flag             |
+| 3: set own flag, then check  | Yes               | {{{hl(red,Deadlock)}}} if both set flags first                 |
+| 4: set, defer (reset/delay/set) | Yes            | {{{hl(red,Livelock)}}} in lockstep                             |
+| /Dekker's/                   | Yes               | Correct: flags say who wants in, =turn= breaks ties            |
+| /Peterson's/                 | Yes               | Correct and simpler                                           |
+
+/Peterson's/ for $P_0$: =flag[0] = true; turn = 1; while (flag[1] && turn == 1);=
+critical section; =flag[0] = false=. If both arrive together, whoever wrote =turn=
+last waits.
+
+** Hardware support
+
+- /Interrupt disabling/: enough on a uniprocessor (processes only interleave), but
+  degrades efficiency and {{{hl(red,doesn't work on a multiprocessor)}}}.
+- /Compare&swap/: atomically compare a memory word with a test value and swap in a
+  new value if equal; returns the old value. Lock: =while (compare_and_swap(bolt,
+  0, 1) == 1);= ... =bolt = 0=. Pros: simple, any number of processes, uni- or
+  multiprocessor, multiple critical sections. Cons: /busy waiting/, /starvation/
+  (arbitrary choice among waiters), /deadlock/ possible.
+- /Exchange/ instruction: named in the deck only (textbook: atomically swap a
+  register and a memory word).
+
+** Semaphores
+
+A /semaphore/ is an integer with only three operations: initialize (nonnegative),
+=semWait= (decrement; if < 0, block), =semSignal= (increment; if ≤ 0, unblock
+one). A negative count = number of processes waiting. You can't inspect it, so
+you can't know in advance whether =semWait= will block.
+
+- /Binary semaphore/: values 0/1 only (=semWaitB=, =semSignalB=).
+- /Strong semaphore/: FIFO release, starvation-free. /Weak/: order unspecified.
+- =semWait=/=semSignal= must be /atomic/: implement with hardware/firmware,
+  Dekker/Peterson, compare&swap (busy-waits only inside the primitive), or
+  interrupt disabling.
+- /Mutex/: =lock()=/=unlock()=; {{{hl(green,the process that locks must be the one
+  that unlocks)}}}. A binary semaphore can be signaled by anyone.
+
+** Monitors and condition variables
+
+A /monitor/ is a language construct (procedures + initialization + local data):
+local data is accessible only by its procedures, a process enters by calling a
+procedure, and {{{hl(green,only one process executes in the monitor at a time)}}}.
+/Condition variables/ inside it: =cwait(c)= suspends the caller on $c$ and frees
+the monitor; =csignal(c)= resumes one waiter. {{{hl(red,Signals are not saved)}}}:
+signaling with no waiter does nothing (a semaphore's count would remember it).
+
+* PART IV: Classic Concurrency Problems
+
+** Dining philosophers
+
+Five philosophers, five forks, each needs both neighbors' forks. Requirements:
+mutual exclusion on forks; no deadlock or starvation. Naive solution (one
+semaphore per fork, grab left then right) {{{hl(red,deadlocks)}}} if all grab their
+left fork at once. Fixes: add five more forks, or a /room attendant/: a counting
+semaphore =room = 4= so at most four sit, guaranteeing one can get two forks.
+The /monitor/ solution queues a philosopher on =ForkReady[i]= for each fork it
+lacks; =release_forks= signals a waiter or marks the fork free.
+
+** Producer/consumer
+
+Producers add to a buffer, one consumer removes; only one may access the buffer at
+a time; the producer must not add to a full buffer and the consumer must not take
+from an empty one.
+
+- /Incorrect/ binary-semaphore version (=s= for the buffer, =delay= for empty):
+  the consumer tests =if (n==0)= /outside/ the critical section, so the producer
+  can change =n= first; a stale =delay= signal lets the consumer take from an empty
+  buffer ({{{hl(red,n = −1)}}} in the 21-step trace).
+- /Fix 1/: copy =m = n= inside the critical section and test =m=.
+- /Fix 2/: counting semaphores: =n = 0= (items), =s = 1= (buffer).
+  Producer: =semWait(s); append; semSignal(s); semSignal(n)=. Consumer:
+  =semWait(n); semWait(s); take; semSignal(s); consume=.
+- Swapping the producer's two =semSignal=s: {{{hl(green,still correct)}}}. Swapping the
+  consumer's =semWait(n)= and =semWait(s)=: {{{hl(red,deadlock)}}} (consumer holds =s=
+  on an empty buffer, producer can't add).
+- /Bounded buffer/: add =e = sizeofbuffer= (empty slots). Producer
+  =semWait(e)= before =semWait(s)=; consumer =semSignal(e)= after taking.
+
+** Readers/writers
+
+Any number of readers may read at once; only one writer at a time; no reader while
+a writer writes.
+
+- /Readers have priority/: =wsem= guards the data; =read_lock= guards
+  =readcount=. The /first/ reader waits on =wsem=, the /last/ signals it. Risk:
+  a steady stream of readers {{{hl(red,starves writers)}}}.
+- /Writers have priority/: once a writer wants to write, no /new/ reader may
+  enter until a writer has written (=readblock= / =rsem= stops readers,
+  =writepending= / =z= lets only one reader queue on =readblock=). Risk:
+  {{{hl(red,readers can starve)}}}. Neither starves with a FIFO queue built from a
+  semaphore.
+
+* PART V: Deadlock
+
+** Definitions and conditions
+
+/Deadlock/: the /permanent/ blocking of a set of processes that compete for
+resources or communicate; each is blocked waiting for an event only another
+blocked process in the set can trigger. /Livelock/: processes keep changing state
+without progress (the staircase where both step aside the same way). A /joint
+progress diagram/ shows a /fatal region/: a path entering it must deadlock.
+
+/Reusable resources/ (processors, I/O channels, memory, devices, files, databases,
+semaphores) are used by one process at a time and not depleted. /Consumable
+resources/ (interrupts, signals, messages, I/O buffer data) are created and
+destroyed; deadlock can happen e.g. two processes each doing a blocking
+=Receive= before =Send=.
+
+| Condition         | Meaning                                                                     |
+|-------------------+-----------------------------------------------------------------------------|
+| /Mutual exclusion/ | One process at a time may use a resource                                    |
+| /Hold and wait/   | A process holds resources while waiting for others                           |
+| /No preemption/   | No resource can be forcibly removed from its holder                          |
+| /Circular wait/   | A closed chain where each process holds a resource the next one needs       |
+
+The first three are /necessary but not sufficient/; all four together are
+necessary and sufficient.
+
+** Resource allocation graphs
+
+Nodes for each process (circle) and each resource (box with one /dot per
+instance/). /Request edge/: process → resource (requested, not yet granted).
+/Assignment edge/: resource's dot → process (granted). A cycle with
+single-instance resources is a deadlock; with multiple instances a cycle may
+/not/ be a deadlock (Figure 6.5d).
+
+*** Drawing a RAG from matrices (from the notes' practice section)
+
+1. One node per process; one node per resource type with as many dots as the
+   /resource vector/ says.
+2. For each nonzero $Q_{ij}$, draw $Q_{ij}$ /request/ edges $P_i \to R_j$.
+3. For each nonzero $A_{ij}$, draw $A_{ij}$ /assignment/ edges from $R_j$'s dots to
+   $P_i$.
+4. Look for cycles. With single instances, a cycle = deadlock; with multiple
+   instances, confirm with the detection algorithm.
+
+** Strategies
+
+| Strategy   | Idea                                                                                   |
+|------------+----------------------------------------------------------------------------------------|
+| Prevention | Design so a condition can't hold. /Indirect/: break one of the first three; /direct/: prevent circular wait |
+| Avoidance  | Don't grant a request that might lead to deadlock (keep the state /safe/)               |
+| Detection  | Grant freely; periodically check for deadlock and recover                              |
+
+/Prevention/ by condition: mutual exclusion generally can't be removed; hold-and-wait
+by requesting everything at once (long waits, idle resources, needs foreknowledge);
+no preemption by releasing on denial or preempting others; circular wait by a
+/linear ordering of resource types/.
+
+/Avoidance/: /process initiation denial/ (don't start a process whose demands might
+deadlock) or /resource allocation denial/ (the /banker's algorithm/). A /safe
+state/ has at least one sequence in which all processes can finish; an /unsafe/
+state is not deadlocked, but might become so. Restrictions: maximum claims stated in
+advance, independent processes, fixed number of resources, no exiting while holding
+resources. Advantages: no preemption/rollback; less restrictive than prevention.
+
+** Banker's algorithm (safety test)
+
+State: resource vector $R$, available $V$, claim matrix $C$, allocation $A$; the
+remaining need is $C - A$. Invariant: $R_j = V_j + \sum_i A_{ij}$.
+
+1. =currentavail= ← $V$; =rest= ← all processes.
+2. Find $P_k$ in =rest= with $C_k - A_k \le$ =currentavail=. If none, stop.
+3. Run it: =currentavail= += $A_k$; remove $P_k$. Go to 2.
+4. {{{hl(green,Safe iff =rest= ends empty)}}}.
+
+To handle a request: if =alloc + request > claim=, error; if =request > available=,
+suspend; else /pretend to grant/ and run the safety test. Safe → grant; unsafe →
+restore and suspend.
+
+Handout example: $V = (0,1,1)$, needs P1 (2,2,2), P2 (0,0,1), P3 (1,0,3), P4
+(4,2,0). P2 fits → avail (6,2,3) → P1 → (7,2,3) → P3 → (9,3,4) → P4 → (9,3,6) =
+$R$. Safe, sequence P2, P1, P3, P4. In Figure 6.8, granting P1 (1,0,1) leaves
+$V = (0,1,1)$ with every process needing R1: unsafe, postponed.
+
+** Deadlock detection algorithm
+
+Uses the /request matrix/ $Q$ (current requests) instead of claims.
+
+1. {{{hl(green,Mark every process whose allocation row is all zeros.)}}}
+2. $W$ ← Available.
+3. Find an unmarked $P_i$ with $Q_i \le W$ (every component). If none, stop.
+4. Mark $P_i$; $W$ ← $W + A_i$. Go to 3.
+
+{{{hl(red,Deadlock exists iff unmarked processes remain; those are the deadlocked
+ones.)}}} The order of picking eligible rows doesn't change the result.
+
+*** Worked example (Figure 6.10)
+
+| | Q (R1–R5) | A (R1–R5) |
+|-+-----------+-----------|
+| P1 | 0 1 0 0 1 | 1 0 1 1 0 |
+| P2 | 0 0 1 0 1 | 1 1 0 0 0 |
+| P3 | 0 0 0 0 1 | 0 0 0 1 0 |
+| P4 | 1 0 1 0 1 | 0 0 0 0 0 |
+
+$R = (2,1,1,2,1)$, Available $= (0,0,0,0,1)$.
+
+- Mark P4 (allocation all zeros). $W = (0,0,0,0,1)$.
+- P3's request $(0,0,0,0,1) \le W$: mark, $W = (0,0,0,1,1)$.
+- P1 needs R2, P2 needs R3: neither fits. Stop.
+- {{{hl(red,P1 and P2 are deadlocked)}}}: P1 wants R2 held by P2; P2 wants R3 held by
+  P1. As a RAG: P1 → R2 → P2 → R3 → P1 is a cycle.
+
+Advantages of detection: early detection, simple algorithm; disadvantage:
+frequent checks cost CPU time. RAG cycle-checking scales badly (a node per
+instance) and handles divisible resources like memory poorly.
+
+** Recovery and integrated strategy
+
+Recovery, in increasing sophistication: abort all deadlocked processes; back up
+each to a checkpoint and restart; successively abort until the deadlock is gone;
+successively preempt resources. /Integrated strategy/: group resources into
+classes, order the classes (prevents circular wait between classes), and use the
+best method within each: swappable space (all at once), process resources
+(ordering or avoidance), main memory (preemption), internal resources (ordering).
+In practice many OSs (Linux, Windows) simply /ignore/ deadlock.
+
+** Avoidance vs. detection
+
+| | Avoidance (banker's) | Detection |
+|-+---------------------+-----------|
+| Needs | Claim matrix $C$ (max demands) | Request matrix $Q$ (current requests) |
+| Runs | On every request | Periodically |
+| Decides | Will granting keep the state safe? | Has deadlock already happened? |
+| Downside | Must know claims; refuses some requests | Needs recovery (kill/rollback) |
+
+* PART VI: File Management
+
+** Files and file systems
+
+Desirable file properties: /long-term existence/, /sharable between processes/,
+/structure/. A /file system/ stores data as files plus functions on them, and keeps
+/attributes/ (owner, creation time, modified date). Operations: create, delete,
+open, close, read, write. Data hierarchy: /field/ (single value) → /record/
+(related fields) → /file/ (similar records, referenced by name, access control at
+file level) → /database/ (related data with explicit relationships). Modern OSs
+(UNIX, Linux, Windows) treat files as /byte streams/; record-oriented systems
+include IBM OS/360, z/OS, OpenVMS.
+
+/File system architecture/ (top down): access methods (pile, sequential, indexed
+sequential, indexed, hashed) → /logical I/O/ (records) → /basic I/O supervisor/
+(initiate/terminate I/O, scheduling, buffers) → /basic file system/ (physical I/O
+of blocks) → /device drivers/.
+
+** File organizations
+
+Criteria: short access time, ease of update, economy of storage, simple
+maintenance, reliability.
+
+| Organization       | Structure                                       | Access / notes                                                |
+|--------------------+-------------------------------------------------+---------------------------------------------------------------|
+| /Pile/             | Records in arrival order; variable length/fields | /Exhaustive search/; good space use, easy append             |
+| /Sequential/       | Fixed-format records ordered by a /key field/   | Sequential search; great for batch, tape; inserts go to a /log (transaction) file/, merged by /batch update/ |
+| /Indexed sequential/ | Sequential file + /index/ + /overflow file/    | Random access without losing sequential nature; multilevel indexes possible |
+| /Indexed/          | Access /only/ via indexes; variable-length records | /Exhaustive/ index (every record) or /partial/ index; airline reservations, inventory |
+| /Direct (hashed)/  | Hash the key to a /bucket/                       | Fast exact-key lookup; collisions via /overflow buckets/; poor for range queries |
+
+** Indexed sequential calculation
+
+The index is itself a sequential file of (key, pointer) entries. To find a key:
+search the index for the highest key ≤ the target, follow its pointer, then search
+the main file sequentially from there.
+
+With $N$ records and $k$ evenly spaced index entries (each covering $N/k$ records):
+
+- No index: average $N/2$ accesses.
+- With index: average $\frac{k}{2} + \frac{N}{2k}$ accesses.
+
+Example (slides): $N = 10^6$, $k = 1000$: $500 + 500 = 1000$ vs. $500{,}000$.
+
+Worked mini-example: $N = 40{,}000$, $k = 200$: $100 + 100 = 200$ vs. $20{,}000$.
+(With $k = 100$: $50 + 200 = 250$. The minimum is at $k = \sqrt{N}$, which is not
+from the slides, just algebra.)
+
+** Record blocking
+
+| Method | Notes |
+|--------+-------|
+| /Fixed blocking/ | Fixed-length records, integral number per block; /internal fragmentation/ |
+| /Variable-length spanned/ | Packed with no waste; a record may span two blocks via a pointer |
+| /Variable-length unspanned/ | No spanning; space at the end of a block wasted |
+
+** File allocation
+
+Space is allocated in /portions/ (contiguous sets of blocks), tracked by the /file
+allocation table (FAT)/. /Preallocation/ declares the maximum size at creation
+(hard to estimate, wasteful); /dynamic allocation/ adds portions as needed. Portion
+size: variable large contiguous portions (better performance, small tables) vs.
+small fixed blocks (flexible, larger tables).
+
+| | Contiguous | Chained | Indexed (blocks) | Indexed (variable) |
+|-+------------+---------+------------------+--------------------|
+| Preallocation? | Necessary | Possible | Possible | Possible |
+| Portions | Variable | Fixed blocks | Fixed blocks | Variable |
+| Portion size | Large | Small | Small | Medium |
+| Allocation frequency | Once | Low to high | High | Low |
+| Time to allocate | Medium | Long | Short | Medium |
+| FAT size | One entry | One entry | Large | Medium |
+
+- /Contiguous/: one FAT entry (start, length); /external fragmentation/ → /compaction/.
+- /Chained/: each block points to the next; no external fragmentation; good for
+  sequential files; no locality → /consolidation/.
+- /Indexed/: per-file index block; supports sequential and direct access.
+
+** Free space management
+
+A /disk allocation table/ is needed besides the FAT.
+
+- /Bit table/: one bit per block, {{{hl(green,0 = free, 1 = in use)}}}. Works with any
+  allocation method and is as small as possible.
+- /Chained free portions/: free portions linked by pointer + length; no table
+  needed, but fragments, and every allocation must read the block first.
+- /Indexing/: treat free space as a file; one index entry per free portion
+  (variable-size portions for efficiency).
+- /Free block list/: free block numbers kept in a reserved disk area; 24 or 32 bits
+  per number, so 24–32× the size of the bit table; keep part in memory as a
+  /push-down stack/ or a /FIFO queue/.
+
+*** Bit table calculations (made explicit; not on the slides)
+
+- Number of blocks $= \text{disk size} / \text{block size}$.
+- Bit table size $=$ one bit per block $= \text{blocks}/8$ bytes.
+- Example: 16 GB disk, 512-byte blocks: $2^{34}/2^{9} = 2^{25}$ blocks →
+  $2^{25}$ bits $= 2^{22}$ bytes $= 4$ MB (the textbook's example).
+- Example: 1 GB disk, 4 KB blocks: $2^{30}/2^{12} = 2^{18}$ blocks → $2^{18}/8 = 32$ KB.
+- Free block list for the same disk with 32-bit numbers: up to $32\times$ the bit
+  table (only free blocks are listed).
+- Reading a bit table: =1110 0011 0000 1111= with blocks numbered from 0 → free
+  blocks are 3, 4, 5, 8, 9, 10, 11.

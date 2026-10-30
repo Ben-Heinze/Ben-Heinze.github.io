@@ -19,6 +19,8 @@
   var UNIT_LABEL = {
     // Operating Systems
     ov: 'Overview', mem: 'Memory', proc: 'Process',
+    sched: 'Scheduling', thr: 'Threads', mutex: 'Mutual Exclusion',
+    dead: 'Deadlock', cprob: 'Concurrency Problems', file: 'File Management',
     // Machine Learning midterm
     found: 'Foundations', linreg: 'Linear Regression', nonpar: 'Nonparametric',
     eval: 'Experiments', dimred: 'Dim. Reduction', clust: 'Clustering',
@@ -758,7 +760,8 @@
 
     function toConceptItem(r) {
       return { id: r.id, type: r.type, q: r.q, options: r.options || [], a: r.answer, accept: r.accept || [], e: r.explain, unit: r.unit,
-               steps: (r.steps && r.steps.length) ? formatSteps(r.steps) : '' };
+               steps: (r.steps && r.steps.length) ? formatSteps(r.steps) : '',
+               data: (r.data && r.data.length) ? formatSteps(r.data) : '' };
     }
     function toCalcItem(r) {
       var g = GEN[r.gen]();
@@ -796,6 +799,7 @@
           (item.unit ? (item.type === 'calc' ? ' · ' : '') + unitLabel(item.unit) : '');
         if (tagTxt) { var tag = el('span', 'qz-tag'); tag.textContent = tagTxt; prompt.appendChild(tag); }
         card.appendChild(prompt);
+        if (item.data) { var data = el('div', 'qz-steps qz-data'); data.textContent = item.data; card.appendChild(data); }
 
         var get;
         if (item.type === 'mc' || item.type === 'tf') {
@@ -883,7 +887,7 @@
       if (cardIdx < 0) cardIdx = items.length - 1;
       var item = items[cardIdx];
       var face = q('.qz-card-face');
-      face.textContent = cardFlipped ? cardBack(item) : item.q;
+      face.textContent = cardFlipped ? cardBack(item) : item.q + (item.data ? '\n\n' + item.data : '');
       face.className = 'qz-card-face' + (cardFlipped ? ' is-back' : '');
       var tagTxt = (item.type === 'calc' ? 'calc' : item.type) +
         (item.unit ? ' \u00b7 ' + unitLabel(item.unit) : '');

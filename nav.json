@@ -458,6 +458,10 @@
             "href": "/os/lectures/2-2-process-management/index.html"
           },
           {
+            "label": "2.3 Threads and Processes",
+            "href": "/os/lectures/2-3-threads/index.html"
+          },
+          {
             "label": "Handouts",
             "href": "/os/lectures/handouts/index.html"
           },
@@ -510,6 +514,20 @@
           {
             "label": "Calculation Practice",
             "href": "/os/test-1/calculations/index.html"
+          }
+        ]
+      },
+      {
+        "label": "Test 2",
+        "href": "/os/test-2/index.html",
+        "children": [
+          {
+            "label": "Question Bank",
+            "href": "/os/test-2/question-bank/index.html"
+          },
+          {
+            "label": "Practice Test",
+            "href": "/os/test-2/practice-test/index.html"
           }
         ]
       }

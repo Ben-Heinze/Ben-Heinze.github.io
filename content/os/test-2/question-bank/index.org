@@ -1,0 +1,2719 @@
+#+TITLE: Question Bank
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-29
+#+STARTUP: noindent
+#+QUIZ: t
+#+LEARN: nil
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+The authored source of quiz questions for Test 2 (=#+QUIZ: t=). Each heading is
+one question; its type, answer, and source section live in a hidden property
+drawer, so this page reads as a plain question list while the
+[[file:../practice-test/][Practice Test]] renders it as an interactive, gradeable test with good/bad
+ratings. Questions are grouped by unit, then by the lecture-note section they
+test. Tags: =sched= (Scheduling), =thr= (Threads), =mutex= (Mutual Exclusion),
+=cprob= (Concurrency Problems), =dead= (Deadlock), =file= (File Management).
+
+The layout mirrors Test 1: one-sentence /quick-write/ questions (definitions,
+differences between methods), then worked /math/ problems, then
+/conceptual and algorithmic/ questions.
+
+* Scheduling
+
+** Scheduling
+
+*** What is the aim of processor scheduling?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: To assign processes to be executed by the processor over time in a way that meets system objectives such as response time, throughput, and processor efficiency.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Scheduling.
+:Q_UNIT: sched
+:END:
+
+** Types of Scheduling
+
+*** Define long-term scheduling.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The decision to add to the pool of processes to be executed, i.e. which programs are admitted to the system.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Types of Scheduling. It drives the New to Ready transition.
+:Q_UNIT: sched
+:END:
+
+*** Define medium-term scheduling.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The decision to add to the number of processes partially or fully in main memory; it is part of the swapping function.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Types of Scheduling › Medium-Term Scheduling. It drives the suspend transitions.
+:Q_UNIT: sched
+:END:
+
+*** Define short-term scheduling.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The decision as to which available (ready) process will be executed by the processor next.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Types of Scheduling › Short-Term Scheduling. Also called the dispatcher; it drives Ready to Running.
+:Q_UNIT: sched
+:END:
+
+*** Define I/O scheduling.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The decision as to which process's pending I/O request is handled by an available I/O device.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Types of Scheduling.
+:Q_UNIT: sched
+:END:
+
+*** Which process-state transition does each of long-, medium-, and short-term scheduling drive?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Long-term drives New to Ready, medium-term drives the suspend transitions (Ready/Suspend and Blocked/Suspend), and short-term drives Ready to Running.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Types of Scheduling (Figure 9.1).
+:Q_UNIT: sched
+:END:
+
+*** The long-term scheduler controls the degree of __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: multiprogramming
+:Q_ACCEPT: multi-programming
+:Q_EXPLAIN: Notes: 2.2 Process Management › Long-Term Scheduling. The more processes created, the smaller the percentage of time each gets to execute.
+:Q_UNIT: sched
+:END:
+
+*** What two decisions does the long-term scheduler make?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: When the OS can take on one or more additional processes, and which jobs to accept and turn into processes.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Long-Term Scheduling. "When" depends on the degree of multiprogramming; "which" can be FCFS or by priority, expected execution time, and I/O requirements.
+:Q_UNIT: sched
+:END:
+
+*** How does an interactive time-sharing system handle new users differently from a batch long-term scheduler?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Users are not queued and kept waiting; the OS accepts all authorized users until the system is saturated.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Long-Term Scheduling.
+:Q_UNIT: sched
+:END:
+
+*** Name the four kinds of events that invoke the short-term scheduler.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Clock interrupts, I/O interrupts, operating system calls, and signals (e.g. semaphores).
+:Q_EXPLAIN: Notes: 2.2 Process Management › Short-Term Scheduling.
+:Q_UNIT: sched
+:END:
+
+*** Which scheduler executes most frequently?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Short-term (dispatcher) | Medium-term | Long-term | I/O
+:Q_ANSWER: Short-term (dispatcher)
+:Q_EXPLAIN: Notes: 2.2 Process Management › Short-Term Scheduling. It makes the fine-grained decision of which process runs next.
+:Q_UNIT: sched
+:END:
+
+** Short-Term Scheduling Criteria
+
+*** What is the difference between user-oriented and system-oriented scheduling criteria?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: User-oriented criteria describe behavior as perceived by the individual user or process, while system-oriented criteria describe effective and efficient utilization of the processor.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Short-Term Scheduling Criteria.
+:Q_UNIT: sched
+:END:
+
+*** Define turnaround time.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The interval between the submission of a process and its completion.
+:Q_EXPLAIN: Notes: 2.2 Process Management › User-oriented, performance-related. Written \(T_r\).
+:Q_UNIT: sched
+:END:
+
+*** Define response time.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: For an interactive process, the time from submission of a request until the response begins to be received.
+:Q_EXPLAIN: Notes: 2.2 Process Management › User-oriented, performance-related.
+:Q_UNIT: sched
+:END:
+
+*** Define predictability as a scheduling criterion.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A given job should run in about the same amount of time and at about the same cost regardless of the load on the system.
+:Q_EXPLAIN: Notes: 2.2 Process Management › User-oriented, non-performance-related.
+:Q_UNIT: sched
+:END:
+
+*** Define throughput.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The number of processes completed per unit of time.
+:Q_EXPLAIN: Notes: 2.2 Process Management › System-oriented, performance-related.
+:Q_UNIT: sched
+:END:
+
+*** Classify each criterion: turnaround time, throughput, predictability, fairness.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Turnaround time is user-oriented performance; throughput is system-oriented performance; predictability is user-oriented non-performance; fairness is system-oriented non-performance.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Short-Term Scheduling Criteria (the 2 x 2 table).
+:Q_UNIT: sched
+:END:
+
+*** System-oriented criteria are generally of minor importance on single-user systems.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: Notes: 2.2 Process Management › Short-Term Scheduling Criteria. User-oriented criteria matter on virtually all systems.
+:Q_UNIT: sched
+:END:
+
+** Priority-Based Scheduling
+
+*** What is the problem with a pure priority scheduling scheme, and how is it fixed?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Lower-priority processes can starve; the fix is to make priority a function of age and execution history so a waiting process drifts upward.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Priority-Based Scheduling.
+:Q_UNIT: sched
+:END:
+
+** Scheduling Policies
+
+*** What is a scheduling policy's selection function?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The rule that determines which process, among the ready processes, is selected next, written in terms of w, e, and s.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Scheduling Policies. w = time waiting in the system so far, e = time in execution so far, s = total service time.
+:Q_UNIT: sched
+:END:
+
+*** In scheduling, what do w, e, and s stand for?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: w is the time spent in the system so far (waiting), e is the time spent in execution so far, and s is the total service time required, including e.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Scheduling Policies.
+:Q_UNIT: sched
+:END:
+
+*** What is the difference between nonpreemptive and preemptive decision modes?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Nonpreemptive: a running process continues until it terminates or blocks itself; preemptive: the OS may interrupt the running process and move it to the ready state.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Scheduling Policies.
+:Q_UNIT: sched
+:END:
+
+*** Give one disadvantage and one advantage of preemptive scheduling.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Disadvantage: more overhead, since every preemption is a context switch; advantage: better service to the process population because no single process can monopolize the processor.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Nonpreemptive vs preemptive.
+:Q_UNIT: sched
+:END:
+
+*** Give the selection function and decision mode of each policy: FCFS, RR, SPN, SRT, HRRN.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: FCFS max w, nonpreemptive; RR constant, preemptive at quantum q; SPN min s, nonpreemptive; SRT min(s - e), preemptive; HRRN max (w + s)/s, nonpreemptive.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Scheduling Policies (each policy's subsection). Feedback is preemptive at each quantum and uses execution history.
+:Q_STEPS: FCFS :: max w, nonpreemptive | RR :: constant, preemptive (quantum q) | SPN :: min s, nonpreemptive | SRT :: min(s - e), preemptive | HRRN :: max (w+s)/s, nonpreemptive | Feedback :: queue level by history, preemptive (quantum)
+:Q_UNIT: sched
+:END:
+
+** First-Come-First-Served (FCFS)
+
+*** Name the two biases of FCFS.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It performs much better for long processes than short ones, and it favors processor-bound processes over I/O-bound ones.
+:Q_EXPLAIN: Notes: 2.2 Process Management › First-Come-First-Served (FCFS).
+:Q_UNIT: sched
+:END:
+
+*** Why does FCFS leave I/O devices idle when a CPU-bound process is running?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The short I/O-bound processes are stuck in the ready queue behind the long CPU-bound process, so they cannot issue their I/O requests.
+:Q_EXPLAIN: Notes: 2.2 Process Management › First-Come-First-Served (FCFS). The deck's P1 (100 ms CPU) vs P2, P3 (2 ms CPU then I/O) example.
+:Q_UNIT: sched
+:END:
+
+** Round Robin
+
+*** Why is round robin also called time slicing?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Preemption is based on a clock: at each periodic clock interrupt the running process goes to the back of the ready queue and the next one runs.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Round Robin.
+:Q_UNIT: sched
+:END:
+
+*** What is the trade-off in choosing the round-robin quantum length?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A short quantum moves short processes through quickly but adds clock-interrupt and scheduling overhead, so the quantum should be slightly greater than a typical interaction.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Round Robin.
+:Q_UNIT: sched
+:END:
+
+*** What is round robin's drawback with I/O-bound processes, and what is the fix?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: I/O-bound processes block before using their full quantum, so they get less processor time than CPU-bound ones; virtual round robin gives them a preferential auxiliary queue.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Round Robin.
+:Q_UNIT: sched
+:END:
+
+** Shortest Process Next (SPN)
+
+*** What is the main difficulty in implementing SPN?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The required processing time of each process must be known or estimated, from stored statistics or from the user/programmer.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Shortest Process Next (SPN).
+:Q_UNIT: sched
+:END:
+
+*** Name three costs of SPN.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Possible starvation of longer processes, increased variability of response time (less predictable), and unsuitability for time-sharing systems.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Shortest Process Next (SPN).
+:Q_UNIT: sched
+:END:
+
+** Shortest Remaining Time (SRT)
+
+*** What is the difference between SPN and SRT?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: SRT is the preemptive version of SPN: it picks the shortest expected remaining time and re-decides whenever a new process arrives.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Shortest Remaining Time (SRT).
+:Q_UNIT: sched
+:END:
+
+*** Why does SRT have lower overhead than round robin?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It generates no additional interrupts; the dispatcher runs only when a new process arrives (or one finishes), not on every clock tick.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Shortest Remaining Time (SRT).
+:Q_UNIT: sched
+:END:
+
+** Highest Response Ratio Next (HRRN)
+
+*** Write the HRRN response ratio and explain why HRRN avoids starvation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: R = (w + s)/s; a short s makes R large, but waiting increases w and therefore R, so a long process eventually gets past shorter jobs.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Highest Response Ratio Next (HRRN).
+:Q_UNIT: sched
+:END:
+
+** Multilevel Feedback
+
+*** When is multilevel feedback used instead of SPN, SRT, or HRRN?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: When there is no indication of the relative length of processes, since SPN, SRT, and HRRN all need the service time s.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Multilevel Feedback.
+:Q_UNIT: sched
+:END:
+
+*** Describe how a process moves through the multilevel feedback queues.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It enters RQ0, drops one queue lower each time it is preempted, the lowest queue is FCFS, and the scheduler always serves the highest non-empty queue.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Multilevel Feedback.
+:Q_UNIT: sched
+:END:
+
+*** What is the main cost of multilevel feedback, and how does a quantum of 2^i help?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Turnaround time for long processes stretches out because they keep sinking while new arrivals enter above them; a quantum that grows with depth (2^i at level i) softens this.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Multilevel Feedback.
+:Q_UNIT: sched
+:END:
+
+** The worked example
+
+*** For the lecture's process set, compute each process's finish time and turnaround time under FCFS, and the mean turnaround.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: arrival 0, service 3 | B: arrival 2, service 6 | C: arrival 4, service 4 | D: arrival 6, service 5 | E: arrival 8, service 2
+:Q_ANSWER: Finish A=3, B=9, C=13, D=18, E=20; Tr = 3, 7, 9, 12, 12; mean Tr = 8.60.
+:Q_EXPLAIN: Notes: 2.2 Process Management › The worked example (Table 9.5, FCFS row). Tr = finish - arrival.
+:Q_STEPS: Gantt: A 0-3, B 3-9, C 9-13, D 13-18, E 18-20 | A :: Tr = 3 - 0 = 3,  Tr/Ts = 3/3 = 1.00 | B :: Tr = 9 - 2 = 7,  Tr/Ts = 7/6 = 1.17 | C :: Tr = 13 - 4 = 9,  Tr/Ts = 9/4 = 2.25 | D :: Tr = 18 - 6 = 12,  Tr/Ts = 12/5 = 2.40 | E :: Tr = 20 - 8 = 12,  Tr/Ts = 12/2 = 6.00 | mean Tr = 43/5 = 8.60,  mean Tr/Ts = 2.56
+:Q_UNIT: sched
+:END:
+
+*** For the lecture's process set, compute finish and turnaround times under SRT.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: arrival 0, service 3 | B: arrival 2, service 6 | C: arrival 4, service 4 | D: arrival 6, service 5 | E: arrival 8, service 2
+:Q_ANSWER: Finish A=3, B=15, C=8, D=20, E=10; Tr = 3, 13, 4, 14, 2; mean Tr = 7.20, mean Tr/Ts = 1.59.
+:Q_EXPLAIN: Notes: 2.2 Process Management › The worked example (Table 9.5, SRT row).
+:Q_STEPS: t=0  A runs (only process) | t=2  B arrives (6); A has 1 left, keep A | t=3  A done; B starts | t=4  C arrives (4) < B's remaining 5: preempt, C runs | t=6  D arrives (5); C has 2 left, keep C | t=8  C done; ready B 5, D 5, E (arrives t=8) 2: E runs | t=10 E done; B 5, D 5 tie, B arrived first: B runs | t=15 B done; D runs | t=20 D done | Gantt: A 0-3, B 3-4, C 4-8, E 8-10, B 10-15, D 15-20 | Tr: A 3, B 13, C 4, D 14, E 2 = 36/5 = 7.20 | Tr/Ts: 1.00, 2.17, 1.00, 2.80, 1.00 = mean 1.59
+:Q_UNIT: sched
+:END:
+
+*** For the lecture's process set, run HRRN and show the response ratios at each decision.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: arrival 0, service 3 | B: arrival 2, service 6 | C: arrival 4, service 4 | D: arrival 6, service 5 | E: arrival 8, service 2
+:Q_ANSWER: Order A, B, C, E, D; finish A=3, B=9, C=13, E=15, D=20; mean Tr = 8.00.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Highest Response Ratio Next (HRRN) and The worked example (Table 9.5).
+:Q_STEPS: t=0  only A: A runs 0-3 | t=3  only B ready: B runs 3-9 | t=9  R = (w+s)/s: | .  C: w=5, s=4 :: R = 9/4 = 2.25  <- max | .  D: w=3, s=5 :: R = 8/5 = 1.60 | .  E: w=1, s=2 :: R = 3/2 = 1.50 | C runs 9-13 | t=13 | .  D: w=7, s=5 :: R = 12/5 = 2.40 | .  E: w=5, s=2 :: R = 7/2 = 3.50  <- max | E runs 13-15, D runs 15-20 | Tr: A 3, B 7, C 9, D 14, E 7 = 40/5 = 8.00
+:Q_UNIT: sched
+:END:
+
+*** For the lecture's process set, trace round robin with q = 1.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: arrival 0, service 3 | B: arrival 2, service 6 | C: arrival 4, service 4 | D: arrival 6, service 5 | E: arrival 8, service 2 | Convention: a process arriving at time t joins the queue before the process preempted at t.
+:Q_ANSWER: Finish A=4, B=18, C=17, D=20, E=15; Tr = 4, 16, 13, 14, 7; mean Tr = 10.80.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Round Robin and The worked example (Table 9.5, RR q=1 row).
+:Q_STEPS: time:  0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 | runs:  A A B A B C B D C B E  D  C  B  E  D  C  B  D  D | A done 4, C done 17, E done 15, B done 18, D done 20 | Tr = 4, 16, 13, 14, 7 -> mean 54/5 = 10.80 | Tr/Ts = 1.33, 2.67, 3.25, 2.80, 3.50 -> mean 2.71
+:Q_UNIT: sched
+:END:
+
+*** In the lecture's comparison table, which policy has the best mean turnaround and mean normalized turnaround?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: SRT | SPN | HRRN | FCFS
+:Q_ANSWER: SRT
+:Q_EXPLAIN: Notes: 2.2 Process Management › The worked example. SRT: 7.20 and 1.59; SPN is next (7.60, 1.84).
+:Q_UNIT: sched
+:END:
+
+*** In the lecture's example, why does process E get a normalized turnaround of 6.00 under FCFS but 1.00 under SRT?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: E is the shortest job but arrives last, so under FCFS it waits behind everything, while SRT runs it as soon as it arrives because it has the least remaining time.
+:Q_EXPLAIN: Notes: 2.2 Process Management › The worked example.
+:Q_UNIT: sched
+:END:
+
+*** New process set: compute finish times, turnaround times, and mean turnaround under SPN.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: arrival 0, service 4 | B: arrival 1, service 3 | C: arrival 2, service 1 | D: arrival 3, service 5 | E: arrival 5, service 2
+:Q_ANSWER: Order A, C, E, B, D; finish A=4, C=5, E=7, B=10, D=15; Tr = A 4, B 9, C 3, D 12, E 2; mean Tr = 6.0.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Shortest Process Next (SPN). New numbers, verified by simulation.
+:Q_STEPS: t=0  only A: A runs 0-4 (nonpreemptive) | t=4  ready B(3), C(1), D(5): C runs 4-5 | t=5  ready B(3), D(5), E(2): E runs 5-7 | t=7  B(3), D(5): B runs 7-10 | t=10 D runs 10-15 | Tr = finish - arrival: A 4, B 9, C 3, D 12, E 2 | mean Tr = 30/5 = 6.0 | Tr/Ts: 1.00, 3.00, 3.00, 2.40, 1.00 -> mean 2.08
+:Q_UNIT: sched
+:END:
+
+*** New process set: compute finish and turnaround times under SRT.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: arrival 0, service 4 | B: arrival 1, service 3 | C: arrival 2, service 1 | D: arrival 3, service 5 | E: arrival 5, service 2 | Tie rule: on equal remaining time, the running process keeps the CPU.
+:Q_ANSWER: Gantt A 0-2, C 2-3, A 3-5, E 5-7, B 7-10, D 10-15; Tr = A 5, B 9, C 1, D 12, E 2; mean Tr = 5.8.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Shortest Remaining Time (SRT). New numbers, verified by simulation.
+:Q_STEPS: t=0  A runs (rem 4) | t=1  B arrives (3); A rem 3: tie, A keeps CPU | t=2  C arrives (1) < A rem 2: preempt, C runs 2-3 | t=3  D arrives (5); ready A 2, B 3, D 5: A runs 3-5 | t=5  E arrives (2); ready B 3, D 5, E 2: E runs 5-7 | t=7  B runs 7-10 | t=10 D runs 10-15 | Tr: A 5, B 9, C 1, D 12, E 2 -> mean 29/5 = 5.8 | Tr/Ts: 1.25, 3.00, 1.00, 2.40, 1.00 -> mean 1.73
+:Q_UNIT: sched
+:END:
+
+*** New process set: run HRRN and show the response ratios at each decision.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: arrival 0, service 4 | B: arrival 1, service 3 | C: arrival 2, service 1 | D: arrival 3, service 5 | E: arrival 5, service 2
+:Q_ANSWER: Order A, C, B, E, D; finish A=4, C=5, B=8, E=10, D=15; mean Tr = 6.2.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Highest Response Ratio Next (HRRN). New numbers, verified by simulation.
+:Q_STEPS: t=0  only A: A runs 0-4 | t=4  R = (w+s)/s: | .  B: w=3, s=3 :: R = 6/3 = 2.00 | .  C: w=2, s=1 :: R = 3/1 = 3.00  <- max | .  D: w=1, s=5 :: R = 6/5 = 1.20 | C runs 4-5 | t=5 | .  B: w=4, s=3 :: R = 7/3 = 2.33  <- max | .  D: w=2, s=5 :: R = 7/5 = 1.40 | .  E: w=0, s=2 :: R = 2/2 = 1.00 | B runs 5-8 | t=8 | .  D: w=5, s=5 :: R = 10/5 = 2.00 | .  E: w=3, s=2 :: R = 5/2 = 2.50  <- max | E runs 8-10, D runs 10-15 | Tr: A 4, B 7, C 3, D 12, E 5 -> mean 31/5 = 6.2
+:Q_UNIT: sched
+:END:
+
+*** New process set: trace round robin with q = 2 and give each finish time.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: arrival 0, service 4 | B: arrival 1, service 3 | C: arrival 2, service 1 | D: arrival 3, service 5 | E: arrival 5, service 2 | Convention: a process arriving at time t joins the queue before the process preempted at t.
+:Q_ANSWER: Gantt A 0-2, B 2-4, C 4-5, A 5-7, D 7-9, B 9-10, E 10-12, D 12-15; finish A=7, B=10, C=5, D=15, E=12; mean Tr = 7.6.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Round Robin. New numbers, verified by simulation.
+:Q_STEPS: t=0  queue [A]: A runs 0-2 (B arrived t=1, C at t=2) | t=2  queue [B, C, A]: B runs 2-4 (D arrives t=3) | t=4  queue [C, A, D, B]: C runs 4-5, done | t=5  E arrives; queue [A, D, B, E]: A runs 5-7, done | t=7  queue [D, B, E]: D runs 7-9 | t=9  queue [B, E, D]: B runs 9-10, done | t=10 E runs 10-12, done | t=12 D runs 12-15, done | Tr: A 7, B 9, C 3, D 12, E 7 -> mean 38/5 = 7.6
+:Q_UNIT: sched
+:END:
+
+*** Second new set: compute FCFS and SRT mean turnaround times.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: P1: arrival 0, service 7 | P2: arrival 2, service 4 | P3: arrival 4, service 1 | P4: arrival 5, service 4 | Tie rule: on equal remaining time, the earlier arrival wins.
+:Q_ANSWER: FCFS mean Tr = 8.75 (finishes 7, 11, 12, 16); SRT mean Tr = 7.0 (P1 0-2, P2 2-4, P3 4-5, P2 5-7, P4 7-11, P1 11-16).
+:Q_EXPLAIN: Notes: 2.2 Process Management › First-Come-First-Served (FCFS) and Shortest Remaining Time (SRT). New numbers, verified by simulation.
+:Q_STEPS: FCFS: P1 0-7, P2 7-11, P3 11-12, P4 12-16 | .  Tr = 7, 9, 8, 11 -> 35/4 = 8.75 | SRT: | .  t=2  P2 (4) < P1 rem 5: preempt | .  t=4  P3 (1) < P2 rem 2: preempt | .  t=5  P3 done; P1 5, P2 2, P4 4: P2 runs 5-7 | .  t=7  P1 5, P4 4: P4 runs 7-11 | .  t=11 P1 runs 11-16 | .  Tr = P1 16, P2 5, P3 1, P4 6 -> 28/4 = 7.0
+:Q_UNIT: sched
+:END:
+
+** Windows priority levels
+
+*** What are the Windows thread priority ranges?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: 16-31 is the real-time range, 1-15 is the variable range, and 0 is reserved for the zero-page thread.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Windows priority levels. Larger numbers get preference.
+:Q_UNIT: sched
+:END:
+
+*** In Windows, what is the base priority of a thread at the Above normal level in a Normal-class process?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: 9 | 8 | 7 | 13
+:Q_ANSWER: 9
+:Q_EXPLAIN: Notes: 2.2 Process Management › Windows priority levels. Normal class: below normal 7, normal 8, above normal 9; High class, normal level: 13.
+:Q_UNIT: sched
+:END:
+
+*** How does Windows choose which thread runs, including among equal priorities?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It runs a ready thread at the highest current priority, uses round robin among equal priorities, and a newly ready higher-priority thread preempts a lower one.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Selection and preemption.
+:Q_UNIT: sched
+:END:
+
+*** How do Windows dynamic priority boosts work?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Input events and completed waits temporarily raise a thread's dynamic priority, which drops one level after each full quantum it uses until it returns to base priority.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Dynamic priority boosts. Threads with base priority 16-31 do not get these boosts.
+:Q_UNIT: sched
+:END:
+
+*** Does Windows' starvation prevention fully eliminate starvation?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No; continuously runnable real-time threads can still prevent ordinary-priority threads from running, so starvation is only mitigated.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Starvation prevention and its limits.
+:Q_UNIT: sched
+:END:
+
+** Linux scheduling policies
+
+*** Name the Linux scheduling policies for ordinary and real-time tasks.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Ordinary tasks use SCHED_OTHER (SCHED_NORMAL); real-time uses SCHED_FIFO and SCHED_RR; SCHED_DEADLINE uses earliest-deadline-first with budgets.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Linux scheduling policies.
+:Q_UNIT: sched
+:END:
+
+*** In Linux, what does a lower nice value do to a task?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It gives the task a larger scheduling weight, which increases its target CPU share.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Weights and CPU entitlement.
+:Q_UNIT: sched
+:END:
+
+*** Four runnable tasks share one CPU. Find each task's target share and its CPU time over 40 ms, then the shares if D blocks.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: A: weight 3 | B: weight 1 | C: weight 1 | D: weight 3
+:Q_ANSWER: Shares 3/8, 1/8, 1/8, 3/8, so A 15 ms, B 5 ms, C 5 ms, D 15 ms; if D blocks, A 3/5 = 60%, B 20%, C 20%.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Weights and CPU entitlement. New numbers. The denominator is the weight sum of the runnable set.
+:Q_STEPS: share_i = w_i / sum of runnable weights | sum = 3 + 1 + 1 + 3 = 8 | A = 3/8 = 37.5% -> 0.375 x 40 = 15 ms | B = 1/8 = 12.5% -> 5 ms | C = 1/8 = 12.5% -> 5 ms | D = 3/8 = 37.5% -> 15 ms | D blocks: sum = 5 -> A 3/5 = 60%, B 1/5 = 20%, C 1/5 = 20%
+:Q_UNIT: sched
+:END:
+
+*** CFS: which task runs first, what is its virtual runtime after it runs 3 ms, and which runs next?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: Reference weight w0 = 1 | A: weight 2, v = 10 | B: weight 1, v = 8 | C: weight 4, v = 9
+:Q_ANSWER: B runs first (smallest v = 8); after 3 ms its v = 8 + 3 x (1/1) = 11; next is C (v = 9).
+:Q_EXPLAIN: Notes: 2.2 Process Management › CFS virtual runtime. New numbers. CFS picks the smallest v; Delta v = Delta t x w0/w.
+:Q_STEPS: pick smallest v: B (8) | Delta v = Delta t x w0 / w = 3 x 1/1 = 3 | B: v = 8 + 3 = 11 | now A 10, B 11, C 9 -> C runs next | (if C then runs 4 ms: Delta v = 4 x 1/4 = 1, so C's v = 10)
+:Q_UNIT: sched
+:END:
+
+*** Why does a task with a larger weight get more CPU time under CFS, even though CFS always picks the smallest virtual runtime?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Its virtual runtime grows more slowly (Delta v = Delta t x w0/w), so it stays the smallest for longer and is picked more often.
+:Q_EXPLAIN: Notes: 2.2 Process Management › CFS virtual runtime.
+:Q_UNIT: sched
+:END:
+
+*** Define lag and eligibility in EEVDF.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Lag measures CPU service owed relative to the fair allocation (positive means it got less than its share); a runnable task is eligible when its lag is nonnegative.
+:Q_EXPLAIN: Notes: 2.2 Process Management › EEVDF — earliest eligible virtual deadline first.
+:Q_UNIT: sched
+:END:
+
+*** EEVDF: compute each task's virtual deadline and decide which task is selected.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: Current virtual time V = 13, reference weight w0 = 1 | A: v = 12, slice r = 4, weight 2 | B: v = 10, slice r = 6, weight 1 | C: v = 15, slice r = 1, weight 1
+:Q_ANSWER: d_A = 14, d_B = 16, d_C = 16; C is ineligible (v = 15 > V = 13), so EEVDF selects A (earliest eligible deadline 14).
+:Q_EXPLAIN: Notes: 2.2 Process Management › EEVDF — earliest eligible virtual deadline first. New numbers. d = v + r x w0/w; eligible when v is not ahead of V.
+:Q_STEPS: d = v + r x w0 / w | A :: d = 12 + 4 x 1/2 = 14,  v 12 <= V 13: eligible | B :: d = 10 + 6 x 1/1 = 16,  v 10 <= 13: eligible | C :: d = 15 + 1 x 1/1 = 16,  v 15 > 13: NOT eligible | earliest eligible deadline: A (14)
+:Q_UNIT: sched
+:END:
+
+*** What is the difference in how Windows and Linux express scheduling preference?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Windows uses a priority (process class plus thread level) and patches starvation with temporary boosts, while Linux uses a weight (nice and group weights) and gets starvation-freedom from fairness accounting.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Windows and Linux side by side.
+:Q_UNIT: sched
+:END:
+
+*** Define CPU affinity and load balancing.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: CPU affinity restricts the set of processors a thread may run on; load balancing distributes runnable work across CPUs while considering cache locality, NUMA effects, and CPU capacity.
+:Q_EXPLAIN: Notes: 2.2 Process Management › Preemption and multiple CPUs.
+:Q_UNIT: sched
+:END:
+
+** Acronyms
+
+*** What does FCFS stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: First-Come-First-Served
+:Q_ACCEPT: First Come First Served | First-come first-served
+:Q_EXPLAIN: Notes: 2.2 › Scheduling Policies › First-Come-First-Served (FCFS).
+:Q_UNIT: sched
+:END:
+
+*** What does RR stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: Round Robin
+:Q_EXPLAIN: Notes: 2.2 › Scheduling Policies › Round Robin (the comparison table's RR rows).
+:Q_UNIT: sched
+:END:
+
+*** What does SPN stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: Shortest Process Next
+:Q_EXPLAIN: Notes: 2.2 › Scheduling Policies › Shortest Process Next (SPN).
+:Q_UNIT: sched
+:END:
+
+*** What does SRT stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: Shortest Remaining Time
+:Q_EXPLAIN: Notes: 2.2 › Scheduling Policies › Shortest Remaining Time (SRT).
+:Q_UNIT: sched
+:END:
+
+*** What does HRRN stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: Highest Response Ratio Next
+:Q_EXPLAIN: Notes: 2.2 › Scheduling Policies › Highest Response Ratio Next (HRRN).
+:Q_UNIT: sched
+:END:
+
+*** What does FB stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: Feedback
+:Q_ACCEPT: Multilevel Feedback | multilevel feedback
+:Q_EXPLAIN: Notes: 2.2 › Scheduling Policies › Multilevel Feedback (the comparison table's FB rows).
+:Q_UNIT: sched
+:END:
+
+*** What does EEVDF stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: Earliest Eligible Virtual Deadline First
+:Q_EXPLAIN: Notes: 2.2 › Linux scheduling policies › EEVDF — earliest eligible virtual deadline first.
+:Q_UNIT: sched
+:END:
+
+*** What does CFS stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: Completely Fair Scheduler
+:Q_ACCEPT:  DERIVED: the notes use "CFS" without spelling it out; the expansion is the standard Linux name.
+:Q_EXPLAIN: Notes: 2.2 › Linux scheduling policies › CFS virtual runtime.
+:Q_UNIT: sched
+:END:
+
+* Threads
+
+** Process Characteristics
+
+*** What are the two characteristics of a process?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Resource ownership and scheduling/execution.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Process Characteristics.
+:Q_UNIT: thr
+:END:
+
+*** What is the difference between resource ownership and scheduling/execution?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Resource ownership is what a process possesses (memory, files), while scheduling/execution is what a process does (running its code).
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Process Characteristics.
+:Q_UNIT: thr
+:END:
+
+*** Give an example of a process that owns resources without executing.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A blocked process holding a file lock.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Process Characteristics.
+:Q_UNIT: thr
+:END:
+
+** Processes and Threads
+
+*** The unit of dispatching is called a __________, and the unit of resource ownership is called a __________.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Thread (or lightweight process); process (or task).
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Processes and Threads.
+:Q_UNIT: thr
+:END:
+
+*** Define multithreading.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The ability of an OS to support multiple, concurrent paths of execution within a single process.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Processes and Threads.
+:Q_UNIT: thr
+:END:
+
+** Multithreading Approaches
+
+*** What is the single-threaded approach?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A single thread of execution per process, in which the concept of a thread is not recognized.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Multithreading Approaches.
+:Q_UNIT: thr
+:END:
+
+*** A Java run-time environment is an example of which threading approach?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: One process, multiple threads | One process, one thread | Multiple processes, one thread per process | Multiple processes, multiple threads per process
+:Q_ANSWER: One process, multiple threads
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Multithreading Approaches (Figure 4.1).
+:Q_UNIT: thr
+:END:
+
+** Process
+
+*** How is a process defined in a multithreaded environment?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: As the unit of resource allocation and a unit of protection.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Process.
+:Q_UNIT: thr
+:END:
+
+*** What is associated with a process (as opposed to its threads)?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A virtual address space holding the process image, and protected access to processors, other processes (for IPC), files, and I/O resources.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Process.
+:Q_UNIT: thr
+:END:
+
+** One or More Threads in a Process
+
+*** List what each thread has of its own.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An execution state, a saved thread context when not running, an execution stack, and some per-thread static storage for local variables.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › One or More Threads in a Process. Memory and resources are shared with the other threads in the process.
+:Q_UNIT: thr
+:END:
+
+*** In the multithreaded process model, what is shared by all threads and what is private to each thread?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Shared: the process control block and the user address space; private: each thread's thread control block, user stack, and kernel stack.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Single-threaded vs multithreaded process model (Figure 4.2).
+:Q_UNIT: thr
+:END:
+
+** Key Benefits of Threads
+
+*** Name the four key benefits of threads over processes.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Less time to create a thread, less time to terminate one, less time to switch between threads, and more efficient communication between programs.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Key Benefits of Threads.
+:Q_UNIT: thr
+:END:
+
+*** Why can threads communicate more efficiently than separate processes?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Threads in the same process share memory, so they can communicate without invoking the kernel.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Key Benefits of Threads.
+:Q_UNIT: thr
+:END:
+
+** Thread Use Cases in a Single-User System
+
+*** Name the four uses of threads in a single-user system.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Foreground and background work, asynchronous processing, speeding up execution, and modular program structure.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Thread Use Cases in a Single-User System.
+:Q_UNIT: thr
+:END:
+
+** Threads and the OS
+
+*** In an OS that supports threads, scheduling and dispatching are done on a __________ basis.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: thread
+:Q_ACCEPT: per-thread | thread-level
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Threads and the OS.
+:Q_UNIT: thr
+:END:
+
+*** Name two actions that affect every thread in a process, and say why.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Suspending a process suspends all its threads, and terminating a process terminates all its threads, because the threads share the process's address space and resources.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Threads and the OS.
+:Q_UNIT: thr
+:END:
+
+** Thread Execution States
+
+*** What are the key thread states, and why is there normally no suspend state?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Running, Ready, and Blocked; suspension is a process-level concept, not a thread-level one.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Thread Execution States.
+:Q_UNIT: thr
+:END:
+
+*** Name the four thread operations associated with a change in thread state.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Spawn, Block, Unblock, and Finish.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Thread Execution States.
+:Q_UNIT: thr
+:END:
+
+*** What happens when a thread finishes?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Its register context and stacks are deallocated.
+:Q_EXPLAIN: Notes: 2.3 Threads and Processes › Thread Execution States (operation table; descriptions from Stallings §4.1).
+:Q_UNIT: thr
+:END:
+
+* File Management
+
+** Files and File Systems
+
+*** Name the three desirable properties of files.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Long-term existence, sharable between processes, and structure.
+:Q_EXPLAIN: Notes: 3 File Management › Files and File Systems.
+:Q_UNIT: file
+:END:
+
+*** What does a file system provide?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A means to store data organized as files plus a collection of functions that can be performed on files, and it maintains each file's attributes.
+:Q_EXPLAIN: Notes: 3 File Management › File System. Typical operations: create, delete, open, close, read, write.
+:Q_UNIT: file
+:END:
+
+** Conceptual Model of Data Organization
+
+*** Define field, record, file, and database.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A field is a basic element holding a single value; a record is a collection of related fields treated as a unit; a file is a collection of similar records; a database is a collection of related data with explicit relationships.
+:Q_EXPLAIN: Notes: 3 File Management › Conceptual Model of Data Organization.
+:Q_UNIT: file
+:END:
+
+*** How do modern general-purpose operating systems such as UNIX view a regular file?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: As a sequence (stream) of bytes, leaving the interpretation of the contents to applications.
+:Q_EXPLAIN: Notes: 3 File Management › Conceptual Model of Data Organization. Record-oriented systems include IBM OS/360, MVS, z/OS, OpenVMS.
+:Q_UNIT: file
+:END:
+
+** File Management System
+
+*** Name three objectives of a file management system.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Any three of: meet users' data management needs, guarantee the data are valid, optimize performance, support a variety of storage devices, minimize lost or destroyed data, provide a standard I/O interface, support multiple users.
+:Q_EXPLAIN: Notes: 3 File Management › Objectives.
+:Q_UNIT: file
+:END:
+
+*** List the file system software architecture layers from the top down.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: User program, access methods, logical I/O, basic I/O supervisor, basic file system, device drivers.
+:Q_EXPLAIN: Notes: 3 File Management › File System Architecture (Figure 12.1).
+:Q_UNIT: file
+:END:
+
+*** What is the difference between logical I/O and the basic file system?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Logical I/O lets users and applications access records, while the basic file system does physical I/O, exchanging blocks of data with the disk or tape.
+:Q_EXPLAIN: Notes: 3 File Management › File System Architecture.
+:Q_UNIT: file
+:END:
+
+*** What does the basic I/O supervisor do?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It initiates and terminates file I/O and handles device selection, I/O scheduling, and buffer allocation.
+:Q_EXPLAIN: Notes: 3 File Management › File System Architecture.
+:Q_UNIT: file
+:END:
+
+** File Organization and Access
+
+*** Define file organization.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The logical structuring of the records as determined by the way in which they are accessed.
+:Q_EXPLAIN: Notes: 3 File Management › File Organization and Access.
+:Q_UNIT: file
+:END:
+
+*** Name the five criteria for choosing a file organization.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Short access time, ease of update, economy of storage, simple maintenance, and reliability.
+:Q_EXPLAIN: Notes: 3 File Management › File Organization and Access. Their priority depends on the application.
+:Q_UNIT: file
+:END:
+
+*** Name the five common file organizations.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Pile, sequential, indexed sequential, indexed, and direct (hashed).
+:Q_EXPLAIN: Notes: 3 File Management › File Organization and Access (Figure 12.3).
+:Q_UNIT: file
+:END:
+
+** The Pile
+
+*** Describe the pile file organization and how a record is found.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Data are collected in the order they arrive with variable-length records and fields, and a record is found by exhaustive search.
+:Q_EXPLAIN: Notes: 3 File Management › The Pile.
+:Q_UNIT: file
+:END:
+
+** The Sequential File
+
+*** How are records ordered in a sequential file, and what is it well suited for?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Records are stored in order of a key field, and it is well suited to batch processing where many or all records are processed in sequence.
+:Q_EXPLAIN: Notes: 3 File Management › The Sequential File.
+:Q_UNIT: file
+:END:
+
+*** Why does a sequential file perform poorly for interactive applications?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Querying or updating an individual record requires a sequential search for a key match.
+:Q_EXPLAIN: Notes: 3 File Management › The Sequential File.
+:Q_UNIT: file
+:END:
+
+*** How are new records inserted into a sequential file?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: They go into a separate pile file (a log or transaction file), which a periodic batch update merges into the master file.
+:Q_EXPLAIN: Notes: 3 File Management › The Sequential File › Insertion.
+:Q_UNIT: file
+:END:
+
+** Indexed Sequential File
+
+*** What two things does an indexed sequential file add to a sequential file?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An index to support random access, and an overflow file.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed Sequential File.
+:Q_UNIT: file
+:END:
+
+*** Describe how a record is found in an indexed sequential file.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Search the index sequentially for the highest key equal to or preceding the desired key, then follow its pointer and search the main file from there.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed Sequential File. Each index record holds a key field and a pointer into the main file.
+:Q_UNIT: file
+:END:
+
+*** A sequential file has 1,000,000 records. Find the average search length without an index and with a 1,000-entry index.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: N = 1,000,000 records | k = 1,000 index entries, keys evenly distributed over the main file
+:Q_ANSWER: 500,000 accesses without an index; 500 + 500 = 1,000 accesses with the index.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed Sequential File › Example (the lecture's example).
+:Q_STEPS: no index :: N/2 = 1,000,000/2 = 500,000 | each index entry covers :: N/k = 1,000 records | index search :: k/2 = 500 | main-file search :: N/(2k) = 1,000,000/2,000 = 500 | total :: 500 + 500 = 1,000
+:Q_UNIT: file
+:END:
+
+*** A sequential file has 100,000 records and an index of 100 entries. Find the average search length with and without the index.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: N = 100,000 records | k = 100 index entries, keys evenly distributed
+:Q_ANSWER: 50,000 without the index; 50 + 500 = 550 with it.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed Sequential File › Example. New numbers, same formula k/2 + N/(2k).
+:Q_STEPS: no index :: N/2 = 50,000 | index :: k/2 = 100/2 = 50 | main file :: N/(2k) = 100,000/200 = 500 | total :: 50 + 500 = 550
+:Q_UNIT: file
+:END:
+
+*** A file has 2,000,000 records and a 500-entry index. What is the average search length?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: N = 2,000,000 records | k = 500 index entries, keys evenly distributed
+:Q_ANSWER: 250 + 2,000 = 2,250 accesses (versus 1,000,000 with no index).
+:Q_EXPLAIN: Notes: 3 File Management › Indexed Sequential File › Example. New numbers.
+:Q_STEPS: index :: k/2 = 250 | records per index entry :: N/k = 4,000 | main file :: N/(2k) = 2,000,000/1,000 = 2,000 | total :: 250 + 2,000 = 2,250 | no index :: N/2 = 1,000,000
+:Q_UNIT: file
+:END:
+
+*** For a file of N records, what index size k minimizes the average search length k/2 + N/(2k), and what is that minimum?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: Example: N = 40,000 records
+:Q_ANSWER: k = sqrt(N), giving a minimum of sqrt(N) accesses; for N = 40,000, k = 200 and the search length is 100 + 100 = 200.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed Sequential File › Example. DERIVED from the notes' formula (not on the slides): the two terms balance when k = sqrt(N), as in the lecture's 1,000-entry index for 10^6 records.
+:Q_STEPS: f(k) = k/2 + N/(2k) | f'(k) = 1/2 - N/(2k^2) = 0  ->  k^2 = N  ->  k = sqrt(N) | f(sqrt N) = sqrt(N)/2 + sqrt(N)/2 = sqrt(N) | N = 40,000: k = 200, f = 100 + 100 = 200 (vs 20,000 with no index)
+:Q_UNIT: file
+:END:
+
+*** Why do multiple levels of indexing help an indexed sequential file?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The index is itself a sequential file that must be searched, so indexing the index cuts the search of the index the same way the first index cut the search of the main file.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed Sequential File ("multiple levels of indexing can be used for greater efficiency").
+:Q_UNIT: file
+:END:
+
+** Indexed File
+
+*** What is the difference between an exhaustive index and a partial index?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An exhaustive index has one entry for every record in the main file; a partial index has entries only for records where the field of interest exists.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed File.
+:Q_UNIT: file
+:END:
+
+*** What is the difference between an indexed file and an indexed sequential file?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: An indexed file accesses records only through its indexes and abandons sequentiality and a single key, while an indexed sequential file keeps the records in key order and adds an index plus an overflow file.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed File and Indexed Sequential File.
+:Q_UNIT: file
+:END:
+
+*** Give an example application for an indexed file.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Airline reservation systems or inventory control systems, where timeliness of information is critical.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed File.
+:Q_UNIT: file
+:END:
+
+** Direct or Hashed File
+
+*** How does a direct (hashed) file locate a record?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It hashes the record's key value to a bucket, using the disk's ability to directly access a block at a known address.
+:Q_EXPLAIN: Notes: 3 File Management › Direct or Hashed File.
+:Q_UNIT: file
+:END:
+
+*** Give one strength and one weakness of a hashed file.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Strength: fast retrieval when the exact key is known; weakness: poor for range queries or processing records in key order.
+:Q_EXPLAIN: Notes: 3 File Management › Direct or Hashed File. Collisions are handled with chained overflow buckets.
+:Q_UNIT: file
+:END:
+
+** Record Blocking
+
+*** Name and describe the three methods of record blocking.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Fixed-length blocking stores an integral number of fixed-length records per block; variable-length spanned packs variable records with no gaps, letting a record span two blocks; variable-length unspanned does not span, so space at the end of a block can be wasted.
+:Q_EXPLAIN: Notes: 3 File Management › Record Blocking (Figure 12.8).
+:Q_UNIT: file
+:END:
+
+*** Which blocking method causes internal fragmentation, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Fixed-length blocking, because an integral number of records must fit per block, leaving unused space at the end of each block.
+:Q_EXPLAIN: Notes: 3 File Management › Record Blocking.
+:Q_UNIT: file
+:END:
+
+*** With fixed-length blocking, how many records fit per block, and how much space per block is wasted?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: Block size = 1,024 bytes | Record size = 100 bytes (fixed length)
+:Q_ANSWER: 10 records per block, wasting 24 bytes per block (internal fragmentation).
+:Q_EXPLAIN: Notes: 3 File Management › Record Blocking. DERIVED from the definition of fixed-length blocking (no formula on the slides).
+:Q_STEPS: records per block = floor(1,024 / 100) = 10 | used = 10 x 100 = 1,000 bytes | wasted = 1,024 - 1,000 = 24 bytes per block
+:Q_UNIT: file
+:END:
+
+** File Allocation
+
+*** What is a portion, and what does the file allocation table (FAT) do?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A portion is a contiguous set of allocated blocks; the FAT keeps track of the portions assigned to each file.
+:Q_EXPLAIN: Notes: 3 File Management › File Allocation.
+:Q_UNIT: file
+:END:
+
+*** What is the difference between preallocation and dynamic allocation?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Preallocation requires the maximum file size to be declared at creation, while dynamic allocation allocates space in portions as needed.
+:Q_EXPLAIN: Notes: 3 File Management › Preallocation vs Dynamic Allocation.
+:Q_UNIT: file
+:END:
+
+*** Why is preallocation often wasteful?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The maximum size is hard to estimate, and users and programmers tend to overestimate it.
+:Q_EXPLAIN: Notes: 3 File Management › Preallocation vs Dynamic Allocation.
+:Q_UNIT: file
+:END:
+
+*** What is the trade-off in choosing portion size?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Small portions mean a lot of allocation information to track, while very large portions may waste space.
+:Q_EXPLAIN: Notes: 3 File Management › Portion Size.
+:Q_UNIT: file
+:END:
+
+*** Compare variable, large contiguous portions with small fixed portions (blocks).
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Large variable portions give better performance, avoid waste, and keep allocation tables small; small fixed blocks give greater flexibility but may need large tables and abandon contiguity.
+:Q_EXPLAIN: Notes: 3 File Management › Portion Size.
+:Q_UNIT: file
+:END:
+
+** File Allocation Methods
+
+*** Describe contiguous allocation and its main drawback.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each file gets a single contiguous set of blocks at creation, with one FAT entry (start, length); it suffers external fragmentation, so compaction is needed.
+:Q_EXPLAIN: Notes: 3 File Management › Contiguous.
+:Q_UNIT: file
+:END:
+
+*** After compaction, at what block does each file start?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: File A: start 2, length 3 | File B: start 9, length 5 | File C: start 18, length 8 | File E: start 26, length 3 | File D: start 30, length 2 | Compaction packs files from block 0 in their current disk order.
+:Q_ANSWER: A at 0, B at 3, C at 8, E at 16, D at 19.
+:Q_EXPLAIN: Notes: 3 File Management › Contiguous (Figures 12.9 and 12.10).
+:Q_STEPS: A :: 0 (blocks 0-2) | B :: 0 + 3 = 3 (blocks 3-7) | C :: 3 + 5 = 8 (blocks 8-15) | E :: 8 + 8 = 16 (blocks 16-18) | D :: 16 + 3 = 19 (blocks 19-20)
+:Q_UNIT: file
+:END:
+
+*** Describe chained allocation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Blocks are allocated individually, each containing a pointer to the next block, with one FAT entry per file (start block, length).
+:Q_EXPLAIN: Notes: 3 File Management › Chained.
+:Q_UNIT: file
+:END:
+
+*** Give one advantage and one disadvantage of chained allocation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Advantage: any free block can be used, so there is no external fragmentation; disadvantage: no locality, and it suits only sequential processing.
+:Q_EXPLAIN: Notes: 3 File Management › Chained. Consolidation can bring a file's blocks together.
+:Q_UNIT: file
+:END:
+
+*** Describe indexed allocation and the access types it supports.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each file has a one-level index in a separate block with one entry per portion, and it supports both sequential and direct access.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed.
+:Q_UNIT: file
+:END:
+
+*** In indexed allocation, what is the difference between fixed-size block portions and variable-size portions?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Fixed-size blocks eliminate external fragmentation, while variable-size portions improve locality.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed.
+:Q_UNIT: file
+:END:
+
+*** Using File B's index of variable-length portions, which disk block holds the file's 5th block?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: File B's index block is 24 | Portions (start, length): (1, 3), (28, 4), (14, 1)
+:Q_ANSWER: Disk block 29.
+:Q_EXPLAIN: Notes: 3 File Management › Indexed (Figure 12.14).
+:Q_STEPS: portion 1 :: file blocks 1-3 -> disk 1, 2, 3 | portion 2 :: file blocks 4-7 -> disk 28, 29, 30, 31 | portion 3 :: file block 8 -> disk 14 | 5th block = 2nd block of portion 2 = disk 29 | file length = 3 + 4 + 1 = 8 blocks
+:Q_UNIT: file
+:END:
+
+*** For each allocation method, state whether preallocation is necessary or possible, and its file allocation table size.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Contiguous: preallocation necessary, one entry; chained: possible, one entry; indexed: possible, large table with fixed blocks or medium with variable portions.
+:Q_EXPLAIN: Notes: 3 File Management › Comparison.
+:Q_UNIT: file
+:END:
+
+** Free Space Management
+
+*** Why does a file system need a disk allocation table in addition to the file allocation table?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: To perform file allocation it must know which blocks are free, and the file allocation table only tracks allocated space.
+:Q_EXPLAIN: Notes: 3 File Management › Free Space Management.
+:Q_UNIT: file
+:END:
+
+** Bit Tables
+
+*** Describe a bit table and give its two advantages.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A vector with one bit per disk block, 0 for free and 1 for in use; it works well with any file allocation method and is as small as possible.
+:Q_EXPLAIN: Notes: 3 File Management › Bit Tables.
+:Q_UNIT: file
+:END:
+
+*** In a bit table, a 0 means the block is __________.
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: free
+:Q_ACCEPT: available | unused | not in use
+:Q_EXPLAIN: Notes: 3 File Management › Bit Tables. 1 means the block is in use.
+:Q_UNIT: file
+:END:
+
+*** How large is the bit table for this disk?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: Disk size = 16 GB | Block size = 4 KB
+:Q_ANSWER: 2^22 bits = 512 KB.
+:Q_EXPLAIN: Notes: 3 File Management › Bit Tables. DERIVED from the definition (one bit per block); no worked calculation is on the slides.
+:Q_STEPS: blocks = disk / block = 2^34 B / 2^12 B = 2^22 = 4,194,304 blocks | bits = blocks = 2^22 bits | bytes = 2^22 / 8 = 2^19 B = 512 KB
+:Q_UNIT: file
+:END:
+
+*** How large is the bit table for a 1 TB disk with 4 KB blocks?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: Disk size = 1 TB = 2^40 bytes | Block size = 4 KB = 2^12 bytes
+:Q_ANSWER: 2^28 bits = 2^25 bytes = 32 MB.
+:Q_EXPLAIN: Notes: 3 File Management › Bit Tables. DERIVED from the definition (one bit per block).
+:Q_STEPS: blocks = 2^40 / 2^12 = 2^28 | bits = 2^28 | bytes = 2^28 / 8 = 2^25 B = 32 MB
+:Q_UNIT: file
+:END:
+
+*** Read the bit table: how many blocks are free, which is the first free block, and where is the first run of 3 contiguous free blocks?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: Blocks 0-15: 1 1 0 1 0 0 1 1 1 0 0 0 1 0 1 1 | (0 = free, 1 = in use)
+:Q_ANSWER: 7 free blocks; the first free block is 2; the first run of 3 free blocks is blocks 9-11.
+:Q_EXPLAIN: Notes: 3 File Management › Bit Tables. DERIVED exercise applying the 0 = free / 1 = in use definition.
+:Q_STEPS: free (0) at blocks :: 2, 4, 5, 9, 10, 11, 13 | count :: 7 | first free :: block 2 | runs of free blocks :: {2}, {4,5}, {9,10,11}, {13} | first run of length 3 :: blocks 9-11
+:Q_UNIT: file
+:END:
+
+** Chained Free Portions
+
+*** Describe chained free portions and give one disadvantage.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Free portions are chained by a pointer and length stored in each free portion (no disk allocation table needed); the disk becomes fragmented into many single-block portions.
+:Q_EXPLAIN: Notes: 3 File Management › Chained Free Portions. Another disadvantage: every allocation must first read the block to recover the next free pointer.
+:Q_UNIT: file
+:END:
+
+** Indexing
+
+*** How does the indexing approach manage free space?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It treats free space as a file and keeps an index table with one entry per free portion, ideally of variable-size portions.
+:Q_EXPLAIN: Notes: 3 File Management › Indexing.
+:Q_UNIT: file
+:END:
+
+** Free Block List
+
+*** Why must a free block list be stored on disk rather than in main memory?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each block number needs 24 or 32 bits, so the list is 24 or 32 times the size of the bit table, which is too large for main memory.
+:Q_EXPLAIN: Notes: 3 File Management › Free Block List.
+:Q_UNIT: file
+:END:
+
+*** If every block on a 16 GB disk with 4 KB blocks were free, how large would a free block list with 32-bit block numbers be, compared with the bit table?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_DATA: Disk size = 16 GB | Block size = 4 KB | Block number size = 32 bits
+:Q_ANSWER: 2^22 entries x 4 bytes = 16 MB, which is 32 times the 512 KB bit table.
+:Q_EXPLAIN: Notes: 3 File Management › Free Block List. DERIVED from the notes' "24 or 32 times the size of the bit table".
+:Q_STEPS: blocks = 2^34 / 2^12 = 2^22 | bit table = 2^22 bits = 512 KB | free list = 2^22 x 32 bits = 2^22 x 4 B = 2^24 B = 16 MB | ratio = 32 bits / 1 bit = 32x
+:Q_UNIT: file
+:END:
+
+*** Name the two techniques for keeping a small part of the free block list in main memory.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Treat it as a push-down stack with the first few thousand elements in memory, or as a FIFO queue with a few thousand entries from both the head and the tail in memory.
+:Q_EXPLAIN: Notes: 3 File Management › Free Block List.
+:Q_UNIT: file
+:END:
+
+** Acronyms
+
+*** What does FAT stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: File Allocation Table
+:Q_EXPLAIN: Notes: 3 › File Allocation ("File Allocation Table (FAT)").
+:Q_UNIT: file
+:END:
+
+* Mutual Exclusion and Synchronization
+
+** Some key words
+
+*** Define multiprogramming.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The management of multiple processes within a uniprocessor system.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Some key words.
+:Q_UNIT: mutex
+:END:
+
+*** Define multiprocessing.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The management of multiple processes within a multiprocessor.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Some key words.
+:Q_UNIT: mutex
+:END:
+
+*** Define distributed processing.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The management of multiple processes executing on multiple, distributed computer systems.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Some key words.
+:Q_UNIT: mutex
+:END:
+
+** Concurrency
+
+*** What is the difference between concurrency and parallelism?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Concurrency is running tasks in an overlapping manner (interleaving works on one processor); parallelism is truly simultaneous execution, which needs more than one processor, and is a type of concurrency.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Concurrency.
+:Q_UNIT: mutex
+:END:
+
+*** Concurrency problems such as race conditions go away on a uniprocessor.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Concurrency. Every problem shows up under plain interleaving, so none of it goes away on a uniprocessor.
+:Q_UNIT: mutex
+:END:
+
+** Difficulties of Concurrency
+
+*** Name the three difficulties of concurrency.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Sharing of global resources; it is difficult for the OS to allocate resources optimally; programming errors are hard to locate because results are not deterministic or reproducible.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Difficulties of Concurrency.
+:Q_UNIT: mutex
+:END:
+
+** Race Condition
+
+*** Define a race condition.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Multiple processes or threads access shared data concurrently, at least one modifies it, and the final result depends on the timing or order of their execution.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Race Condition (and Glossary).
+:Q_UNIT: mutex
+:END:
+
+** Resource Competition
+
+*** Name the three control problems that competing processes must face.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The need for mutual exclusion, deadlock, and starvation.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Resource Competition.
+:Q_UNIT: mutex
+:END:
+
+*** Give two examples of resources that concurrent processes compete for.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Any two of: I/O devices, memory, processor time, the clock.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Resource Competition.
+:Q_UNIT: mutex
+:END:
+
+** What is Mutual Exclusion?
+
+*** Define mutual exclusion.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The requirement that when one process is in a critical section that accesses shared resources, no other process may be in a critical section that accesses any of those shared resources.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › What is Mutual Exclusion?
+:Q_UNIT: mutex
+:END:
+
+*** Define a critical section.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A section of code within a process that requires access to shared resources and must not be executed while another process is in a corresponding section of code.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › What is Mutual Exclusion?
+:Q_UNIT: mutex
+:END:
+
+** How to Ensure Mutual Exclusion?
+
+*** Name the three families of mechanisms for ensuring mutual exclusion.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Software-based approaches, hardware support (interrupt disabling, atomic instructions), and OS and programming-language support (mutex, semaphore, monitor).
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › How to Ensure Mutual Exclusion?
+:Q_UNIT: mutex
+:END:
+
+*** What does the memory arbiter do?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It serializes simultaneous accesses to the same main-memory location, so two accesses happen one after another and never in the same cycle.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › How to Ensure Mutual Exclusion?
+:Q_UNIT: mutex
+:END:
+
+*** The memory arbiter guarantees a fair order between processes that access the same location.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › How to Ensure Mutual Exclusion? It guarantees no corruption from truly simultaneous writes, not fairness or order.
+:Q_UNIT: mutex
+:END:
+
+** Software-Based Solutions
+
+*** Define busy waiting (spin waiting).
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A process that can't enter its critical section keeps executing instructions that repeatedly test a variable until it gets permission to enter.
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › First attempt (and Compare&swap instruction).
+:Q_UNIT: mutex
+:END:
+
+*** The first attempt (a shared turn variable) guarantees mutual exclusion.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: True
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › First attempt: a shared turn variable.
+:Q_UNIT: mutex
+:END:
+
+*** What are the drawbacks of the first attempt (a shared turn variable)?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Processes must strictly alternate (the slower one sets the pace), P1 can't go first, and if one process fails the other is blocked forever.
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › First attempt: a shared turn variable.
+:Q_STEPS: /* PROCESS 0 */ | while (turn != 0) /* do nothing */ ; | /* critical section */ ; | turn = 1;
+:Q_UNIT: mutex
+:END:
+
+*** Why does the second attempt (check the other flag, then set your own) fail?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It does not provide mutual exclusion: both flags start false, so each process can pass its while check before the other sets its flag, and both enter the critical section.
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › Second attempt: one flag per process, checked first.
+:Q_STEPS: /* PROCESS 0 */ | while (flag[1]) /* do nothing */; | flag[0] = true; | /* critical section */; | flag[0] = false;
+:Q_UNIT: mutex
+:END:
+
+*** What goes wrong with the third attempt (set your flag before checking the other's)?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Mutual exclusion holds, but if both set their flags to true before either checks, neither can ever enter: deadlock.
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › Third attempt: set the flag before checking.
+:Q_UNIT: mutex
+:END:
+
+*** What goes wrong with the fourth attempt (reset your flag to defer to the other)?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Mutual exclusion holds, but if the two run in lockstep they keep setting, deferring, and resetting forever without entering: livelock.
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › Fourth attempt: defer to the other process.
+:Q_UNIT: mutex
+:END:
+
+*** In Dekker's algorithm, what is the role of the turn variable?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The flags say who wants in; turn only breaks the tie when both want in, so only the process whose turn it isn't backs off (no livelock).
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › Correct solution: Dekker's algorithm.
+:Q_UNIT: mutex
+:END:
+
+*** Write Peterson's algorithm for process P0.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Set flag[0] true, give the turn away (turn = 1), and spin while flag[1] and turn == 1; then enter, and clear flag[0] on exit.
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › Peterson's algorithm.
+:Q_STEPS: function P0() | . while true do | . . flag[0] <- true | . . turn <- 1 | . . while flag[1] and (turn == 1) do  /* nothing */ | . . /* access the shared resource */ | . . flag[0] <- false | . . /* remainder */
+:Q_UNIT: mutex
+:END:
+
+*** In Peterson's algorithm, if both processes arrive at the same time, which one waits?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Whichever process wrote turn last.
+:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › Peterson's algorithm.
+:Q_UNIT: mutex
+:END:
+
+** Mutual Exclusion: Hardware Support
+
+*** Why does disabling interrupts guarantee mutual exclusion on a uniprocessor?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: On a uniprocessor processes only interleave, and a process runs until it calls an OS service or is interrupted, so preventing interrupts keeps it running through its critical section.
+:Q_EXPLAIN: Notes: 2.2 › Mutual Exclusion: Hardware Support › Interrupt disabling.
+:Q_UNIT: mutex
+:END:
+
+*** Give the two disadvantages of interrupt disabling.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Efficiency degrades because the processor can't interleave processes, and it doesn't work on a multiprocessor (disabling interrupts on one CPU does nothing to the others).
+:Q_EXPLAIN: Notes: 2.2 › Mutual Exclusion: Hardware Support › Interrupt disabling.
+:Q_UNIT: mutex
+:END:
+
+*** Describe the compare&swap instruction.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Atomically compares a memory value to a test value and, if they are equal, swaps in a new value; this version returns the old value.
+:Q_EXPLAIN: Notes: 2.2 › Mutual Exclusion: Hardware Support › Compare&swap instruction.
+:Q_STEPS: int compare_and_swap(int *word, int testval, int newval) | { | . int oldval; | . oldval = *word; | . if (oldval == testval) *word = newval; | . return oldval; | }
+:Q_UNIT: mutex
+:END:
+
+*** What are the two versions of compare&swap?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: One returns the old value; the other returns true if the swap occurred and false otherwise.
+:Q_EXPLAIN: Notes: 2.2 › Mutual Exclusion: Hardware Support › Compare&swap instruction.
+:Q_UNIT: mutex
+:END:
+
+*** Write mutual exclusion for process P(i) using compare&swap and a shared bolt.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Spin while compare_and_swap(bolt, 0, 1) returns 1; the process that finds bolt = 0 enters and sets bolt back to 0 on exit.
+:Q_EXPLAIN: Notes: 2.2 › Mutual Exclusion: Hardware Support › Compare&swap instruction.
+:Q_STEPS: function P(int i) | . while true do | . . while compare_and_swap(bolt, 0, 1) == 1 do  /* nothing */ | . . /* access the shared resource */ | . . bolt <- 0 | . . /* remainder */ | main: bolt <- 0; parbegin(P(0), ..., P(n))
+:Q_UNIT: mutex
+:END:
+
+*** Give the advantages of machine-instruction (compare&swap) mutual exclusion.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Easy to use and to see why it works, extends to multiple critical sections (one variable each), and works on a uniprocessor or multiprocessor for any number of processes.
+:Q_EXPLAIN: Notes: 2.2 › Mutual Exclusion: Hardware Support › Compare&swap instruction (advantages table).
+:Q_UNIT: mutex
+:END:
+
+*** Give the disadvantages of machine-instruction (compare&swap) mutual exclusion.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Busy waiting wastes CPU time, starvation is possible because the next process to enter is chosen arbitrarily, and deadlock is possible.
+:Q_EXPLAIN: Notes: 2.2 › Mutual Exclusion: Hardware Support › Compare&swap instruction (disadvantages table).
+:Q_UNIT: mutex
+:END:
+
+** OS and Language Support
+
+*** What are the three operations defined on a semaphore?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Initialize to a nonnegative value, semWait (decrement), and semSignal (increment).
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Semaphores.
+:Q_UNIT: mutex
+:END:
+
+*** What does a negative semaphore count mean?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Its magnitude is the number of processes waiting in the semaphore's queue.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Semaphores.
+:Q_UNIT: mutex
+:END:
+
+*** Write semWait and semSignal for a counting semaphore.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: semWait decrements the count and blocks the caller if it goes below 0; semSignal increments it and, if it is still 0 or less, moves one waiting process to ready.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Semaphores (Stallings Figure 5.6).
+:Q_STEPS: void semWait(semaphore s) { | . s.count--; | . if (s.count < 0) { place this process in s.queue; block this process; } | } | void semSignal(semaphore s) { | . s.count++; | . if (s.count <= 0) { remove a process P from s.queue; place P on ready list; } | }
+:Q_UNIT: mutex
+:END:
+
+*** Give one consequence of only being allowed the three semaphore operations.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Any one of: you can't know before a semWait whether the process will block; you can't know which process continues on a uniprocessor; you don't know whether anyone is waiting, so a signal unblocks zero or one process.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Semaphores.
+:Q_UNIT: mutex
+:END:
+
+*** What values can a binary semaphore take?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: 0 and 1
+:Q_ACCEPT: 0 or 1 | zero and one | 0, 1
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Semaphores (Stallings Figure 5.7).
+:Q_UNIT: mutex
+:END:
+
+*** What is the difference between a strong and a weak semaphore?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A strong semaphore releases the longest-blocked process first (FIFO); a weak semaphore does not specify the order.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Strong and weak semaphores.
+:Q_UNIT: mutex
+:END:
+
+*** Which kind of semaphore guarantees freedom from starvation?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Strong semaphore | Weak semaphore | Binary semaphore | Neither
+:Q_ANSWER: Strong semaphore
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Strong and weak semaphores.
+:Q_UNIT: mutex
+:END:
+
+*** What are the ways to implement semWait and semSignal as atomic primitives?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: In hardware or firmware, with a software scheme such as Dekker's or Peterson's algorithm, or with a hardware-supported scheme (compare&swap or interrupt disabling).
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Implementation of semaphores.
+:Q_UNIT: mutex
+:END:
+
+*** When semWait is built on compare&swap, does busy waiting disappear?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No, but it now only guards the few instructions inside semWait and semSignal, not the whole critical section.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Implementation of semaphores (Stallings Figure 5.17).
+:Q_UNIT: mutex
+:END:
+
+*** What is the difference between a mutex and a binary semaphore?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The process that locks a mutex must be the one that unlocks it; any process may signal a binary semaphore.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Mutex (mutual exclusion lock).
+:Q_UNIT: mutex
+:END:
+
+*** Define a monitor.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A programming-language construct (a software module of procedures, an initialization sequence, and local data) that provides the same functionality as semaphores but is easier to control.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Monitors.
+:Q_UNIT: mutex
+:END:
+
+*** Give the three characteristics of a monitor.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Local data is accessible only by the monitor's procedures; a process enters by invoking one of its procedures; only one process may be executing in the monitor at a time.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Monitors.
+:Q_UNIT: mutex
+:END:
+
+*** What does cwait(c) do?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Suspends the calling process on condition c, and the monitor becomes available to another process.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Synchronization with condition variables.
+:Q_UNIT: mutex
+:END:
+
+*** What does csignal(c) do?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Resumes some process that was blocked by a cwait on the same condition c.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Synchronization with condition variables.
+:Q_UNIT: mutex
+:END:
+
+*** How does a signal with no waiters differ between a condition variable and a semaphore?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A condition variable forgets it (the signal has no effect); a semaphore's count remembers it.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Synchronization with condition variables.
+:Q_UNIT: mutex
+:END:
+
+*** What is the difference between csignal() and broadcast()?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: csignal notifies one waiting thread; broadcast notifies all waiting threads.
+:Q_EXPLAIN: Notes: 2.2 › OS and Language Support › Synchronization with condition variables.
+:Q_UNIT: mutex
+:END:
+
+*** A strong (FIFO) counting semaphore s starts at 1. Trace s after: P1 semWait, P2 semWait, P3 semWait, P1 semSignal. What is the final count, and who is blocked?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Final count = -1; blocked queue = P3 (1 waiting).
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › OS and Language Support › Semaphores. semWait decrements and blocks if count < 0; semSignal increments and wakes one waiter if count <= 0. A negative count is the number waiting.
+:Q_STEPS: start: count = 1, queue = empty | P1 semWait: count = 0, P1 continues | P2 semWait: count = -1 < 0, P2 blocks; queue = P2 | P3 semWait: count = -2 < 0, P3 blocks; queue = P2, P3 | P1 semSignal: count = -1 <= 0, P2 leaves the queue (FIFO) and goes to ready; queue = P3
+:Q_UNIT: mutex
+:END:
+
+*** A strong (FIFO) counting semaphore s starts at 0. Trace s after: P1 semWait, P2 semSignal, P3 semSignal, P4 semWait. What is the final count, and who is blocked?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Final count = 0; blocked queue = empty.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › OS and Language Support › Semaphores. semWait decrements and blocks if count < 0; semSignal increments and wakes one waiter if count <= 0. A negative count is the number waiting.
+:Q_STEPS: start: count = 0, queue = empty | P1 semWait: count = -1 < 0, P1 blocks; queue = P1 | P2 semSignal: count = 0 <= 0, P1 leaves the queue (FIFO) and goes to ready; queue = empty | P3 semSignal: count = 1, nobody waiting | P4 semWait: count = 0, P4 continues
+:Q_UNIT: mutex
+:END:
+
+*** A strong (FIFO) counting semaphore s starts at 3. Trace s after: A semWait, B semWait, C semWait, D semWait, E semWait, A semSignal, B semSignal, C semSignal. What is the final count, and who is blocked?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Final count = 1; blocked queue = empty.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › OS and Language Support › Semaphores. semWait decrements and blocks if count < 0; semSignal increments and wakes one waiter if count <= 0. A negative count is the number waiting.
+:Q_STEPS: start: count = 3, queue = empty | A semWait: count = 2, A continues | B semWait: count = 1, B continues | C semWait: count = 0, C continues | D semWait: count = -1 < 0, D blocks; queue = D | E semWait: count = -2 < 0, E blocks; queue = D, E | A semSignal: count = -1 <= 0, D leaves the queue (FIFO) and goes to ready; queue = E | B semSignal: count = 0 <= 0, E leaves the queue (FIFO) and goes to ready; queue = empty | C semSignal: count = 1, nobody waiting
+:Q_UNIT: mutex
+:END:
+
+** Glossary
+
+*** Define an atomic operation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A sequence of one or more instructions that appears indivisible: no other process can see an intermediate state or interrupt it, and it executes as a group or not at all.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Glossary.
+:Q_UNIT: mutex
+:END:
+
+* Concurrency Problems
+
+** Dining Philosophers Problem
+
+*** State the two requirements of the dining philosophers problem.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No two philosophers can use the same fork at the same time (mutual exclusion), and no philosopher may starve (avoid deadlock and starvation).
+:Q_EXPLAIN: Notes: 2.2 › Theoretical Problems in Concurrency › Dining Philosophers Problem.
+:Q_UNIT: cprob
+:END:
+
+*** How can the first attempt (one semaphore per fork) deadlock?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: If all five pick up their left fork at the same time, each waits forever for a right fork that a neighbor holds.
+:Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › First attempt: one semaphore per fork.
+:Q_STEPS: think(); | wait(fork[i]); | wait(fork[(i+1) mod 5]); | eat(); | signal(fork[(i+1) mod 5]); | signal(fork[i]);
+:Q_UNIT: cprob
+:END:
+
+*** Give the two fixes the lecture suggests for the dining philosophers deadlock.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Add five more forks, or add a room attendant who lets only 4 philosophers into the room at a time.
+:Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › What can you do?
+:Q_UNIT: cprob
+:END:
+
+*** In the room-semaphore solution, what is room initialized to, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: 4, so at most four philosophers compete for five forks and at least one of them can always get two forks.
+:Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › Second attempt: the room semaphore.
+:Q_UNIT: cprob
+:END:
+
+*** Write the philosopher loop for the room-semaphore solution.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Think, wait(room), take both forks, eat, release both forks, then signal(room).
+:Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › Second attempt: the room semaphore.
+:Q_STEPS: semaphore fork[5] = {1}; semaphore room = {4}; | while (true) { | . think(); | . wait(room); | . wait(fork[i]); | . wait(fork[(i+1) mod 5]); | . eat(); | . signal(fork[(i+1) mod 5]); | . signal(fork[i]); | . signal(room); | }
+:Q_UNIT: cprob
+:END:
+
+*** In the monitor solution, what does get_forks do when a fork is not available?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It calls cwait on that fork's condition variable (ForkReady[left] or ForkReady[right]) and queues until the fork is released.
+:Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › Solution using a monitor.
+:Q_UNIT: cprob
+:END:
+
+*** In the monitor solution, what does release_forks do for each fork?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: If no one is waiting on that fork's condition, it marks the fork available (true); otherwise it csignals the condition to wake a waiting philosopher.
+:Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › Solution using a monitor.
+:Q_UNIT: cprob
+:END:
+
+** Producer/Consumer Problem
+
+*** State the producer/consumer problem.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Producers place data in a buffer and a consumer removes items one at a time, with only one accessing the buffer at once; the producer must not add to a full buffer and the consumer must not take from an empty one.
+:Q_EXPLAIN: Notes: 2.2 › Theoretical Problems in Concurrency › Producer/Consumer Problem.
+:Q_UNIT: cprob
+:END:
+
+*** In the initial binary-semaphore solution, what are s and delay for?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: s makes sure only one process at a time is in the buffer; delay makes the consumer wait when there is nothing to consume.
+:Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Initial solution: two binary semaphores.
+:Q_UNIT: cprob
+:END:
+
+*** Why is the initial binary-semaphore producer/consumer solution incorrect?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The consumer tests if (n==0) outside the critical section, so the producer can change n in between; a leftover delay signal then lets the consumer take from an empty buffer and n reaches -1.
+:Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Why it fails: the trace (Stallings Figure 5.12).
+:Q_DATA: void consumer() { | . semWaitB(delay); | . while (true) { | . . semWaitB(s); take(); n--; semSignalB(s); | . . consume(); | . . if (n==0) semWaitB(delay); | . } | }
+:Q_STEPS: step 9: consumer leaves CS with n = 0 but has not tested n yet | steps 10-13: producer appends, n = 1, signals delay (delay = 1) | step 14: consumer tests n==0, n is 1, so it does not wait | steps 15-17: consumer takes the item, n = 0 | step 18: consumer tests n==0, semWaitB(delay) uses the stale signal and does not block | steps 19-21: consumer takes from an empty buffer, n = -1
+:Q_UNIT: cprob
+:END:
+
+*** How does the correct binary-semaphore solution (Figure 5.13) fix the consumer?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It copies n into a local variable m inside the critical section and tests if (m==0) afterward, so the test uses the value seen while holding s.
+:Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Fix 1: copy n inside the critical section.
+:Q_UNIT: cprob
+:END:
+
+*** Write the producer and consumer using general (counting) semaphores n and s.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The producer appends inside s then signals n; the consumer waits on n, then on s, takes, and signals s.
+:Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Fix 2: general (counting) semaphores (Stallings Figure 5.14).
+:Q_STEPS: semaphore n = 0, s = 1; | producer: while (true) { produce(); semWait(s); append(); semSignal(s); semSignal(n); } | consumer: while (true) { semWait(n); semWait(s); take(); semSignal(s); consume(); }
+:Q_UNIT: cprob
+:END:
+
+*** In the counting-semaphore producer, what happens if semSignal(s) and semSignal(n) are swapped?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Nothing breaks: correctness is not affected, because the consumer still has to acquire s before touching the buffer.
+:Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Questions.
+:Q_UNIT: cprob
+:END:
+
+*** In the counting-semaphore consumer, what happens if semWait(n) and semWait(s) are swapped?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It is fatal: the consumer can take s while the buffer is empty and then block on n while holding s, so the producer can never add an item: deadlock.
+:Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Questions.
+:Q_UNIT: cprob
+:END:
+
+*** In the bounded-buffer solution, give the initial value and purpose of s, n, and e.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: s = 1 for mutual exclusion on the buffer; n = 0 counts filled slots (the consumer waits on it); e = sizeofbuffer counts empty slots (the producer waits on it).
+:Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Bounded buffer (Stallings Figure 5.16).
+:Q_UNIT: cprob
+:END:
+
+*** Write the bounded-buffer producer and consumer.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The producer waits on e then s, appends, and signals s then n; the consumer waits on n then s, takes, and signals s then e.
+:Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Bounded buffer (Stallings Figure 5.16).
+:Q_STEPS: semaphore s = 1, n = 0, e = sizeofbuffer; | producer: while (true) { produce(); semWait(e); semWait(s); append(); semSignal(s); semSignal(n); } | consumer: while (true) { semWait(n); semWait(s); take(); semSignal(s); semSignal(e); consume(); }
+:Q_UNIT: cprob
+:END:
+
+** Readers/Writers Problem
+
+*** State the three conditions of the readers/writers problem.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Any number of readers may read at once; only one writer at a time may write; if a writer is writing, no reader may read.
+:Q_EXPLAIN: Notes: 2.2 › Theoretical Problems in Concurrency › Readers/Writers Problem.
+:Q_UNIT: cprob
+:END:
+
+*** In the readers-have-priority solution, what are wsem and read_lock for?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: wsem gives mutual exclusion on the shared data area (one writer, or the group of readers); read_lock gives mutual exclusion on the readcount variable.
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 1: readers have priority (and Readers/Writers handout, Algorithm 1).
+:Q_UNIT: cprob
+:END:
+
+*** In the readers-have-priority solution, which reader takes wsem and which releases it?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The first reader in (readcount becomes 1) takes wsem; the last reader out (readcount becomes 0) signals it.
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 1: readers have priority.
+:Q_STEPS: READER: | . semWait(read_lock); readcount++; | . if readcount == 1 then semWait(wsem) | . semSignal(read_lock) | . READUNIT() | . semWait(read_lock); readcount--; | . if readcount == 0 then semSignal(wsem) | . semSignal(read_lock) | WRITER: semWait(wsem); WRITEUNIT(); semSignal(wsem)
+:Q_UNIT: cprob
+:END:
+
+*** What is the weakness of the readers-have-priority solution?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: With a constant flow of readers, writers may never get access to the data area (writer starvation).
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 1: readers have priority (Implications).
+:Q_UNIT: cprob
+:END:
+
+*** What is the idea behind the writers-have-priority solution?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Once a writer declares it wants to write, no new reader may enter until at least one writer has written.
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 2: writers have priority.
+:Q_UNIT: cprob
+:END:
+
+*** What is the weakness of the writers-have-priority solution?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Readers could starve.
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 2: writers have priority (Implications).
+:Q_UNIT: cprob
+:END:
+
+*** How can readers/writers be solved so that neither readers nor writers starve?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Use a queue built from a semaphore so readers and writers are served in arrival order.
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 2: writers have priority (Implications).
+:Q_UNIT: cprob
+:END:
+
+*** In the writers-have-priority solution, with readers only in the system, which semaphores are set and who queues?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: wsem is set, and there are no queues.
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 2 (state of the process queues table).
+:Q_UNIT: cprob
+:END:
+
+*** In the writers-have-priority solution, with writers only in the system, which semaphores are set and who queues?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: wsem and rsem are set, and writers queue on wsem.
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 2 (state of the process queues table).
+:Q_UNIT: cprob
+:END:
+
+*** In the writers-have-priority solution, when both are present, where do waiting readers queue?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: One reader queues on rsem and the other readers queue on z (writers queue on wsem).
+:Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 2 (state of the process queues table).
+:Q_UNIT: cprob
+:END:
+
+* Deadlock
+
+** Deadlock and Livelock, on a Staircase
+
+*** Using the staircase example, what is the difference between deadlock and livelock?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deadlock: two people on a narrow staircase each wait for the other to move and nobody moves; livelock: both keep stepping aside the same way, constantly changing state but making no progress.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Deadlock and Livelock, on a Staircase.
+:Q_UNIT: dead
+:END:
+
+*** Define livelock.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Two or more processes continuously change their states in response to each other without doing any useful work.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock and Livelock, on a Staircase (and Glossary).
+:Q_UNIT: dead
+:END:
+
+*** Define starvation.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A runnable process is overlooked indefinitely by the scheduler: it is able to proceed but is never chosen.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Mutual Exclusion and Synchronization › Glossary.
+:Q_UNIT: dead
+:END:
+
+** Deadlock
+
+*** Define deadlock.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The permanent blocking of a set of processes that compete for system resources or communicate with each other, each blocked awaiting an event only another blocked process in the set can trigger.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Deadlock.
+:Q_UNIT: dead
+:END:
+
+*** Why is deadlock called permanent?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Because none of the events the blocked processes are waiting for is ever triggered.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Deadlock.
+:Q_UNIT: dead
+:END:
+
+** Joint Progress Diagrams
+
+*** What does a joint progress diagram plot?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The progress of process P on the horizontal axis against the progress of Q on the vertical axis; a horizontal stretch means P runs while Q waits, a vertical one the reverse.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Joint Progress Diagrams.
+:Q_UNIT: dead
+:END:
+
+*** What is a fatal region in a joint progress diagram?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A region that a path can enter (e.g., P holds A and Q holds B) but can only leave into a forbidden region, so once entered, deadlock is inevitable.
+:Q_EXPLAIN: Notes: 2.2 › Joint Progress Diagrams (Figure 6.2).
+:Q_UNIT: dead
+:END:
+
+*** How does Figure 6.3 change P so that no deadlock is possible?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: P does Get A, Release A, Get B, Release B, never holding both, so the forbidden regions don't form a fatal region.
+:Q_EXPLAIN: Notes: 2.2 › Joint Progress Diagrams (Figure 6.3).
+:Q_UNIT: dead
+:END:
+
+** Resource Categories
+
+*** What is the difference between a reusable and a consumable resource?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A reusable resource can be safely used by one process at a time and is not depleted by use; a consumable resource is created (produced) and destroyed (consumed).
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Resource Categories.
+:Q_UNIT: dead
+:END:
+
+*** Which of these is a consumable resource?
+:PROPERTIES:
+:Q_TYPE: mc
+:Q_OPTIONS: Messages | Main memory | I/O channels | Semaphores
+:Q_ANSWER: Messages
+:Q_EXPLAIN: Notes: 2.2 › Resource Categories. Consumable: interrupts, signals, messages, information in I/O buffers. The rest are reusable.
+:Q_UNIT: dead
+:END:
+
+*** Give three examples of reusable resources.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Any three of: processors, I/O channels, main and secondary memory, devices, files, databases, semaphores.
+:Q_EXPLAIN: Notes: 2.2 › Resource Categories.
+:Q_UNIT: dead
+:END:
+
+*** With 200 KB available, P1 requests 80 KB then 60 KB and P2 requests 70 KB then 80 KB. When does deadlock occur?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: If both reach their second request: after 80 + 70 KB only 50 KB is left, so neither 60 KB nor 80 KB can be granted.
+:Q_EXPLAIN: Notes: 2.2 › Resource Categories › Reusable resources: memory request example.
+:Q_UNIT: dead
+:END:
+
+*** P1 does Receive(P2) then Send(P2, M1), and P2 does Receive(P1) then Send(P1, M2). When do they deadlock?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: If Receive is blocking: each waits for a message the other will only send after receiving.
+:Q_EXPLAIN: Notes: 2.2 › Resource Categories › Consumable resources deadlock.
+:Q_UNIT: dead
+:END:
+
+** Conditions for Deadlock
+
+*** List the four conditions for deadlock.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Mutual exclusion, hold-and-wait, no preemption, and circular wait.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Conditions for Deadlock.
+:Q_UNIT: dead
+:END:
+
+*** Define hold-and-wait.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A process may hold allocated resources while waiting to be assigned other resources.
+:Q_EXPLAIN: Notes: 2.2 › Conditions for Deadlock.
+:Q_UNIT: dead
+:END:
+
+*** Define the no-preemption condition.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No resource can be forcibly removed from a process holding it.
+:Q_EXPLAIN: Notes: 2.2 › Conditions for Deadlock.
+:Q_UNIT: dead
+:END:
+
+*** Define circular wait.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A closed chain of processes exists in which each process holds at least one resource needed by the next process in the chain.
+:Q_EXPLAIN: Notes: 2.2 › Conditions for Deadlock.
+:Q_UNIT: dead
+:END:
+
+*** Which deadlock conditions are necessary but not sufficient, and when are the conditions sufficient?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Mutual exclusion, hold-and-wait, and no preemption are necessary but not sufficient; all four together (adding circular wait) are necessary and sufficient.
+:Q_EXPLAIN: Notes: 2.2 › Conditions for Deadlock.
+:Q_UNIT: dead
+:END:
+
+** Resource Allocation Graphs
+
+*** In a resource allocation graph, what does an edge from a process to a resource mean?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The process has requested that resource but has not yet been granted it.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Resource Allocation Graphs.
+:Q_UNIT: dead
+:END:
+
+*** In a resource allocation graph, what does an edge from a resource's dot to a process mean?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A request that has been granted: the process holds that instance (each dot is one instance of the resource).
+:Q_EXPLAIN: Notes: 2.2 › Resource Allocation Graphs.
+:Q_UNIT: dead
+:END:
+
+*** A cycle in a resource allocation graph always means deadlock.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Notes: 2.2 › Resource Allocation Graphs (Figure 6.5 c vs d). With single-instance resources a cycle is a deadlock; with multiple instances (Figure 6.5d) the requests can still be satisfied.
+:Q_UNIT: dead
+:END:
+
+*** How do you build a resource allocation graph from the request and allocation matrices?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Make a node per process and per resource with one dot per instance (from the resource vector); draw process-to-resource edges from the request matrix and resource-to-process edges from the allocation matrix; then look for cycles.
+:Q_EXPLAIN: Notes: 2.2 › Practice notes at the end of the Deadlock section, and Resource Allocation Graphs.
+:Q_UNIT: dead
+:END:
+
+*** Draw the resource allocation graph for this state (single instance of each resource). List the edges and say whether there is a deadlock.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Cycle P1 -> R2 -> P2 -> R1 -> P1. Every resource has one instance, so the cycle is a deadlock (P1 and P2), like Figure 6.5(c).
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Resource Allocation Graphs. Request edge = process to resource; assignment edge = resource dot to process.
+:Q_DATA: P1 request: 0 1 | P2 request: 1 0 | P1 alloc: 1 0 | P2 alloc: 0 1 | Resource vector R: 1 1 (one dot per instance)
+:Q_STEPS: Nodes: one per process, one per resource (with one dot per instance). | P1 -> R2 (request) | P2 -> R1 (request) | R1 -> P1 (held) | R2 -> P2 (held) | Detection check: deadlocked = P1, P2
+:Q_UNIT: dead
+:END:
+
+*** Draw the resource allocation graph for this state (multiple instances). List the edges and say whether there is a deadlock.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Same cycle P1 -> R2 -> P2 -> R1 -> P1, but R1 has 3 instances and R2 has 2, so free units satisfy both requests: no deadlock, like Figure 6.5(d).
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Resource Allocation Graphs. Request edge = process to resource; assignment edge = resource dot to process.
+:Q_DATA: P1 request: 0 1 | P2 request: 1 0 | P1 alloc: 1 0 | P2 alloc: 0 1 | Resource vector R: 3 2 (one dot per instance)
+:Q_STEPS: Nodes: one per process, one per resource (with one dot per instance). | P1 -> R2 (request) | P2 -> R1 (request) | R1 -> P1 (held) | R2 -> P2 (held) | Detection check: deadlocked = none
+:Q_UNIT: dead
+:END:
+
+*** Draw the resource allocation graph for this state (three processes, single instances). List the edges and say whether there is a deadlock.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Cycle P1 -> R2 -> P2 -> R3 -> P3 -> R1 -> P1 with single-instance resources: P1, P2, P3 are deadlocked (circular wait).
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Resource Allocation Graphs. Request edge = process to resource; assignment edge = resource dot to process.
+:Q_DATA: P1 request: 0 1 0 | P2 request: 0 0 1 | P3 request: 1 0 0 | P1 alloc: 1 0 0 | P2 alloc: 0 1 0 | P3 alloc: 0 0 1 | Resource vector R: 1 1 1 (one dot per instance)
+:Q_STEPS: Nodes: one per process, one per resource (with one dot per instance). | P1 -> R2 (request) | P2 -> R3 (request) | P3 -> R1 (request) | R1 -> P1 (held) | R2 -> P2 (held) | R3 -> P3 (held) | Detection check: deadlocked = P1, P2, P3
+:Q_UNIT: dead
+:END:
+
+*** Draw the resource allocation graph for this state (chain with no cycle). List the edges and say whether there is a deadlock.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No cycle: P3 requests nothing, so it finishes and releases R3, then P2 gets R3 and finishes, then P1 gets R2. No deadlock.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Resource Allocation Graphs. Request edge = process to resource; assignment edge = resource dot to process.
+:Q_DATA: P1 request: 0 1 0 | P2 request: 0 0 1 | P3 request: 0 0 0 | P1 alloc: 1 0 0 | P2 alloc: 0 1 0 | P3 alloc: 0 0 1 | Resource vector R: 1 1 1 (one dot per instance)
+:Q_STEPS: Nodes: one per process, one per resource (with one dot per instance). | P1 -> R2 (request) | P2 -> R3 (request) | R1 -> P1 (held) | R2 -> P2 (held) | R3 -> P3 (held) | Detection check: deadlocked = none
+:Q_UNIT: dead
+:END:
+
+** How to Deal with Deadlocks?
+
+*** Name the three strategies for dealing with deadlock and give the idea of each.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Prevention disallows one of the conditions; avoidance refuses any request that might lead to deadlock; detection grants requests when possible and periodically checks for deadlock, then recovers.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › How to Deal with Deadlocks?
+:Q_UNIT: dead
+:END:
+
+*** What is the difference between deadlock prevention and deadlock avoidance?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Prevention designs the system so one of the necessary conditions can never occur; avoidance dynamically checks each request and grants it only if the resulting state stays safe.
+:Q_EXPLAIN: Notes: 2.2 › How to Deal with Deadlocks? › Prevention vs avoidance.
+:Q_UNIT: dead
+:END:
+
+** Deadlock Prevention
+
+*** What is the difference between indirect and direct deadlock prevention?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Indirect prevents one of the three necessary conditions (mutual exclusion, hold-and-wait, no preemption); direct prevents circular wait.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Deadlock Prevention.
+:Q_UNIT: dead
+:END:
+
+*** Why can't mutual exclusion generally be designed away to prevent deadlock?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: If access to a resource requires mutual exclusion, the OS must support it; even read-shared files still need exclusive access for writes.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Prevention › Condition by condition.
+:Q_UNIT: dead
+:END:
+
+*** How is hold-and-wait prevented?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Require each process to request all its resources at one time, blocking it until all can be granted together.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Prevention › Condition by condition.
+:Q_UNIT: dead
+:END:
+
+*** Give the problems with preventing hold-and-wait.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A process may wait a long time for all its resources, allocated resources may sit unused for a long time, and a process may not know in advance what it will need.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Prevention › Condition by condition.
+:Q_UNIT: dead
+:END:
+
+*** How is the no-preemption condition prevented?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A process denied a further request must release its resources and request them again, or the OS may preempt a process holding a requested resource and make it release its resources.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Prevention › Condition by condition.
+:Q_UNIT: dead
+:END:
+
+*** How is circular wait prevented?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Define a linear ordering of resource types, and have every process request resources in increasing order.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Prevention › Condition by condition.
+:Q_UNIT: dead
+:END:
+
+** Deadlock Avoidance
+
+*** What information does deadlock avoidance require?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each process's possible future resource requirements (its maximum claim).
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Deadlock Avoidance.
+:Q_UNIT: dead
+:END:
+
+*** What is the difference between process initiation denial and resource allocation denial?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Process initiation denial doesn't start a process whose demands might lead to deadlock; resource allocation denial doesn't grant an incremental request that might lead to deadlock.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Avoidance (two approaches table).
+:Q_UNIT: dead
+:END:
+
+*** Define a safe state.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A state in which there is at least one sequence of resource allocations that lets every process run to completion without deadlock.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Avoidance › Resource allocation denial: the banker's algorithm.
+:Q_UNIT: dead
+:END:
+
+*** An unsafe state means the system is deadlocked.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Avoidance › Resource allocation denial. An unsafe state means a deadlock might occur in the future, not that one exists.
+:Q_UNIT: dead
+:END:
+
+*** What do the vectors R and V and the matrices C and A hold in the banker's algorithm?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: R is the total of each resource, V is what is not allocated, C is each process's maximum claim, and A is each process's current allocation (C - A is what it may still request).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock avoidance: the state.
+:Q_UNIT: dead
+:END:
+
+*** Write the invariant that relates R, V, and A.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: \(R_j = V_j + \sum_i A_{ij}\) for every resource j: every unit is either free or allocated.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock avoidance: the state.
+:Q_UNIT: dead
+:END:
+
+*** Write the banker's safety test.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Start with currentavail = available; repeatedly find a process whose C - A fits in currentavail, pretend it finishes and add its allocation back; the state is safe if every process gets removed.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (c) Test for safety algorithm.
+:Q_STEPS: currentavail = available; rest = {all processes}; | while (possible) { | . find Pk in rest with claim[k,*] - alloc[k,*] <= currentavail | . if (found) { currentavail = currentavail + alloc[k,*]; rest = rest - {Pk}; } | . else possible = false; | } | return (rest == null);
+:Q_UNIT: dead
+:END:
+
+*** Give the steps of the resource allocation algorithm (Figure 6.9b) when a process makes a request.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: If alloc + request exceeds the claim, it's an error; if the request exceeds available, suspend the process; otherwise simulate the allocation and carry it out only if the new state is safe, else restore the state and suspend the process.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (b) Resource allocation algorithm.
+:Q_UNIT: dead
+:END:
+
+*** Give two advantages of deadlock avoidance.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: It doesn't need to preempt and roll back processes (unlike detection), and it is less restrictive than prevention.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Avoidance › Advantages and restrictions.
+:Q_UNIT: dead
+:END:
+
+*** Give the restrictions of deadlock avoidance.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Maximum requirements must be stated in advance, processes must be independent (no synchronization requirements), there must be a fixed number of resources, and no process may exit while holding resources.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Avoidance › Advantages and restrictions.
+:Q_UNIT: dead
+:END:
+
+*** Is the Figure 6.7 handout state safe? If so, give a safe sequence.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Safe. Safe sequence: P2, P1, P3, P4.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (c) Test for safety algorithm (banker's algorithm). Safe if some order lets every process finish. Unsafe does not mean deadlocked.
+:Q_DATA: P1 claim: 3 2 2 | P2 claim: 6 1 3 | P3 claim: 3 1 4 | P4 claim: 4 2 2 | P1 alloc: 1 0 0 | P2 alloc: 6 1 2 | P3 alloc: 2 1 1 | P4 alloc: 0 0 2 | Available vector V: 0 1 1
+:Q_STEPS: Need = C - A: P1 (2, 2, 2); P2 (0, 0, 1); P3 (1, 0, 3); P4 (4, 2, 0) | currentavail = (0, 1, 1) | P2 needs (0, 0, 1) <= avail, runs, releases (6, 1, 2): currentavail = (6, 2, 3) | P1 needs (2, 2, 2) <= avail, runs, releases (1, 0, 0): currentavail = (7, 2, 3) | P3 needs (1, 0, 3) <= avail, runs, releases (2, 1, 1): currentavail = (9, 3, 4) | P4 needs (4, 2, 0) <= avail, runs, releases (0, 0, 2): currentavail = (9, 3, 6)
+:Q_UNIT: dead
+:END:
+
+*** Is the Figure 6.8 initial state safe? If so, give a safe sequence.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Safe. Safe sequence: P2, P1, P3, P4.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (c) Test for safety algorithm (banker's algorithm). Safe if some order lets every process finish. Unsafe does not mean deadlocked.
+:Q_DATA: P1 claim: 3 2 2 | P2 claim: 6 1 3 | P3 claim: 3 1 4 | P4 claim: 4 2 2 | P1 alloc: 1 0 0 | P2 alloc: 5 1 1 | P3 alloc: 2 1 1 | P4 alloc: 0 0 2 | Available vector V: 1 1 2
+:Q_STEPS: Need = C - A: P1 (2, 2, 2); P2 (1, 0, 2); P3 (1, 0, 3); P4 (4, 2, 0) | currentavail = (1, 1, 2) | P2 needs (1, 0, 2) <= avail, runs, releases (5, 1, 1): currentavail = (6, 2, 3) | P1 needs (2, 2, 2) <= avail, runs, releases (1, 0, 0): currentavail = (7, 2, 3) | P3 needs (1, 0, 3) <= avail, runs, releases (2, 1, 1): currentavail = (9, 3, 4) | P4 needs (4, 2, 0) <= avail, runs, releases (0, 0, 2): currentavail = (9, 3, 6)
+:Q_UNIT: dead
+:END:
+
+*** Is the Figure 6.8 state after P1's request is granted safe? If so, give a safe sequence.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Unsafe: no process's remaining need C - A fits in Available.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (c) Test for safety algorithm (banker's algorithm). Safe if some order lets every process finish. Unsafe does not mean deadlocked.
+:Q_DATA: P1 claim: 3 2 2 | P2 claim: 6 1 3 | P3 claim: 3 1 4 | P4 claim: 4 2 2 | P1 alloc: 2 0 1 | P2 alloc: 5 1 1 | P3 alloc: 2 1 1 | P4 alloc: 0 0 2 | Available vector V: 0 1 1
+:Q_STEPS: Need = C - A: P1 (1, 2, 1); P2 (1, 0, 2); P3 (1, 0, 3); P4 (4, 2, 0) | currentavail = (0, 1, 1) | No remaining process has C-A <= currentavail: P1 needs (1, 2, 1), P2 needs (1, 0, 2), P3 needs (1, 0, 3), P4 needs (4, 2, 0)
+:Q_UNIT: dead
+:END:
+
+*** Is Problem M safe? If so, give a safe sequence.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Safe. Safe sequence: P2, P4, P1, P3, P5.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (c) Test for safety algorithm (banker's algorithm). Safe if some order lets every process finish. Unsafe does not mean deadlocked.
+:Q_DATA: P1 claim: 7 5 3 | P2 claim: 3 2 2 | P3 claim: 9 0 2 | P4 claim: 2 2 2 | P5 claim: 4 3 3 | P1 alloc: 0 1 0 | P2 alloc: 2 0 0 | P3 alloc: 3 0 2 | P4 alloc: 2 1 1 | P5 alloc: 0 0 2 | Available vector V: 3 3 2
+:Q_STEPS: Need = C - A: P1 (7, 4, 3); P2 (1, 2, 2); P3 (6, 0, 0); P4 (0, 1, 1); P5 (4, 3, 1) | currentavail = (3, 3, 2) | P2 needs (1, 2, 2) <= avail, runs, releases (2, 0, 0): currentavail = (5, 3, 2) | P4 needs (0, 1, 1) <= avail, runs, releases (2, 1, 1): currentavail = (7, 4, 3) | P1 needs (7, 4, 3) <= avail, runs, releases (0, 1, 0): currentavail = (7, 5, 3) | P3 needs (6, 0, 0) <= avail, runs, releases (3, 0, 2): currentavail = (10, 5, 5) | P5 needs (4, 3, 1) <= avail, runs, releases (0, 0, 2): currentavail = (10, 5, 7)
+:Q_UNIT: dead
+:END:
+
+*** Is Problem N safe? If so, give a safe sequence.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Unsafe: no process's remaining need C - A fits in Available.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (c) Test for safety algorithm (banker's algorithm). Safe if some order lets every process finish. Unsafe does not mean deadlocked.
+:Q_DATA: P1 claim: 4 2 | P2 claim: 3 3 | P3 claim: 5 2 | P1 alloc: 2 1 | P2 alloc: 1 2 | P3 alloc: 2 1 | Available vector V: 1 0
+:Q_STEPS: Need = C - A: P1 (2, 1); P2 (2, 1); P3 (3, 1) | currentavail = (1, 0) | No remaining process has C-A <= currentavail: P1 needs (2, 1), P2 needs (2, 1), P3 needs (3, 1)
+:Q_UNIT: dead
+:END:
+
+*** Is Problem O safe? If so, give a safe sequence.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Unsafe: no process's remaining need C - A fits in Available.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (c) Test for safety algorithm (banker's algorithm). Safe if some order lets every process finish. Unsafe does not mean deadlocked.
+:Q_DATA: P1 claim: 2 2 2 | P2 claim: 3 1 2 | P3 claim: 2 2 1 | P1 alloc: 1 1 0 | P2 alloc: 1 0 1 | P3 alloc: 1 1 1 | Available vector V: 1 0 1
+:Q_STEPS: Need = C - A: P1 (1, 1, 2); P2 (2, 1, 1); P3 (1, 1, 0) | currentavail = (1, 0, 1) | No remaining process has C-A <= currentavail: P1 needs (1, 1, 2), P2 needs (2, 1, 1), P3 needs (1, 1, 0)
+:Q_UNIT: dead
+:END:
+
+*** Use the resource allocation algorithm: P2 requests (1, 0, 1). Grant, suspend, or error?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Grant it: the new state is safe (sequence P2, P1, P3, P4).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (b) Resource allocation algorithm. Check the claim, then availability, then simulate and run the safety test.
+:Q_DATA: P1 claim: 3 2 2 | P2 claim: 6 1 3 | P3 claim: 3 1 4 | P4 claim: 4 2 2 | P1 alloc: 1 0 0 | P2 alloc: 5 1 1 | P3 alloc: 2 1 1 | P4 alloc: 0 0 2 | Available vector V: 1 1 2 | Request: P2 asks for 1 0 1
+:Q_STEPS: alloc + request = (6, 1, 2) <= claim (6, 1, 3): OK | request (1, 0, 1) <= available (1, 1, 2): OK | Simulate: A2 = (6, 1, 2), available = (0, 1, 1) | Run the safety test on the new state: | currentavail = (0, 1, 1) | P2 needs (0, 0, 1) <= avail, runs, releases (6, 1, 2): currentavail = (6, 2, 3) | P1 needs (2, 2, 2) <= avail, runs, releases (1, 0, 0): currentavail = (7, 2, 3) | P3 needs (1, 0, 3) <= avail, runs, releases (2, 1, 1): currentavail = (9, 3, 4) | P4 needs (4, 2, 0) <= avail, runs, releases (0, 0, 2): currentavail = (9, 3, 6)
+:Q_UNIT: dead
+:END:
+
+*** Use the resource allocation algorithm: P1 requests (1, 0, 1). Grant, suspend, or error?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deny (postpone) it: the simulated state is unsafe, so the original state is restored and P1 is suspended.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (b) Resource allocation algorithm. Check the claim, then availability, then simulate and run the safety test.
+:Q_DATA: P1 claim: 3 2 2 | P2 claim: 6 1 3 | P3 claim: 3 1 4 | P4 claim: 4 2 2 | P1 alloc: 1 0 0 | P2 alloc: 5 1 1 | P3 alloc: 2 1 1 | P4 alloc: 0 0 2 | Available vector V: 1 1 2 | Request: P1 asks for 1 0 1
+:Q_STEPS: alloc + request = (2, 0, 1) <= claim (3, 2, 2): OK | request (1, 0, 1) <= available (1, 1, 2): OK | Simulate: A1 = (2, 0, 1), available = (0, 1, 1) | Run the safety test on the new state: | currentavail = (0, 1, 1) | No remaining process has C-A <= currentavail: P1 needs (1, 2, 1), P2 needs (1, 0, 2), P3 needs (1, 0, 3), P4 needs (4, 2, 0)
+:Q_UNIT: dead
+:END:
+
+*** Use the resource allocation algorithm: P4 requests (2, 0, 0). Grant, suspend, or error?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Suspend P4: the request exceeds what is available right now.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (b) Resource allocation algorithm. Check the claim, then availability, then simulate and run the safety test.
+:Q_DATA: P1 claim: 3 2 2 | P2 claim: 6 1 3 | P3 claim: 3 1 4 | P4 claim: 4 2 2 | P1 alloc: 1 0 0 | P2 alloc: 5 1 1 | P3 alloc: 2 1 1 | P4 alloc: 0 0 2 | Available vector V: 1 1 2 | Request: P4 asks for 2 0 0
+:Q_STEPS: alloc + request = (2, 0, 2) <= claim (4, 2, 2): OK | request (2, 0, 0) > available (1, 1, 2): suspend process
+:Q_UNIT: dead
+:END:
+
+*** Use the resource allocation algorithm: P3 requests (1, 0, 4). Grant, suspend, or error?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Error: the request pushes P3's total allocation above its claim, so it is rejected outright.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (b) Resource allocation algorithm. Check the claim, then availability, then simulate and run the safety test.
+:Q_DATA: P1 claim: 3 2 2 | P2 claim: 6 1 3 | P3 claim: 3 1 4 | P4 claim: 4 2 2 | P1 alloc: 1 0 0 | P2 alloc: 5 1 1 | P3 alloc: 2 1 1 | P4 alloc: 0 0 2 | Available vector V: 1 1 2 | Request: P3 asks for 1 0 4
+:Q_STEPS: alloc + request = (3, 1, 5) > claim (3, 1, 4): error
+:Q_UNIT: dead
+:END:
+
+*** Use the resource allocation algorithm: P2 requests (1, 0, 2) in Problem M. Grant, suspend, or error?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Grant it: the new state is safe (sequence P2, P4, P1, P3, P5).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (b) Resource allocation algorithm. Check the claim, then availability, then simulate and run the safety test.
+:Q_DATA: P1 claim: 7 5 3 | P2 claim: 3 2 2 | P3 claim: 9 0 2 | P4 claim: 2 2 2 | P5 claim: 4 3 3 | P1 alloc: 0 1 0 | P2 alloc: 2 0 0 | P3 alloc: 3 0 2 | P4 alloc: 2 1 1 | P5 alloc: 0 0 2 | Available vector V: 3 3 2 | Request: P2 asks for 1 0 2
+:Q_STEPS: alloc + request = (3, 0, 2) <= claim (3, 2, 2): OK | request (1, 0, 2) <= available (3, 3, 2): OK | Simulate: A2 = (3, 0, 2), available = (2, 3, 0) | Run the safety test on the new state: | currentavail = (2, 3, 0) | P2 needs (0, 2, 0) <= avail, runs, releases (3, 0, 2): currentavail = (5, 3, 2) | P4 needs (0, 1, 1) <= avail, runs, releases (2, 1, 1): currentavail = (7, 4, 3) | P1 needs (7, 4, 3) <= avail, runs, releases (0, 1, 0): currentavail = (7, 5, 3) | P3 needs (6, 0, 0) <= avail, runs, releases (3, 0, 2): currentavail = (10, 5, 5) | P5 needs (4, 3, 1) <= avail, runs, releases (0, 0, 2): currentavail = (10, 5, 7)
+:Q_UNIT: dead
+:END:
+
+*** Use the resource allocation algorithm: P1 requests (0, 2, 0) in Problem M. Grant, suspend, or error?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Grant it: the new state is safe (sequence P4, P2, P1, P3, P5).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Figure 6.9 (b) Resource allocation algorithm. Check the claim, then availability, then simulate and run the safety test.
+:Q_DATA: P1 claim: 7 5 3 | P2 claim: 3 2 2 | P3 claim: 9 0 2 | P4 claim: 2 2 2 | P5 claim: 4 3 3 | P1 alloc: 0 1 0 | P2 alloc: 2 0 0 | P3 alloc: 3 0 2 | P4 alloc: 2 1 1 | P5 alloc: 0 0 2 | Available vector V: 3 3 2 | Request: P1 asks for 0 2 0
+:Q_STEPS: alloc + request = (0, 3, 0) <= claim (7, 5, 3): OK | request (0, 2, 0) <= available (3, 3, 2): OK | Simulate: A1 = (0, 3, 0), available = (3, 1, 2) | Run the safety test on the new state: | currentavail = (3, 1, 2) | P4 needs (0, 1, 1) <= avail, runs, releases (2, 1, 1): currentavail = (5, 2, 3) | P2 needs (1, 2, 2) <= avail, runs, releases (2, 0, 0): currentavail = (7, 2, 3) | P1 needs (7, 2, 3) <= avail, runs, releases (0, 3, 0): currentavail = (7, 5, 3) | P3 needs (6, 0, 0) <= avail, runs, releases (3, 0, 2): currentavail = (10, 5, 5) | P5 needs (4, 3, 1) <= avail, runs, releases (0, 0, 2): currentavail = (10, 5, 7)
+:Q_UNIT: dead
+:END:
+
+** Deadlock Detection
+
+*** How does the detection strategy differ from prevention in granting requests?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Prevention is conservative and restricts access to resources; detection grants requests whenever possible.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Deadlock Detection.
+:Q_UNIT: dead
+:END:
+
+*** Write the four steps of the deadlock detection algorithm.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Mark every process with an all-zero allocation row; set W = Available; find an unmarked process whose request row is at most W (stop if none); mark it, add its allocation row to W, and repeat. Unmarked processes at the end are deadlocked.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm › The algorithm.
+:Q_STEPS: 1. Mark each process whose row in A is all zeros | 2. W <- Available | 3. Find unmarked i with Q[i,k] <= W[k] for all k; if none, terminate | 4. Mark i; W[k] <- W[k] + A[i,k] for all k; go to 3 | Deadlock exists if and only if unmarked processes remain
+:Q_UNIT: dead
+:END:
+
+*** Why is a process with an all-zero allocation row marked immediately?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A process that holds no resources cannot participate in a deadlock.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › The algorithm, step 1.
+:Q_UNIT: dead
+:END:
+
+*** Does the order in which eligible rows are picked change the detection algorithm's result?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No: W only grows, so marking is monotonic and the final set of unmarked processes is the same.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › The algorithm.
+:Q_UNIT: dead
+:END:
+
+*** Which matrix does detection use in place of the claim matrix, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The request matrix Q: detection asks which processes are blocked on requests they are actually making now, not the worst case they might ever ask for.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm, and Avoidance vs detection.
+:Q_UNIT: dead
+:END:
+
+*** Give the advantages and the disadvantage of checking for deadlock at each resource request.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Advantages: early detection and a relatively simple algorithm; disadvantage: frequent checks consume considerable processor time.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Detection › Detection algorithms.
+:Q_UNIT: dead
+:END:
+
+*** Why is cycle-checking a resource allocation graph a poor way to detect deadlock in general?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Multiple-instance resources need a node per instance (it doesn't scale), and dynamic, divisible resources such as main memory are hard to represent.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Detection › Detection algorithms.
+:Q_UNIT: dead
+:END:
+
+*** List the deadlock recovery strategies in increasing order of sophistication.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Abort all deadlocked processes; back up each to a checkpoint and restart; successively abort deadlocked processes until the deadlock is gone; successively preempt resources until the deadlock is gone.
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Detection › Recovery strategies.
+:Q_UNIT: dead
+:END:
+
+*** Compare deadlock avoidance and deadlock detection on what they need and when they run.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Avoidance needs the claim matrix C and runs on every request before granting; detection needs only the current request matrix Q and runs periodically or when a request goes unsatisfied.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Avoidance vs detection.
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on the Figure 6.10 state. Which processes are deadlocked?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deadlocked: P1, P2 (unmarked at the end).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R5): | P1 request: 0 1 0 0 1 | P2 request: 0 0 1 0 1 | P3 request: 0 0 0 0 1 | P4 request: 1 0 1 0 1 | Allocation matrix A (columns R1..R5): | P1 alloc: 1 0 1 1 0 | P2 alloc: 1 1 0 0 0 | P3 alloc: 0 0 0 1 0 | P4 alloc: 0 0 0 0 0 | Available vector V: 0 0 0 0 1
+:Q_STEPS: Step 1: P4's allocation row is all zeros, so mark P4 | Step 2: W = Available = (0, 0, 0, 0, 1) | Step 3: P3 request (0, 0, 0, 0, 1) <= W (0, 0, 0, 0, 1), so mark P3 | Step 4: W = W + A3 = (0, 0, 0, 1, 1) | Step 3: P1 request (0, 1, 0, 0, 1) is not <= W (0, 0, 0, 1, 1) (short on R2) | Step 3: P2 request (0, 0, 1, 0, 1) is not <= W (0, 0, 0, 1, 1) (short on R3) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state. Which processes, if any, are deadlocked? (Problem B)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No deadlock: every process ends up marked.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R3): | P1 request: 0 0 1 | P2 request: 1 0 0 | P3 request: 0 0 0 | Allocation matrix A (columns R1..R3): | P1 alloc: 1 0 0 | P2 alloc: 0 1 0 | P3 alloc: 0 0 1 | Available vector V: 0 0 0
+:Q_STEPS: Step 2: W = Available = (0, 0, 0) | Step 3: P3 request (0, 0, 0) <= W (0, 0, 0), so mark P3 | Step 4: W = W + A3 = (0, 0, 1) | Step 3: P1 request (0, 0, 1) <= W (0, 0, 1), so mark P1 | Step 4: W = W + A1 = (1, 0, 1) | Step 3: P2 request (1, 0, 0) <= W (1, 0, 1), so mark P2 | Step 4: W = W + A2 = (1, 1, 1) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state. Which processes, if any, are deadlocked? (Problem C)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deadlocked: P1, P2, P3 (unmarked at the end).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R4): | P1 request: 1 0 0 0 | P2 request: 0 1 0 0 | P3 request: 0 0 1 0 | P4 request: 0 0 0 1 | Allocation matrix A (columns R1..R4): | P1 alloc: 0 1 0 0 | P2 alloc: 0 0 1 0 | P3 alloc: 1 0 0 0 | P4 alloc: 0 0 0 0 | Available vector V: 0 0 0 1
+:Q_STEPS: Step 1: P4's allocation row is all zeros, so mark P4 | Step 2: W = Available = (0, 0, 0, 1) | Step 3: P1 request (1, 0, 0, 0) is not <= W (0, 0, 0, 1) (short on R1) | Step 3: P2 request (0, 1, 0, 0) is not <= W (0, 0, 0, 1) (short on R2) | Step 3: P3 request (0, 0, 1, 0) is not <= W (0, 0, 0, 1) (short on R3) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem D)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deadlocked: P1, P2, P3 (unmarked at the end).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R3): | P1 request: 0 1 0 | P2 request: 0 0 1 | P3 request: 1 0 0 | P4 request: 0 0 0 | Allocation matrix A (columns R1..R3): | P1 alloc: 1 0 0 | P2 alloc: 0 1 0 | P3 alloc: 0 0 1 | P4 alloc: 0 0 0 | Resource vector R: 1 1 1
+:Q_STEPS: First compute Available: V = R - (column sums of A) = (1, 1, 1) - (1, 1, 1) = (0, 0, 0) | Step 1: P4's allocation row is all zeros, so mark P4 | Step 2: W = Available = (0, 0, 0) | Step 3: P1 request (0, 1, 0) is not <= W (0, 0, 0) (short on R2) | Step 3: P2 request (0, 0, 1) is not <= W (0, 0, 0) (short on R3) | Step 3: P3 request (1, 0, 0) is not <= W (0, 0, 0) (short on R1) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem E)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No deadlock: every process ends up marked.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R3): | P1 request: 2 0 0 | P2 request: 0 1 1 | P3 request: 1 0 0 | P4 request: 0 0 2 | Allocation matrix A (columns R1..R3): | P1 alloc: 0 1 0 | P2 alloc: 2 0 0 | P3 alloc: 3 0 3 | P4 alloc: 2 1 1 | Resource vector R: 7 2 6
+:Q_STEPS: First compute Available: V = R - (column sums of A) = (7, 2, 6) - (7, 2, 4) = (0, 0, 2) | Step 2: W = Available = (0, 0, 2) | Step 3: P4 request (0, 0, 2) <= W (0, 0, 2), so mark P4 | Step 4: W = W + A4 = (2, 1, 3) | Step 3: P1 request (2, 0, 0) <= W (2, 1, 3), so mark P1 | Step 4: W = W + A1 = (2, 2, 3) | Step 3: P2 request (0, 1, 1) <= W (2, 2, 3), so mark P2 | Step 4: W = W + A2 = (4, 2, 3) | Step 3: P3 request (1, 0, 0) <= W (4, 2, 3), so mark P3 | Step 4: W = W + A3 = (7, 2, 6) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem F)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deadlocked: P1, P2, P3, P4 (unmarked at the end).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R4): | P1 request: 0 0 0 1 | P2 request: 1 0 0 0 | P3 request: 0 1 0 0 | P4 request: 0 0 1 0 | Allocation matrix A (columns R1..R4): | P1 alloc: 1 0 0 0 | P2 alloc: 0 1 0 0 | P3 alloc: 0 0 1 0 | P4 alloc: 0 0 0 1 | Resource vector R: 1 1 1 1
+:Q_STEPS: First compute Available: V = R - (column sums of A) = (1, 1, 1, 1) - (1, 1, 1, 1) = (0, 0, 0, 0) | Step 2: W = Available = (0, 0, 0, 0) | Step 3: P1 request (0, 0, 0, 1) is not <= W (0, 0, 0, 0) (short on R4) | Step 3: P2 request (1, 0, 0, 0) is not <= W (0, 0, 0, 0) (short on R1) | Step 3: P3 request (0, 1, 0, 0) is not <= W (0, 0, 0, 0) (short on R2) | Step 3: P4 request (0, 0, 1, 0) is not <= W (0, 0, 0, 0) (short on R3) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem G)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No deadlock: every process ends up marked.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R4): | P1 request: 0 0 0 1 | P2 request: 1 0 0 0 | P3 request: 0 1 0 0 | P4 request: 0 0 1 0 | Allocation matrix A (columns R1..R4): | P1 alloc: 1 0 0 0 | P2 alloc: 0 1 0 0 | P3 alloc: 0 0 1 0 | P4 alloc: 0 0 0 1 | Resource vector R: 1 1 1 2
+:Q_STEPS: First compute Available: V = R - (column sums of A) = (1, 1, 1, 2) - (1, 1, 1, 1) = (0, 0, 0, 1) | Step 2: W = Available = (0, 0, 0, 1) | Step 3: P1 request (0, 0, 0, 1) <= W (0, 0, 0, 1), so mark P1 | Step 4: W = W + A1 = (1, 0, 0, 1) | Step 3: P2 request (1, 0, 0, 0) <= W (1, 0, 0, 1), so mark P2 | Step 4: W = W + A2 = (1, 1, 0, 1) | Step 3: P3 request (0, 1, 0, 0) <= W (1, 1, 0, 1), so mark P3 | Step 4: W = W + A3 = (1, 1, 1, 1) | Step 3: P4 request (0, 0, 1, 0) <= W (1, 1, 1, 1), so mark P4 | Step 4: W = W + A4 = (1, 1, 1, 2) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem H)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No deadlock: every process ends up marked.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R3): | P1 request: 1 1 0 | P2 request: 0 0 1 | P3 request: 0 1 0 | P4 request: 1 0 0 | Allocation matrix A (columns R1..R3): | P1 alloc: 0 0 1 | P2 alloc: 1 0 0 | P3 alloc: 0 0 0 | P4 alloc: 0 1 0 | Resource vector R: 2 1 1
+:Q_STEPS: First compute Available: V = R - (column sums of A) = (2, 1, 1) - (1, 1, 1) = (1, 0, 0) | Step 1: P3's allocation row is all zeros, so mark P3 | Step 2: W = Available = (1, 0, 0) | Step 3: P4 request (1, 0, 0) <= W (1, 0, 0), so mark P4 | Step 4: W = W + A4 = (1, 1, 0) | Step 3: P1 request (1, 1, 0) <= W (1, 1, 0), so mark P1 | Step 4: W = W + A1 = (1, 1, 1) | Step 3: P2 request (0, 0, 1) <= W (1, 1, 1), so mark P2 | Step 4: W = W + A2 = (2, 1, 1) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem I)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Deadlocked: P1, P3 (unmarked at the end).
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R4): | P1 request: 0 1 0 1 | P2 request: 1 0 0 0 | P3 request: 0 0 1 0 | P4 request: 0 0 0 0 | P5 request: 1 0 0 1 | Allocation matrix A (columns R1..R4): | P1 alloc: 1 0 1 0 | P2 alloc: 0 1 0 0 | P3 alloc: 0 0 0 1 | P4 alloc: 1 0 0 0 | P5 alloc: 0 0 0 0 | Resource vector R: 2 1 1 1
+:Q_STEPS: First compute Available: V = R - (column sums of A) = (2, 1, 1, 1) - (2, 1, 1, 1) = (0, 0, 0, 0) | Step 1: P5's allocation row is all zeros, so mark P5 | Step 2: W = Available = (0, 0, 0, 0) | Step 3: P4 request (0, 0, 0, 0) <= W (0, 0, 0, 0), so mark P4 | Step 4: W = W + A4 = (1, 0, 0, 0) | Step 3: P2 request (1, 0, 0, 0) <= W (1, 0, 0, 0), so mark P2 | Step 4: W = W + A2 = (1, 1, 0, 0) | Step 3: P1 request (0, 1, 0, 1) is not <= W (1, 1, 0, 0) (short on R4) | Step 3: P3 request (0, 0, 1, 0) is not <= W (1, 1, 0, 0) (short on R3) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem K)
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No deadlock: every process ends up marked.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R3): | P1 request: 1 0 1 | P2 request: 0 1 0 | P3 request: 0 0 1 | Allocation matrix A (columns R1..R3): | P1 alloc: 0 1 0 | P2 alloc: 1 0 1 | P3 alloc: 0 1 0 | Resource vector R: 1 2 2
+:Q_STEPS: First compute Available: V = R - (column sums of A) = (1, 2, 2) - (1, 2, 1) = (0, 0, 1) | Step 2: W = Available = (0, 0, 1) | Step 3: P3 request (0, 0, 1) <= W (0, 0, 1), so mark P3 | Step 4: W = W + A3 = (0, 1, 1) | Step 3: P2 request (0, 1, 0) <= W (0, 1, 1), so mark P2 | Step 4: W = W + A2 = (1, 1, 2) | Step 3: P1 request (1, 0, 1) <= W (1, 1, 2), so mark P1 | Step 4: W = W + A1 = (1, 2, 2) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+*** Run the deadlock detection algorithm on this variant of Figure 6.10 (R2 now has a free unit). Which processes, if any, are deadlocked?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No deadlock: every process ends up marked.
+:Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock detection algorithm. A deadlock exists if and only if there are unmarked processes at the end.
+:Q_DATA: Request matrix Q (columns R1..R5): | P1 request: 0 1 0 0 1 | P2 request: 0 0 1 0 1 | P3 request: 0 0 0 0 1 | P4 request: 1 0 1 0 1 | Allocation matrix A (columns R1..R5): | P1 alloc: 1 0 1 1 0 | P2 alloc: 1 1 0 0 0 | P3 alloc: 0 0 0 1 0 | P4 alloc: 0 0 0 0 0 | Available vector V: 0 1 0 0 1
+:Q_STEPS: Step 1: P4's allocation row is all zeros, so mark P4 | Step 2: W = Available = (0, 1, 0, 0, 1) | Step 3: P1 request (0, 1, 0, 0, 1) <= W (0, 1, 0, 0, 1), so mark P1 | Step 4: W = W + A1 = (1, 1, 1, 1, 1) | Step 3: P2 request (0, 0, 1, 0, 1) <= W (1, 1, 1, 1, 1), so mark P2 | Step 4: W = W + A2 = (2, 2, 1, 1, 1) | Step 3: P3 request (0, 0, 0, 0, 1) <= W (2, 2, 1, 1, 1), so mark P3 | Step 4: W = W + A3 = (2, 2, 1, 2, 1) | No unmarked row fits W, so the algorithm terminates
+:Q_UNIT: dead
+:END:
+
+** Integrated Deadlock Strategy
+
+*** Describe the integrated deadlock strategy.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Group resources into classes, use linear ordering to prevent circular wait between classes, and within each class use the most appropriate algorithm.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Integrated Deadlock Strategy.
+:Q_UNIT: dead
+:END:
+
+*** In the integrated strategy, which method is used for main memory, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Prevention by preemption, because a process can simply be swapped out to secondary storage.
+:Q_EXPLAIN: Notes: 2.2 › Integrated Deadlock Strategy (resource class table).
+:Q_UNIT: dead
+:END:
+
+*** In the integrated strategy, which method is used for swappable space?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Prevention of hold-and-wait: allocate all the required storage at one time (reasonable when the maximum is known).
+:Q_EXPLAIN: Notes: 2.2 › Integrated Deadlock Strategy (resource class table).
+:Q_UNIT: dead
+:END:
+
+** In Practice
+
+*** How do general-purpose operating systems like Linux and Windows usually handle deadlock, and why?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: They ignore it (no explicit handling), because deadlocks are rare and are usually handled at the application level.
+:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › In Practice.
+:Q_UNIT: dead
+:END:
+
+** Acronyms
+
+*** What does CES (the deadlock detection algorithm) stand for?
+:PROPERTIES:
+:Q_TYPE: fill
+:Q_ANSWER: Coffman–Elphick–Shoshani
+:Q_ACCEPT: Coffman-Elphick-Shoshani | Coffman Elphick Shoshani
+:Q_EXPLAIN: Notes: 2.2 › Deadlock Detection › Detection algorithms.
+:Q_UNIT: dead
+:END:
+

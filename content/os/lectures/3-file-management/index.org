@@ -1,6 +1,7 @@
 #+TITLE: 3 File Management
 #+AUTHOR: Ben Heinze
 #+DATE: 2026-10-23
+#+TAGS: operating-systems, file-systems
 #+STARTUP: noindent
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
@@ -12,5 +13,361 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
+Slides: [[file:File Management.pdf][File Management (PDF)]]: Adiesha Liyana Ralalage
 
+*Textbook:* Stallings Chapter 12.
 
+* Files and File Systems
+
+/Files/ are data collections created by users. The file system is one of the most
+important parts of the OS to a user.
+
+Desirable properties of files:
+
+| Property                   | Meaning                                                                                       |
+| Long-term existence        | Files are stored on disk or other secondary storage and do not disappear when a user logs off |
+| Sharable between processes | Files have names and can have associated access permissions that permit controlled sharing     |
+| Structure                  | Files can be organized into hierarchical or more complex structures to reflect the relationships among files |
+
+** File System
+- Provides a means to store data organized as files, as well as a collection of
+  functions that can be performed on files
+- Maintains a set of /attributes/ associated with each file
+  - Owner, creation time, last modified date, etc.
+- Typical operations: Create, Delete, Open, Close, Read, Write
+
+* Conceptual Model of Data Organization
+
+Four terms are commonly used when discussing files: *field*, *record*, *file*,
+*database*.
+
+| Term     | Description                                                                                                         |
+| Field    | Basic element of data. Contains a single value. Fixed or variable length                                            |
+| Record   | Collection of related fields that can be treated as a unit by some application program. Fixed or variable length    |
+| File     | Collection of similar records. Treated as a single entity, may be referenced by name. Access control restrictions usually apply at the file level |
+| Database | Collection of related data. Relationships among elements of data are explicit. Designed for use by a number of different applications. Consists of one or more types of files |
+
+Files /may/ contain structured information organized into fields and records, and
+databases may use files to store their data. However, {{{hl(green,modern
+general-purpose operating systems typically treat regular files as sequences of
+bytes\, leaving the interpretation of their contents to applications.)}}}
+
+- Not all file systems exhibit this sort of structure
+- On UNIX and UNIX-like systems, the basic file structure is just a /stream of bytes/
+  - E.g. a C program is stored as a file but has no physical fields, records, and so on
+
+| OS Type         | File View                 | Example Systems                                    |
+| Byte-oriented   | File = sequence of bytes   | UNIX, Linux, Windows                               |
+| Record-oriented | File = sequence of records | IBM OS/360, MVS, z/OS, OpenVMS, older DEC systems  |
+
+* File Management System
+
+** Objectives
+- Meet the data management needs of the user
+- Guarantee that the data in the file are valid
+- Optimize performance
+- Provide I/O support for a variety of storage device types
+- Minimize the potential for lost or destroyed data
+- Provide a standardized set of I/O interface routines to user processes
+- Provide I/O support for multiple users in the case of multiple-user systems
+
+** Minimal User Requirements
+Each user:
+1. Should be able to create, delete, read, write and modify files
+2. May have controlled access to other users' files
+3. May control what types of accesses are allowed to their files
+4. Should be able to move data between files
+5. Should be able to back up and recover files in case of damage
+6. Should be able to access their files by name rather than by numeric identifier
+
+[Items 2 and 3 did not survive text extraction; they are filled in from Stallings
+§12.1.]
+
+** File System Architecture
+
+Figure 12.1 (File System Software Architecture), top to bottom:
+
+| Layer                   | Role                                                                                             |
+| User program            | Calls into one of the access methods                                                             |
+| Access methods          | Pile, Sequential, Indexed Sequential, Indexed, Hashed: the standard interface between applications and the file system |
+| Logical I/O             | Lets users and applications access /records/ rather than blocks                                   |
+| Basic I/O supervisor    | Initiates and terminates file I/O; device selection, I/O scheduling, buffer allocation            |
+| Basic file system       | Physical I/O: exchanges /blocks/ of data with disk or tape                                       |
+| Device drivers          | Disk device driver, tape device driver: communicate directly with the peripheral device          |
+
+[The layer roles beyond their names come from Stallings §12.1; the slide is only the
+diagram.]
+
+** File Management Functions
+
+Figure 12.2 (Elements of File Management) splits the work in two:
+
+- *File management concerns*: user & program commands $\to$ operation / file name
+  $\to$ directory management, user access control, access method, file manipulation
+  functions $\to$ records $\to$ blocking
+- *Operating system concerns*: physical blocks in main memory buffers $\to$ I/O,
+  disk scheduling, free storage management, file allocation $\to$ physical blocks
+  in secondary storage (disk)
+
+* File Organization and Access
+
+/File organization/ is the logical structuring of the records as determined by the
+way in which they are accessed.
+
+Criteria when choosing a file organization:
+- Short access time
+- Ease of update
+- Economy of storage
+- Simple maintenance
+- Reliability
+
+The priority of these criteria depends on the application that will use the file.
+
+Five of the common file organizations (Figure 12.3):
+1. The pile
+2. The sequential file
+3. The indexed sequential file
+4. The indexed file
+5. The direct, or hashed, file
+
+** The Pile
+- Least complicated form of file organization
+- Data are collected in the order they arrive (chronological order)
+- Variable-length records, variable set of fields
+- Each record consists of one burst of data
+- Purpose is simply to accumulate the mass of data and save it
+- Record access is by *exhaustive search*
+  - To find a record with a particular field value, examine each record until the
+    desired one is found
+  - To find /all/ records containing a particular field, every record must be searched
+- Uses space well, and is easy to append to
+
+** The Sequential File
+- Records are stored in order of a designated *key field*
+- In the traditional model, records have a fixed format (fixed set of fields in
+  fixed order), and the key uniquely identifies each record
+- Well suited to *batch processing*, where many or all records are processed in sequence
+- Can be stored on disk or tape; sequential access is especially well suited to tape
+- Without an auxiliary index, finding a particular record generally requires a
+  sequential search
+- The physical organization of the file on tape or disk directly matches the logical
+  organization of the file (records stored in simple sequential order within blocks)
+- Poor performance for interactive applications that query and/or update individual
+  records: access requires a sequential search for a key match
+  - If the whole file (or a large portion) fits in main memory at once, more
+    efficient search techniques are possible
+
+*** Insertion
+- Because logical and physical organization match, inserting a record is hard to do
+  in place on secondary storage
+- Instead, new records go into a separate pile file called a *log file* or
+  *transaction file*
+- Periodically, a *batch update* merges the log file into the master file to produce
+  the correct key sequence
+
+** Indexed Sequential File
+- Adds an *index* to the file to support random access
+- Adds an *overflow file*
+- Greatly reduces the time required to access a single record, {{{hl(green,without
+  sacrificing the sequential nature of the file)}}}
+- Multiple levels of indexing can be used for greater efficiency
+
+The index is itself a simple sequential file. Each index record has two things:
+- a key field
+- a pointer into the main file
+
+To find a record, search the index sequentially for the highest key value that is
+equal to or precedes the desired key, then follow its pointer and search the main
+file from that point onward.
+
+*** Example
+A sequential file of $N = 10^6$ records, with no index: on average a search takes
+\[
+\frac{N}{2} = 500{,}000 \text{ record accesses.}
+\]
+Now add an index of $k = 1000$ entries, keys evenly distributed over the main file.
+Each index entry covers $N/k = 1000$ records, so on average:
+\[
+\underbrace{\frac{k}{2}}_{\text{index}} + \underbrace{\frac{N}{2k}}_{\text{main file}} = 500 + 500 = 1000 \text{ accesses.}
+\]
+Average search length drops from 500,000 to 1,000.
+
+** Indexed File
+- Records are accessed *only* through their indexes
+- Variable-length records can be employed
+- The concepts of sequentiality and a single key are abandoned
+- Index types:
+  - *Exhaustive index*: one entry for every record in the main file
+  - *Partial index*: entries only for records where the field of interest exists
+- Each index is itself a sequential file
+- Needs a lot of additional metadata
+- Used mostly where timeliness of information is critical
+  - E.g. airline reservation systems, inventory control systems
+
+** Direct or Hashed File
+- Exploits the disk's ability to access directly any block of a known address
+- A key field is required in each record; hashing on the key value places the record
+  in a *bucket*
+- Provides fast retrieval when the exact key is known
+  - Commonly used for frequent individual-record lookups
+- Can support fixed-length or variable-length records
+- A good hash function distributes records evenly across buckets, reducing collisions
+- Collisions can be handled using *overflow buckets* linked together through chaining
+- Less suitable for range queries or processing records in key order
+- Works on both HDDs and SSDs; SSDs reduce the cost of random storage access
+- Examples: directories, pricing tables, schedules, name lists
+
+[The first bullets were partly lost in extraction; the direct-access and
+key-field wording follows Stallings §12.2.]
+
+* Record Blocking
+
+On secondary storage, a file consists of a collection of *blocks*, and the OS or file
+management system is responsible for allocating blocks to files.
+
+- Blocks are the unit of I/O with secondary storage
+- For I/O to be performed, records must be organized as blocks
+
+Given the size of a block, three methods of blocking can be used (Figure 12.8):
+
+| Method                          | Description                                                                                         |
+| Fixed-length blocking           | Fixed-length records; an integral number of records stored per block. Causes *internal fragmentation*: unused space at the end of each block |
+| Variable-length spanned blocking   | Variable-length records packed into blocks with no unused space. A record may /span/ two blocks, continued via a pointer |
+| Variable-length unspanned blocking | Variable-length records, but spanning is not employed: space at the end of a block is wasted if the next record does not fit |
+
+* File Allocation
+
+- On secondary storage, a file consists of a collection of blocks
+- The OS or file management system is responsible for allocating blocks to files
+- The approach taken for file allocation may influence the approach taken for free
+  space management
+- Space is allocated to a file as one or more *portions* (a contiguous set of
+  allocated blocks)
+
+Issues to consider:
+- Should the maximum required space be allocated when the file is created?
+- What size should a portion be?
+- How do we track which portions belong to a file?
+  - E.g. the *File Allocation Table (FAT)*: a data structure used to keep track of
+    the portions assigned to a file. Used in DOS
+
+** Preallocation vs Dynamic Allocation
+- *Preallocation* requires that the maximum size of a file be declared at the time of
+  the file creation request
+  - For many applications it is difficult to estimate the maximum size reliably
+  - Tends to be wasteful, since users and programmers tend to overestimate size
+- *Dynamic allocation* allocates space to a file in portions as needed
+
+** Portion Size
+- At one extreme, a portion large enough to hold the entire file is allocated
+- At the other, space is allocated one block at a time
+- We need something in between:
+  - If the portion size is small, we must keep track of a lot of information
+  - If the portion size is too large, we may be wasting space
+
+Two major approaches:
+
+| Variable, large contiguous portions                    | Small fixed portions (blocks)                                   |
+| Better performance                                     | Greater flexibility                                             |
+| Variable size avoids waste                             | May require large tables or complex structures for allocation   |
+| File allocation tables are small                       | Contiguity is abandoned as a primary goal                       |
+| Like dynamic partitioning in memory management: best-fit, next-fit, nearest-fit | Blocks are allocated as needed                |
+
+** File Allocation Methods
+
+*** Contiguous
+- A single contiguous set of blocks is allocated to the file at creation time
+- Preallocation is necessary; large portion size
+- Only one entry in the file allocation table per file: start block and length
+- Suffers from external fragmentation; *compaction* is needed from time to time
+
+Figure 12.9 (Contiguous File Allocation) and Figure 12.10 (After Compaction):
+
+| File   | Start block | Length | Start after compaction |
+| File A |           2 |      3 |                      0 |
+| File B |           9 |      5 |                      3 |
+| File C |          18 |      8 |                      8 |
+| File D |          30 |      2 |                     19 |
+| File E |          26 |      3 |                     16 |
+
+*** Chained
+- Allocation is on an individual block basis
+- Each block contains a pointer to the next block in the chain
+- Preallocation is possible, but blocks are mostly allocated as needed
+- Any free block can be allocated to the file: *no external fragmentation*
+- Best suited to sequential files that are processed sequentially
+- Only one entry per file in the file allocation table (start block, length)
+- No principle of locality
+  - *Consolidation* can be performed to bring a file's blocks together
+
+Figures 12.11 / 12.12: File B, length 5, starts at block 1; after consolidation it
+starts at block 0 and its blocks are contiguous.
+
+*** Indexed
+- A one-level index is kept for each file, in a separate block
+- Each entry in the index keeps track of one portion
+- Portions can be fixed-size blocks or variable-size
+  - Variable-size portions improve locality; fixed-size blocks remove external
+    fragmentation
+- Consolidation can be done from time to time to improve locality
+- Supports both sequential and direct access to the file
+
+Figure 12.13 (Indexed Allocation with Block Portions): File B's index block is 24,
+listing blocks 1, 8, 3, 14, 28.
+
+Figure 12.14 (Indexed Allocation with Variable-Length Portions): File B's index block
+is 24, listing portions (start, length) = (1, 3), (28, 4), (14, 1).
+
+*** Comparison
+
+|                               | Contiguous | Chained      | Indexed      |              |
+| Preallocation?                | Necessary  | Possible     | Possible     |              |
+| Fixed or variable size portions? | Variable | Fixed blocks | Fixed blocks | Variable     |
+| Portion size                  | Large      | Small        | Small        | Medium       |
+| Allocation frequency          | Once       | Low to high  | High         | Low          |
+| Time to allocate              | Medium     | Long         | Short        | Medium       |
+| File allocation table size    | One entry  | One entry    | Large        | Medium       |
+
+* Free Space Management
+
+Just as allocated space must be managed, so must unallocated space. To perform file
+allocation we need to know which blocks are available, so a *disk allocation table*
+is needed in addition to the file allocation table.
+
+** Bit Tables
+- A vector containing one bit for each block on the disk
+- 0 = free block, 1 = block in use
+- Advantages:
+  - Works well with any file allocation method
+  - It is as small as possible
+
+** Chained Free Portions
+- Free portions are chained together using a pointer and length value in each free
+  portion
+- Negligible space overhead: no disk allocation table is needed
+- Suited to all file allocation methods
+- Disadvantages:
+  - Leads to fragmentation: after some use, the disk becomes quite fragmented and
+    many portions are a single block long
+  - Every allocation must first read the block to recover the pointer to the new
+    first free block before writing data to it
+
+** Indexing
+- Treats free space as a file and uses an index table as it would for file allocation
+- One entry in the table for every free portion on the disk
+- For efficiency, the index should be based on variable-size portions rather than blocks
+- Provides efficient support for all of the file allocation methods
+
+** Free Block List
+- Each block is assigned a number sequentially
+- The list of the numbers of all free blocks is maintained in a reserved portion of
+  the disk
+- Depending on disk size, 24 or 32 bits are needed to store a single block number
+  - So the free block list is 24 or 32 times the size of the corresponding bit table,
+    and must be stored on disk rather than in main memory
+
+Two effective techniques for keeping a small part of the free block list in main memory:
+- Treat the list as a *push-down stack*, with the first few thousand elements of the
+  stack kept in main memory
+- Treat the list as a *FIFO queue*, with a few thousand entries from both the head
+  and the tail of the queue in main memory

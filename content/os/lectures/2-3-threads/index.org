@@ -1,0 +1,168 @@
+#+TITLE: 2.3 Threads and Processes
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-29
+#+TAGS: operating-systems, threads
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Threads and processes.pdf][Threads and Processes (PDF)]]: Adiesha Liyanage
+
+*Textbook:* Stallings Chapter 4.
+
+* Process Characteristics
+
+A process has two characteristics:
+
+| Resource ownership                                                                     | Scheduling/execution                                                                                         |
+|----------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------|
+| A process has a virtual address space containing its code, data, and execution stacks  | Execution may be interleaved with other processes                                                            |
+| The OS protects process resources from unauthorized access by other processes          | In the single-threaded model, each process has an execution state (Ready, Running, or Blocked) and a scheduling priority |
+|                                                                                        | The OS selects a ready process and dispatches it to a CPU                                                    |
+
+- {{{hl(green,Resource ownership and execution are distinct responsibilities that can be managed separately)}}}
+- Modern operating systems treat them independently
+- /Conceptual separation/: resource ownership is about what a process
+  /possesses/ (e.g., memory, files), while scheduling/execution is about what a
+  process /does/ (e.g., running its code)
+- A process can own resources without executing (e.g., a blocked process
+  holding a file lock) or execute without owning significant resources (e.g., a
+  lightweight computation)
+
+** Implications
+
+This independence lets the OS manage resources and execution separately. For
+example:
+
+- *Resource management*: the OS can allocate/deallocate resources (e.g., memory
+  or I/O devices) independently of whether the process is currently running
+- *Scheduling*: the OS can prioritize and dispatch processes based on their
+  execution state and priority, regardless of their resource holdings
+
+* Processes and Threads
+
+- The unit of /dispatching/ is referred to as a {{{hl(green,thread)}}} or /lightweight process/
+- The unit of /resource ownership/ is referred to as a {{{hl(green,process)}}} or /task/
+- /Multithreading/: the ability of an OS to support multiple, concurrent paths
+  of execution within a single process
+
+* Multithreading Approaches
+
+Stallings Figure 4.1 (Threads and Processes) is a 2 x 2 grid, where each
+squiggle is an /instruction trace/ (a thread):
+
+|                        | One thread per process                  | Multiple threads per process       |
+|------------------------+-----------------------------------------+------------------------------------|
+| *One process*          | One process, one thread (e.g., MS-DOS)  | One process, multiple threads (e.g., a Java run-time environment) |
+| *Multiple processes*   | Multiple processes, one thread per process (e.g., traditional UNIX) | Multiple processes, multiple threads per process (e.g., Windows, Linux, Solaris) |
+
+- The left half is the /single-threaded approach/: a single thread of execution
+  per process, in which the concept of a thread is not recognized
+- The right half depicts /multithreaded approaches/
+- A Java run-time environment is the slide's example of a system of one process
+  with multiple threads
+- {{{hl(orange,Note)}}}: the slides only name the Java example. The MS-DOS,
+  UNIX, and Windows/Linux examples are from the Stallings text.
+
+* Process
+
+A process is defined as "{{{hl(green,the unit of resource allocation and a unit of protection)}}}".
+
+Associated with processes:
+
+- A virtual address space that holds the process image
+- Protected access to:
+  - Processors
+  - Other processes (for interprocess communication)
+  - Files
+  - I/O resources (devices and channels)
+
+Within a process, there may be one or more threads.
+
+* One or More Threads in a Process
+
+Each thread has:
+
+- An execution state (Running, Ready, etc.)
+- A saved thread context when not running
+- An execution stack
+- Some per-thread static storage for local variables
+- Access to the memory and resources of its process, {{{hl(green,shared with all other threads in that process)}}}
+
+** Single-threaded vs multithreaded process model
+
+Stallings Figure 4.2:
+
+- *Single-threaded*: one /process control block/, one /user address space/,
+  one /user stack/, and one /kernel stack/
+- *Multithreaded*: still one process control block and one user address space
+  for the whole process, but /each thread/ gets its own /thread control block/,
+  /user stack/, and /kernel stack/
+
+What is shared and what is per-thread:
+
+| Shared by all threads in the process         | Private to each thread                             |
+|----------------------------------------------+----------------------------------------------------|
+| Process control block                        | Thread control block (state, registers, priority)  |
+| User address space (code, data, open files)  | User stack                                         |
+|                                              | Kernel stack                                       |
+
+* Key Benefits of Threads
+
+1. It takes less time to /create/ a new thread than a process
+2. It takes less time to /terminate/ a thread than a process
+3. /Switching/ between two threads takes less time than switching between processes
+4. Threads enhance efficiency in /communication/ between programs (threads
+   share memory, so they can talk without invoking the kernel)
+
+* Thread Use Cases in a Single-User System
+
+- *Foreground and background work*: e.g., one thread shows menus and reads
+  input while another executes commands and updates a spreadsheet
+- *Asynchronous processing*: e.g., a thread that periodically writes the RAM
+  buffer to disk as a backup
+- *Speeding up execution*: one thread can compute on one batch of data while
+  another reads the next batch from a device
+- *Modular program structure*: programs with many activities or many sources
+  and destinations of I/O are easier to design with threads
+
+The slide lists only the four headings. The examples are from Stallings §4.1.
+
+* Threads and the OS
+
+In an OS that supports threads:
+
+- Scheduling and dispatching is done on a {{{hl(green,thread)}}} basis
+- Most of the state information dealing with execution is maintained in thread-level data structures
+- But some actions affect /every/ thread in a process, so the OS must manage them at the process level:
+  - {{{hl(red,Suspending a process involves suspending all threads of the process)}}} (they share one address space, and swapping it out takes them all)
+  - {{{hl(red,Termination of a process terminates all threads within the process)}}}
+
+* Thread Execution States
+
+The key states for a thread are:
+
+- Running
+- Ready
+- Blocked
+
+Normally there is no /suspend/ state, because suspension is a concept associated
+with processes rather than threads.
+
+Thread operations associated with a change in thread state:
+
+| Operation   | What it does                                                                                                   |
+|-------------+----------------------------------------------------------------------------------------------------------------|
+| *Spawn*     | A new thread is created (when a process is spawned, a thread for it is spawned too), placed on the Ready queue |
+| *Block*     | A thread waits for an event; its registers, PC, and stack pointers are saved                                   |
+| *Unblock*   | The event a blocked thread was waiting on occurs; the thread moves to the Ready queue                          |
+| *Finish*    | A thread completes; its register context and stacks are deallocated                                            |
+
+The slide only names the four operations. The descriptions are from Stallings §4.1.

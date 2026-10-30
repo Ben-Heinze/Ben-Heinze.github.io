@@ -13,7 +13,7 @@
 #+LATEX_HEADER: \usepackage{enumitem}
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
-Slides: [[file:Uniprocessor scheduling.pdf][Uniprocessor Scheduling (PDF)]] · [[file:Windows_Linux_CPU_Scheduling.pdf][Windows and Linux CPU Scheduling (PDF)]] · [[file:Concurrency Mutual exclusion and synchronization.pdf][Concurrency: Mutual Exclusion and Synchronization (PDF)]] · [[file:Concurrency Deadlocks and Starvation.pdf][Concurrency: Deadlock and Starvation (PDF)]]: Adiesha Liyanage
+Slides: [[file:Uniprocessor scheduling.pdf][Uniprocessor Scheduling (PDF)]] · [[file:Windows_Linux_CPU_Scheduling.pdf][Windows and Linux CPU Scheduling (PDF)]] · [[file:Concurrency Mutual exclusion and synchronization.pdf][Concurrency: Mutual Exclusion and Synchronization (PDF)]] · [[file:Concurrency Deadlocks and Starvation.pdf][Concurrency: Deadlock and Starvation (PDF)]] · [[file:Theoretical problems in concurrency.pdf][Theoretical Problems in Concurrency (PDF)]]: Adiesha Liyanage
 
 The first deck is a single-processor treatment: the three timescales a scheduler
 operates on, the criteria it is judged by, and six classic short-term policies run
@@ -1450,6 +1450,381 @@ It might be more efficient to use different strategies in different situations:
   - Allow deadlocks to happen, periodically check, and then resolve (e.g., kill a process or preempt resources)
 - *Ignore deadlocks*
   - Many general-purpose OSs (like Linux, Windows) just don't handle it explicitly, because deadlocks are rare and usually handled at the application level
+
+* Theoretical Problems in Concurrency
+
+Slides: [[file:Theoretical problems in concurrency.pdf][Theoretical Problems in Concurrency (PDF)]]
+
+Three classic problems that test a synchronization tool: dining philosophers,
+producer/consumer, and readers/writers. The two readers/writers algorithms are
+on the [[file:../handouts/readers-writers.org][Readers/Writers handout]], so they are summarized here, not repeated.
+
+** Dining Philosophers Problem
+
+Stallings Figure 6.11: five philosophers $P_0 \ldots P_4$ sit at a round table
+with one fork between each neighbor (five forks in total). A philosopher needs
+/both/ adjacent forks to eat.
+
+- No two philosophers can use the same fork at the same time ({{{hl(green,mutual exclusion)}}})
+- No philosopher may starve to death ({{{hl(green,avoid deadlock and starvation)}}})
+
+*** First attempt: one semaphore per fork
+
+#+begin_src c
+/* program diningphilosophers */
+semaphore fork[5] = {1};
+int i;
+void philosopher(int i)
+{
+    while (true) {
+        think();
+        wait(fork[i]);
+        wait(fork[(i+1) mod 5]);
+        eat();
+        signal(fork[(i+1) mod 5]);
+        signal(fork[i]);
+    }
+}
+void main()
+{
+    parbegin(philosopher(0), philosopher(1), philosopher(2),
+             philosopher(3), philosopher(4));
+}
+#+end_src
+
+{{{hl(red,This can deadlock)}}}: if all five pick up their left fork at the same
+time, each waits forever for a right fork that a neighbor is holding.
+
+*** What can you do?
+
+- Add five more forks
+- Add a /room attendant/ who lets only *4* philosophers into the room at a
+  time. Then at least one philosopher will always have access to two forks.
+
+*** Second attempt: the room semaphore
+
+#+begin_src c
+/* program diningphilosophers */
+semaphore fork[5] = {1};
+semaphore room = {4};
+int i;
+void philosopher(int i)
+{
+    while (true) {
+        think();
+        wait(room);
+        wait(fork[i]);
+        wait(fork[(i+1) mod 5]);
+        eat();
+        signal(fork[(i+1) mod 5]);
+        signal(fork[i]);
+        signal(room);
+    }
+}
+#+end_src
+
+=room= is a counting semaphore that starts at 4, so the fifth philosopher blocks
+on =wait(room)=. This solution is free of deadlock and starvation.
+
+*** Solution using a monitor
+
+#+begin_src c
+monitor dining_controller;
+cond ForkReady[5];         /* condition variable for synchronization */
+boolean fork[5] = {true};  /* availability status of each fork */
+
+void get_forks(int pid)    /* pid is the philosopher id number */
+{
+    int left = pid;
+    int right = (++pid) % 5;
+    /* grant the left fork */
+    if (!fork[left])
+        cwait(ForkReady[left]);    /* queue on condition variable */
+    fork[left] = false;
+    /* grant the right fork */
+    if (!fork[right])
+        cwait(ForkReady[right]);   /* queue on condition variable */
+    fork[right] = false;
+}
+
+void release_forks(int pid)
+{
+    int left = pid;
+    int right = (++pid) % 5;
+    /* release the left fork */
+    if (empty(ForkReady[left]))    /* no one is waiting for this fork */
+        fork[left] = true;
+    else                           /* awaken a process waiting on this fork */
+        csignal(ForkReady[left]);
+    /* release the right fork */
+    if (empty(ForkReady[right]))   /* no one is waiting for this fork */
+        fork[right] = true;
+    else                           /* awaken a process waiting on this fork */
+        csignal(ForkReady[right]);
+}
+
+void philosopher[k=0 to 4]         /* the five philosopher clients */
+{
+    while (true) {
+        <think>;
+        get_forks(k);              /* client requests two forks via monitor */
+        <eat spaghetti>;
+        release_forks(k);          /* client releases forks via the monitor */
+    }
+}
+#+end_src
+
+Only one process can be inside the monitor at a time, and a philosopher waits on
+=ForkReady[i]= for each fork it needs. The slide uses =fork[right] = false:= (with a
+colon), which is a typo for a semicolon.
+
+** Producer/Consumer Problem
+
+*General statement:*
+
+- One or more producers are generating data and placing these in a buffer
+- A single consumer is taking items out of the buffer one at a time
+- Only one producer or consumer may access the buffer at any one time
+
+*The problem:* ensure that the producer won't try to add data into the buffer
+if it's full, and that the consumer won't try to remove data from an empty
+buffer.
+
+*** Initial solution: two binary semaphores
+
+- =s= makes sure only one process at a time can enter the buffer
+- =delay= makes sure the consumer has to wait when there are no elements to consume
+- Is this okay? {{{hl(red,No)}}}: see the trace below
+
+#+begin_src c
+/* program producerconsumer */
+int n;
+binary_semaphore s = 1, delay = 0;
+void producer()
+{
+    while (true) {
+        produce();
+        semWaitB(s);
+        append();
+        n++;
+        if (n==1) semSignalB(delay);
+        semSignalB(s);
+    }
+}
+void consumer()
+{
+    semWaitB(delay);
+    while (true) {
+        semWaitB(s);
+        take();
+        n--;
+        semSignalB(s);
+        consume();
+        if (n==0) semWaitB(delay);
+    }
+}
+void main()
+{
+    n = 0;
+    parbegin(producer, consumer);
+}
+#+end_src
+
+Stallings Figure 5.12: /An Incorrect Solution to the Infinite-Buffer
+Producer/Consumer Problem Using Binary Semaphores/.
+
+*** Why it fails: the trace
+
+| Step | Producer                       | Consumer                       | s | n  | delay |
+|------+--------------------------------+--------------------------------+---+----+-------|
+|    1 |                                |                                | 1 |  0 |     0 |
+|    2 | =semWaitB(s)=                  |                                | 0 |  0 |     0 |
+|    3 | =n++=                          |                                | 0 |  1 |     0 |
+|    4 | =if (n==1) semSignalB(delay)=  |                                | 0 |  1 |     1 |
+|    5 | =semSignalB(s)=                |                                | 1 |  1 |     1 |
+|    6 |                                | =semWaitB(delay)=              | 1 |  1 |     0 |
+|    7 |                                | =semWaitB(s)=                  | 0 |  1 |     0 |
+|    8 |                                | =n--=                          | 0 |  0 |     0 |
+|    9 |                                | =semSignalB(s)=                | 1 |  0 |     0 |
+|   10 | =semWaitB(s)=                  |                                | 0 |  0 |     0 |
+|   11 | =n++=                          |                                | 0 |  1 |     0 |
+|   12 | =if (n==1) semSignalB(delay)=  |                                | 0 |  1 |     1 |
+|   13 | =semSignalB(s)=                |                                | 1 |  1 |     1 |
+|   14 |                                | =if (n==0) semWaitB(delay)=    | 1 |  1 |     1 |
+|   15 |                                | =semWaitB(s)=                  | 0 |  1 |     1 |
+|   16 |                                | =n--=                          | 0 |  0 |     1 |
+|   17 |                                | =semSignalB(s)=                | 1 |  0 |     1 |
+|   18 |                                | =if (n==0) semWaitB(delay)=    | 1 |  0 |     0 |
+|   19 |                                | =semWaitB(s)=                  | 0 |  0 |     0 |
+|   20 |                                | =n--=                          | 0 | -1 |     0 |
+|   21 |                                | =semSignalB(s)=                | 1 | -1 |     0 |
+
+What goes wrong: after step 9 the buffer is empty ($n = 0$), but the consumer
+does not check =n= right away. The producer runs at steps 10--13, makes $n = 1$
+and signals =delay=. When the consumer finally checks =if (n==0)= at step 14,
+=n= is 1, so it does not wait. That signal from step 12 is left over in
+=delay=. The consumer then consumes the item (step 16), and at step 18 its
+=semWaitB(delay)= uses up the stale signal and does not block. So it takes from
+an empty buffer: {{{hl(red,$n = -1$)}}}.
+
+The root cause: the consumer's =if (n==0)= reads =n= /outside/ the critical
+section, so the producer can change =n= between =semSignalB(s)= and the test.
+
+*** Fix 1: copy n inside the critical section
+
+#+begin_src c
+void consumer()
+{
+    int m; /* a local variable */
+    semWaitB(delay);
+    while (true) {
+        semWaitB(s);
+        take();
+        n--;
+        m = n;
+        semSignalB(s);
+        consume();
+        if (m==0) semWaitB(delay);
+    }
+}
+#+end_src
+
+The producer is unchanged. Stallings Figure 5.13: /A Correct Solution to the
+Infinite-Buffer Producer/Consumer Problem Using Binary Semaphores/. The local
+=m= remembers the value of =n= the consumer saw /while holding/ =s=.
+
+*** Fix 2: general (counting) semaphores
+
+#+begin_src c
+/* program producerconsumer */
+semaphore n = 0, s = 1;
+void producer()
+{
+    while (true) {
+        produce();
+        semWait(s);
+        append();
+        semSignal(s);
+        semSignal(n);
+    }
+}
+void consumer()
+{
+    while (true) {
+        semWait(n);
+        semWait(s);
+        take();
+        semSignal(s);
+        consume();
+    }
+}
+void main()
+{
+    parbegin(producer, consumer);
+}
+#+end_src
+
+Stallings Figure 5.14. Now =n= /is/ a semaphore that counts the items in the
+buffer, so there is no separate integer to get out of sync.
+
+*** Questions
+
+- What if we swap =semSignal(s)= and =semSignal(n)= in the producer?
+  - {{{hl(green,It would not affect the correctness)}}}. The consumer still has to get =s= before it touches the buffer.
+- What if we swap =semWait(n)= and =semWait(s)= in the consumer?
+  - {{{hl(red,This is fatal)}}}.
+  - The consumer could get hold of the buffer (=s=) while the buffer is empty, then block on =n= without releasing =s=. The producer then can't get =s= to add to the buffer: {{{hl(red,deadlock)}}}.
+
+*** Bounded buffer
+
+#+begin_src c
+/* program boundedbuffer */
+const int sizeofbuffer = /* buffer size */;
+semaphore s = 1, n = 0, e = sizeofbuffer;
+void producer()
+{
+    while (true) {
+        produce();
+        semWait(e);
+        semWait(s);
+        append();
+        semSignal(s);
+        semSignal(n);
+    }
+}
+void consumer()
+{
+    while (true) {
+        semWait(n);
+        semWait(s);
+        take();
+        semSignal(s);
+        semSignal(e);
+        consume();
+    }
+}
+void main()
+{
+    parbegin(producer, consumer);
+}
+#+end_src
+
+Stallings Figure 5.16. Three semaphores, each with one job:
+
+| Semaphore | Initial value     | Counts / guards                      | Who waits on it               |
+|-----------+-------------------+--------------------------------------+-------------------------------|
+| =s=       | 1                 | Mutual exclusion on the buffer       | Both                          |
+| =n=       | 0                 | Number of /filled/ slots             | Consumer (buffer empty)       |
+| =e=       | =sizeofbuffer=    | Number of /empty/ slots              | Producer (buffer full)        |
+
+** Readers/Writers Problem
+
+A data area is shared among many processes. Some processes only read it
+(/readers/) and some only write to it (/writers/). Conditions that must be
+satisfied:
+
+1. Any number of readers may simultaneously read the file
+2. Only one writer at a time may write to the file
+3. If a writer is writing to the file, no reader may read it
+
+*** Solution 1: readers have priority
+
+Full algorithm: [[file:../handouts/readers-writers.org][handout, Algorithm 1]].
+
+- The semaphore =wsem= ensures mutual exclusion to the common data area
+- For readers, first get hold of semaphore =read_lock= (=x= in Stallings) to
+  update the =readcount= variable. The purpose of =read_lock= is mutual
+  exclusion on =readcount=
+- The /first/ reader takes =wsem= and so stops writers from writing anything
+  to the common data area
+- The /last/ reader who finishes reading signals (gives up) =wsem=
+
+*Implications:* if there is a constant flow of readers into the system,
+{{{hl(red,writers may never access the common data area)}}} (writer starvation).
+
+*** Solution 2: writers have priority
+
+Full algorithm: [[file:../handouts/readers-writers.org][handout, Algorithm 2]].
+
+- The idea is that whenever some writer declares the desire to write, no
+  /new/ reader is allowed to access the system until at least one of the
+  writers has written something to the common data area
+
+State of the process queues (Stallings Table 5.6; =rsem= and =z= are
+Stallings' names, which correspond to =readblock= and =writepending= on the
+handout):
+
+| Situation                               | Semaphores and queues                                                                                                |
+|-----------------------------------------+----------------------------------------------------------------------------------------------------------------------|
+| Readers only in the system              | =wsem= set; no queues                                                                                                |
+| Writers only in the system              | =wsem= and =rsem= set; writers queue on =wsem=                                                                       |
+| Both readers and writers, read first    | =wsem= set by reader; =rsem= set by writer; all writers queue on =wsem=; one reader queues on =rsem=; other readers queue on =z= |
+| Both readers and writers, write first   | =wsem= set by writer; =rsem= set by writer; writers queue on =wsem=; one reader queues on =rsem=; other readers queue on =z=     |
+
+*Implications:* {{{hl(red,readers could starve)}}}. There is a solution where
+neither side starves: use a queue built from a semaphore, so readers and writers
+are served in arrival order. ("Think about this idea" --- left as an exercise
+on the slide.)
 
 * References
 

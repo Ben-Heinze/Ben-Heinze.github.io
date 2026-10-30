@@ -84,4 +84,34 @@ Why don't we hav the vanishing gradient problem here?
 
 
 
+* Convolutional Neural Network (CNN)
+
+
+** Density Estimation 
+
+
+This is an example of a "convolution": 
+
+\[
+  \bar{p}(\mathbf{x}) = \int \delta(\mathbf{x-v})p(\mathbf{v}) \, dv
+\]
+
+This operation of the basis is for the CNN.
+
+Let's consider a 1-dimensional case
+
+C.M. Bishop, Deep Learning, Foundations and Concepts, Springer, 2024
+
+
+
+
+
+
+
+
+
+
+
+
+
 

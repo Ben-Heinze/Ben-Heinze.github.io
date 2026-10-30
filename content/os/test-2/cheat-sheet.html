@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OS Test 2: Cheat Sheet</title>
+<style>
+  @page { size: letter; margin: 0.25in 0.25in; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font: 7.56pt/1.13 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #000; background: #fff; margin: 0;
+    column-count: 3; column-gap: 0.17in; column-fill: auto;
+    orphans: 2; widows: 2;
+    hyphens: auto; -webkit-hyphens: auto;
+  }
+  h1 { font-size: 12.0pt; margin: 0 0 2.4pt; letter-spacing: -0.24pt; }
+  h1 + .sub { font-size: 7.2pt; margin: 0 0 4.8pt; color: #444; }
+  h2 {
+    font-size: 8.28pt; margin: 6.0pt 0 2.4pt; padding: 0 0 0.6pt;
+    border-bottom: 1.8pt solid #000; color: #000; letter-spacing: 0.24pt;
+    text-transform: uppercase; break-after: avoid;
+  }
+  h3 {
+    font-size: 7.8pt; margin: 3.6pt 0 1.2pt; padding-bottom: 0.6pt;
+    border-bottom: 0.6pt solid #000; break-after: avoid;
+  }
+  p, ul, ol, table { margin: 1.2pt 0; }
+  ul, ol { padding-left: 9.0pt; }
+  li { margin: 0.36pt 0; }
+  b, strong { font-weight: 700; }
+  i, em { font-style: italic; }
+  table { width: 100%; border-collapse: collapse; font-size: 7.14pt; }
+  td, th { border: 0.48pt solid #999; padding: 0.72pt 1.92pt; vertical-align: top; text-align: left; }
+  th { background: #e8e8e8; font-weight: 700; }
+  .box { border: 0.72pt solid #000; padding: 2.4pt 3.6pt; margin: 3.0pt 0; break-inside: avoid; }
+  .box.key { background: #f0f0f0; }
+  .box h3 { margin-top: 0; border: 0; font-size: 7.8pt; }
+  .f { font-family: "Courier New", monospace; font-size: 7.2pt; }
+  code { font-family: "Courier New", monospace; font-size: 7.56pt; }
+  .tight li { margin: 0; }
+  .no-break { break-inside: avoid; }
+  /* Firefox ignores break-after:avoid in multicol, so bind this heading to
+     its table to stop it being stranded at the foot of a column. */
+  .keep { break-inside: avoid; }
+  .box.flow-ok { break-inside: auto; }
+  body > :last-child { margin-bottom: 0; }
+  /* Arrows mean one thing only: a move from one state to the next. */
+  .arrow::before { content: "\2192"; }
+</style>
+</head>
+<body>
+
+<h1>Operating Systems: Test 2</h1>
+<p class="sub">Threads · Scheduling · Mutual Exclusion · Concurrency Problems · Deadlock · File Management. One letter sheet both sides.</p>
+
+<div class="box key no-break">
+<h3>Deadlock detection (guaranteed question)</h3>
+<p>Uses <b>Request Q</b> (current requests), <b>Allocation A</b>, <b>Available V</b>. No claim matrix.</p>
+<ol class="tight">
+<li><b>Mark</b> every process whose <b>A row is all 0</b> (holds nothing, can't be in a deadlock).</li>
+<li><b>W ← V</b>.</li>
+<li>Find <b>unmarked P<sub>i</sub> with Q<sub>i</sub> ≤ W</b> (every column). None? <b>stop</b>.</li>
+<li>Mark P<sub>i</sub>; <b>W ← W + A<sub>i</sub></b>; go to 3.</li>
+</ol>
+<p><b>Deadlock ⟺ unmarked processes remain</b>; the unmarked ones are deadlocked. Pick order doesn't matter.</p>
+<p class="f">Fig 6.10: R=(2,1,1,2,1) V=(0,0,0,0,1)<br>
+&nbsp;&nbsp;&nbsp;Q&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A<br>
+P1 0 1 0 0 1&nbsp;&nbsp;1 0 1 1 0<br>
+P2 0 0 1 0 1&nbsp;&nbsp;1 1 0 0 0<br>
+P3 0 0 0 0 1&nbsp;&nbsp;0 0 0 1 0<br>
+P4 1 0 1 0 1&nbsp;&nbsp;0 0 0 0 0<br>
+mark P4 (A=0); W=(0,0,0,0,1)<br>
+P3 fits → mark, W=(0,0,0,1,1)<br>
+P1 needs R2, P2 needs R3 → stop<br>
+<b>P1, P2 deadlocked</b> (P1→R2→P2→R3→P1)</p>
+<h3>Resource allocation graph</h3>
+<ul class="tight">
+<li>Circle per process; box per resource with <b>one dot per instance</b> (count from R).</li>
+<li><b>Request edge</b> P → R (asked, not granted): one per unit in Q.</li>
+<li><b>Assignment edge</b> R's dot → P (granted): one per unit in A.</li>
+<li><b>Cycle + single instances = deadlock.</b> Multiple instances: a cycle may <i>not</i> be a deadlock (6.5d); confirm with the algorithm.</li>
+<li>RAG detection scales badly (node per instance) and handles divisible resources (memory) poorly.</li>
+</ul>
+</div>
+
+<div class="box key no-break">
+<h3>Banker's algorithm (avoidance)</h3>
+<p>R (resources), V (available), C (claim = max), A (alloc). <b>Need = C − A</b>. R<sub>j</sub> = V<sub>j</sub> + Σ<sub>i</sub>A<sub>ij</sub>.</p>
+<p><b>Safety test:</b> avail ← V; repeat: find P<sub>k</sub> with C<sub>k</sub>−A<sub>k</sub> ≤ avail; avail += A<sub>k</sub>, remove P<sub>k</sub>. <b>Safe ⟺ everyone removed.</b> Final avail = R (sanity check).</p>
+<p><b>Request:</b> alloc+req &gt; claim → error; req &gt; avail → suspend; else <i>pretend</i> to grant, run safety: safe → grant, unsafe → restore + suspend.</p>
+<p class="f">Handout: V=(0,1,1); need P1(2,2,2) P2(0,0,1) P3(1,0,3) P4(4,2,0)<br>
+P2→(6,2,3) P1→(7,2,3) P3→(9,3,4) P4→(9,3,6) <b>safe</b><br>
+Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
+<p><b>Safe</b> = some order lets all finish. <b>Unsafe ≠ deadlocked</b> (only might be). Restrictions: max claims known in advance, independent processes, fixed # resources, no exit while holding.</p>
+</div>
+
+<div class="box no-break">
+<h3>File-management math</h3>
+<table>
+<tr><td>Indexed seq.</td><td class="f">no index: N/2<br>index of k entries: k/2 + N/(2k)<br>N=10<sup>6</sup>, k=1000: 500+500 = <b>1000</b> (vs 500,000)<br>(min at k=√N, algebra)</td></tr>
+<tr><td>Bit table</td><td class="f">blocks = disk / block size<br>bits = blocks; bytes = blocks/8<br>16 GB, 512 B: 2<sup>34</sup>/2<sup>9</sup>=2<sup>25</sup> bits = <b>4 MB</b><br>1 GB, 4 KB: 2<sup>18</sup> bits = <b>32 KB</b></td></tr>
+<tr><td>Free block list</td><td class="f">24 or 32 bits per block # → 24–32× bit table</td></tr>
+<tr><td>Bit reading</td><td class="f">0 = free, 1 = used. 1110 0011 → free 3,4,5</td></tr>
+</table>
+</div>
+
+<h2>I · Threads</h2>
+<ul class="tight">
+<li>Process = <b>resource ownership</b> (address space, protection) + <b>scheduling/execution</b> (state, priority). Separable.</li>
+<li><b>Thread</b> (lightweight process) = unit of <b>dispatching</b>. <b>Process</b> (task) = unit of <b>resource ownership</b>, "unit of resource allocation and protection".</li>
+<li><b>Multithreading</b>: many concurrent paths in one process. Single-threaded approach: thread not recognized. Java runtime = 1 process, many threads.</li>
+<li>Per thread: state, saved context, <b>execution stack</b>, per-thread static storage, <b>TCB</b>, user + kernel stack. Shared: <b>PCB</b>, address space, resources.</li>
+<li>Benefits: faster <b>create</b>, <b>terminate</b>, <b>switch</b>, cheaper <b>communication</b> (shared memory, no kernel).</li>
+<li>Uses: foreground/background, asynchronous processing, speedup, modular structure.</li>
+<li>Scheduled per thread. <b>Suspend/terminate a process ⟹ all its threads.</b></li>
+<li>States: Running, Ready, Blocked (<b>no suspend</b>). Ops: <b>Spawn, Block, Unblock, Finish</b>.</li>
+</ul>
+
+<h2>II · Scheduling</h2>
+<table>
+<tr><th>Type</th><th>Decides</th></tr>
+<tr><td>Long-term</td><td>admit to pool (degree of multiprogramming); New→Ready</td></tr>
+<tr><td>Medium-term</td><td>swap in/out (suspend states)</td></tr>
+<tr><td>Short-term</td><td>dispatcher: which ready process runs; on clock/I/O interrupts, OS calls, signals</td></tr>
+<tr><td>I/O</td><td>which pending I/O request a device handles</td></tr>
+</table>
+<p><b>Criteria.</b> User/perf: turnaround, response time, deadlines. User/non-perf: predictability. System/perf: throughput, utilization. System/non-perf: fairness, priorities, balancing resources.</p>
+<p class="f">w = waiting so far, e = executed so far, s = total service<br>T<sub>r</sub> = finish − arrival; normalized = T<sub>r</sub>/T<sub>s</sub><br>HRRN: R = (w + s)/s</p>
+<table>
+<tr><th>Policy</th><th>Select</th><th>Mode</th><th>Notes</th></tr>
+<tr><td>FCFS</td><td>max w</td><td>non</td><td>bad for short, favors CPU-bound</td></tr>
+<tr><td>RR</td><td>const</td><td>pre (q)</td><td>time slicing; q &gt; typical interaction; I/O-bound shortchanged</td></tr>
+<tr><td>SPN</td><td>min s</td><td>non</td><td>needs s estimates; long jobs starve</td></tr>
+<tr><td>SRT</td><td>min s−e</td><td>pre (arrival)</td><td>best mean T<sub>r</sub>; starvation; no clock interrupts</td></tr>
+<tr><td>HRRN</td><td>max R</td><td>non</td><td>aging, no starvation</td></tr>
+<tr><td>FB</td><td>queue lvl</td><td>pre (q)</td><td>no s needed; demote per preemption; bottom FCFS; long jobs stretch</td></tr>
+</table>
+<p class="f">Example A–E arr 0,2,4,6,8 serv 3,6,4,5,2 (mean T<sub>r</sub>, T<sub>r</sub>/T<sub>s</sub>):<br>FCFS 8.6/2.56 RR1 10.8/2.71 RR4 10.0/2.71 SPN 7.6/1.84<br><b>SRT 7.2/1.59</b> HRRN 8.0/2.14 FB1 10.0/2.29 FB2<sup>i</sup> 10.6/2.63</p>
+<p><b>Windows</b>: highest priority wins; 16–31 real-time, 1–15 variable, 0 zero-page thread; Normal+Normal = 8; RR within a level; boosts decay 1/quantum; no boosts for real-time. <b>Linux</b>: SCHED_OTHER (fair), FIFO/RR (real-time), DEADLINE (EDF). Lower nice = bigger weight; share = w<sub>i</sub>/Σw. <b>CFS</b>: min virtual runtime, Δv = Δt·w<sub>0</sub>/w. <b>EEVDF</b> (6.6): eligible (lag ≥ 0) with earliest d = v + r·w<sub>0</sub>/w.</p>
+
+<h2>III · Mutual Exclusion</h2>
+<ul class="tight">
+<li><b>Race condition</b>: shared data, ≥1 writer, result depends on timing. <b>Critical section</b>: code using shared resource. <b>Mutual exclusion</b>: only one in its CS at a time. <b>Atomic</b>: indivisible.</li>
+<li><b>Livelock</b>: keep changing state, no progress. <b>Starvation</b>: runnable but never chosen. <b>Busy waiting</b> = spin testing a variable.</li>
+<li>Competing processes: mutual exclusion, deadlock, starvation. Concurrency ⊇ parallelism. Memory arbiter serializes access, no fairness.</li>
+<li>Multiprogramming (1 CPU) / multiprocessing (multi CPU) / distributed processing.</li>
+</ul>
+<table>
+<tr><th>Attempt</th><th>ME?</th><th>Problem</th></tr>
+<tr><td>1 turn var</td><td>yes</td><td>strict alternation; failure blocks other</td></tr>
+<tr><td>2 check then set flag</td><td><b>no</b></td><td>both pass check</td></tr>
+<tr><td>3 set flag then check</td><td>yes</td><td><b>deadlock</b></td></tr>
+<tr><td>4 set, defer, reset</td><td>yes</td><td><b>livelock</b></td></tr>
+<tr><td>Dekker</td><td>yes</td><td>flags + turn breaks tie</td></tr>
+<tr><td>Peterson</td><td>yes</td><td>simpler</td></tr>
+</table>
+<p class="f">Peterson P0: flag[0]=true; turn=1;<br>while(flag[1] &amp;&amp; turn==1); CS; flag[0]=false;</p>
+<p><b>Interrupt disabling</b>: works on uniprocessor only; hurts efficiency. <b>Compare&amp;swap</b> (atomic; returns old): <span class="f">while(cas(bolt,0,1)==1); CS; bolt=0;</span> + any # processes, uni/multi, many CSs; − busy wait, starvation, deadlock.</p>
+<p><b>Semaphore</b>: init ≥0; <span class="f">semWait: count--; if &lt;0 block</span>; <span class="f">semSignal: count++; if ≤0 unblock one</span>. Negative count = # waiting. Can't read it. <b>Binary</b>: 0/1. <b>Strong</b> = FIFO (no starvation), <b>weak</b> = unspecified. Must be atomic (hardware, Dekker/Peterson, CAS, interrupts). <b>Mutex</b>: locker must unlock (binary sem: anyone may signal).</p>
+<p><b>Monitor</b>: local data only via its procedures; enter by calling one; <b>one process inside at a time</b>. <span class="f">cwait(c)</span> blocks + frees monitor; <span class="f">csignal(c)</span> resumes one. <b>Signals not saved</b> (a semaphore count would remember).</p>
+
+<h2>IV · Concurrency Problems</h2>
+<p><b>Dining philosophers</b>: 5 forks, need 2. Naive (sem per fork, left then right) → <b>deadlock</b> if all take left. Fix: 5 more forks, or <span class="f">room = 4</span> (wait(room) before forks, signal after). Monitor: cwait on <span class="f">ForkReady[i]</span> per missing fork.</p>
+<p><b>Producer/consumer</b>: one at a time in buffer; no add when full, no take when empty.</p>
+<ul class="tight">
+<li>Binary sems s=1, delay=0 <b>wrong</b>: consumer tests <span class="f">n==0</span> outside CS; stale delay signal → <b>n = −1</b>. Fix: <span class="f">m = n</span> inside CS, test m.</li>
+<li>Counting: <span class="f">n=0, s=1</span>. Prod: <span class="f">wait(s) append signal(s) signal(n)</span>. Cons: <span class="f">wait(n) wait(s) take signal(s) consume</span>.</li>
+<li>Swap producer signals: <b>OK</b>. Swap consumer <span class="f">wait(n)/wait(s)</span>: <b>deadlock</b>.</li>
+<li>Bounded: add <span class="f">e = size</span>; prod <span class="f">wait(e)</span> first; cons <span class="f">signal(e)</span> after take.</li>
+</ul>
+<p><b>Readers/writers</b>: many readers OR one writer. <b>Readers priority</b>: wsem guards data, read_lock guards readcount; first reader waits wsem, last signals → <b>writers starve</b>. <b>Writers priority</b>: a waiting writer blocks new readers (readblock/rsem; writepending/z lets 1 reader queue on rsem) → <b>readers starve</b>. Neither: FIFO queue via semaphore.</p>
+
+<h2>V · Deadlock</h2>
+<p><b>Deadlock</b>: permanent blocking of a set, each waiting on an event only another in the set can cause. <b>Reusable</b> (CPU, I/O channels, memory, devices, files, semaphores) vs <b>consumable</b> (interrupts, signals, messages; e.g. blocking Receive before Send). <b>Fatal region</b> in a joint progress diagram.</p>
+<table>
+<tr><th>Condition</th><th>Prevent by</th></tr>
+<tr><td>Mutual exclusion</td><td>generally can't</td></tr>
+<tr><td>Hold &amp; wait</td><td>request all at once (long waits, idle resources, foreknowledge)</td></tr>
+<tr><td>No preemption</td><td>release on denial / OS preempts holder</td></tr>
+<tr><td>Circular wait</td><td>linear ordering of resource types</td></tr>
+</table>
+<p>First 3 necessary, not sufficient; all 4 = necessary + sufficient. Prevention: <b>indirect</b> (first 3) / <b>direct</b> (circular wait). <b>Avoidance</b>: process initiation denial or resource allocation denial (banker's). <b>Detection</b>: grant freely, check periodically (early detection, simple; costs CPU).</p>
+<p><b>Recovery</b>: abort all; back up to checkpoint + restart; abort one by one; preempt one by one. <b>Integrated</b>: classes ordered; swappable space = all at once; process resources = ordering/avoidance; main memory = preemption; internal = ordering. Linux/Windows mostly ignore deadlock.</p>
+
+<h2>VI · File Management</h2>
+<p>File properties: long-term existence, sharable, structure. Field → record → file → database. Modern OSs: file = <b>byte stream</b>. Layers: access methods → logical I/O (records) → basic I/O supervisor → basic file system (blocks) → device drivers.</p>
+<table>
+<tr><th>Org</th><th>Key facts</th></tr>
+<tr><td>Pile</td><td>arrival order; exhaustive search; easy append</td></tr>
+<tr><td>Sequential</td><td>sorted by key; batch/tape; inserts to log file + batch update</td></tr>
+<tr><td>Indexed seq.</td><td>+ index + overflow file; random access, still sequential</td></tr>
+<tr><td>Indexed</td><td>only via indexes; exhaustive/partial; airline, inventory</td></tr>
+<tr><td>Hashed</td><td>key → bucket; fast exact; overflow chains; bad range queries</td></tr>
+</table>
+<p><b>Blocking</b>: fixed (internal frag) · variable spanned (no waste, pointer) · variable unspanned (end waste).</p>
+<table>
+<tr><th></th><th>Contig.</th><th>Chained</th><th>Idx blk</th><th>Idx var</th></tr>
+<tr><td>Prealloc</td><td>necessary</td><td>possible</td><td colspan="2">possible</td></tr>
+<tr><td>Portions</td><td>variable</td><td>fixed</td><td>fixed</td><td>variable</td></tr>
+<tr><td>Size</td><td>large</td><td>small</td><td>small</td><td>medium</td></tr>
+<tr><td>Alloc freq</td><td>once</td><td>low–high</td><td>high</td><td>low</td></tr>
+<tr><td>Time</td><td>medium</td><td>long</td><td>short</td><td>medium</td></tr>
+<tr><td>FAT size</td><td>1 entry</td><td>1 entry</td><td>large</td><td>medium</td></tr>
+</table>
+<p>Contiguous: external frag → compaction. Chained: pointer per block, no ext frag, sequential, no locality → consolidation. Indexed: index block, sequential + direct.</p>
+<p><b>Free space</b> (disk allocation table): <b>bit table</b> (bit/block, 0 free, any method, smallest) · <b>chained free portions</b> (no table; fragments; read before alloc) · <b>indexing</b> (free space as a file) · <b>free block list</b> (24/32-bit numbers on disk; stack or FIFO cached).</p>
+
+<h2>VII · Key code</h2>
+<div class="box no-break">
+<h3>Semaphore primitives (Fig 5.6 / 5.7)</h3>
+<p class="f">semWait(s): s.count--;<br>&nbsp;&nbsp;if (s.count &lt; 0) { put in s.queue; block; }<br>
+semSignal(s): s.count++;<br>&nbsp;&nbsp;if (s.count &lt;= 0) { move P from s.queue to ready; }<br>
+semWaitB(s): if (s.value == 1) s.value = 0;<br>&nbsp;&nbsp;else { put in s.queue; block; }<br>
+semSignalB(s): if (s.queue empty) s.value = 1;<br>&nbsp;&nbsp;else { move P from s.queue to ready; }</p>
+<p>Atomic via CAS: spin on <span class="f">cas(s.flag,0,1)</span> only around the primitive's few lines (not the whole CS). Via interrupts: inhibit, update, allow.</p>
+</div>
+<div class="box no-break">
+<h3>Dekker (P0; P1 symmetric) · init turn=1</h3>
+<p class="f">flag[0] = true;<br>
+while (flag[1])<br>
+&nbsp;&nbsp;if (turn == 1) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;flag[0] = false;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;while (turn == 1) ;&nbsp;&nbsp;/* wait */<br>
+&nbsp;&nbsp;&nbsp;&nbsp;flag[0] = true; }<br>
+/* critical section */<br>
+turn = 1; flag[0] = false;</p>
+<p>Only the process whose turn it <i>isn't</i> backs off → no livelock.</p>
+</div>
+<div class="box no-break">
+<h3>Software attempts at a glance</h3>
+<p class="f">#1 while(turn!=0); CS; turn=1;<br>
+#2 while(flag[1]); flag[0]=true; CS; flag[0]=false;<br>
+#3 flag[0]=true; while(flag[1]); CS; flag[0]=false;<br>
+#4 flag[0]=true; while(flag[1]){flag[0]=false; delay; flag[0]=true;} CS; flag[0]=false;</p>
+</div>
+<div class="box no-break">
+<h3>Bounded buffer (Fig 5.16) · s=1, n=0, e=size</h3>
+<p class="f">producer: produce(); semWait(e); semWait(s);<br>
+&nbsp;&nbsp;append(); semSignal(s); semSignal(n);<br>
+consumer: semWait(n); semWait(s); take();<br>
+&nbsp;&nbsp;semSignal(s); semSignal(e); consume();</p>
+<p>s = mutual exclusion on buffer; n = filled slots (consumer waits if empty); e = empty slots (producer waits if full).</p>
+</div>
+<div class="box no-break">
+<h3>Incorrect P/C (Fig 5.12) · s=1, delay=0, n=0</h3>
+<p class="f">producer: produce(); semWaitB(s); append(); n++;<br>
+&nbsp;&nbsp;if (n==1) semSignalB(delay); semSignalB(s);<br>
+consumer: semWaitB(delay); loop: semWaitB(s); take();<br>
+&nbsp;&nbsp;n--; semSignalB(s); consume();<br>
+&nbsp;&nbsp;if (n==0) semWaitB(delay);</p>
+<p>Trace: consumer empties buffer (n=0), producer adds before the consumer's <span class="f">if (n==0)</span> (n=1, delay=1), consumer skips the wait; next round its <span class="f">semWaitB(delay)</span> eats the stale signal → takes from empty, <b>n = −1</b>. Fix (5.13): <span class="f">m = n;</span> inside CS, <span class="f">if (m==0)</span>.</p>
+</div>
+<div class="box no-break">
+<h3>Readers priority (handout Alg 1)</h3>
+<p class="f">READER: wait(read_lock); readcount++;<br>
+&nbsp;&nbsp;if (readcount==1) wait(wsem);<br>
+&nbsp;&nbsp;signal(read_lock); READUNIT();<br>
+&nbsp;&nbsp;wait(read_lock); readcount--;<br>
+&nbsp;&nbsp;if (readcount==0) signal(wsem);<br>
+&nbsp;&nbsp;signal(read_lock);<br>
+WRITER: wait(wsem); WRITEUNIT(); signal(wsem);</p>
+</div>
+<div class="box no-break">
+<h3>Writers priority (handout Alg 2)</h3>
+<p class="f">readblock=writeblock=writepending=1; mutexes r_, w_<br>
+READER: wait(writepending); wait(readblock);<br>
+&nbsp;&nbsp;r.lock; readcount++; if ==1 wait(writeblock); r.unlock;<br>
+&nbsp;&nbsp;signal(readblock); signal(writepending); READUNIT();<br>
+&nbsp;&nbsp;r.lock; readcount--; if ==0 signal(writeblock); r.unlock;<br>
+WRITER: w.lock; writecount++; if ==1 wait(readblock); w.unlock;<br>
+&nbsp;&nbsp;wait(writeblock); WRITEUNIT(); signal(writeblock);<br>
+&nbsp;&nbsp;w.lock; writecount--; if ==0 signal(readblock); w.unlock;</p>
+<p>Stallings names: readblock = <b>rsem</b>, writepending = <b>z</b>. Readers only: wsem set, no queues. Writers only: wsem + rsem set, writers queue on wsem. Mixed: one reader queues on rsem, others on z, writers on wsem.</p>
+</div>
+<div class="box no-break">
+<h3>Dining philosophers with room (deadlock-free)</h3>
+<p class="f">semaphore fork[5] = {1}, room = 4;<br>
+think(); wait(room); wait(fork[i]);<br>
+wait(fork[(i+1) mod 5]); eat();<br>
+signal(fork[(i+1) mod 5]); signal(fork[i]); signal(room);</p>
+<p>Monitor version: <span class="f">get_forks(pid)</span>: left=pid, right=(pid+1)%5; if fork not free, <span class="f">cwait(ForkReady[f])</span>; take. <span class="f">release_forks</span>: if <span class="f">empty(ForkReady[f])</span> mark free, else <span class="f">csignal</span>.</p>
+</div>
+
+<h2>VIII · Worked scheduling</h2>
+<div class="box no-break">
+<p class="f">A0/3 B2/6 C4/4 D6/5 E8/2 (arrival/service)<br>
+FCFS: A0-3 B3-9 C9-13 D13-18 E18-20<br>
+&nbsp;&nbsp;Tr 3,7,9,12,12 → 8.60<br>
+SPN: A0-3 B3-9 E9-11 C11-15 D15-20<br>
+&nbsp;&nbsp;Tr 3,7,11,14,3 → 7.60<br>
+SRT: finish A3 C8 E10 B15 D20<br>
+&nbsp;&nbsp;Tr 3,13,4,14,2 → 7.20<br>
+HRRN: A0-3 B3-9; t=9: C R=(5+4)/4=2.25,<br>
+&nbsp;&nbsp;D (3+5)/5=1.6, E (1+2)/2=1.5 → C9-13;<br>
+&nbsp;&nbsp;t=13: D (7+5)/5=2.4, E (5+2)/2=3.5 → E13-15, D15-20<br>
+&nbsp;&nbsp;Tr 3,7,9,14,7 → 8.00</p>
+<p><b>Windows</b> (q=4, A,B pri 8; C pri 10 arrives at 6): A 0–4, B 4–6, C preempts 6–8. <b>CFS</b> (A w2 v6, B w1 v4, C w1 v5): pick B; B runs 2 ms → v=6; next C. <b>EEVDF</b> V=10: A v8 d16, B v9 d14, C v13 d13.5 <i>ineligible</i> → <b>B</b>. <b>Weights</b> A2 B1 C1 → 50/25/25%; C blocks → ⅔, ⅓.</p>
+</div>
+
+<h2>IX · Commonly confused</h2>
+<div class="box flow-ok">
+<ul class="tight">
+<li><b>Process vs thread.</b> Process owns resources + protection; thread is what gets dispatched.</li>
+<li><b>Deadlock vs livelock vs starvation.</b> Blocked forever / busy but no progress / runnable but never picked.</li>
+<li><b>Prevention vs avoidance.</b> Prevention removes a condition by design; avoidance checks each request dynamically (safe state).</li>
+<li><b>Avoidance vs detection.</b> Claim matrix C, every request / request matrix Q, periodic + recovery.</li>
+<li><b>Unsafe vs deadlocked.</b> Unsafe = no guarantee; not yet deadlocked.</li>
+<li><b>Cycle in RAG.</b> Deadlock only certain with single instances.</li>
+<li><b>Binary semaphore vs mutex.</b> Anyone may signal a binary semaphore; only the locker unlocks a mutex.</li>
+<li><b>Strong vs weak semaphore.</b> FIFO (starvation-free) vs unspecified order.</li>
+<li><b>Semaphore vs condition variable.</b> Count remembers a signal; csignal with no waiter is lost.</li>
+<li><b>SPN vs SRT.</b> Same idea; SRT preempts on arrival using remaining time.</li>
+<li><b>Concurrency vs parallelism.</b> Overlap/interleaving vs truly simultaneous.</li>
+<li><b>Indexed sequential vs indexed.</b> Keeps sequential order + overflow file vs access only through indexes.</li>
+<li><b>Chained alloc vs chained free portions.</b> File's blocks linked vs free space linked.</li>
+<li><b>Compaction vs consolidation.</b> Contiguous (squeeze out holes) vs chained/indexed (bring a file's blocks together).</li>
+<li><b>Preallocation vs dynamic.</b> Max size at creation vs portions as needed.</li>
+<li><b>Reusable vs consumable.</b> Not depleted by use vs created and destroyed.</li>
+</ul>
+</div>
+
+<h2>X · More file management</h2>
+<p><b>Objectives</b>: meet user data needs, valid data, performance, many device types, minimize lost data, standard I/O routines, multi-user support. <b>User requirements</b>: create/delete/read/write/modify; controlled access to others' files and control of own; move data between files; back up/recover; access by name.</p>
+<p><b>Criteria for an organization</b>: short access time, ease of update, economy of storage, simple maintenance, reliability.</p>
+<p><b>Indexed seq. lookup</b>: search index for the highest key ≤ target, follow pointer, search main file sequentially from there. Multiple index levels for larger files.</p>
+<p><b>Portion size</b>: variable large contiguous (performance, small tables, like dynamic partitioning: best/next/nearest fit) vs small fixed blocks (flexible, bigger tables, contiguity abandoned).</p>
+<p><b>Compaction example</b> (Fig 12.9/10): A(2,3) B(9,5) C(18,8) D(30,2) E(26,3) → starts 0, 3, 8, 19, 16. <b>Indexed</b>: File B index block 24 lists blocks 1, 8, 3, 14, 28 (or portions (1,3) (28,4) (14,1)).</p>
+</body>
+</html>

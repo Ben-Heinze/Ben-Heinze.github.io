@@ -1,0 +1,270 @@
+
+───── page 1/14 ─────
+Threads and
+Processes
+Adiesha Liyana Ralalage
+
+───── page 2/14 ─────
+Process characteristics
+Resource ownership
+Scheduling/Execution
+
+A process has a virtual
+
+Execution may be interleaved
+address space containing its with other processes.
+code, data, and execution
+
+In the single-threaded model,
+stacks.
+each process has an execution
+
+The OS protects process
+state (Ready, Running, or
+resources from unauthorized Blocked) and a scheduling
+access by other processes.priority.
+
+The OS selects a ready process
+and dispatches it to a CPU.
+
+───── page 3/14 ─────
+
+Resource ownership and execution are distinct responsibilities
+that can be managed separately.
+
+Modern operating systems treat them independently.
+
+Conceptual Separation: Resource ownership is about what a
+process possesses (e.g., memory, files), while
+scheduling/execution is about what a process does (e.g., running
+its code).
+
+A process can own resources without executing (e.g., a blocked
+process holding a file lock) or execute without owning significant
+resources (e.g., a lightweight computation).
+
+───── page 4/14 ─────
+Implications
+
+This independence allows the OS to manage resources and
+execution separately. For example:
+
+Resource Management: The OS can allocate/deallocate resources
+(e.g., memory or I/O devices) independently of whether the
+process is currently running.
+
+Scheduling: The OS can prioritize, and dispatch processes based
+on their execution state and priority, regardless of their resource
+holdings.
+
+───── page 5/14 ─────
+Processes and Threads
+
+The unit of dispatching is referred to as a
+thread
+or
+lightweight
+process.
+
+The unit of resource ownership is referred to as a
+process
+or
+task.
+
+Multithreading
+-The ability of an OS to support multiple,
+concurrent paths of execution within a single process.
+
+───── page 6/14 ─────
+Multithreading approaches
+one process
+one process
+one thread
+multiple threads
+
+A single thread of
+execution per
+process, in which the
+concept of a thread is
+not recognized, is
+referred to as a single-
+multiple processes
+multiple processes
+one thread per process
+multiple threads per process
+threaded approach
+= instruction trace
+Figure 4.1 Threads and Processes
+
+───── page 7/14 ─────
+Multithreaded approaches
+one process
+one process
+one thread
+multiple threads
+
+The right half of Figure
+4.1 depicts
+multithreaded
+approaches
+
+A Java run-time
+environment is an
+multiple processes
+multiple processes
+one thread per process
+multiple threads per process
+example of a system
+of one process with
+multiple threads
+= instruction trace
+Figure 4.1 Threads and Processes
+
+───── page 8/14 ─────
+Process
+
+    “
+the unit of resource
+allocation and a unit of protection
+”
+
+Associated with processes:
+
+A virtual address space that holds the process image
+
+Protected access to:
+
+Processors
+
+Other processes (for interprocesscommunication)
+
+Files
+
+I/O resources (devices and channels)
+
+Within a process, there may be one or more threads.
+
+───── page 9/14 ─────
+One or More Threads in a Process
+Each thread has:
+
+An execution state (Running, Ready, etc.)
+
+A saved thread context when not running
+
+An execution stack
+
+Some per-thread static storage for local variables
+
+Access to the memory and resources of its processes,
+shared with all other threads in that process
+
+───── page 10/14 ─────
+Single-Threaded
+Multithreaded
+Process Model
+Process Model
+Thread
+Thread
+Thread
+Thread
+Thread
+Thread
+User
+Process
+Control
+Control
+Control
+Stack
+Block
+Block
+Block
+Control
+Block
+User
+User
+User
+Process
+KernelUser
+Stack
+Stack
+Stack
+Control
+StackAddress
+Block
+Space
+Kernel
+Kernel
+KernelUser
+Stack
+Stack
+StackAddress
+Space
+Figure 4.2 Single Threaded and Multithreaded Process Models
+
+───── page 11/14 ─────
+Key benefits of Threads
+Switching between
+Threads enhance
+two threads takes Less time to
+efficiency in Takes less time to create a
+terminate a thread
+less time than
+new thread than a process
+communication
+than a process
+switching between
+between programs
+processes
+
+───── page 12/14 ─────
+Thread Use cases in a Single-User System
+
+Foreground and background work.
+
+Asynchronous processing.
+
+Speeding up of execution.
+
+Modular program structure.
+
+───── page 13/14 ─────
+Threads
+
+In an OS that supports threads, scheduling and dispatching is
+done on a thread basis.
+
+Most of the state information dealing with execution is maintained
+in thread-level data structures.
+
+Suspending a process involves suspending all threads of the process.
+
+Termination of a process terminates all threads within the process.
+
+───── page 14/14 ─────
+Thread Execution States
+
+The key states for a thread are:
+
+Thread operations associated
+with a change in thread state
+
+Running
+are:
+
+Ready
+
+Spawn
+
+Blocked
+
+Block
+
+    
+
+Unblock
+suspend state as it is a
+
+Finish
+concept associated with
+process rather than threads.
