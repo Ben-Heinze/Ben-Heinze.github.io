@@ -455,7 +455,29 @@
           },
           {
             "label": "2.2 Process Management",
-            "href": "/os/lectures/2-2-process-management/index.html"
+            "href": "/os/lectures/2-2-process-management/index.html",
+            "children": [
+              {
+                "label": "2.2.1 Uniprocessor Scheduling",
+                "href": "/os/lectures/2-2-process-management/1-uniprocessor-scheduling/index.html"
+              },
+              {
+                "label": "2.2.2 Windows and Linux CPU Scheduling",
+                "href": "/os/lectures/2-2-process-management/2-windows-linux-cpu-scheduling/index.html"
+              },
+              {
+                "label": "2.2.3 Concurrency: Deadlock and Starvation",
+                "href": "/os/lectures/2-2-process-management/3-deadlock-and-starvation/index.html"
+              },
+              {
+                "label": "2.2.4 Concurrency: Mutual Exclusion and Synchronization",
+                "href": "/os/lectures/2-2-process-management/4-mutual-exclusion-and-synchronization/index.html"
+              },
+              {
+                "label": "2.2.5 Theoretical Problems in Concurrency",
+                "href": "/os/lectures/2-2-process-management/5-theoretical-problems-in-concurrency/index.html"
+              }
+            ]
           },
           {
             "label": "2.3 Threads and Processes",

@@ -1,0 +1,263 @@
+#+TITLE: 2.2.2 Windows and Linux CPU Scheduling
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+TAGS: operating-systems, scheduling
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Windows_Linux_CPU_Scheduling.pdf][Windows and Linux CPU Scheduling (PDF)]]: Adiesha Liyanage
+
+* Windows and Linux CPU Scheduling
+
+*Textbook:* Stallings Chapter 9.
+
+Three schedulers, three different answers to "who runs next":
+
+- *Windows*: select the highest current thread priority, with dynamic boosts.
+- *Linux CFS*: favour the smallest weighted virtual runtime.
+- *Linux EEVDF*: select the earliest virtual deadline among eligible tasks.
+
+All three balance responsiveness against other scheduling goals, and none of them
+is one of the textbook policies above in pure form.
+
+** Windows priority levels
+
+| Range  | Meaning                          |
+| 16--31 | Real-time priority range         |
+| 1--15  | Variable priority range          |
+| 0      | Reserved for the zero-page thread |
+
+Larger priority numbers receive preference. The zero-page thread clears free memory
+pages when no other thread needs the CPU.
+
+Base priority comes from combining a process class with a thread level:
+
+| Process class | Thread level | Base priority |
+| Normal        | Below normal |             7 |
+| Normal        | Normal       |             8 |
+| Normal        | Above normal |             9 |
+| High          | Normal       |            13 |
+
+*** Kernel execution and system threads
+
+- System threads have their own priorities, chosen for their work. Some run at high
+  priorities, but they need not all run at 31.
+- A system call enters kernel mode without automatically raising thread priority
+  — kernel mode and priority are independent.
+- Interrupt urgency is controlled separately by /interrupt request levels/ (IRQLs),
+  which the kernel uses to control which interrupts and kernel activities are
+  allowed to preempt the currently executing code.
+
+*** Selection and preemption
+
+- Choose a ready thread at the highest current priority.
+- At equal priority, distribute time slices using round robin.
+- A newly ready higher-priority thread preempts a lower-priority thread.
+- A /quantum/ is a time slice; its length depends on system settings.
+
+Worked example — one CPU, 4 ms quantum, fixed priorities, boosts disabled:
+
+| Time (ms) | Running thread | Reason                    |
+| 0--4      | A, priority 8  | First equal-priority turn |
+| 4--6      | B, priority 8  | Next turn                 |
+| 6--8      | C, priority 10 | Higher priority preempts B |
+
+At 8 ms, C blocks. A or B can resume under queue rules. Note that B is preempted
+mid-quantum at 6 ms: priority beats the round-robin turn.
+
+*** Dynamic priority boosts
+
+- Input events and completed waits can temporarily raise a thread's /dynamic/
+  priority, which helps a waking or interactive thread respond promptly.
+- After each full quantum the thread consumes, the boosted priority is
+  reduced by one level
+  until it returns to the thread's base priority.
+  So a thread that keeps running loses its boost, and one that keeps blocking
+  keeps it.
+- Threads whose base priority is in the real-time range 16--31 do /not/ receive
+  these normal dynamic boosts.
+
+*** Foreground applications and responsiveness
+
+- Windows tracks the foreground window and the thread/process associated with it.
+  Clicking a window or using $Alt+Tab$ can change which application is in the
+  foreground.
+- Foreground activity and user input can receive temporary scheduling preference to
+  improve responsiveness.
+- But simply having a visible GUI does not cause every thread in the application to
+  receive a higher priority.
+
+*** Starvation prevention and its limits
+
+- Windows can temporarily boost ready threads that have waited too long for CPU
+  time, helping them compete with higher-priority runnable threads.
+- Those temporary boosts later decay back toward the base priority.
+- Among threads at the same priority level, round-robin time slicing applies.
+- The limit: continuously runnable real-time threads can still prevent ordinary-priority threads from running.
+  Priority-based scheduling's starvation
+  problem is mitigated, not eliminated.
+
+** Linux scheduling policies
+
+- Ordinary tasks normally use =SCHED_OTHER=, also called =SCHED_NORMAL=. CFS and
+  EEVDF provide selection /within/ this fair scheduler.
+- =SCHED_FIFO= and =SCHED_RR= provide real-time priority policies.
+- =SCHED_DEADLINE= uses earliest-deadline-first with execution budgets and
+  admission control.
+
+[The slide following this one (p12) is a figure with no extractable text — see the PDF.]
+
+*** Weights and CPU entitlement
+
+A /weight/ expresses a task's relative claim on CPU service. A lower nice value
+gives a task a larger scheduling weight, increasing its target CPU share when tasks
+compete — informally, a lower nice value means the task is "less nice" to other
+tasks. For comparable runnable tasks the target share is approximately
+
+\[
+  \text{share}_i = \frac{w_i}{\sum_j w_j}
+\]
+
+where $w_i$ is task $i$'s weight. A task's /actual/ share changes dynamically as
+competing tasks block, sleep, wake up, or become runnable.
+
+Worked example — one CPU, all tasks runnable, same fair group, no CPU quota:
+
+| Task | Weight | Target share | CPU in 30 ms |
+| A    |      2 | 2 / 4 = 50%  | 15 ms        |
+| B    |      1 | 1 / 4 = 25%  | 7.5 ms       |
+| C    |      1 | 1 / 4 = 25%  | 7.5 ms       |
+
+If C blocks, A targets ⅔ of CPU time and B targets ⅓ — the denominator is the
+weight sum of the /runnable/ set, not of every task that exists.
+
+*** CFS virtual runtime
+
+Virtual runtime $v$ records CPU service after adjusting for weight. Let $\Delta t$
+be actual CPU time, $w$ the task's weight, and $w_0$ a reference weight. The
+increment is
+
+\[
+  \Delta v = \Delta t \times \frac{w_0}{w}
+\]
+
+A larger weight makes virtual runtime grow more slowly
+— which is the whole
+trick: the scheduler then just has to pick the smallest $v$, and the weighting falls
+out of the accounting rather than out of the selection rule.
+
+Worked selection example — reference weight 1, B runs for an illustrative 2 ms:
+
+| Task | Weight | Initial $v$ | $v$ after B runs 2 ms       |
+| A    |      2 |           6 | $6 = 6 + 0 \times (1/2)$    |
+| B    |      1 |           4 | $6 = 4 + 2 \times (1/1)$    |
+| C    |      1 |           5 | $5 = 5 + 0 \times (1/1)$    |
+
+First choice: B, which has the smallest $v$. Next choice in this model: C — B has
+caught up to A's 6, and C's 5 is now the smallest.
+
+Implementation and fairness:
+
+- Classic CFS organizes runnable entities in a red-black tree keyed by virtual
+  runtime and favours the entity with the smallest virtual runtime.
+- As a task runs its virtual runtime increases, allowing other tasks to catch up.
+- Granularity and wake-up placement balance fairness against responsiveness while
+  avoiding excessive context switches.
+
+*** EEVDF — earliest eligible virtual deadline first
+
+The newer selection rule for the same fair class. It adds the notion of /lag/:
+
+- Lag
+  measures CPU service owed relative to the fair allocation.
+- /Positive/ lag: the task has received less than its fair share.
+- /Negative/ lag: the task has received more than its fair share.
+- A runnable task with nonnegative lag is eligible
+  for selection.
+
+Virtual deadlines. Let $V$ be the scheduler's current virtual time, representing
+the fair-service progress of the runnable set; $v$ the task's current virtual
+runtime; $r$ its requested real CPU slice; $w$ its weight; and $w_0$ the reference
+weight. Then
+
+\[
+  d = v + r \times \frac{w_0}{w} \qquad \text{(virtual deadline)}
+\]
+
+A task is considered only when it is eligible — that is, when it is owed fair CPU
+service. Among eligible tasks, EEVDF selects the one with the smallest virtual
+deadline $d$. The task's lag is determined by how far its service position is
+behind or ahead of $V$.
+
+Worked selection example — equal weights, $V = 10$:
+
+| Task | $v$ | Slice $r$ | Deadline $d$ | Eligible? |
+| A    |   8 |         8 |           16 | Yes       |
+| B    |   9 |         5 |           14 | Yes       |
+| C    |  13 |       0.5 |         13.5 | No        |
+
+EEVDF chooses B. C has the earliest deadline but is ineligible
+— its
+$v = 13$ is ahead of $V = 10$, so it has already had more than its share. This is
+the example to remember, because it shows the eligibility test doing work that a
+pure earliest-deadline rule would get wrong.
+
+Responsiveness and fairness:
+
+- A shorter request gives an eligible task an earlier virtual deadline, so a task
+  that asks for little gets served soon. This is how latency-sensitive work is
+  accommodated without a priority.
+- Eligibility prevents a task that is already ahead from always winning.
+- When a request ends, accounting and the next request determine future choices.
+- Linux began the CFS-to-EEVDF transition in version 6.6.
+
+[One slide in this section (p21) is a shrunken slide image whose font carries no
+usable character map, so no text could be extracted — see the PDF.]
+
+*** CFS and EEVDF compared
+
+| Property            | Classic CFS              | EEVDF                        |
+| Main selection      | Smallest virtual runtime | Earliest eligible deadline   |
+| Fairness accounting | Weighted virtual runtime | Weighted runtime and lag     |
+| Latency mechanism   | Granularity and wakeups  | Request length and deadlines |
+| Fixed round robin?  | No                       | No                           |
+
+** Preemption and multiple CPUs
+
+- Both Windows and Linux support preemptive thread scheduling.
+- Kernel execution can temporarily disable or defer preemption while critical
+  kernel work is in progress.
+- /CPU affinity/ restricts the set of processors on which a thread is allowed to
+  run.
+- /Load balancing/ tries to distribute runnable work across CPUs while also
+  considering cache locality, NUMA effects, and available CPU capacity.
+
+** Windows and Linux side by side
+
+| Question                 | Windows                       | Linux fair class            |
+| Who runs next?           | Highest dynamic priority      | CFS $v$ or EEVDF $d$        |
+| How is preference set?   | Process class + thread level  | Nice and group weights      |
+| Interactive response     | Temporary boosts              | Wakeups and fair accounting |
+| Equal treatment          | Round robin at same priority  | Equal target CPU shares     |
+
+The structural difference: Windows expresses preference as a /priority/ and patches
+the resulting starvation with temporary boosts, while Linux expresses preference as
+a /weight/ and gets starvation-freedom from the fairness accounting itself. Neither
+is a textbook policy — but Windows at the same priority level is round robin, and
+Linux's fair class is closest in spirit to the aging idea behind HRRN.
+
+* References
+
+Microsoft Learn, =learn.microsoft.com/en-us/windows/win32/procthread/= --- Scheduling
+Priorities, Priority Boosts, Context Switches, Multiple Processors.
+
+Linux kernel documentation, =docs.kernel.org/scheduler/= --- CFS Scheduler, EEVDF
+Scheduler, Scheduler Nice Design, Deadline Task Scheduling, Control Group v2.

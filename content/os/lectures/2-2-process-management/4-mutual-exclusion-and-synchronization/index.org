@@ -1,0 +1,551 @@
+#+TITLE: 2.2.4 Concurrency: Mutual Exclusion and Synchronization
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+TAGS: concurrency, operating-systems
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Concurrency Mutual exclusion and synchronization.pdf][Concurrency: Mutual Exclusion and Synchronization (PDF)]]: Adiesha Liyanage
+
+* Concurrency: Mutual Exclusion and Synchronization
+
+*Textbook:* Stallings Chapter 5 --- §5.1--5.5 and §5.7.
+
+** Some key words
+
+- /Multiprogramming/: the management of multiple processes within a uniprocessor system
+- /Multiprocessing/: the management of multiple processes within a multiprocessor
+- /Distributed processing/: the management of multiple processes executing on multiple, distributed computer systems
+
+** Concurrency
+
+- The ability to run multiple processes or tasks simultaneously or in an overlapping manner
+- Concurrency and parallelism are related concepts, but not the same
+  - In parallel execution, processes are truly executed simultaneously
+  - Parallelism is a type of concurrency
+
+Concurrency on one processor means interleaving; parallelism needs more than one.
+Every problem on this page shows up under plain interleaving, so none of it goes
+away on a uniprocessor.
+
+** Difficulties of Concurrency
+
+- Sharing of global resources
+- Difficult for the OS to manage the allocation of resources optimally
+- Difficult to locate programming errors, as results are not deterministic and reproducible
+
+** Race Condition
+
+- Occurs when multiple processes or threads access shared data concurrently, with at least one modifying it
+- The final result depends on the timing or order of their execution
+- Without proper synchronization, concurrent accesses may produce unexpected or incorrect results
+
+** Resource Competition
+
+- Concurrent processes come into conflict when they are competing for use of the same resource
+  - For example: I/O devices, memory, processor time, clock
+- In the case of competing processes, three control problems must be faced:
+  - The need for mutual exclusion
+  - Deadlock
+  - Starvation
+
+The first is the subject of this section; the other two are the next section.
+
+** What is Mutual Exclusion?
+
+- {{{hl(green,/Mutual exclusion/: the requirement that when one process is in a critical section that accesses shared resources\, no other process may be in a critical section that accesses any of those shared resources)}}}
+- /Critical section/: a section of code within a process that requires access to shared resources, and that must not be executed while another process is in a corresponding section of code
+
+** How to Ensure Mutual Exclusion?
+
+Concurrency control mechanisms come in three families:
+
+- Software-based approaches
+- Hardware support
+  - Interrupt disabling
+  - Atomic instructions: the compare&swap instruction, the exchange instruction
+- OS and programming-language support
+  - Mutex
+  - Semaphore
+  - Monitor
+
+All of them assume some elementary mutual exclusion already exists at the
+memory-access level: simultaneous accesses (reading and/or writing) to the same
+location in main memory are serialized by a /memory arbiter/ --- hardware logic in
+the memory system that makes two accesses to one location happen one after
+another, never in the same exact cycle.
+
+- Important: the arbiter does *not* guarantee fairness or a specific order --- it only guarantees that memory contents are not corrupted by truly simultaneous writes
+
+** Software-Based Solutions
+
+At first glance enforcing mutual exclusion looks easy. The deck shows why it isn't
+by walking through several incorrect solutions first. Every mutual-exclusion
+mechanism needs some hardware support; here that support is only the serialized
+memory access above.
+
+The setup throughout: two processes $P_0$ and $P_1$ trying to access one shared
+resource.
+
+*** First attempt: a shared =turn= variable
+
+- Create a global integer =int turn = 0=, initialized to 0
+- If =turn= equals the process's id, it may proceed to the resource; otherwise it waits until =turn= equals its id
+  - Waiting by repeatedly testing a variable is called /busy waiting/, or /spin waiting/
+- After using the resource, the process hands =turn= to the other process
+
+#+begin_src c
+/* PROCESS 0 */                  /* PROCESS 1 */
+while (turn != 0)                while (turn != 1)
+    /* do nothing */ ;               /* do nothing */ ;
+/* critical section */;          /* critical section */;
+turn = 1;                        turn = 0;
+#+end_src
+
+- Does it guarantee mutual exclusion? *Yes*
+- Drawbacks:
+  - Process 1 cannot start using the resource at the beginning
+  - Processes must strictly alternate in their use of the shared resource
+    - The slower process dictates the pace of execution
+  - If one process fails, the other is permanently blocked
+
+*** Second attempt: one flag per process, checked first
+
+The first attempt's problem was that neither process knew whether the other
+/intended/ to use the resource, nor whether the other had failed. So keep one
+Boolean flag per process:
+
+- =boolean flag[2] = {0, 0}= --- $P_0$ has =flag[0]=, $P_1$ has =flag[1]=
+- Each process may examine the other's flag but not alter it
+- When a process needs the shared resource, it sets its own flag to =true=
+
+#+begin_src c
+enum boolean (false = 0; true = 1);
+boolean flag[2] = 0, 0
+
+/* PROCESS 0 */                  /* PROCESS 1 */
+while (flag[1])                  while (flag[0])
+    /* do nothing */;                /* do nothing */;
+flag[0] = true;                  flag[1] = true;
+/* critical section */;          /* critical section */;
+flag[0] = false;                 flag[1] = false;
+#+end_src
+
+- If a process fails /outside/ its critical section, the other can carry on using the resource
+- Does it provide mutual exclusion? *No*
+  - Both flags start =false=. Each process can pass its =while= check before the other sets its flag, and both enter the critical section
+- The program is incorrect
+
+*** Third attempt: set the flag before checking
+
+What if each process sets its flag to =true= /before/ checking the other's?
+
+#+begin_src c
+/* PROCESS 0 */                  /* PROCESS 1 */
+flag[0] = true;                  flag[1] = true;
+while (flag[1])                  while (flag[0])
+    /* do nothing */;                /* do nothing */;
+/* critical section */;          /* critical section */;
+flag[0] = false;                 flag[1] = false;
+#+end_src
+
+- Does it guarantee mutual exclusion? *Yes*
+- But there is a bigger issue: if both set their flags to =true= before either checks, neither can ever enter the critical section
+  - So it is {{{hl(red,deadlocked)}}}
+- Not a good solution
+
+*** Fourth attempt: defer to the other process
+
+If a process cannot get the resource because the other process also wants it,
+it is prepared to reset its flag for a moment to defer to the other:
+
+#+begin_src c
+/* PROCESS 0 */                  /* PROCESS 1 */
+flag[0] = true;                  flag[1] = true;
+while (flag[1]) {                while (flag[0]) {
+    flag[0] = false;                 flag[1] = false;
+    /* delay */;                     /* delay */;
+    flag[0] = true;                  flag[1] = true;
+}                                }
+/* critical section */;          /* critical section */;
+flag[0] = false;                 flag[1] = false;
+#+end_src
+
+- Does it guarantee mutual exclusion? *Yes*
+- But there can be {{{hl(red,livelock)}}}: if the two run in lockstep, each keeps setting, deferring and resetting forever, and neither enters
+
+*** Correct solution: Dekker's algorithm
+
+The fourth attempt's problem is that the two processes' activities have no order:
+each lets the other go forward by withdrawing its own claim. So bring back the
+=turn= variable, this time only to decide /who has the right/ to enter when both
+want to:
+
+#+begin_src text
+boolean flag[2]
+int turn
+
+function P0()
+    while true do
+        flag[0] ← true
+        while flag[1] do
+            if turn == 1 then
+                flag[0] ← false
+                while turn == 1 do      ▷ do nothing
+                flag[0] ← true
+        /* access the shared resource */
+        turn ← 1
+        flag[0] ← false
+
+function P1()
+    while true do
+        flag[1] ← true
+        while flag[0] do
+            if turn == 0 then
+                flag[1] ← false
+                while turn == 0 do      ▷ do nothing
+                flag[1] ← true
+        /* access the shared resource */
+        turn ← 0
+        flag[1] ← false
+
+function main()
+    flag[0] ← false
+    flag[1] ← false
+    turn ← 1
+    parbegin(P0, P1)
+#+end_src
+
+The flags say who wants in; =turn= only breaks the tie. Only the process whose turn
+it isn't backs off, so the lockstep livelock of the fourth attempt can't happen.
+
+*** Peterson's algorithm
+
+A more elegant solution to the same problem:
+
+#+begin_src text
+boolean flag[2]
+int turn
+
+function P0()
+    while true do
+        flag[0] ← true
+        turn ← 1
+        while flag[1] ∧ (turn == 1) do  ▷ do nothing
+        /* access the shared resource */
+        flag[0] ← false
+        /* remainder */
+
+function P1()
+    while true do
+        flag[1] ← true
+        turn ← 0
+        while flag[0] ∧ (turn == 0) do  ▷ do nothing
+        /* access the shared resource */
+        flag[1] ← false
+        /* remainder */
+
+function main()
+    flag[0] ← false
+    flag[1] ← false
+    parbegin(P0, P1)
+#+end_src
+
+Each process announces it wants in, then politely gives the turn away. If both
+arrive together, whichever wrote =turn= /last/ is the one that waits.
+
+** Mutual Exclusion: Hardware Support
+
+*** Interrupt disabling
+
+- In a uniprocessor system, concurrent processes cannot have overlapped execution; they can only be interleaved
+- A process will continue to run until it invokes an OS service or until it is interrupted
+- Therefore, to guarantee mutual exclusion, it is sufficient to prevent a process from being interrupted
+- This capability can be provided in the form of primitives defined by the OS kernel for disabling and enabling interrupts
+
+#+begin_src c
+while (true) {
+    /* disable interrupts */;
+    /* critical section */;
+    /* enable interrupts */;
+    /* remainder */;
+}
+#+end_src
+
+Disadvantages:
+
+- The efficiency of execution could be noticeably degraded, because the processor is limited in its ability to interleave processes
+- This approach will not work in a multiprocessor architecture --- disabling interrupts on one processor does nothing to the others
+
+*** Compare&swap instruction
+
+- Also called a "compare and exchange instruction"
+- A compare is made between a memory value and a test value
+- If the values are the same, a swap occurs
+- {{{hl(green,Carried out atomically (not subject to interruption))}}}
+
+#+begin_src c
+int compare_and_swap (int *word, int testval, int newval)
+{
+    int oldval;
+    oldval = *word;
+    if (oldval == testval) *word = newval;
+    return oldval;
+}
+#+end_src
+
+- Two versions of this exist:
+  - One returns the old value
+  - One returns true if the swap occurred, otherwise false
+- The function above returns the old value
+  - Remember this is an atomic instruction --- the C is only a description of what the hardware does in one step
+
+Mutual exclusion built on it:
+
+#+begin_src text
+const int n ← # of processes
+int bolt
+
+function P(int i)
+    while true do
+        while compare_and_swap(bolt, 0, 1) == 1 do
+            /* do nothing */
+        /* access the shared resource */
+        bolt ← 0
+        /* remainder */
+
+function main()
+    bolt ← 0
+    parbegin(P(0), P(1), ..., P(n))
+#+end_src
+
+- Whichever process finds $bolt = 0$ goes into the critical section and sets $bolt = 1$
+- All the other processes go into busy waiting (spin waiting) mode
+  - /Busy waiting/, or /spin waiting/, refers to a technique in which a process can do nothing until it gets permission to enter its critical section, but continues to execute an instruction or set of instructions that tests the appropriate variable to gain entrance
+
+| Advantages                                                                   | Disadvantages                                                                       |
+| Easy to use                                                                  | Busy waiting is used --- wastes CPU time                                            |
+| Easy to see why this works                                                   | Starvation is possible: when more than one process is waiting, the selection is arbitrary |
+| Extends to multiple critical sections --- define a variable for each one     | Deadlock is also possible                                                           |
+| Works on a uniprocessor or multiprocessor, for any number of processes      |                                                                                     |
+
+{{{hl(orange,⚠ NEEDS CHECKING)}}}: the deck names the /exchange/ instruction in its
+overview list but has no slide on it. The description here is from the textbook,
+not the lecture: it atomically swaps a register with a memory word and is used
+the same way as compare&swap.
+
+** OS and Language Support
+
+Four mechanisms: mutex, semaphore, monitor, and condition variable.
+
+*** Semaphores
+
+A /semaphore/ is a variable that has an integer value upon which only three
+operations are defined:
+
+1. A semaphore may be initialized to a nonnegative value
+2. The =semWait= operation decrements the semaphore value
+3. The =semSignal= operation increments the semaphore value
+
+There is no way to inspect or manipulate a semaphore other than these three
+operations.
+
+#+begin_src c
+struct semaphore {
+    int count;
+    queueType queue;
+};
+void semWait(semaphore s)
+{
+    s.count--;
+    if (s.count < 0) {
+        /* place this process in s.queue */;
+        /* block this process */;
+    }
+}
+void semSignal(semaphore s)
+{
+    s.count++;
+    if (s.count <= 0) {
+        /* remove a process P from s.queue */;
+        /* place process P on ready list */;
+    }
+}
+#+end_src
+
+(Stallings Figure 5.6, A Definition of Semaphore Primitives.) A negative count is
+the number of processes waiting on the queue.
+
+Consequences of being allowed only those three operations:
+
+- There is no way to know, before a process decrements a semaphore, whether it will block or not
+- There is no way to know which process will continue immediately on a uniprocessor system when two processes are running concurrently
+- You don't know whether another process is waiting, so the number of unblocked processes may be zero or one
+
+A /binary semaphore/ may only take the values 0 and 1:
+
+#+begin_src c
+struct binary_semaphore {
+    enum {zero, one} value;
+    queueType queue;
+};
+void semWaitB(binary_semaphore s)
+{
+    if (s.value == one)
+        s.value = zero;
+    else {
+        /* place this process in s.queue */;
+        /* block this process */;
+    }
+}
+void semSignalB(semaphore s)
+{
+    if (s.queue is empty())
+        s.value = one;
+    else {
+        /* remove a process P from s.queue */;
+        /* place process P on ready list */;
+    }
+}
+#+end_src
+
+(Stallings Figure 5.7, A Definition of Binary Semaphore Primitives.)
+
+*** Strong and weak semaphores
+
+A queue is used to hold the processes waiting on the semaphore. What differs is
+the order they leave it:
+
+- *Strong semaphores*: the process that has been blocked the longest is released from the queue first (FIFO)
+- *Weak semaphores*: the order in which processes are removed from the queue is not specified
+
+A strong semaphore guarantees freedom from starvation; a weak one does not.
+
+*** Implementation of semaphores
+
+- It is imperative that the =semWait= and =semSignal= operations be implemented as atomic primitives
+- Can be implemented in hardware or firmware
+- Software schemes such as Dekker's or Peterson's algorithms can be used
+- Another alternative is to use one of the hardware-supported schemes for mutual exclusion
+
+Stallings Figure 5.17 shows two such implementations:
+
+#+begin_src c
+/* (a) Compare and Swap Instruction */
+semWait(s)
+{
+    while (compare_and_swap(s.flag, 0, 1) == 1)
+        /* do nothing */;
+    s.count--;
+    if (s.count < 0) {
+        /* place this process in s.queue */;
+        /* block this process (must also set s.flag to 0) */;
+    }
+    s.flag = 0;
+}
+semSignal(s)
+{
+    while (compare_and_swap(s.flag, 0, 1) == 1)
+        /* do nothing */;
+    s.count++;
+    if (s.count <= 0) {
+        /* remove a process P from s.queue */;
+        /* place process P on ready list */;
+    }
+    s.flag = 0;
+}
+
+/* (b) Interrupts */
+semWait(s)
+{
+    inhibit interrupts;
+    s.count--;
+    if (s.count < 0) {
+        /* place this process in s.queue */;
+        /* block this process and allow interrupts */;
+    }
+    else
+        allow interrupts;
+}
+semSignal(s)
+{
+    inhibit interrupts;
+    s.count++;
+    if (s.count <= 0) {
+        /* remove a process P from s.queue */;
+        /* place process P on ready list */;
+    }
+    allow interrupts;
+}
+#+end_src
+
+The busy waiting hasn't gone away in (a), but it now only guards the few
+instructions inside =semWait= / =semSignal=, not the whole critical section.
+
+*** Mutex (mutual exclusion lock)
+
+- Binary semaphores and mutexes are similar, but they are not the same
+- Two operations: =Mutex.lock()= and =Mutex.unlock()=
+- {{{hl(green,The process that locks the mutex must be the process that unlocks it)}}}
+- In a binary semaphore, this is not the case --- any process may signal it
+
+*** Monitors
+
+- A programming-language construct that provides equivalent functionality to that of semaphores and is easier to control
+- Implemented in a number of programming languages
+  - Concurrent Pascal, Pascal-Plus, Modula-2, Modula-3, Java
+- Has also been implemented as a program library
+- A software module consisting of one or more procedures, an initialization sequence, and local data
+- If you have a data structure that needs mutual exclusion, you can wrap it in a monitor
+  - In Java: =synchronized (someObject) { doSomething(); }=
+  - {{{hl(orange,⚠ NEEDS CHECKING)}}}: this snippet's font didn't extract cleanly (it came out as /synchronized someObject do something/), so the exact syntax on the slide (p42) is reconstructed
+
+Monitor characteristics:
+
+1. The local data variables are accessible only by the monitor's procedures and not by any external procedure
+2. A process enters the monitor by invoking one of its procedures
+3. Only one process may be executing in the monitor at a time; any other processes that have invoked the monitor are blocked, waiting for the monitor to become available
+
+Stallings Figure 5.18 (Structure of a Monitor) draws this as a box with a single
+entrance, fronted by a /queue of entering processes/. Inside are the local data,
+the condition variables, procedures 1 through $k$, and the initialization code.
+Beside it is a /monitor waiting area/: one queue per condition $c_1 \ldots c_n$,
+which processes join on =cwait(c_i)=, plus an /urgent queue/ fed by =csignal=.
+
+*** Synchronization with condition variables
+
+- A monitor supports synchronization through /condition variables/ that are contained within the monitor and accessible only within the monitor
+- Condition variables are a special data type in monitors, operated on by two functions:
+  - =cwait(c)=: suspend execution of the calling process on condition $c$. The monitor is then available for use by another process
+  - =csignal(c)=: resume execution of some process blocked after a =cwait= on the same condition
+
+More generally:
+
+- Condition variables let threads /wait for a condition on shared data/, such as a queue becoming nonempty
+- Used within a monitor, or with a mutex that protects the shared data
+- =cwait()= atomically releases the lock and blocks the calling thread. The thread must regain the lock before returning from =wait()=
+- =csignal()= notifies a waiting thread; =broadcast()= notifies all waiting threads
+- {{{hl(red,Notifications are not saved)}}}: signaling when no threads are waiting has no effect
+- A condition variable does not store or test the condition --- the program checks the shared data
+
+That last pair is the difference from a semaphore: a semaphore's count
+remembers a signal nobody was waiting for, a condition variable forgets it.
+
+** Glossary
+
+| Term             | Definition                                                                                                                                                                                                                                                                                                       |
+| atomic operation | A function or action implemented as a sequence of one or more instructions that appears to be indivisible; that is, no other process can see an intermediate state or interrupt the operation. The sequence is guaranteed to execute as a group, or not execute at all, having no visible effect on system state. Atomicity guarantees isolation from concurrent processes. |
+| critical section | A section of code within a process that requires access to shared resources and that must not be executed while another process is in a corresponding section of code.                                                                                                                                       |
+| deadlock         | A situation in which two or more processes are unable to proceed because each is waiting for one of the others to do something.                                                                                                                                                                                   |
+| livelock         | A situation in which two or more processes continuously change their states in response to changes in the other process(es) without doing any useful work.                                                                                                                                                      |
+| mutual exclusion | The requirement that when one process is in a critical section that accesses shared resources, no other process may be in a critical section that accesses any of those shared resources.                                                                                                                       |
+| race condition   | A situation in which multiple threads or processes read and write a shared data item and the final result depends on the relative timing of their execution.                                                                                                                                                    |
+| starvation       | A situation in which a runnable process is overlooked indefinitely by the scheduler; although it is able to proceed, it is never chosen.                                                                                                                                                                         |

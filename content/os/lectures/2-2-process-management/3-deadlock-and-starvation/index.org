@@ -1,0 +1,317 @@
+#+TITLE: 2.2.3 Concurrency: Deadlock and Starvation
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+TAGS: concurrency, deadlock, operating-systems
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Concurrency Deadlocks and Starvation.pdf][Concurrency: Deadlock and Starvation (PDF)]]: Adiesha Liyanage
+
+* Concurrency: Deadlock and Starvation
+
+*Textbook:* Stallings Chapter 6 --- §6.1--6.6, §6.8 and §6.10.
+
+** Deadlock and Livelock, on a Staircase
+
+- A narrow staircase. Two people, one going down and one going up, meet in the middle
+  - Neither can move anywhere except back, and each waits for the other to move
+  - That is {{{hl(red,deadlock)}}}
+- Now a slightly wider staircase. What if both try to step aside in the same direction at the same time --- and keep doing it?
+  - That is {{{hl(red,livelock)}}}: two or more processes or threads continuously change their states in response to each other but make no actual progress
+
+** Deadlock
+
+- {{{hl(green,The /permanent/ blocking of a set of processes that either compete for system resources or communicate with each other)}}}
+- A set of processes is deadlocked when each process in the set is blocked awaiting an event that can only be triggered by another blocked process in the set
+- Permanent, because none of the events is ever triggered
+- No efficient solution in the general case
+
+Stallings Figure 6.1 (Illustration of Deadlock) is four cars at a four-way
+intersection, each wanting the quadrant ahead of it: in (a) deadlock is possible,
+in (b) each car has entered its first quadrant and is waiting on the next, which
+another car holds. There is an animation at
+[[https://www.cs.montana.edu/adiesha/animations/assets/os/deadlock-intersection.html][cs.montana.edu/adiesha/animations/.../deadlock-intersection.html]].
+
+** Joint Progress Diagrams
+
+Two processes $P$ and $Q$ share resources $A$ and $B$:
+
+| P         | Q         |
+| Get A     | Get B     |
+| Get B     | Get A     |
+| Do work   | Do work   |
+| Release A | Release B |
+| Release B | Release A |
+
+A /joint progress diagram/ plots the progress of $P$ on the horizontal axis
+against the progress of $Q$ on the vertical axis. A horizontal stretch of a path
+means $P$ is executing and $Q$ waiting; a vertical stretch means $Q$ executes and
+$P$ waits. Regions where both want $A$, or both want $B$, are forbidden.
+
+- *Figure 6.2 (Example of Deadlock)*: the two forbidden regions overlap in a way that leaves a /fatal region/ beside them. A path that enters it (P has A, Q has B) can only go on into a forbidden region, so deadlock is inevitable. Of the six paths drawn, paths 3 and 4 enter it
+- *Figure 6.3 (Example of No Deadlock)*: if $P$ instead does Get A, Release A, Get B, Release B --- never holding both --- the forbidden regions no longer form a fatal region and every path gets through
+
+Fatal regions:
+
+- Deadlock only occurs if two (or more) processes create a path that enters the fatal region
+- With more than two processes sharing resources, we need joint progress diagrams with more than two dimensions
+
+** Resource Categories
+
+| Reusable                                                                                                   | Consumable                                                           |
+| Can be safely used by only one process at a time and is not depleted by that use                           | One that can be created (produced) and destroyed (consumed)          |
+| Processors, I/O channels, main and secondary memory, devices, and data structures such as files, databases, and semaphores | Interrupts, signals, messages, and information in I/O buffers |
+
+*** Reusable resources: memory request example
+
+200 KB is available for allocation, and the following sequence of events occurs:
+
+| P1             | P2             |
+| ...            | ...            |
+| Request 80 KB  | Request 70 KB  |
+| ...            | ...            |
+| Request 60 KB  | Request 80 KB  |
+
+Deadlock occurs if both processes progress to their second request: after the
+first two, 50 KB is left, and neither second request fits.
+
+*** Consumable resources deadlock
+
+Can attempting to access consumable resources deadlock? Consider a pair of
+processes, each of which tries to receive a message from the other and then send
+one to it:
+
+| P1               | P2               |
+| ...              | ...              |
+| Receive (P2);    | Receive (P1);    |
+| ...              | ...              |
+| Send (P2, M1);   | Send (P1, M2);   |
+
+Deadlock occurs if =Receive= is blocking.
+
+- Deadlocks with reusable resources: common and straightforward
+- Deadlocks with consumable resources:
+  - Less typical, but possible
+  - If the production and consumption of resources are interdependent
+    - Such deadlocks might involve indirect circular waits
+
+** Conditions for Deadlock
+
+| Mutual exclusion                                                                                          | Hold-and-wait                                                              | No preemption                                                        | Circular wait                                                                                              |
+| Only one process may use a resource at a time. No process may access a resource that has been allocated to another process | A process may hold allocated resources while awaiting assignment of other resources | No resource can be forcibly removed from a process holding it | A closed chain of processes exists, such that each process holds at least one resource needed by the next process in the chain |
+
+The first three are /necessary/ for deadlock but not sufficient; circular wait is
+what actually happens when deadlock occurs. All four together are necessary and
+sufficient.
+
+** Resource Allocation Graphs
+
+How do we model a deadlock? With a /resource allocation graph/:
+
+- A directed graph that depicts a state of the system of resources and processes
+- Each process and each resource is represented by a node
+- An edge directed from a process to a resource indicates a resource that has been requested by the process but not yet granted
+- An edge directed from a reusable resource's dot to a process indicates a request that has been granted
+  - Each dot inside a resource node is one instance of that resource
+
+Stallings Figure 6.5 (Examples of Resource Allocation Graphs):
+
+- (a) Resource is requested: $P_1 \to R_a$
+- (b) Resource is held: $R_a \to P_1$
+- (c) Circular wait: $P_1$ holds $R_b$ and requests $R_a$; $P_2$ holds $R_a$ and requests $R_b$. With a single instance of each, this cycle is a deadlock
+- (d) No deadlock: the same request pattern, but $R_a$ has three instances and $R_b$ two, so the outstanding requests can be satisfied
+
+Stallings Figure 6.6 is the graph for the intersection of Figure 6.1b: four
+processes $P_1 \ldots P_4$ and four resources $R_a \ldots R_d$ in one cycle --- each
+$P_i$ holds one quadrant and requests the next.
+
+** How to Deal with Deadlocks?
+
+| Strategy            | Idea                                                                                                        |
+| Deadlock prevention | Disallow one of the three necessary conditions for deadlock, or prevent the circular wait condition from happening |
+| Deadlock avoidance  | Do not grant a resource request if this allocation might lead to deadlock                                    |
+| Deadlock detection  | Grant resource requests when possible, but periodically check for the presence of deadlock and take action to recover |
+
+*** Prevention vs avoidance
+
+- /Deadlock prevention/ designs the system and its resource allocation protocols so that at least one of the necessary conditions for deadlock cannot occur
+  - Using a resource allocation graph with specific rules to avoid circular waits can help prevent deadlocks
+- /Deadlock avoidance/ dynamically examines the resource allocation state of the system to make sure each resource request can be granted without leading to deadlock
+  - When a process requests a resource, the system temporarily pretends to allocate it and checks whether this allocation keeps the system in a safe state
+
+** Deadlock Prevention
+
+- Design the system so that the possibility of deadlock is excluded, by removing one of the conditions for deadlock
+- Two main methods:
+  - *Indirect*: prevent the occurrence of one of the three necessary conditions
+  - *Direct*: prevent the occurrence of a circular wait
+
+*** Condition by condition
+
+- *Mutual exclusion*
+  - If access to a resource requires mutual exclusion, then mutual exclusion must be supported by the OS --- this one generally can't be designed away
+  - Some resources, such as files, may allow multiple accesses for reads but only exclusive access for writes
+  - Even then, deadlock can occur if more than one process requires write permission
+- *Hold and wait*
+  - Can be prevented by requiring that a process request all of its required resources at one time, blocking the process until all requests can be granted simultaneously
+  - Problems:
+    - A process may wait a long time to acquire all of its resources
+    - Resources allocated to a process may go unused for a considerable amount of time
+    - A process may not know in advance which resources it will need
+- *No preemption*
+  - If a process holding certain resources is denied a further request, it must release its original resources and request them again
+  - Alternatively, if a process requests a resource held by another process, the OS may preempt the second process and require it to release its resources
+- *Circular wait*
+  - Can be prevented by defining a linear ordering of resource types --- every process requests resources in increasing order
+  - Look at the intersection example: if every car had to claim quadrants in one fixed order, no cycle could form
+
+Most of these prevention strategies are inefficient or unfavorable.
+
+** Deadlock Avoidance
+
+- Allows the three necessary deadlock conditions, but makes resource-allocation decisions carefully so the system never enters a deadlock state
+- For each resource request, the OS dynamically determines whether granting it could potentially lead to deadlock
+- A request is granted only if the resulting system state is considered /safe/
+- Requires information about processes' possible future resource requirements
+
+Two approaches:
+
+| Approach                    | Rule                                                                                  |
+| Resource allocation denial  | Do not grant an incremental resource request to a process if this allocation might lead to deadlock |
+| Process initiation denial   | Do not start a process if its demands might lead to deadlock                          |
+
+*** Resource allocation denial: the banker's algorithm
+
+- The /state/ of the system reflects the current allocation of resources to processes
+- A {{{hl(green,/safe state/ is one in which there is at least one sequence of resource allocations to processes that does not result in a deadlock)}}}
+  - A safe state is deadlock-free now, and is guaranteed to stay deadlock-free if the banker's algorithm is followed for future allocations
+- An /unsafe state/ is a state that is not safe
+  - An unsafe state does not mean there is a deadlock
+  - It means one might occur in the future
+
+The state is the resource vector $R$, the available vector $V$, the claim matrix
+$C$ and the allocation matrix $A$; $C - A$ is what each process may still ask for.
+These, the data structures and code of Figure 6.9, and the worked safe-state
+example (Figure 6.7, where $P_2, P_1, P_3, P_4$ all run to completion) are written
+out on the handout:
+[[file:../../handouts/deadlock-avoidance-and-detection.org][Deadlock Avoidance and Detection]].
+
+How it is applied:
+
+- When a process requests resources, the system /simulates/ granting the request and checks whether the resulting state is safe
+- Safe state: there exists an order in which all processes can obtain their remaining required resources and complete
+- If the resulting state is *safe*, the request is granted
+- If the resulting state is *unsafe*, the request is postponed
+
+*** Determination of an unsafe state (Figure 6.8)
+
+$R = (9, 3, 6)$. The initial state:
+
+| Process | $C$: R1 | R2 | R3 | $A$: R1 | R2 | R3 | $C-A$: R1 | R2 | R3 |
+| P1      |       3 |  2 |  2 |       1 |  0 |  0 |         2 |  2 |  2 |
+| P2      |       6 |  1 |  3 |       5 |  1 |  1 |         1 |  0 |  2 |
+| P3      |       3 |  1 |  4 |       2 |  1 |  1 |         1 |  0 |  3 |
+| P4      |       4 |  2 |  2 |       0 |  0 |  2 |         4 |  2 |  0 |
+
+$V = (1, 1, 2)$. This state is safe: $P_2$ can finish with $V$, and so on.
+
+Now $P_1$ requests one unit each of R1 and R3. Pretend to grant it:
+
+| Process | $A$: R1 | R2 | R3 | $C-A$: R1 | R2 | R3 |
+| P1      |       2 |  0 |  1 |         1 |  2 |  1 |
+| P2      |       5 |  1 |  1 |         1 |  0 |  2 |
+| P3      |       2 |  1 |  1 |         1 |  0 |  3 |
+| P4      |       0 |  0 |  2 |         4 |  2 |  0 |
+
+$V = (0, 1, 1)$. Every process still needs at least one unit of R1, and none is
+available, so no process is guaranteed to finish: {{{hl(red,the state is unsafe)}}},
+and the request is postponed. Nothing is deadlocked yet --- if $P_1$ happened to
+release resources first it would all work out --- but the OS can't count on that.
+
+*** Advantages and restrictions
+
+Advantages:
+
+- It is not necessary to preempt and roll back processes, as in deadlock detection
+- It is less restrictive than deadlock prevention
+
+Restrictions:
+
+- The maximum resource requirement for each process must be stated in advance
+- The processes under consideration must be independent, with no synchronization requirements
+- There must be a fixed number of resources to allocate
+- No process may exit while holding resources
+
+** Deadlock Detection
+
+- Deadlock prevention strategies are very conservative
+  - Limit access to resources by imposing restrictions on processes
+- Deadlock detection strategies do the opposite
+  - Resource requests are granted whenever possible
+
+*** Detection algorithms
+
+- A check for deadlock can be made as frequently as each resource request or, less frequently, depending on how likely it is for a deadlock to occur
+- The algorithm the deck uses is the Coffman--Elphick--Shoshani (CES) algorithm --- refer to the handout: [[file:../../handouts/deadlock-avoidance-and-detection.org][Deadlock Avoidance and Detection]], which also works the example of Figure 6.10
+
+| Advantages                    | Disadvantage                                  |
+| It leads to early detection   | Frequent checks consume considerable processor time |
+| The algorithm is relatively simple |                                          |
+
+For Figure 6.10, the deadlocked processes are {{{hl(red,P1 and P2)}}}: $P_4$ holds
+nothing and is marked straight away, $P_3$'s request fits the available vector so
+it is marked and its allocation returned, and after that neither $P_1$ nor $P_2$'s
+request can be met.
+
+- We could also use a resource allocation graph and check for cycles to detect deadlocks
+  - But with multiple-instance resources, you have to create a node for each instance of that resource (scalability issues)
+  - It is also harder to handle resources like main memory, where varying-size partitions can be allocated to processes (dynamic and divisible resources are harder to handle)
+
+*** Recovery strategies
+
+In roughly increasing order of sophistication:
+
+- Abort all deadlocked processes
+- Back up each deadlocked process to some previously defined checkpoint, and restart all processes
+- Successively abort deadlocked processes until deadlock no longer exists
+- Successively preempt resources until deadlock no longer exists
+
+** Integrated Deadlock Strategy
+
+It might be more efficient to use different strategies in different situations:
+
+- Group resources into a number of different resource classes
+- Use the linear ordering strategy defined previously for preventing circular wait to prevent deadlocks /between/ resource classes
+- Within a resource class, use the algorithm that is most appropriate for that class
+
+| Resource class     | What it is                                                         | Strategy                                                                                                                       |
+| Swappable space    | Blocks of memory on secondary storage for use in swapping processes | Prevention of hold-and-wait: all required resources that may be used are allocated at one time. Reasonable if the maximum storage required is known |
+| Process resources  | Assignable devices, such as tape drives, and files                 | Prevention by resource ordering, or avoidance --- it is reasonable to expect processes to declare ahead of time which of these they need |
+| Main memory        | Assignable to processes in pages or segments                       | Prevention by preemption --- we can simply swap the process out to secondary storage                                          |
+| Internal resources | Such as I/O channels                                               | Prevention by resource ordering                                                                                                 |
+
+** In Practice
+
+- *Deadlock prevention*
+  - Resource ordering
+  - Requiring all resources at once (though inefficient)
+- *Deadlock detection + recovery*
+  - Allow deadlocks to happen, periodically check, and then resolve (e.g., kill a process or preempt resources)
+- *Ignore deadlocks*
+  - Many general-purpose OSs (like Linux, Windows) just don't handle it explicitly, because deadlocks are rare and usually handled at the application level
+
+--------------------------
+
+Practice: 
+1. practice using the deadlock detection algorithm to identify deadlock processes
+2. Draw a corresponding resource allocation graph, and identify which processes are being deadlocked 
+  - Crate nodes for processes and resources, the number of nodes for the resources is determined by the total resource vector. Then use the request matrix to draw connections from process to resource, then use the allocation matrix to determine edges from resource to process.
+  - You find deadlocks in the graph by identifying cycles

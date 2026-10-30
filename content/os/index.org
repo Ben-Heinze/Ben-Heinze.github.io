@@ -66,8 +66,20 @@ Description
 ** Tests (30%)
 
 - Exact dates will be announced at least one week ahead of each test.
-- Test 1 
-- Test 2 
+- [[file:test-1/][Test 1]]: lectures up to September 30, 2026
+  - [[file:lectures/0-computer-system-overview/][0 Computer System Overview]]
+  - [[file:lectures/1-memory-management/][1 Memory Management]] (including Memory Hierarchy and Virtual Memory)
+  - [[file:lectures/2-1-process-management/][2.1 Process Management]]
+- [[file:test-2/][Test 2]]: all new material after Test 1
+  - [[file:lectures/2-2-process-management/][2.2 Process Management]]
+    - [[file:lectures/2-2-process-management/1-uniprocessor-scheduling/][2.2.1 Uniprocessor Scheduling]]
+    - [[file:lectures/2-2-process-management/2-windows-linux-cpu-scheduling/][2.2.2 Windows and Linux CPU Scheduling]]
+    - [[file:lectures/2-2-process-management/3-deadlock-and-starvation/][2.2.3 Concurrency: Deadlock and Starvation]]
+    - [[file:lectures/2-2-process-management/4-mutual-exclusion-and-synchronization/][2.2.4 Concurrency: Mutual Exclusion and Synchronization]]
+    - [[file:lectures/2-2-process-management/5-theoretical-problems-in-concurrency/][2.2.5 Theoretical Problems in Concurrency]]
+  - [[file:lectures/2-3-threads/][2.3 Threads and Processes]]
+  - [[file:lectures/3-file-management/][3 File Management]]
+  - [[file:lectures/handouts/][Handouts]]: Deadlock Avoidance and Detection, Readers/Writers
 - Test 3 
 
 ** Homework (20%)

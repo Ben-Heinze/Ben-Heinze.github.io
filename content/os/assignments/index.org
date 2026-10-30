@@ -20,7 +20,7 @@ what each one is for and how it works --- rather than code.
 Handout: [[file:Assignment_2_Typed_Buffer.pdf][Assignment 2: Typed Buffer (PDF)]] (the Markdown version,
 =assignment-2-typed-buffer.md=, is kept alongside it in this folder). Due 11/01/2026.
 
-*Topic:* thread synchronization --- a variation of the [[file:../lectures/2-2-process-management/index.org::*Producer/Consumer Problem][bounded producer/consumer problem]]
+*Topic:* thread synchronization --- a variation of the [[file:../lectures/2-2-process-management/5-theoretical-problems-in-concurrency/index.org::*Producer/Consumer Problem][bounded producer/consumer problem]]
 in which each consumer can only take items of its own type.
 
 ** Purpose
@@ -92,7 +92,7 @@ for good: an effective deadlock.
 - *Wait on the resource before the mutex:* with semaphores, a producer must wait
   on /space/ first and then on the mutex. Taking the mutex first and then
   blocking on /space/ freezes everyone --- the same
-  [[file:../lectures/2-2-process-management/index.org::*Questions][fatal swap from the producer/consumer lecture]].
+  [[file:../lectures/2-2-process-management/5-theoretical-problems-in-concurrency/index.org::*Questions][fatal swap from the producer/consumer lecture]].
 
 ** Termination
 

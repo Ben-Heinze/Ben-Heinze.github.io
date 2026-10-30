@@ -1,0 +1,363 @@
+#+TITLE: 2.2.1 Uniprocessor Scheduling
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-07
+#+TAGS: operating-systems, scheduling
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Slides: [[file:Uniprocessor scheduling.pdf][Uniprocessor Scheduling (PDF)]]: Adiesha Liyanage
+
+* Scheduling
+
+The aim of processor scheduling is to assign processes to be executed by the processor over time in a way that meets system objectives — response time, throughput, and processor efficiency.
+
+The key to multiprogramming /is/ scheduling: having several processes resident at
+once only buys you anything if something decides, moment to moment, which one runs.
+Everything on this page concerns a system with one processor.
+
+* Types of Scheduling
+
+Four decisions, distinguished by what they decide rather than by which component
+makes them:
+
+| Long-term     | The decision to add to the pool of processes to be executed                              |
+| Medium-term   | The decision to add to the number of processes partially or fully in main memory         |
+| Short-term    | The decision as to which available process will be executed by the processor             |
+| I/O           | The decision as to which process's pending I/O request is handled by an available device |
+
+In modern general-purpose desktop operating systems these are /not/ necessarily
+three separate scheduler components. The reason to learn them separately is that
+they make fundamentally different decisions:
+
+- *Long-term*: should this job/process enter the system at all?
+- *Medium-term*: should this process temporarily be removed from active execution?
+- *Short-term*: which ready thread should use the CPU now?
+
+Figure 9.1 in the deck overlays these onto the process state diagram: long-term
+scheduling drives the =New -> Ready= transition, medium-term scheduling drives the
+suspend transitions (=Ready/Suspend= and =Blocked/Suspend=), and short-term
+scheduling drives =Ready -> Running=. Figure 9.3 redraws the same thing as a
+queueing diagram: batch jobs and interactive users feed a long-term scheduler,
+which feeds the ready queue; the short-term scheduler pulls from the ready queue
+into the processor; and timeout, release, and event-wait edges carry work back out.
+
+** Long-Term Scheduling
+
+The long-term scheduler determines which programs are admitted to the system for
+processing. In doing so it controls the degree of multiprogramming:
+
+- The more processes created, the smaller the percentage of time each process gets
+  to execute.
+- So it may deliberately /limit/ admissions to provide satisfactory service to the
+  processes already in the system.
+
+Once admitted, a process is normally handed to the short-term scheduler. In some
+systems new programs are instead created as swapped-out processes, in which case
+they go to the medium-term scheduler.
+
+Two decisions, taken together (deck figure, p8):
+
+- *When* the OS can take on one or more additional processes — driven by the
+  current degree of multiprogramming.
+- *Which* jobs to accept and turn into processes — by FCFS, or by priority,
+  expected execution time, and I/O requirements.
+
+Interactive time-sharing systems behave differently: a process-creation request can
+be generated simply by a user attempting to connect. Time-sharing users are not
+queued up and kept waiting until the system can accept them — the OS accepts all
+authorized users until the system is saturated.
+
+** Medium-Term Scheduling
+
+Part of the swapping function. Swapping-in decisions are based on the need to
+manage the degree of multiprogramming, and take into account the memory
+requirements of the swapped-out processes.
+
+** Short-Term Scheduling
+
+Known as the /dispatcher/. It executes most frequently and makes the fine-grained
+decision of which process to execute next. It is invoked whenever an event occurs
+that may block the current process or create an opportunity to preempt it in favour
+of another:
+
+- Clock interrupts
+- I/O interrupts
+- Operating system calls
+- Signals (e.g. semaphores)
+
+The rest of this page is about short-term scheduling.
+
+* Short-Term Scheduling Criteria
+
+What are we trying to achieve? To allocate processor time to processes, and to do
+so in a way that optimizes one or more aspects of system behaviour. System
+behaviour can be viewed from two perspectives, and each splits again by whether it
+can be quantified:
+
+|                     | *User-oriented* — behaviour as perceived by the individual user or process | *System-oriented* — effective and efficient utilization of the processor |
+| *Performance-related* (quantitative, easily measured)    | Turnaround time, response time, deadlines | Throughput, processor utilization                     |
+| *Non-performance-related* (qualitative, hard to measure) | Predictability                            | Fairness, enforcing priorities, balancing resources   |
+
+User-oriented criteria are important on virtually all systems. System-oriented
+criteria are generally of minor importance on single-user systems.
+
+** User-oriented, performance-related
+
+- /Turnaround time/ --- the interval between the submission of a process and its
+  completion. Also written $T_r$.
+- /Response time/ --- for an interactive process, the time from submission of a
+  request until the response begins to be received.
+- /Deadline/ --- where process deadlines can be specified, the algorithm must meet
+  them, or at least meet some required percentage of them.
+
+** User-oriented, non-performance-related
+
+- /Predictability/ --- a given job should run in about the same amount of time and
+  at about the same cost regardless of the load on the system.
+
+** System-oriented, performance-related
+
+- /Throughput/ --- number of processes completed per unit of time.
+- /Processor utilization/ --- the percentage of time the processor is busy.
+
+** System-oriented, non-performance-related
+
+- /Fairness/ --- processes should be treated the same in the absence of user- or
+  system-supplied guidance.
+- /Enforcing priorities/ --- when processes are assigned priorities, the policy
+  should favour higher-priority processes.
+- /Balancing resources/ --- the policy should keep the system's resources busy.
+
+Note that several of these actively conflict: favouring high priority works against
+fairness, and maximizing throughput tends to work against response time.
+
+* Priority-Based Scheduling
+
+In many systems processes are assigned a priority, and the scheduler picks the
+ready process with the highest priority. The natural implementation is a
+priority-queuing approach: one ready queue per priority level, =RQ0= through
+=RQn=, with the dispatcher taking from the highest non-empty queue (Figure 9.4 in
+the deck).
+
+The problem with a *pure* priority scheme is starvation
+— lower-priority
+processes may never run as long as higher-priority work keeps arriving. The fix is
+to make priority a function of age and execution history rather than a fixed
+attribute, so a process that has waited drifts upward. Both the multilevel feedback
+policy below and the real Windows and Linux schedulers are versions of this idea.
+
+* Scheduling Policies
+
+Each policy is characterised by two things:
+
+- Selection function
+  --- determines which process, among the ready
+  processes, is selected next. It is written in terms of three quantities:
+  - $w$ = time spent in the system so far (waiting)
+  - $e$ = time spent in execution so far
+  - $s$ = total service time required by the process, including $e$
+- Decision mode
+  --- specifies the instants at which the selection
+  function is exercised:
+  - /Nonpreemptive/: once a process is running it continues until it terminates or
+    blocks itself.
+  - /Preemptive/: the currently running process may be interrupted and moved to the
+    ready state by the OS.
+
+** Nonpreemptive vs preemptive
+
+Preemptive policies incur greater overhead — every preemption is a context switch —
+but provide better service to the process population as a whole, because no single
+process can monopolize the processor. Efficient process switching, hardware
+support, and larger main memory all help preemptive policies run efficiently.
+
+Most general-purpose modern systems use preemptive scheduling. Some systems still
+use nonpreemptive policies, real-time operating systems among them.
+
+** The worked example
+
+Every policy in the deck is run against this one process set (Stallings Table 9.4):
+
+| Process      | A | B | C | D | E |
+| Arrival Time | 0 | 2 | 4 | 6 | 8 |
+| Service Time | 3 | 6 | 4 | 5 | 2 |
+
+And compared on turnaround time $T_r$ and normalized turnaround time $T_r/T_s$,
+where $T_s$ is the service time. The summary table (Stallings Table 9.5) is worth
+having in full, because the ranking is the point of the whole section:
+
+| Policy         | Metric          |    A |    B |    C |    D |    E |  Mean |
+| FCFS           | Finish Time     |    3 |    9 |   13 |   18 |   20 |       |
+|                | $T_r$           |    3 |    7 |    9 |   12 |   12 |  8.60 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.25 | 2.40 | 6.00 |  2.56 |
+| RR, $q = 1$    | Finish Time     |    4 |   18 |   17 |   20 |   15 |       |
+|                | $T_r$           |    4 |   16 |   13 |   14 |    7 | 10.80 |
+|                | $T_r/T_s$       | 1.33 | 2.67 | 3.25 | 2.80 | 3.50 |  2.71 |
+| RR, $q = 4$    | Finish Time     |    3 |   17 |   11 |   20 |   19 |       |
+|                | $T_r$           |    3 |   15 |    7 |   14 |   11 | 10.00 |
+|                | $T_r/T_s$       | 1.00 | 2.50 | 1.75 | 2.80 | 5.50 |  2.71 |
+| SPN            | Finish Time     |    3 |    9 |   15 |   20 |   11 |       |
+|                | $T_r$           |    3 |    7 |   11 |   14 |    3 |  7.60 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.75 | 2.80 | 1.50 |  1.84 |
+| SRT            | Finish Time     |    3 |   15 |    8 |   20 |   10 |       |
+|                | $T_r$           |    3 |   13 |    4 |   14 |    2 |  7.20 |
+|                | $T_r/T_s$       | 1.00 | 2.17 | 1.00 | 2.80 | 1.00 |  1.59 |
+| HRRN           | Finish Time     |    3 |    9 |   13 |   20 |   15 |       |
+|                | $T_r$           |    3 |    7 |    9 |   14 |    7 |  8.00 |
+|                | $T_r/T_s$       | 1.00 | 1.17 | 2.25 | 2.80 | 3.50 |  2.14 |
+| FB, $q = 1$    | Finish Time     |    4 |   20 |   16 |   19 |   11 |       |
+|                | $T_r$           |    4 |   18 |   12 |   13 |    3 | 10.00 |
+|                | $T_r/T_s$       | 1.33 | 3.00 | 3.00 | 2.60 | 1.50 |  2.29 |
+| FB, $q = 2^i$  | Finish Time     |    4 |   17 |   18 |   20 |   14 |       |
+|                | $T_r$           |    4 |   15 |   14 |   14 |    6 | 10.60 |
+|                | $T_r/T_s$       | 1.33 | 2.50 | 3.50 | 2.80 | 3.00 |  2.63 |
+
+Reading it: *SRT wins on both means* (7.20 and 1.59), SPN is next, and the two
+round-robin variants are the worst on mean turnaround. But notice E, the shortest
+job: under FCFS it waits behind everything and gets a normalized turnaround of
+6.00, while SRT gives it 1.00. That single column is the argument for knowing
+service times. And notice D, the longest job still in the system at the end: it
+sits at 2.80 under almost every policy, which is why "SRT is best" is a statement
+about means and not about any individual process.
+
+[Figure 9.5, a Gantt-chart comparison of all eight schedules over $t = 0..20$, is a
+slide image and is not reproduced here — see p41 of the PDF.]
+
+** First-Come-First-Served (FCFS)
+
+- Selection function: $\max w$
+- Decision mode: nonpreemptive
+
+The simplest policy. As each process becomes ready it joins the ready queue; when
+the running process ceases to execute, the process that has been in the queue
+longest is selected. Implementation is literally a queue.
+
+Its two biases:
+
+- *Performs much better for long processes than short ones.* A short job arriving
+  behind a long one inherits the long one's wait, which is catastrophic in relative
+  terms — hence E's 6.00 above.
+- *Favours processor-bound processes over I/O-bound ones.* A long CPU-bound process
+  occupies the processor while short I/O-bound processes wait behind it. The deck's
+  illustration: =P1= is CPU-bound and needs 100 ms of CPU; =P2= and =P3= are
+  I/O-bound and each need 2 ms of CPU before doing I/O. Behind =P1=, both I/O-bound
+  processes stall, and the I/O devices sit idle the whole time.
+
+** Round Robin
+
+- Selection function: constant (cycle through the queue)
+- Decision mode: preemptive, at a given time quantum $q$
+
+Preemption based on a clock, which is why it is also called /time slicing/. A clock
+interrupt is generated at periodic intervals; when it occurs, the running process is
+placed at the back of the ready queue and the next ready job is selected on an FCFS
+basis.
+
+The principal design issue is the length of the quantum:
+
+- If $q$ is very short, short processes move through the system relatively quickly.
+- But there is processing overhead in the clock interrupt and the scheduling itself,
+  so a very short quantum must be avoided.
+- Useful guide: the quantum should be slightly greater than the time required for a typical interaction or process function.
+
+Particularly effective in general-purpose time-sharing and transaction-processing
+systems. Its one drawback is again the relative treatment of processor-bound and
+I/O-bound processes: an I/O-bound process typically does /not/ use its full
+quantum — it blocks partway through — so it gets a smaller share of the processor
+than a CPU-bound process that consumes every quantum in full. (The fix, virtual
+round robin, gives a process that blocks early a preferential auxiliary queue so
+it reclaims the unused remainder.)
+
+** Shortest Process Next (SPN)
+
+- Selection function: $\min s$
+- Decision mode: nonpreemptive
+
+The process with the shortest expected processing time is selected next, so a short
+process jumps to the head of the queue. Implementation is a priority queue keyed on
+expected service time.
+
+The difficulty is that you need to know, or at least estimate, each process's
+required processing time. Either the OS uses previous statistics it has stored, or
+the user/programmer supplies the value. If the programmer's estimate is
+substantially under the actual running time the system may abort the job.
+
+Costs:
+
+- Possibility of starvation for longer processes, as long as there is a
+  steady supply of shorter ones.
+- Variability of response time is increased, so it is less predictable.
+- Not suitable for time-sharing systems.
+
+Useful for batch processing where user interaction is minimal — mainframes and
+early computers — and potentially in real-time or embedded systems.
+
+** Shortest Remaining Time (SRT)
+
+- Selection function: $\min(s - e)$
+- Decision mode: preemptive
+
+The preemptive version of SPN: the scheduler always chooses the process with the
+shortest expected /remaining/ processing time, re-deciding whenever a new process
+arrives.
+
+- Does not favour long processes, and should give superior turnaround performance to
+  SPN, because a short job gets immediate preference over a running longer job. The
+  table above bears this out — SRT is the best policy on both means.
+- Risk of starvation of longer processes remains.
+- Elapsed service time must be recorded for every process.
+- No additional interrupts are generated: the dispatcher is only invoked when a new
+  process enters the system, not on a clock tick, so the overhead is lower than
+  round robin's.
+
+** Highest Response Ratio Next (HRRN)
+
+- Selection function: $\max R$, where
+
+\[
+  R = \frac{w + s}{s}
+\]
+
+- Decision mode: nonpreemptive
+
+When the current process completes or blocks, choose the ready process with the
+greatest $R$. This is attractive because it accounts for the age
+of a
+process. Shorter jobs are still favoured — a small $s$ makes the ratio large — but
+aging without service increases $w$ and hence the ratio, so a longer process will
+eventually get past competing shorter jobs. That is starvation-freedom bought
+without giving up the preference for short jobs, and it lands HRRN between SPN and
+FCFS in the comparison table.
+
+** Multilevel Feedback
+
+- Decision mode: preemptive, at each time quantum
+
+An extension of FCFS for the case where we have /no/ indication of the relative
+length of the various processes — which is the normal case, and which rules out
+SPN, SRT and HRRN, all of which need $s$. Instead of service time, it focuses on
+time spent in execution so far, using a dynamic priority mechanism over a set of
+queues =RQ0=, =RQ1=, ..., =RQn= (Figure 9.10):
+
+- When a process first enters the system it is placed in the priority 0 queue.
+- After it is preempted, it is returned to the priority 1 queue.
+- Each subsequent time, it is placed in the next lower-priority queue.
+- In the lowest-priority queue, FCFS is used.
+- Selection always takes a ready process from the highest-priority non-empty queue,
+  moving down only when the queues above are empty.
+
+So a process that keeps using its full quantum sinks, and short interactive
+processes that block early stay near the top — it infers "this is a long job" from
+behaviour rather than being told. The cost: turnaround time for longer processes stretches out very fast, since a long process keeps sinking while new
+arrivals keep entering above it. Using a quantum that grows with depth
+($q = 2^i$ at level $i$) softens this, which is the =FB, q = 2^i= row in the table.
+
+[One slide in this section (p40) is a figure with no extractable text — see the PDF.]

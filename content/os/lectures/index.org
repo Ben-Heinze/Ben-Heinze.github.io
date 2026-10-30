@@ -19,8 +19,14 @@
 | Week 3 (Sep 9)  | Memory Hierarchy --- at the bottom of 1 Memory Management      |
 | Week 3 (Sep 11) | Virtual Memory --- at the bottom of 1 Memory Management        |
 | Week 5 (Sep 21) | 2.1 Process Management                                         |
-| Week 7 (Oct 7)  | 2.2 Process Management --- scheduling, then concurrency: mutual exclusion, deadlock, theoretical problems in concurrency |
+| Week 7 (Oct 7)  | 2.2 Process Management                                         |
+|                 | 2.2.1 Uniprocessor Scheduling                                  |
+|                 | 2.2.2 Windows and Linux CPU Scheduling                         |
+|                 | 2.2.3 Concurrency: Deadlock and Starvation                     |
+|                 | 2.2.4 Concurrency: Mutual Exclusion and Synchronization        |
+|                 | 2.2.5 Theoretical Problems in Concurrency                      |
 |                 | 2.3 Threads and Processes                                      |
+|                 | 3 File Management                                              |
 
 Paper handouts given out in class are recreated on the [[file:handouts/][Handouts]] page
 rather than on the lecture page they arrived with.
