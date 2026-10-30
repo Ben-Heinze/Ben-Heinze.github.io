@@ -530,6 +530,10 @@
             "href": "/os/test-2/practice-test/index.html"
           }
         ]
+      },
+      {
+        "label": "Assignments",
+        "href": "/os/assignments/index.html"
       }
     ]
   },

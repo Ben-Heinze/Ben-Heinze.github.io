@@ -20,7 +20,7 @@ drawer, so this page reads as a plain question list while the
 [[file:../practice-test/][Practice Test]] renders it as an interactive, gradeable test with good/bad
 ratings. Questions are grouped by unit, then by the lecture-note section they
 test. Tags: =sched= (Scheduling), =thr= (Threads), =mutex= (Mutual Exclusion),
-=cprob= (Concurrency Problems), =dead= (Deadlock), =file= (File Management).
+=cprob= (Concurrency Problems), =dead= (Deadlock), =file= (File Management), =asg2= (Assignment 2).
 
 The layout mirrors Test 1: one-sentence /quick-write/ questions (definitions,
 differences between methods), then worked /math/ problems, then
@@ -200,14 +200,6 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** In scheduling, what do w, e, and s stand for?
-:PROPERTIES:
-:Q_TYPE: short
-:Q_ANSWER: w is the time spent in the system so far (waiting), e is the time spent in execution so far, and s is the total service time required, including e.
-:Q_EXPLAIN: Notes: 2.2 Process Management › Scheduling Policies.
-:Q_UNIT: sched
-:END:
-
 *** What is the difference between nonpreemptive and preemptive decision modes?
 :PROPERTIES:
 :Q_TYPE: short
@@ -351,7 +343,7 @@ differences between methods), then worked /math/ problems, then
 
 ** The worked example
 
-*** For the lecture's process set, compute each process's finish time and turnaround time under FCFS, and the mean turnaround.
+*** For the processes below, compute each process's finish time and turnaround time under FCFS, and the mean turnaround.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: A: arrival 0, service 3 | B: arrival 2, service 6 | C: arrival 4, service 4 | D: arrival 6, service 5 | E: arrival 8, service 2
@@ -361,7 +353,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** For the lecture's process set, compute finish and turnaround times under SRT.
+*** For the processes below, compute finish and turnaround times under SRT.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: A: arrival 0, service 3 | B: arrival 2, service 6 | C: arrival 4, service 4 | D: arrival 6, service 5 | E: arrival 8, service 2
@@ -371,7 +363,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** For the lecture's process set, run HRRN and show the response ratios at each decision.
+*** For the processes below, run HRRN and show the response ratios at each decision.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: A: arrival 0, service 3 | B: arrival 2, service 6 | C: arrival 4, service 4 | D: arrival 6, service 5 | E: arrival 8, service 2
@@ -381,7 +373,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** For the lecture's process set, trace round robin with q = 1.
+*** For the processes below, trace round robin with q = 1.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: A: arrival 0, service 3 | B: arrival 2, service 6 | C: arrival 4, service 4 | D: arrival 6, service 5 | E: arrival 8, service 2 | Convention: a process arriving at time t joins the queue before the process preempted at t.
@@ -391,24 +383,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** In the lecture's comparison table, which policy has the best mean turnaround and mean normalized turnaround?
-:PROPERTIES:
-:Q_TYPE: mc
-:Q_OPTIONS: SRT | SPN | HRRN | FCFS
-:Q_ANSWER: SRT
-:Q_EXPLAIN: Notes: 2.2 Process Management › The worked example. SRT: 7.20 and 1.59; SPN is next (7.60, 1.84).
-:Q_UNIT: sched
-:END:
-
-*** In the lecture's example, why does process E get a normalized turnaround of 6.00 under FCFS but 1.00 under SRT?
-:PROPERTIES:
-:Q_TYPE: short
-:Q_ANSWER: E is the shortest job but arrives last, so under FCFS it waits behind everything, while SRT runs it as soon as it arrives because it has the least remaining time.
-:Q_EXPLAIN: Notes: 2.2 Process Management › The worked example.
-:Q_UNIT: sched
-:END:
-
-*** New process set: compute finish times, turnaround times, and mean turnaround under SPN.
+*** For the processes below, compute finish times, turnaround times, and mean turnaround under SPN.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: A: arrival 0, service 4 | B: arrival 1, service 3 | C: arrival 2, service 1 | D: arrival 3, service 5 | E: arrival 5, service 2
@@ -418,7 +393,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** New process set: compute finish and turnaround times under SRT.
+*** For the processes below, compute finish and turnaround times under SRT (another process set).
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: A: arrival 0, service 4 | B: arrival 1, service 3 | C: arrival 2, service 1 | D: arrival 3, service 5 | E: arrival 5, service 2 | Tie rule: on equal remaining time, the running process keeps the CPU.
@@ -428,7 +403,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** New process set: run HRRN and show the response ratios at each decision.
+*** For the processes below, run HRRN and show the response ratios at each decision (another process set).
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: A: arrival 0, service 4 | B: arrival 1, service 3 | C: arrival 2, service 1 | D: arrival 3, service 5 | E: arrival 5, service 2
@@ -438,7 +413,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** New process set: trace round robin with q = 2 and give each finish time.
+*** For the processes below, trace round robin with q = 2 and give each finish time.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: A: arrival 0, service 4 | B: arrival 1, service 3 | C: arrival 2, service 1 | D: arrival 3, service 5 | E: arrival 5, service 2 | Convention: a process arriving at time t joins the queue before the process preempted at t.
@@ -448,7 +423,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: sched
 :END:
 
-*** Second new set: compute FCFS and SRT mean turnaround times.
+*** For the processes below, compute FCFS and SRT mean turnaround times.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_DATA: P1: arrival 0, service 7 | P2: arrival 2, service 4 | P3: arrival 4, service 1 | P4: arrival 5, service 4 | Tie rule: on equal remaining time, the earlier arrival wins.
@@ -1463,41 +1438,31 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: mutex
 :END:
 
-*** The first attempt (a shared turn variable) guarantees mutual exclusion.
+*** In two-process software mutual exclusion, what goes wrong if the processes take turns using a shared turn variable?
 :PROPERTIES:
-:Q_TYPE: tf
-:Q_ANSWER: True
+:Q_TYPE: short
+:Q_ANSWER: Mutual exclusion holds, but the processes must strictly alternate (the slower one sets the pace), and if one process fails the other is blocked forever.
 :Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › First attempt: a shared turn variable.
 :Q_UNIT: mutex
 :END:
 
-*** What are the drawbacks of the first attempt (a shared turn variable)?
+*** In two-process software mutual exclusion, what goes wrong if each process checks the other's flag and then sets its own?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: Processes must strictly alternate (the slower one sets the pace), P1 can't go first, and if one process fails the other is blocked forever.
-:Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › First attempt: a shared turn variable.
-:Q_STEPS: /* PROCESS 0 */ | while (turn != 0) /* do nothing */ ; | /* critical section */ ; | turn = 1;
-:Q_UNIT: mutex
-:END:
-
-*** Why does the second attempt (check the other flag, then set your own) fail?
-:PROPERTIES:
-:Q_TYPE: short
-:Q_ANSWER: It does not provide mutual exclusion: both flags start false, so each process can pass its while check before the other sets its flag, and both enter the critical section.
+:Q_ANSWER: No mutual exclusion: both can pass the check before either sets its flag, so both enter the critical section.
 :Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › Second attempt: one flag per process, checked first.
-:Q_STEPS: /* PROCESS 0 */ | while (flag[1]) /* do nothing */; | flag[0] = true; | /* critical section */; | flag[0] = false;
 :Q_UNIT: mutex
 :END:
 
-*** What goes wrong with the third attempt (set your flag before checking the other's)?
+*** In two-process software mutual exclusion, what goes wrong if each process sets its own flag and then waits while the other's flag is set?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: Mutual exclusion holds, but if both set their flags to true before either checks, neither can ever enter: deadlock.
+:Q_ANSWER: Mutual exclusion holds, but if both set their flags before either checks, neither can ever enter: deadlock.
 :Q_EXPLAIN: Notes: 2.2 › Software-Based Solutions › Third attempt: set the flag before checking.
 :Q_UNIT: mutex
 :END:
 
-*** What goes wrong with the fourth attempt (reset your flag to defer to the other)?
+*** In two-process software mutual exclusion, what goes wrong if each process sets its flag but briefly resets it to defer when the other's flag is set?
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Mutual exclusion holds, but if the two run in lockstep they keep setting, deferring, and resetting forever without entering: livelock.
@@ -1565,12 +1530,11 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: mutex
 :END:
 
-*** Write mutual exclusion for process P(i) using compare&swap and a shared bolt.
+*** How is compare&swap used to enforce mutual exclusion?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: Spin while compare_and_swap(bolt, 0, 1) returns 1; the process that finds bolt = 0 enters and sets bolt back to 0 on exit.
+:Q_ANSWER: A shared lock variable starts at 0; a process atomically swaps it from 0 to 1 and enters only if it found 0, otherwise it spins; on exit it sets the variable back to 0.
 :Q_EXPLAIN: Notes: 2.2 › Mutual Exclusion: Hardware Support › Compare&swap instruction.
-:Q_STEPS: function P(int i) | . while true do | . . while compare_and_swap(bolt, 0, 1) == 1 do  /* nothing */ | . . /* access the shared resource */ | . . bolt <- 0 | . . /* remainder */ | main: bolt <- 0; parbegin(P(0), ..., P(n))
 :Q_UNIT: mutex
 :END:
 
@@ -1772,16 +1736,15 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: cprob
 :END:
 
-*** How can the first attempt (one semaphore per fork) deadlock?
+*** How can the simple dining philosophers solution (each philosopher picks up the left fork, then the right) deadlock?
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: If all five pick up their left fork at the same time, each waits forever for a right fork that a neighbor holds.
 :Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › First attempt: one semaphore per fork.
-:Q_STEPS: think(); | wait(fork[i]); | wait(fork[(i+1) mod 5]); | eat(); | signal(fork[(i+1) mod 5]); | signal(fork[i]);
 :Q_UNIT: cprob
 :END:
 
-*** Give the two fixes the lecture suggests for the dining philosophers deadlock.
+*** Give two ways to prevent deadlock in the dining philosophers problem.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Add five more forks, or add a room attendant who lets only 4 philosophers into the room at a time.
@@ -1789,35 +1752,18 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: cprob
 :END:
 
-*** In the room-semaphore solution, what is room initialized to, and why?
+*** In the dining philosophers problem, why does letting at most four philosophers sit at the table at once prevent deadlock?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: 4, so at most four philosophers compete for five forks and at least one of them can always get two forks.
+:Q_ANSWER: With at most four philosophers competing for five forks, at least one of them can always get both forks, eat, and release them.
 :Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › Second attempt: the room semaphore.
 :Q_UNIT: cprob
 :END:
 
-*** Write the philosopher loop for the room-semaphore solution.
+*** How can a monitor solve the dining philosophers problem?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: Think, wait(room), take both forks, eat, release both forks, then signal(room).
-:Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › Second attempt: the room semaphore.
-:Q_STEPS: semaphore fork[5] = {1}; semaphore room = {4}; | while (true) { | . think(); | . wait(room); | . wait(fork[i]); | . wait(fork[(i+1) mod 5]); | . eat(); | . signal(fork[(i+1) mod 5]); | . signal(fork[i]); | . signal(room); | }
-:Q_UNIT: cprob
-:END:
-
-*** In the monitor solution, what does get_forks do when a fork is not available?
-:PROPERTIES:
-:Q_TYPE: short
-:Q_ANSWER: It calls cwait on that fork's condition variable (ForkReady[left] or ForkReady[right]) and queues until the fork is released.
-:Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › Solution using a monitor.
-:Q_UNIT: cprob
-:END:
-
-*** In the monitor solution, what does release_forks do for each fork?
-:PROPERTIES:
-:Q_TYPE: short
-:Q_ANSWER: If no one is waiting on that fork's condition, it marks the fork available (true); otherwise it csignals the condition to wake a waiting philosopher.
+:Q_ANSWER: Philosophers get and release forks through monitor procedures (only one inside at a time); a philosopher waits on a fork's condition variable if it is taken, and releasing a fork signals a philosopher waiting for it, or marks it free if no one is.
 :Q_EXPLAIN: Notes: 2.2 › Dining Philosophers Problem › Solution using a monitor.
 :Q_UNIT: cprob
 :END:
@@ -1832,15 +1778,15 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: cprob
 :END:
 
-*** In the initial binary-semaphore solution, what are s and delay for?
+*** In a producer/consumer solution using two binary semaphores, what job does each semaphore do?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: s makes sure only one process at a time is in the buffer; delay makes the consumer wait when there is nothing to consume.
+:Q_ANSWER: One gives mutual exclusion on the buffer; the other makes the consumer wait when there is nothing to consume.
 :Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Initial solution: two binary semaphores.
 :Q_UNIT: cprob
 :END:
 
-*** Why is the initial binary-semaphore producer/consumer solution incorrect?
+*** Why is this binary-semaphore producer/consumer solution incorrect?
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: The consumer tests if (n==0) outside the critical section, so the producer can change n in between; a leftover delay signal then lets the consumer take from an empty buffer and n reaches -1.
@@ -1850,43 +1796,43 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: cprob
 :END:
 
-*** How does the correct binary-semaphore solution (Figure 5.13) fix the consumer?
+*** In a binary-semaphore producer/consumer solution, why should the consumer test a copy of the item count taken inside the critical section?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: It copies n into a local variable m inside the critical section and tests if (m==0) afterward, so the test uses the value seen while holding s.
+:Q_ANSWER: Testing the shared count after leaving the critical section lets the producer change it in between; a copy taken while holding the lock reflects what the consumer actually saw.
 :Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Fix 1: copy n inside the critical section.
 :Q_UNIT: cprob
 :END:
 
-*** Write the producer and consumer using general (counting) semaphores n and s.
+*** How do counting semaphores solve the producer/consumer problem with an unbounded buffer?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: The producer appends inside s then signals n; the consumer waits on n, then on s, takes, and signals s.
+:Q_ANSWER: One semaphore counts the items (the producer signals it after adding, the consumer waits on it before taking), and a second gives mutual exclusion on the buffer.
 :Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Fix 2: general (counting) semaphores (Stallings Figure 5.14).
 :Q_STEPS: semaphore n = 0, s = 1; | producer: while (true) { produce(); semWait(s); append(); semSignal(s); semSignal(n); } | consumer: while (true) { semWait(n); semWait(s); take(); semSignal(s); consume(); }
 :Q_UNIT: cprob
 :END:
 
-*** In the counting-semaphore producer, what happens if semSignal(s) and semSignal(n) are swapped?
+*** In a semaphore producer/consumer solution, does the order in which the producer signals the buffer mutex and the item count matter?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: Nothing breaks: correctness is not affected, because the consumer still has to acquire s before touching the buffer.
+:Q_ANSWER: No: correctness is not affected, because the consumer still has to acquire the buffer mutex before touching the buffer.
 :Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Questions.
 :Q_UNIT: cprob
 :END:
 
-*** In the counting-semaphore consumer, what happens if semWait(n) and semWait(s) are swapped?
+*** In a semaphore producer/consumer solution, why must the consumer wait on the item count before acquiring the buffer mutex?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: It is fatal: the consumer can take s while the buffer is empty and then block on n while holding s, so the producer can never add an item: deadlock.
+:Q_ANSWER: Otherwise it can hold the mutex while the buffer is empty and block waiting for an item, so the producer can never get in to add one: deadlock.
 :Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Questions.
 :Q_UNIT: cprob
 :END:
 
-*** In the bounded-buffer solution, give the initial value and purpose of s, n, and e.
+*** In the bounded-buffer producer/consumer solution, what does each of the three semaphores do, and what is its initial value?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: s = 1 for mutual exclusion on the buffer; n = 0 counts filled slots (the consumer waits on it); e = sizeofbuffer counts empty slots (the producer waits on it).
+:Q_ANSWER: A mutex on the buffer (starts at 1), a count of filled slots the consumer waits on (starts at 0), and a count of empty slots the producer waits on (starts at the buffer size).
 :Q_EXPLAIN: Notes: 2.2 › Producer/Consumer Problem › Bounded buffer (Stallings Figure 5.16).
 :Q_UNIT: cprob
 :END:
@@ -1910,20 +1856,19 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: cprob
 :END:
 
-*** In the readers-have-priority solution, what are wsem and read_lock for?
+*** In the readers-have-priority readers/writers solution, what two things need mutual exclusion?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: wsem gives mutual exclusion on the shared data area (one writer, or the group of readers); read_lock gives mutual exclusion on the readcount variable.
+:Q_ANSWER: The shared data area (one writer, or the group of readers) and the count of active readers.
 :Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 1: readers have priority (and Readers/Writers handout, Algorithm 1).
 :Q_UNIT: cprob
 :END:
 
-*** In the readers-have-priority solution, which reader takes wsem and which releases it?
+*** In the readers-have-priority readers/writers solution, how do readers keep writers out?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: The first reader in (readcount becomes 1) takes wsem; the last reader out (readcount becomes 0) signals it.
+:Q_ANSWER: The first reader to arrive locks the data area against writers, and the last reader to leave unlocks it.
 :Q_EXPLAIN: Notes: 2.2 › Readers/Writers Problem › Solution 1: readers have priority.
-:Q_STEPS: READER: | . semWait(read_lock); readcount++; | . if readcount == 1 then semWait(wsem) | . semSignal(read_lock) | . READUNIT() | . semWait(read_lock); readcount--; | . if readcount == 0 then semSignal(wsem) | . semSignal(read_lock) | WRITER: semWait(wsem); WRITEUNIT(); semSignal(wsem)
 :Q_UNIT: cprob
 :END:
 
@@ -1987,14 +1932,6 @@ differences between methods), then worked /math/ problems, then
 
 ** Deadlock and Livelock, on a Staircase
 
-*** Using the staircase example, what is the difference between deadlock and livelock?
-:PROPERTIES:
-:Q_TYPE: short
-:Q_ANSWER: Deadlock: two people on a narrow staircase each wait for the other to move and nobody moves; livelock: both keep stepping aside the same way, constantly changing state but making no progress.
-:Q_EXPLAIN: Notes: 2.2 › Concurrency: Deadlock and Starvation › Deadlock and Livelock, on a Staircase.
-:Q_UNIT: dead
-:END:
-
 *** Define livelock.
 :PROPERTIES:
 :Q_TYPE: short
@@ -2044,14 +1981,6 @@ differences between methods), then worked /math/ problems, then
 :Q_TYPE: short
 :Q_ANSWER: A region that a path can enter (e.g., P holds A and Q holds B) but can only leave into a forbidden region, so once entered, deadlock is inevitable.
 :Q_EXPLAIN: Notes: 2.2 › Joint Progress Diagrams (Figure 6.2).
-:Q_UNIT: dead
-:END:
-
-*** How does Figure 6.3 change P so that no deadlock is possible?
-:PROPERTIES:
-:Q_TYPE: short
-:Q_ANSWER: P does Get A, Release A, Get B, Release B, never holding both, so the forbidden regions don't form a fatal region.
-:Q_EXPLAIN: Notes: 2.2 › Joint Progress Diagrams (Figure 6.3).
 :Q_UNIT: dead
 :END:
 
@@ -2324,10 +2253,10 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Write the invariant that relates R, V, and A.
+*** In the banker's algorithm, how are the total resources, the available resources, and the allocations related?
 :PROPERTIES:
 :Q_TYPE: short
-:Q_ANSWER: \(R_j = V_j + \sum_i A_{ij}\) for every resource j: every unit is either free or allocated.
+:Q_ANSWER: For every resource, the total equals what is available plus the sum of what is allocated to all processes: every unit is either free or allocated.
 :Q_EXPLAIN: Notes: Deadlock Avoidance and Detection handout › Deadlock avoidance: the state.
 :Q_UNIT: dead
 :END:
@@ -2341,7 +2270,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Give the steps of the resource allocation algorithm (Figure 6.9b) when a process makes a request.
+*** In deadlock avoidance, give the steps of the resource allocation algorithm when a process makes a request.
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: If alloc + request exceeds the claim, it's an error; if the request exceeds available, suspend the process; otherwise simulate the allocation and carry it out only if the new state is safe, else restore the state and suspend the process.
@@ -2365,7 +2294,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Is the Figure 6.7 handout state safe? If so, give a safe sequence.
+*** Is this state safe? If so, give a safe sequence. (Practice 1)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Safe. Safe sequence: P2, P1, P3, P4.
@@ -2375,7 +2304,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Is the Figure 6.8 initial state safe? If so, give a safe sequence.
+*** Is this state safe? If so, give a safe sequence. (Practice 2)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Safe. Safe sequence: P2, P1, P3, P4.
@@ -2385,7 +2314,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Is the Figure 6.8 state after P1's request is granted safe? If so, give a safe sequence.
+*** Is this state safe? If so, give a safe sequence. (Practice 3)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Unsafe: no process's remaining need C - A fits in Available.
@@ -2395,7 +2324,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Is Problem M safe? If so, give a safe sequence.
+*** Is this state safe? If so, give a safe sequence. (Practice 4)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Safe. Safe sequence: P2, P4, P1, P3, P5.
@@ -2405,7 +2334,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Is Problem N safe? If so, give a safe sequence.
+*** Is this state safe? If so, give a safe sequence. (Practice 5)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Unsafe: no process's remaining need C - A fits in Available.
@@ -2415,7 +2344,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Is Problem O safe? If so, give a safe sequence.
+*** Is this state safe? If so, give a safe sequence. (Practice 6)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Unsafe: no process's remaining need C - A fits in Available.
@@ -2465,7 +2394,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Use the resource allocation algorithm: P2 requests (1, 0, 2) in Problem M. Grant, suspend, or error?
+*** Use the resource allocation algorithm: P2 requests (1, 0, 2). Grant, suspend, or error?
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Grant it: the new state is safe (sequence P2, P4, P1, P3, P5).
@@ -2475,7 +2404,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Use the resource allocation algorithm: P1 requests (0, 2, 0) in Problem M. Grant, suspend, or error?
+*** Use the resource allocation algorithm: P1 requests (0, 2, 0). Grant, suspend, or error?
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Grant it: the new state is safe (sequence P4, P2, P1, P3, P5).
@@ -2504,7 +2433,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Why is a process with an all-zero allocation row marked immediately?
+*** In the deadlock detection algorithm, why is a process that holds no resources marked right away?
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: A process that holds no resources cannot participate in a deadlock.
@@ -2560,7 +2489,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on the Figure 6.10 state. Which processes are deadlocked?
+*** Run the deadlock detection algorithm on this state. Which processes, if any, are deadlocked? (Practice 1)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Deadlocked: P1, P2 (unmarked at the end).
@@ -2570,7 +2499,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state. Which processes, if any, are deadlocked? (Problem B)
+*** Run the deadlock detection algorithm on this state. Which processes, if any, are deadlocked? (Practice 2)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: No deadlock: every process ends up marked.
@@ -2580,7 +2509,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state. Which processes, if any, are deadlocked? (Problem C)
+*** Run the deadlock detection algorithm on this state. Which processes, if any, are deadlocked? (Practice 3)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Deadlocked: P1, P2, P3 (unmarked at the end).
@@ -2590,7 +2519,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem D)
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Practice 4)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Deadlocked: P1, P2, P3 (unmarked at the end).
@@ -2600,7 +2529,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem E)
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Practice 5)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: No deadlock: every process ends up marked.
@@ -2610,7 +2539,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem F)
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Practice 6)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Deadlocked: P1, P2, P3, P4 (unmarked at the end).
@@ -2620,7 +2549,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem G)
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Practice 7)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: No deadlock: every process ends up marked.
@@ -2630,7 +2559,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem H)
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Practice 8)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: No deadlock: every process ends up marked.
@@ -2640,7 +2569,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem I)
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Practice 9)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: Deadlocked: P1, P3 (unmarked at the end).
@@ -2650,7 +2579,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Problem K)
+*** Run the deadlock detection algorithm on this state (only R is given; compute Available first). Which processes, if any, are deadlocked? (Practice 10)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: No deadlock: every process ends up marked.
@@ -2660,7 +2589,7 @@ differences between methods), then worked /math/ problems, then
 :Q_UNIT: dead
 :END:
 
-*** Run the deadlock detection algorithm on this variant of Figure 6.10 (R2 now has a free unit). Which processes, if any, are deadlocked?
+*** Run the deadlock detection algorithm on this state. Which processes, if any, are deadlocked? (Practice 11)
 :PROPERTIES:
 :Q_TYPE: short
 :Q_ANSWER: No deadlock: every process ends up marked.
@@ -2715,5 +2644,84 @@ differences between methods), then worked /math/ problems, then
 :Q_ACCEPT: Coffman-Elphick-Shoshani | Coffman Elphick Shoshani
 :Q_EXPLAIN: Notes: 2.2 › Deadlock Detection › Detection algorithms.
 :Q_UNIT: dead
+:END:
+
+
+* Assignment 2
+
+** The three wait conditions
+
+*** When two consumers each wait for a different kind of item in a shared buffer, why is one "buffer not empty" condition variable with a single signal insufficient?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: The signal can wake the consumer whose kind of item is not there while the consumer that could proceed keeps sleeping, and that wakeup is lost.
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › The three wait conditions.
+:Q_UNIT: asg2
+:END:
+
+** Key synchronization ideas
+
+*** Define a lost wakeup.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A signal that should let a waiting thread resume is missed (e.g., delivered to the wrong thread or sent when no one was waiting on a condition variable), so an eligible thread stays blocked.
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › Key synchronization ideas.
+:Q_UNIT: asg2
+:END:
+
+*** Why must a condition-variable wait be wrapped in a while loop rather than an if?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: When the thread resumes, the state may have changed again (or the wakeup was spurious), so it must re-check its predicate before proceeding.
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › Key synchronization ideas.
+:Q_UNIT: asg2
+:END:
+
+*** Re-checking a predicate in a while loop around a blocking wait counts as busy waiting.
+:PROPERTIES:
+:Q_TYPE: tf
+:Q_ANSWER: False
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › Key synchronization ideas.
+:Q_UNIT: asg2
+:END:
+
+*** What is a time-of-check to time-of-use (TOCTOU) bug?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Checking a condition and acting on it in separate critical sections, so the state can change in between and the action is taken on a condition that is no longer true.
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › Key synchronization ideas.
+:Q_UNIT: asg2
+:END:
+
+*** How do you avoid a TOCTOU bug?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Do the check and the action in one critical section, holding the lock the whole time, so the state cannot change in between.
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › Key synchronization ideas.
+:Q_UNIT: asg2
+:END:
+
+*** What is targeted blocking?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: Each waiting thread blocks on the specific condition it needs (e.g., separate odd-available, even-available, and space-available semaphores or condition variables), so it resumes only when it can proceed.
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › Key synchronization ideas.
+:Q_UNIT: asg2
+:END:
+
+*** Define a wasted wakeup.
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: A thread resumes from a blocking wait only to find it still cannot proceed and must wait again.
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › Key synchronization ideas.
+:Q_UNIT: asg2
+:END:
+
+*** Why is waking all waiters on one shared condition correct but wasteful?
+:PROPERTIES:
+:Q_TYPE: short
+:Q_ANSWER: No eligible thread is left asleep, but most woken threads find their condition still false and go back to sleep, producing many wasted wakeups.
+:Q_EXPLAIN: Notes: Assignments › Assignment 2 › Key synchronization ideas.
+:Q_UNIT: asg2
 :END:
 

@@ -3,7 +3,7 @@
 #+DATE: 2026-10-29
 #+STARTUP: noindent
 #+LEARN: nil
-#+QUIZ_TEST: sched,thr,mutex,cprob,dead,file
+#+QUIZ_TEST: sched,thr,mutex,cprob,dead,file,asg2
 
 #+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
 
@@ -15,11 +15,11 @@
 #+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
 
 A full, repeatable practice test covering everything on Test 2: *Scheduling*,
-*Threads*, *Mutual Exclusion*, *Concurrency Problems*, *Deadlock*, and *File
-Management*. Choose a unit and length, *Reveal answer* to check yourself, and
+*Threads*, *Mutual Exclusion*, *Concurrency Problems*, *Deadlock*, *File
+Management*, and *Assignment 2*. Choose a unit and length, *Reveal answer* to check yourself, and
 rate each question *good* or *bad* (with a note) so the bank can be improved.
 
-The test is drawn from the [[file:../question-bank/][Question Bank]] (=#+QUIZ_TEST: sched,thr,mutex,cprob,dead,file=).
+The test is drawn from the [[file:../question-bank/][Question Bank]] (=#+QUIZ_TEST: sched,thr,mutex,cprob,dead,file,asg2=).
 Every question names the lecture-note section it comes from. See also the
 [[file:../][Test 2]] study guide.
 

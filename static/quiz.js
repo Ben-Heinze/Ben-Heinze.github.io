@@ -21,6 +21,7 @@
     ov: 'Overview', mem: 'Memory', proc: 'Process',
     sched: 'Scheduling', thr: 'Threads', mutex: 'Mutual Exclusion',
     dead: 'Deadlock', cprob: 'Concurrency Problems', file: 'File Management',
+    asg2: 'Assignment 2',
     // Machine Learning midterm
     found: 'Foundations', linreg: 'Linear Regression', nonpar: 'Nonparametric',
     eval: 'Experiments', dimred: 'Dim. Reduction', clust: 'Clustering',

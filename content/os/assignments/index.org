@@ -1,0 +1,121 @@
+#+TITLE: Assignments
+#+AUTHOR: Ben Heinze
+#+DATE: 2026-10-29
+#+STARTUP: noindent
+
+#+MACRO: hl @@html:<span class="hl-$1">$2</span>@@@@latex:\hl{$1}{$2}@@
+
+# This is used to shrink the pdf page margins
+#+LATEX_HEADER: \usepackage[left=0.75in,right=0.75in,top=1in,bottom=1in]{geometry}
+
+# This is used to shrink the spacing between bullet points
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist[itemize]{itemsep=2pt, topsep=4pt}
+
+Programming assignments for the course, summarized at the level of /ideas/ ---
+what each one is for and how it works --- rather than code.
+
+* Assignment 2: Synchronized Typed Buffer
+
+Handout: [[file:Assignment_2_Typed_Buffer.pdf][Assignment 2: Typed Buffer (PDF)]] (the Markdown version,
+=assignment-2-typed-buffer.md=, is kept alongside it in this folder). Due 11/01/2026.
+
+*Topic:* thread synchronization --- a variation of the [[file:../lectures/2-2-process-management/index.org::*Producer/Consumer Problem][bounded producer/consumer problem]]
+in which each consumer can only take items of its own type.
+
+** Purpose
+
+The assignment exercises the ideas from the mutual exclusion and concurrency
+problems lectures on a real thread library (POSIX threads):
+
+- Protect shared state with a /mutex/ so every operation on it is atomic and free of {{{hl(green,race conditions)}}}
+- Make a thread /block on a predicate/ (a condition about the shared state) with
+  condition variables or semaphores, instead of {{{hl(red,busy waiting)}}}
+- Block and resume correctly: {{{hl(green,no lost wakeups)}}}, and no thread left blocked
+- Argue /liveness/: the design cannot deadlock, livelock, or leave a thread blocked at the end
+- Make each thread's output reproducible even though the interleaving is not
+
+** How it works
+
+- A /bounded buffer/ of capacity *50* is shared by *two producers* and *two consumers*, all threads
+- Items are integers 1--100, tagged *odd* or *even*
+  - =producer_odd= inserts random odd values; =producer_even= inserts random even values
+  - =consumer_odd= removes only odd items; =consumer_even= removes only even items
+- Each producer makes exactly *100* items; each consumer removes exactly *100*
+- The buffer tracks three quantities: =size=, =odd_count=, =even_count= --- exactly what the wait conditions test
+
+** The three wait conditions
+
+The twist that makes this a synchronization problem: there are *three distinct
+predicates* over one buffer.
+
+| Thread          | Blocks until...                  | Predicate             |
+|-----------------+----------------------------------+-----------------------|
+| Either producer | there is free space              | =size < 50=           |
+| =consumer_odd=  | an /odd/ item is present         | =odd_count > 0=       |
+| =consumer_even= | an /even/ item is present        | =even_count > 0=      |
+
+A consumer waits on the presence of /its own type/, not on "buffer not empty".
+A buffer full of even items must not wake =consumer_odd=.
+
+*Why one "not empty" condition is not enough:* it cannot tell an odd-waiter from
+an even-waiter. With a single shared condition variable and a single =signal=,
+the /wrong/ consumer can be woken (it finds nothing it can take and goes back to
+sleep) while the consumer that /could/ proceed keeps sleeping. Because a
+condition variable {{{hl(red,does not remember a signal)}}}, that wakeup is lost
+for good: an effective deadlock.
+
+** Key synchronization ideas
+
+- *Mutual exclusion and check-and-act:* "is there an odd item? if so remove one"
+  must be a /single/ critical section. Checking in one critical section and
+  removing in another is a {{{hl(red,time-of-check to time-of-use (TOCTOU))}}}
+  bug: the item can vanish in between.
+- *No busy waiting:* a thread that cannot proceed blocks on a condition variable
+  or semaphore rather than spinning.
+- *=while=, not =if=, around a condition wait:* when a thread resumes it must
+  re-check its predicate, because the state may have changed again (or the
+  wakeup was spurious). Re-checking in a loop around a blocking wait is not busy
+  waiting.
+- *No lost wakeups:* any operation that makes a waiting thread's predicate true
+  must let that thread resume. Inserting an item can wake the matching consumer;
+  removing an item can wake a producer waiting for space.
+  - A /counting semaphore/ remembers a signal that arrives before anyone waits
+  - A /condition variable/ forgets it, so signals must be targeted correctly (or use =broadcast=)
+- *Targeted blocking:* each waiter should block on the /specific/ condition it
+  needs --- e.g. separate semaphores (or condition variables) for
+  /odd-available/, /even-available/, and /space-available/. Funneling everyone
+  through one condition and waking all waiters on every change is correct but
+  wasteful.
+  - The program counts /wasted wakeups/: times a thread resumes only to find it
+    still cannot proceed. Targeted blocking keeps this near zero.
+- *Wait on the resource before the mutex:* with semaphores, a producer must wait
+  on /space/ first and then on the mutex. Taking the mutex first and then
+  blocking on /space/ freezes everyone --- the same
+  [[file:../lectures/2-2-process-management/index.org::*Questions][fatal swap from the producer/consumer lecture]].
+
+** Termination
+
+- Producers stop after their 100 items; consumers stop after removing 100 items
+- The fixed count is exact because of the type invariant: only =consumer_odd=
+  removes odd items, so it consumes exactly what =producer_odd= made
+- Terminating a consumer on "buffer empty and producers finished" instead {{{hl(red,can hang)}}}
+- At the end all four threads exit cleanly, with none left blocked, and =main= joins them
+
+** Reproducibility
+
+- Each producer's /sequence of values/ is reproducible for a given seed (default 42),
+  because each has its /own/ pseudo-random generator state seeded from the base seed
+- Sharing one generator (e.g. =rand()=) across threads is not thread-safe, and its
+  output would depend on the interleaving
+- The /interleaving/ (the order operations happen across threads) is still
+  nondeterministic --- that is expected
+
+** Logging
+
+- Each thread writes its own log file; every line records the action
+  (=before_insert=, =after_insert=, =before_remove=, =after_remove=), the value,
+  and =size=/=odd=/=even= at that instant
+- The /before/ snapshot, the change, and the /after/ snapshot are taken atomically under the buffer lock
+- A global =seq= number, incremented inside the critical section, lets all four
+  logs be merged into one consistent order of operations
