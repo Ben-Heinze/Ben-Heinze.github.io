@@ -8,36 +8,36 @@
   * { box-sizing: border-box; }
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body {
-    font: 7.56pt/1.13 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font: 7.06pt/1.1 "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: #000; background: #fff; margin: 0;
     column-count: 3; column-gap: 0.17in; column-fill: auto;
     orphans: 2; widows: 2;
     hyphens: auto; -webkit-hyphens: auto;
   }
-  h1 { font-size: 12.0pt; margin: 0 0 2.4pt; letter-spacing: -0.24pt; }
-  h1 + .sub { font-size: 7.2pt; margin: 0 0 4.8pt; color: #444; }
+  h1 { font-size: 11.20pt; margin: 0 0 2.24pt; letter-spacing: -0.22pt; }
+  h1 + .sub { font-size: 6.72pt; margin: 0 0 4.48pt; color: #444; }
   h2 {
-    font-size: 8.28pt; margin: 6.0pt 0 2.4pt; padding: 0 0 0.6pt;
-    border-bottom: 1.8pt solid #000; color: #000; letter-spacing: 0.24pt;
+    font-size: 7.73pt; margin: 5.60pt 0 2.24pt; padding: 0 0 0.56pt;
+    border-bottom: 1.68pt solid #000; color: #000; letter-spacing: 0.22pt;
     text-transform: uppercase; break-after: avoid;
   }
   h3 {
-    font-size: 7.8pt; margin: 3.6pt 0 1.2pt; padding-bottom: 0.6pt;
-    border-bottom: 0.6pt solid #000; break-after: avoid;
+    font-size: 7.28pt; margin: 3.36pt 0 1.12pt; padding-bottom: 0.56pt;
+    border-bottom: 0.56pt solid #000; break-after: avoid;
   }
-  p, ul, ol, table { margin: 1.2pt 0; }
-  ul, ol { padding-left: 9.0pt; }
-  li { margin: 0.36pt 0; }
+  p, ul, ol, table { margin: 1.12pt 0; }
+  ul, ol { padding-left: 8.40pt; }
+  li { margin: 0.34pt 0; }
   b, strong { font-weight: 700; }
   i, em { font-style: italic; }
-  table { width: 100%; border-collapse: collapse; font-size: 7.14pt; }
-  td, th { border: 0.48pt solid #999; padding: 0.72pt 1.92pt; vertical-align: top; text-align: left; }
+  table { width: 100%; border-collapse: collapse; font-size: 6.66pt; }
+  td, th { border: 0.45pt solid #999; padding: 0.67pt 1.79pt; vertical-align: top; text-align: left; }
   th { background: #e8e8e8; font-weight: 700; }
-  .box { border: 0.72pt solid #000; padding: 2.4pt 3.6pt; margin: 3.0pt 0; break-inside: avoid; }
+  .box { border: 0.67pt solid #000; padding: 2.24pt 3.36pt; margin: 2.80pt 0; break-inside: avoid; }
   .box.key { background: #f0f0f0; }
-  .box h3 { margin-top: 0; border: 0; font-size: 7.8pt; }
-  .f { font-family: "Courier New", monospace; font-size: 7.2pt; }
-  code { font-family: "Courier New", monospace; font-size: 7.56pt; }
+  .box h3 { margin-top: 0; border: 0; font-size: 7.28pt; }
+  .f { font-family: "Courier New", monospace; font-size: 6.72pt; }
+  code { font-family: "Courier New", monospace; font-size: 7.06pt; }
   .tight li { margin: 0; }
   .no-break { break-inside: avoid; }
   /* Firefox ignores break-after:avoid in multicol, so bind this heading to
@@ -98,10 +98,13 @@ Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
 <div class="box no-break">
 <h3>File-management math</h3>
 <table>
-<tr><td>Indexed seq.</td><td class="f">no index: N/2<br>index of k entries: k/2 + N/(2k)<br>N=10<sup>6</sup>, k=1000: 500+500 = <b>1000</b> (vs 500,000)<br>(min at k=√N, algebra)</td></tr>
-<tr><td>Bit table</td><td class="f">blocks = disk / block size<br>bits = blocks; bytes = blocks/8<br>16 GB, 512 B: 2<sup>34</sup>/2<sup>9</sup>=2<sup>25</sup> bits = <b>4 MB</b><br>1 GB, 4 KB: 2<sup>18</sup> bits = <b>32 KB</b></td></tr>
-<tr><td>Free block list</td><td class="f">24 or 32 bits per block # → 24–32× bit table</td></tr>
-<tr><td>Bit reading</td><td class="f">0 = free, 1 = used. 1110 0011 → free 3,4,5</td></tr>
+<tr><td>Indexed seq.</td><td class="f">no index: N/2<br>index of k entries: k/2 + N/(2k)<br>N=10<sup>5</sup>, k=100: 50+500 = <b>550</b> (vs 50,000)<br>N=2·10<sup>6</sup>, k=500: 250+2000 = <b>2250</b><br>best k=√N → √N total (N=40,000: k=200, <b>200</b>)</td></tr>
+<tr><td>Bit table</td><td class="f">blocks = disk / block size<br>bits = blocks; bytes = blocks/8<br>16 GB, 4 KB: 2<sup>34</sup>/2<sup>12</sup>=2<sup>22</sup> bits = <b>512 KB</b><br>1 TB, 4 KB: 2<sup>28</sup> bits = 2<sup>25</sup> B = <b>32 MB</b></td></tr>
+<tr><td>Free block list</td><td class="f">blocks × (24 or 32 bits) → 24–32× bit table<br>16 GB, 4 KB, 32-bit: 2<sup>22</sup>×4 B = <b>16 MB</b> (32×)</td></tr>
+<tr><td>Bit reading</td><td class="f">0 = free, 1 = used. Count 0s; first 0 = first free;<br>run of k free = k consecutive 0s.<br>1101 0011 1000 1011 → free 2,4,5,9,10,11,13 (7); run of 3 = 9–11</td></tr>
+<tr><td>Blocking</td><td class="f">fixed: ⌊B/R⌋ per block, waste B − n·R<br>B=1024, R=100: <b>10</b>/block, <b>24 B</b> wasted</td></tr>
+<tr><td>Idx portions</td><td class="f">walk portions summing lengths: (1,3)(28,4)(14,1)<br>file blk 5 = 2nd of (28,4) → disk <b>29</b></td></tr>
+<tr><td>Compaction</td><td class="f">pack in disk order: start = prev start + prev length</td></tr>
 </table>
 </div>
 
@@ -114,7 +117,7 @@ Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
 <li>Benefits: faster <b>create</b>, <b>terminate</b>, <b>switch</b>, cheaper <b>communication</b> (shared memory, no kernel).</li>
 <li>Uses: foreground/background, asynchronous processing, speedup, modular structure.</li>
 <li>Scheduled per thread. <b>Suspend/terminate a process ⟹ all its threads.</b></li>
-<li>States: Running, Ready, Blocked (<b>no suspend</b>). Ops: <b>Spawn, Block, Unblock, Finish</b>.</li>
+<li>States: Running, Ready, Blocked (<b>no suspend</b>: suspend is a process concept). Ops: <b>Spawn, Block, Unblock, Finish</b> (finish frees register context + stacks).</li>
 </ul>
 
 <h2>II · Scheduling</h2>
@@ -126,18 +129,19 @@ Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
 <tr><td>I/O</td><td>which pending I/O request a device handles</td></tr>
 </table>
 <p><b>Criteria.</b> User/perf: turnaround, response time, deadlines. User/non-perf: predictability. System/perf: throughput, utilization. System/non-perf: fairness, priorities, balancing resources.</p>
+<p><b>Pure priority</b> starves low priorities; fix = <b>aging</b> (priority rises with wait). <b>Preemptive</b>: more overhead (context switches), better service (no monopoly).</p>
 <p class="f">w = waiting so far, e = executed so far, s = total service<br>T<sub>r</sub> = finish − arrival; normalized = T<sub>r</sub>/T<sub>s</sub><br>HRRN: R = (w + s)/s</p>
 <table>
 <tr><th>Policy</th><th>Select</th><th>Mode</th><th>Notes</th></tr>
 <tr><td>FCFS</td><td>max w</td><td>non</td><td>bad for short, favors CPU-bound</td></tr>
-<tr><td>RR</td><td>const</td><td>pre (q)</td><td>time slicing; q &gt; typical interaction; I/O-bound shortchanged</td></tr>
-<tr><td>SPN</td><td>min s</td><td>non</td><td>needs s estimates; long jobs starve</td></tr>
+<tr><td>RR</td><td>const</td><td>pre (q)</td><td>time slicing; q slightly &gt; typical interaction; I/O-bound shortchanged → <b>virtual RR</b></td></tr>
+<tr><td>SPN</td><td>min s</td><td>non</td><td>needs s estimates; long jobs starve; less predictable; bad for time-sharing</td></tr>
 <tr><td>SRT</td><td>min s−e</td><td>pre (arrival)</td><td>best mean T<sub>r</sub>; starvation; no clock interrupts</td></tr>
 <tr><td>HRRN</td><td>max R</td><td>non</td><td>aging, no starvation</td></tr>
-<tr><td>FB</td><td>queue lvl</td><td>pre (q)</td><td>no s needed; demote per preemption; bottom FCFS; long jobs stretch</td></tr>
+<tr><td>FB</td><td>queue lvl</td><td>pre (q)</td><td>no s needed; enter RQ0, demote per preemption; bottom FCFS; long jobs stretch (q=2<sup>i</sup> helps)</td></tr>
 </table>
 <p class="f">Example A–E arr 0,2,4,6,8 serv 3,6,4,5,2 (mean T<sub>r</sub>, T<sub>r</sub>/T<sub>s</sub>):<br>FCFS 8.6/2.56 RR1 10.8/2.71 RR4 10.0/2.71 SPN 7.6/1.84<br><b>SRT 7.2/1.59</b> HRRN 8.0/2.14 FB1 10.0/2.29 FB2<sup>i</sup> 10.6/2.63</p>
-<p><b>Windows</b>: highest priority wins; 16–31 real-time, 1–15 variable, 0 zero-page thread; Normal+Normal = 8; RR within a level; boosts decay 1/quantum; no boosts for real-time. <b>Linux</b>: SCHED_OTHER (fair), FIFO/RR (real-time), DEADLINE (EDF). Lower nice = bigger weight; share = w<sub>i</sub>/Σw. <b>CFS</b>: min virtual runtime, Δv = Δt·w<sub>0</sub>/w. <b>EEVDF</b> (6.6): eligible (lag ≥ 0) with earliest d = v + r·w<sub>0</sub>/w.</p>
+<p><b>Windows</b>: highest priority wins, preempts lower; 16–31 real-time, 1–15 variable, 0 zero-page thread. Base = class + level: Normal class → below 7, normal 8, above <b>9</b>; High/normal 13. RR within a level. Boosts (input, finished waits) drop 1 level per full quantum; none for 16–31. Starvation <b>mitigated, not eliminated</b> (real-time can hog). Priority + boosts vs Linux weights. <b>Affinity</b>: allowed CPUs; <b>load balancing</b>: spread work. <b>Linux</b>: SCHED_OTHER (fair), FIFO/RR (real-time), DEADLINE (EDF). Lower nice = bigger weight; share = w<sub>i</sub>/Σw. <b>CFS</b>: min virtual runtime, Δv = Δt·w<sub>0</sub>/w (heavy task's v grows slower → picked more). <b>Lag</b> = service owed (+ = under-served). <b>EEVDF</b> (6.6): eligible (lag ≥ 0) with earliest d = v + r·w<sub>0</sub>/w.</p>
 
 <h2>III · Mutual Exclusion</h2>
 <ul class="tight">
@@ -158,7 +162,7 @@ Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
 <p class="f">Peterson P0: flag[0]=true; turn=1;<br>while(flag[1] &amp;&amp; turn==1); CS; flag[0]=false;</p>
 <p><b>Interrupt disabling</b>: works on uniprocessor only; hurts efficiency. <b>Compare&amp;swap</b> (atomic; returns old): <span class="f">while(cas(bolt,0,1)==1); CS; bolt=0;</span> + any # processes, uni/multi, many CSs; − busy wait, starvation, deadlock.</p>
 <p><b>Semaphore</b>: init ≥0; <span class="f">semWait: count--; if &lt;0 block</span>; <span class="f">semSignal: count++; if ≤0 unblock one</span>. Negative count = # waiting. Can't read it. <b>Binary</b>: 0/1. <b>Strong</b> = FIFO (no starvation), <b>weak</b> = unspecified. Must be atomic (hardware, Dekker/Peterson, CAS, interrupts). <b>Mutex</b>: locker must unlock (binary sem: anyone may signal).</p>
-<p><b>Monitor</b>: local data only via its procedures; enter by calling one; <b>one process inside at a time</b>. <span class="f">cwait(c)</span> blocks + frees monitor; <span class="f">csignal(c)</span> resumes one. <b>Signals not saved</b> (a semaphore count would remember).</p>
+<p><b>Monitor</b>: local data only via its procedures; enter by calling one; <b>one process inside at a time</b>. <span class="f">cwait(c)</span> blocks + frees monitor; <span class="f">csignal(c)</span> resumes one; <b>broadcast</b> resumes all. <b>Signals not saved</b> (a semaphore count would remember).</p>
 
 <h2>IV · Concurrency Problems</h2>
 <p><b>Dining philosophers</b>: 5 forks, need 2. Naive (sem per fork, left then right) → <b>deadlock</b> if all take left. Fix: 5 more forks, or <span class="f">room = 4</span> (wait(room) before forks, signal after). Monitor: cwait on <span class="f">ForkReady[i]</span> per missing fork.</p>
@@ -180,7 +184,8 @@ Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
 <tr><td>No preemption</td><td>release on denial / OS preempts holder</td></tr>
 <tr><td>Circular wait</td><td>linear ordering of resource types</td></tr>
 </table>
-<p>First 3 necessary, not sufficient; all 4 = necessary + sufficient. Prevention: <b>indirect</b> (first 3) / <b>direct</b> (circular wait). <b>Avoidance</b>: process initiation denial or resource allocation denial (banker's). <b>Detection</b>: grant freely, check periodically (early detection, simple; costs CPU).</p>
+<p>First 3 necessary, not sufficient; all 4 = necessary + sufficient. Prevention: <b>indirect</b> (first 3) / <b>direct</b> (circular wait). <b>Avoidance</b>: process initiation denial or resource allocation denial (banker's). Avoidance +: no preempt/rollback, less restrictive than prevention. <b>Detection</b>: grant freely, check periodically (per request: early + simple, but costs CPU).</p>
+<p>Memory 200 KB: P1 80 then 60, P2 70 then 80 → after 150, 50 left, neither 2nd request fits → deadlock.<br>Receive(P2) then Send vs Receive(P1) then Send: blocking receives → deadlock.</p>
 <p><b>Recovery</b>: abort all; back up to checkpoint + restart; abort one by one; preempt one by one. <b>Integrated</b>: classes ordered; swappable space = all at once; process resources = ordering/avoidance; main memory = preemption; internal = ordering. Linux/Windows mostly ignore deadlock.</p>
 
 <h2>VI · File Management</h2>
@@ -228,13 +233,6 @@ turn = 1; flag[0] = false;</p>
 <p>Only the process whose turn it <i>isn't</i> backs off → no livelock.</p>
 </div>
 <div class="box no-break">
-<h3>Software attempts at a glance</h3>
-<p class="f">#1 while(turn!=0); CS; turn=1;<br>
-#2 while(flag[1]); flag[0]=true; CS; flag[0]=false;<br>
-#3 flag[0]=true; while(flag[1]); CS; flag[0]=false;<br>
-#4 flag[0]=true; while(flag[1]){flag[0]=false; delay; flag[0]=true;} CS; flag[0]=false;</p>
-</div>
-<div class="box no-break">
 <h3>Bounded buffer (Fig 5.16) · s=1, n=0, e=size</h3>
 <p class="f">producer: produce(); semWait(e); semWait(s);<br>
 &nbsp;&nbsp;append(); semSignal(s); semSignal(n);<br>
@@ -249,7 +247,6 @@ consumer: semWait(n); semWait(s); take();<br>
 consumer: semWaitB(delay); loop: semWaitB(s); take();<br>
 &nbsp;&nbsp;n--; semSignalB(s); consume();<br>
 &nbsp;&nbsp;if (n==0) semWaitB(delay);</p>
-<p>Trace: consumer empties buffer (n=0), producer adds before the consumer's <span class="f">if (n==0)</span> (n=1, delay=1), consumer skips the wait; next round its <span class="f">semWaitB(delay)</span> eats the stale signal → takes from empty, <b>n = −1</b>. Fix (5.13): <span class="f">m = n;</span> inside CS, <span class="f">if (m==0)</span>.</p>
 </div>
 <div class="box no-break">
 <h3>Readers priority (handout Alg 1)</h3>
@@ -295,7 +292,7 @@ HRRN: A0-3 B3-9; t=9: C R=(5+4)/4=2.25,<br>
 &nbsp;&nbsp;D (3+5)/5=1.6, E (1+2)/2=1.5 → C9-13;<br>
 &nbsp;&nbsp;t=13: D (7+5)/5=2.4, E (5+2)/2=3.5 → E13-15, D15-20<br>
 &nbsp;&nbsp;Tr 3,7,9,14,7 → 8.00</p>
-<p><b>Windows</b> (q=4, A,B pri 8; C pri 10 arrives at 6): A 0–4, B 4–6, C preempts 6–8. <b>CFS</b> (A w2 v6, B w1 v4, C w1 v5): pick B; B runs 2 ms → v=6; next C. <b>EEVDF</b> V=10: A v8 d16, B v9 d14, C v13 d13.5 <i>ineligible</i> → <b>B</b>. <b>Weights</b> A2 B1 C1 → 50/25/25%; C blocks → ⅔, ⅓.</p>
+<p><b>Windows</b> (q=4, A,B pri 8; C pri 10 arrives at 6): A 0–4, B 4–6, C preempts 6–8. <b>CFS</b> (w<sub>0</sub>=1; A w2 v10, B w1 v8, C w4 v9): pick B; 3 ms → v=11; next C (9); C runs 4 ms → +4/4 = 10. <b>EEVDF</b> V=13: A v12 r4 w2 → d14; B v10 r6 → d16; C v15 &gt; V <i>ineligible</i> → <b>A</b>. <b>Weights</b> 3,1,1,3 → 3/8,1/8,1/8,3/8 (40 ms: 15,5,5,15); D blocks → 3/5, 1/5, 1/5.</p>
 </div>
 
 <h2>IX · Commonly confused</h2>
@@ -316,15 +313,24 @@ HRRN: A0-3 B3-9; t=9: C R=(5+4)/4=2.25,<br>
 <li><b>Chained alloc vs chained free portions.</b> File's blocks linked vs free space linked.</li>
 <li><b>Compaction vs consolidation.</b> Contiguous (squeeze out holes) vs chained/indexed (bring a file's blocks together).</li>
 <li><b>Preallocation vs dynamic.</b> Max size at creation vs portions as needed.</li>
+<li><b>Lost vs wasted wakeup.</b> Signal missed (waiter keeps sleeping) vs woken but must wait again.</li>
 <li><b>Reusable vs consumable.</b> Not depleted by use vs created and destroyed.</li>
 </ul>
 </div>
 
-<h2>X · More file management</h2>
+<h2>X · Waiting correctly (Assignment 2)</h2>
+<ul class="tight">
+<li><b>Lost wakeup</b>: a signal that should resume a waiter is missed (wrong thread woken, or no one waiting yet). One shared "not empty" condition + single signal for two kinds of consumers can wake the wrong one.</li>
+<li><b>Wait in a <span class="f">while</span>, not <span class="f">if</span></b>: state may change again (or spurious wakeup), so re-check the predicate. This is <b>not busy waiting</b> (the thread blocks).</li>
+<li><b>TOCTOU</b> (time of check to time of use): check and act in separate critical sections → state changes in between. Fix: check + act under one lock.</li>
+<li><b>Targeted blocking</b>: each waiter blocks on the specific condition it needs (separate semaphores/conditions per kind + space).</li>
+<li><b>Wasted wakeup</b>: resumed only to wait again. <b>Broadcast</b> to all waiters is correct (nobody eligible left asleep) but wasteful.</li>
+</ul>
+
+<h2>XI · More file management</h2>
 <p><b>Objectives</b>: meet user data needs, valid data, performance, many device types, minimize lost data, standard I/O routines, multi-user support. <b>User requirements</b>: create/delete/read/write/modify; controlled access to others' files and control of own; move data between files; back up/recover; access by name.</p>
 <p><b>Criteria for an organization</b>: short access time, ease of update, economy of storage, simple maintenance, reliability.</p>
-<p><b>Indexed seq. lookup</b>: search index for the highest key ≤ target, follow pointer, search main file sequentially from there. Multiple index levels for larger files.</p>
-<p><b>Portion size</b>: variable large contiguous (performance, small tables, like dynamic partitioning: best/next/nearest fit) vs small fixed blocks (flexible, bigger tables, contiguity abandoned).</p>
-<p><b>Compaction example</b> (Fig 12.9/10): A(2,3) B(9,5) C(18,8) D(30,2) E(26,3) → starts 0, 3, 8, 19, 16. <b>Indexed</b>: File B index block 24 lists blocks 1, 8, 3, 14, 28 (or portions (1,3) (28,4) (14,1)).</p>
+<p><b>Indexed seq. lookup</b>: index → highest key ≤ target → pointer → scan main file. Multi-level index for big files.</p>
+<p><b>Portion size</b>: large variable (fast, small tables) vs small fixed blocks (flexible, big tables).</p>
 </body>
 </html>
