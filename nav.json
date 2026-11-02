@@ -79,6 +79,10 @@
               {
                 "label": "10 Deep Learning",
                 "href": "/ai/ml/lectures/10-deep-learning/index.html"
+              },
+              {
+                "label": "11 Population-based Algorithms",
+                "href": "/ai/ml/lectures/11-population-based-algorithms/index.html"
               }
             ]
           },

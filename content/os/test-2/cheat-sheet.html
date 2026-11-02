@@ -8,36 +8,36 @@
   * { box-sizing: border-box; }
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body {
-    font: 7.06pt/1.1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font: 6.81pt/1.1 "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: #000; background: #fff; margin: 0;
     column-count: 3; column-gap: 0.17in; column-fill: auto;
     orphans: 2; widows: 2;
     hyphens: auto; -webkit-hyphens: auto;
   }
-  h1 { font-size: 11.20pt; margin: 0 0 2.24pt; letter-spacing: -0.22pt; }
-  h1 + .sub { font-size: 6.72pt; margin: 0 0 4.48pt; color: #444; }
+  h1 { font-size: 10.80pt; margin: 0 0 2.16pt; letter-spacing: -0.21pt; }
+  h1 + .sub { font-size: 6.48pt; margin: 0 0 4.32pt; color: #444; }
   h2 {
-    font-size: 7.73pt; margin: 5.60pt 0 2.24pt; padding: 0 0 0.56pt;
-    border-bottom: 1.68pt solid #000; color: #000; letter-spacing: 0.22pt;
+    font-size: 7.45pt; margin: 5.40pt 0 2.16pt; padding: 0 0 0.54pt;
+    border-bottom: 1.62pt solid #000; color: #000; letter-spacing: 0.21pt;
     text-transform: uppercase; break-after: avoid;
   }
   h3 {
-    font-size: 7.28pt; margin: 3.36pt 0 1.12pt; padding-bottom: 0.56pt;
-    border-bottom: 0.56pt solid #000; break-after: avoid;
+    font-size: 7.02pt; margin: 3.24pt 0 1.08pt; padding-bottom: 0.54pt;
+    border-bottom: 0.54pt solid #000; break-after: avoid;
   }
-  p, ul, ol, table { margin: 1.12pt 0; }
-  ul, ol { padding-left: 8.40pt; }
-  li { margin: 0.34pt 0; }
+  p, ul, ol, table { margin: 1.08pt 0; }
+  ul, ol { padding-left: 8.10pt; }
+  li { margin: 0.33pt 0; }
   b, strong { font-weight: 700; }
   i, em { font-style: italic; }
-  table { width: 100%; border-collapse: collapse; font-size: 6.66pt; }
-  td, th { border: 0.45pt solid #999; padding: 0.67pt 1.79pt; vertical-align: top; text-align: left; }
+  table { width: 100%; border-collapse: collapse; font-size: 6.42pt; }
+  td, th { border: 0.43pt solid #999; padding: 0.65pt 1.73pt; vertical-align: top; text-align: left; }
   th { background: #e8e8e8; font-weight: 700; }
-  .box { border: 0.67pt solid #000; padding: 2.24pt 3.36pt; margin: 2.80pt 0; break-inside: avoid; }
+  .box { border: 0.65pt solid #000; padding: 2.16pt 3.24pt; margin: 2.70pt 0; break-inside: avoid; }
   .box.key { background: #f0f0f0; }
-  .box h3 { margin-top: 0; border: 0; font-size: 7.28pt; }
-  .f { font-family: "Courier New", monospace; font-size: 6.72pt; }
-  code { font-family: "Courier New", monospace; font-size: 7.06pt; }
+  .box h3 { margin-top: 0; border: 0; font-size: 7.02pt; }
+  .f { font-family: "Courier New", monospace; font-size: 6.48pt; }
+  code { font-family: "Courier New", monospace; font-size: 6.81pt; }
   .tight li { margin: 0; }
   .no-break { break-inside: avoid; }
   /* Firefox ignores break-after:avoid in multicol, so bind this heading to
@@ -313,22 +313,24 @@ HRRN: A0-3 B3-9; t=9: C R=(5+4)/4=2.25,<br>
 <li><b>Chained alloc vs chained free portions.</b> File's blocks linked vs free space linked.</li>
 <li><b>Compaction vs consolidation.</b> Contiguous (squeeze out holes) vs chained/indexed (bring a file's blocks together).</li>
 <li><b>Preallocation vs dynamic.</b> Max size at creation vs portions as needed.</li>
-<li><b>Lost vs wasted wakeup.</b> Signal missed (waiter keeps sleeping) vs woken but must wait again.</li>
 <li><b>Reusable vs consumable.</b> Not depleted by use vs created and destroyed.</li>
 </ul>
 </div>
 
-<h2>X · Waiting correctly (Assignment 2)</h2>
+<h2>X · Assignment 2 (typed buffer)</h2>
 <ul class="tight">
-<li><b>Lost wakeup</b>: a signal that should resume a waiter is missed (wrong thread woken, or no one waiting yet). One shared "not empty" condition + single signal for two kinds of consumers can wake the wrong one.</li>
-<li><b>Wait in a <span class="f">while</span>, not <span class="f">if</span></b>: state may change again (or spurious wakeup), so re-check the predicate. This is <b>not busy waiting</b> (the thread blocks).</li>
-<li><b>TOCTOU</b> (time of check to time of use): check and act in separate critical sections → state changes in between. Fix: check + act under one lock.</li>
-<li><b>Targeted blocking</b>: each waiter blocks on the specific condition it needs (separate semaphores/conditions per kind + space).</li>
-<li><b>Wasted wakeup</b>: resumed only to wait again. <b>Broadcast</b> to all waiters is correct (nobody eligible left asleep) but wasteful.</li>
+<li><b>Wait conditions?</b> 3: producers wait for a free slot (buffer full); even consumer waits for an even item; odd consumer waits for an odd item.</li>
+<li><b>Why not one "item exists" condition?</b> It can't say odd or even, so it wakes the wrong consumer. With one shared "not empty" + single signal: an even item arrives, the scheduler wakes the odd consumer, it finds no odd item and sleeps again, and the even consumer stays asleep forever (<b>lost wakeup</b>).</li>
+<li><b>Waiting for a specific type:</b> separate counting semaphores n_even, n_odd; a producer posts only its type's semaphore after inserting.</li>
+<li><b>Guarantee (no eligible thread left blocked):</b> every insert/remove posts the matching semaphore; a post made while nobody waits is kept in the count, so the wakeup is never lost.</li>
+<li><b>Targeting (wasted wakeups):</b> one post = one item of that type, and producers wait on a free-slot semaphore, so a woken thread can always proceed: <b>0 wasted wakeups</b>.</li>
+<li><b>Termination:</b> loops count to 100 (not "until empty"), so each consumer takes exactly 100; posts = waits on every semaphore, so no thread ends blocked.</li>
+<li><b>Reproducibility:</b> each producer's values come from its own seed (same seed → same sequence); interleaving stays nondeterministic because the OS scheduler picks which thread runs.</li>
+<li><b>General ideas:</b> wait in a <span class="f">while</span> (re-check predicate; not busy waiting). <b>TOCTOU</b>: check + act in separate critical sections → do both under one lock. <b>Broadcast</b> is correct but causes wasted wakeups.</li>
 </ul>
 
 <h2>XI · More file management</h2>
-<p><b>Objectives</b>: meet user data needs, valid data, performance, many device types, minimize lost data, standard I/O routines, multi-user support. <b>User requirements</b>: create/delete/read/write/modify; controlled access to others' files and control of own; move data between files; back up/recover; access by name.</p>
+<p><b>Objectives</b>: meet user data needs, valid data, performance, many devices, minimize lost data, standard I/O, multi-user.</p>
 <p><b>Criteria for an organization</b>: short access time, ease of update, economy of storage, simple maintenance, reliability.</p>
 <p><b>Indexed seq. lookup</b>: index → highest key ≤ target → pointer → scan main file. Multi-level index for big files.</p>
 <p><b>Portion size</b>: large variable (fast, small tables) vs small fixed blocks (flexible, big tables).</p>
