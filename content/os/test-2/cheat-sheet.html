@@ -96,12 +96,31 @@ Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
 </div>
 
 <div class="box no-break">
-<h3>File-management math</h3>
+<h3>Powers of two (unit conversions)</h3>
+<p class="f">2<sup>10</sup>=1 KB &nbsp;·&nbsp; 2<sup>20</sup>=1 MB &nbsp;·&nbsp; 2<sup>30</sup>=1 GB &nbsp;·&nbsp; 2<sup>40</sup>=1 TB &nbsp;·&nbsp; 2<sup>50</sup>=1 PB</p>
+<p class="f">2<sup>3</sup>=8 (bits/byte) &nbsp;·&nbsp; 2<sup>9</sup>=512 (sector) &nbsp;·&nbsp; 2<sup>12</sup>=4,096 (4 KB block) &nbsp;·&nbsp; 2<sup>13</sup>=8,192 (8 KB) &nbsp;·&nbsp; 2<sup>16</sup>=65,536 (64 KB)</p>
+<p>GB/MB/KB/TB here mean exact powers of two (1 GB = 2<sup>30</sup> B), not powers of 10. Convert every size to 2<sup>n</sup> first, then <b>divide = subtract exponents</b>.</p>
+</div>
+
+<div class="box key no-break">
+<h3>Bit table (guaranteed topic)</h3>
+<p>Free-space map: <b>1 bit/block, 0 = free, 1 = used</b>. Works with any allocation method; smallest possible table.</p>
+<p class="f">blocks = disk size / block size<br>table size: bits = blocks; bytes = blocks/8<br>16 GB, 512 B blocks: 2<sup>34</sup>/2<sup>9</sup>=2<sup>25</sup> blocks → 2<sup>25</sup> bits = 2<sup>22</sup> B = <b>4 MB</b> (textbook ex.)<br>16 GB, 4 KB blocks: 2<sup>34</sup>/2<sup>12</sup>=2<sup>22</sup> bits = <b>512 KB</b><br>1 GB, 4 KB blocks: 2<sup>30</sup>/2<sup>12</sup>=2<sup>18</sup> blocks → 2<sup>18</sup>/8 = <b>32 KB</b><br>1 TB, 4 KB blocks: 2<sup>28</sup> bits = 2<sup>25</sup> B = <b>32 MB</b></p>
+<p><b>Reading a table:</b> count 0s; first 0 = first free block; a run of k free = k consecutive 0s.</p>
+<p class="f">1101 0011 1000 1011 (blocks numbered from 0)<br>→ free blocks <b>2,4,5,9,10,11,13</b> (7 free); run of 3 = blocks 9–11</p>
+<p><b>Free block list</b> (alternative): block numbers in a reserved area, 24 or 32 bits each → <b>24–32×</b> the bit table's size (it lists only free blocks).<br>16 GB, 4 KB blocks, 32-bit numbers: 2<sup>22</sup> × 4 B = <b>16 MB</b> (32× the 512 KB bit table above).</p>
+</div>
+
+<div class="box key no-break">
+<h3>Indexed sequential calculation (guaranteed topic)</h3>
+<p>Index = sequential file of (key, pointer) entries, k entries covering N records. Find key: search index for highest key ≤ target, follow pointer, scan main file from there.</p>
+<p class="f">no index: avg <b>N/2</b> accesses<br>with k-entry index: avg <b>k/2 + N/(2k)</b><br>minimized at k = √N (not from the slides, just algebra)</p>
+<p class="f">N=10<sup>6</sup>, k=1000: 500+500 = <b>1000</b> (vs 500,000 with no index)<br>N=40,000, k=200: 100+100 = <b>200</b> (vs 20,000)<br>N=10<sup>5</sup>, k=100: 50+500 = <b>550</b> (vs 50,000)<br>N=2·10<sup>6</sup>, k=500: 250+2000 = <b>2250</b></p>
+</div>
+
+<div class="box no-break">
+<h3>Other file-management math</h3>
 <table>
-<tr><td>Indexed seq.</td><td class="f">no index: N/2<br>index of k entries: k/2 + N/(2k)<br>N=10<sup>5</sup>, k=100: 50+500 = <b>550</b> (vs 50,000)<br>N=2·10<sup>6</sup>, k=500: 250+2000 = <b>2250</b><br>best k=√N → √N total (N=40,000: k=200, <b>200</b>)</td></tr>
-<tr><td>Bit table</td><td class="f">blocks = disk / block size<br>bits = blocks; bytes = blocks/8<br>16 GB, 4 KB: 2<sup>34</sup>/2<sup>12</sup>=2<sup>22</sup> bits = <b>512 KB</b><br>1 TB, 4 KB: 2<sup>28</sup> bits = 2<sup>25</sup> B = <b>32 MB</b></td></tr>
-<tr><td>Free block list</td><td class="f">blocks × (24 or 32 bits) → 24–32× bit table<br>16 GB, 4 KB, 32-bit: 2<sup>22</sup>×4 B = <b>16 MB</b> (32×)</td></tr>
-<tr><td>Bit reading</td><td class="f">0 = free, 1 = used. Count 0s; first 0 = first free;<br>run of k free = k consecutive 0s.<br>1101 0011 1000 1011 → free 2,4,5,9,10,11,13 (7); run of 3 = 9–11</td></tr>
 <tr><td>Blocking</td><td class="f">fixed: ⌊B/R⌋ per block, waste B − n·R<br>B=1024, R=100: <b>10</b>/block, <b>24 B</b> wasted</td></tr>
 <tr><td>Idx portions</td><td class="f">walk portions summing lengths: (1,3)(28,4)(14,1)<br>file blk 5 = 2nd of (28,4) → disk <b>29</b></td></tr>
 <tr><td>Compaction</td><td class="f">pack in disk order: start = prev start + prev length</td></tr>
@@ -162,7 +181,7 @@ Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
 <p class="f">Peterson P0: flag[0]=true; turn=1;<br>while(flag[1] &amp;&amp; turn==1); CS; flag[0]=false;</p>
 <p><b>Interrupt disabling</b>: works on uniprocessor only; hurts efficiency. <b>Compare&amp;swap</b> (atomic; returns old): <span class="f">while(cas(bolt,0,1)==1); CS; bolt=0;</span> + any # processes, uni/multi, many CSs; − busy wait, starvation, deadlock.</p>
 <p><b>Semaphore</b>: init ≥0; <span class="f">semWait: count--; if &lt;0 block</span>; <span class="f">semSignal: count++; if ≤0 unblock one</span>. Negative count = # waiting. Can't read it. <b>Binary</b>: 0/1. <b>Strong</b> = FIFO (no starvation), <b>weak</b> = unspecified. Must be atomic (hardware, Dekker/Peterson, CAS, interrupts). <b>Mutex</b>: locker must unlock (binary sem: anyone may signal).</p>
-<p><b>Monitor</b>: local data only via its procedures; enter by calling one; <b>one process inside at a time</b>. <span class="f">cwait(c)</span> blocks + frees monitor; <span class="f">csignal(c)</span> resumes one; <b>broadcast</b> resumes all. <b>Signals not saved</b> (a semaphore count would remember).</p>
+<p><b>Monitor</b>: a language construct, not a data object you wait/signal directly like a semaphore — it bundles shared data with the only procedures allowed to touch it. A process "enters" by calling one of those procedures; <b>only one process can be inside the monitor at a time</b>, so every procedure call is automatically mutually exclusive, with no explicit wait/signal needed just to get in. That's the whole appeal over raw semaphores: you can't forget to lock something, because there's no way to touch the data except through a procedure that's already exclusive. <span class="f">cwait(c)</span> blocks the caller on condition <span class="f">c</span> <i>and releases the monitor</i> (so someone else can get in while it waits); <span class="f">csignal(c)</span> resumes one waiter on <span class="f">c</span>; <b>broadcast</b> resumes all of them. <b>Signals not saved</b>: calling <span class="f">csignal(c)</span> when nobody's waiting on <span class="f">c</span> does nothing — unlike a semaphore, whose count would remember it for the next <span class="f">wait</span>.</p>
 
 <h2>IV · Concurrency Problems</h2>
 <p><b>Dining philosophers</b>: 5 forks, need 2. Naive (sem per fork, left then right) → <b>deadlock</b> if all take left. Fix: 5 more forks, or <span class="f">room = 4</span> (wait(room) before forks, signal after). Monitor: cwait on <span class="f">ForkReady[i]</span> per missing fork.</p>
@@ -173,7 +192,7 @@ Fig 6.8: P1 gets (1,0,1) → V=(0,1,1), all need R1 → <b>unsafe</b></p>
 <li>Swap producer signals: <b>OK</b>. Swap consumer <span class="f">wait(n)/wait(s)</span>: <b>deadlock</b>.</li>
 <li>Bounded: add <span class="f">e = size</span>; prod <span class="f">wait(e)</span> first; cons <span class="f">signal(e)</span> after take.</li>
 </ul>
-<p><b>Readers/writers</b>: many readers OR one writer. <b>Readers priority</b>: wsem guards data, read_lock guards readcount; first reader waits wsem, last signals → <b>writers starve</b>. <b>Writers priority</b>: a waiting writer blocks new readers (readblock/rsem; writepending/z lets 1 reader queue on rsem) → <b>readers starve</b>. Neither: FIFO queue via semaphore.</p>
+<p><b>Readers/writers</b>: shared data; any # readers may read at once, only one writer at a time, no reader while a writer writes. Hard part: readers shouldn't block each other, so a plain mutex is wrong — first reader in should lock writers out, last reader out should unlock them. <b>Readers priority</b>: wsem guards data, read_lock guards readcount; first reader waits wsem, last signals → <b>writers starve</b>. <b>Writers priority</b>: a waiting writer blocks new readers (readblock/rsem; writepending/z lets 1 reader queue on rsem) → <b>readers starve</b>. Neither: FIFO queue via semaphore.</p>
 
 <h2>V · Deadlock</h2>
 <p><b>Deadlock</b>: permanent blocking of a set, each waiting on an event only another in the set can cause. <b>Reusable</b> (CPU, I/O channels, memory, devices, files, semaphores) vs <b>consumable</b> (interrupts, signals, messages; e.g. blocking Receive before Send). <b>Fatal region</b> in a joint progress diagram.</p>
@@ -257,6 +276,10 @@ consumer: semWaitB(delay); loop: semWaitB(s); take();<br>
 &nbsp;&nbsp;if (readcount==0) signal(wsem);<br>
 &nbsp;&nbsp;signal(read_lock);<br>
 WRITER: wait(wsem); WRITEUNIT(); signal(wsem);</p>
+<ul class="tight">
+<li>Only the reader making <span class="f">readcount</span> go 0→1 ever touches <span class="f">wsem</span> (<span class="f">if (readcount==1) wait(wsem)</span>); readers 2, 3, ... skip that line entirely.</li>
+<li>So a waiting writer is invisible to new readers — a steady stream of them never has to check for it, which is exactly how writers starve.</li>
+</ul>
 </div>
 <div class="box no-break">
 <h3>Writers priority (handout Alg 2)</h3>
@@ -269,6 +292,10 @@ WRITER: w.lock; writecount++; if ==1 wait(readblock); w.unlock;<br>
 &nbsp;&nbsp;wait(writeblock); WRITEUNIT(); signal(writeblock);<br>
 &nbsp;&nbsp;w.lock; writecount--; if ==0 signal(readblock); w.unlock;</p>
 <p>Stallings names: readblock = <b>rsem</b>, writepending = <b>z</b>. Readers only: wsem set, no queues. Writers only: wsem + rsem set, writers queue on wsem. Mixed: one reader queues on rsem, others on z, writers on wsem.</p>
+<ul class="tight">
+<li>The first writer (<span class="f">writecount</span> 0→1) seizes the gate <i>before</i> writing: <span class="f">if ==1 wait(readblock)</span>.</li>
+<li>Any reader arriving after that calls <span class="f">wait(readblock)</span> too — same gate, now held by the writer — so it just blocks. The writer never has to detect or block readers itself; they block themselves on the gate it already grabbed.</li>
+</ul>
 </div>
 <div class="box no-break">
 <h3>Dining philosophers with room (deadlock-free)</h3>
@@ -277,6 +304,11 @@ think(); wait(room); wait(fork[i]);<br>
 wait(fork[(i+1) mod 5]); eat();<br>
 signal(fork[(i+1) mod 5]); signal(fork[i]); signal(room);</p>
 <p>Monitor version: <span class="f">get_forks(pid)</span>: left=pid, right=(pid+1)%5; if fork not free, <span class="f">cwait(ForkReady[f])</span>; take. <span class="f">release_forks</span>: if <span class="f">empty(ForkReady[f])</span> mark free, else <span class="f">csignal</span>.</p>
+<ul class="tight">
+<li>All fork access goes through <span class="f">get_forks</span>/<span class="f">release_forks</span>, and the monitor lets only <b>one process in at a time</b> — so checking a fork and taking it is atomic. That's what the naive semaphore version lacked: there, every philosopher's independent <span class="f">wait(fork[i])</span> could all succeed for their left fork before anyone tried their right.</li>
+<li><span class="f">ForkReady</span> is <b>5 separate condition variables</b>, one per fork — a philosopher blocks only on the specific fork index it's missing, not a generic "a fork is ready" signal.</li>
+<li><span class="f">release_forks</span> hands a fork <b>directly</b> to a waiter via <span class="f">csignal</span> if one exists, and only marks it free if nobody's waiting — so it never sits "free" for some other philosopher to steal first.</li>
+</ul>
 </div>
 
 <h2>VIII · Worked scheduling</h2>
@@ -307,6 +339,7 @@ HRRN: A0-3 B3-9; t=9: C R=(5+4)/4=2.25,<br>
 <li><b>Binary semaphore vs mutex.</b> Anyone may signal a binary semaphore; only the locker unlocks a mutex.</li>
 <li><b>Strong vs weak semaphore.</b> FIFO (starvation-free) vs unspecified order.</li>
 <li><b>Semaphore vs condition variable.</b> Count remembers a signal; csignal with no waiter is lost.</li>
+<li><b>Semaphore vs (bare) signal.</b> A semaphore is a persistent counting object: an unconsumed semSignal is remembered (negative count = # waiting). A signal (e.g. a consumable resource, or an OS signal that wakes the scheduler) is a one-shot, transient event with no memory — if nobody's listening, it's lost.</li>
 <li><b>SPN vs SRT.</b> Same idea; SRT preempts on arrival using remaining time.</li>
 <li><b>Concurrency vs parallelism.</b> Overlap/interleaving vs truly simultaneous.</li>
 <li><b>Indexed sequential vs indexed.</b> Keeps sequential order + overflow file vs access only through indexes.</li>
